@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "timezone": "America/Sao_Paulo",
+  "newsletter": "Robozinho dos Momozis até Passar",
+  "recipients": [
+    "pereirafranciscofilho@gmail.com",
+    "luizaxbarreto@gmail.com"
+  ],
+  "executions": [
+    {
+      "execution_id": "2026-07-24-7h",
+      "type": "scheduled_7h",
+      "run_started_at": "2026-07-24T12:03:00-03:00",
+      "run_finished_at": "2026-07-24T13:18:00-03:00",
+      "date": "2026-07-24",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-07-21T09:32:00-03:00",
+      "window_end": "2026-07-24T13:15:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 24/07/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r5782817246795683100",
+      "munger_index": 5,
+      "munger_total_quotes": 200,
+      "munger_tema": "inversão",
+      "munger_quote": "Resolva os problemas de trás para frente: descubra o que leva ao fracasso e evite isso com firmeza. (dia do ano 205 mod 200 = 5, recontado via grep nesta execução: 200 ocorrências de \"tema\")",
+      "versiculo": "1 Coríntios 10:13 (NVI) — YouVersion (bible.com/pt/verse-of-the-day), confirmado para 24/07/2026 via WebFetch",
+      "gmail_rota_8a": {
+        "push_planalto_sistema_atual": "SEM EMAIL NOVO — sonda ampla presidencia.gov.br in:anywhere newer_than:30d ainda só retorna as resenhas de 01 e 02/07/2026; gap agora de 22 dias.",
+        "push_planalto_legado": "SEM EMAIL NOVO — sistemapush.saj@presidencia.gov.br (after:2026/07/18) e subject:\"Resenha Diaria\" (after:2026/07/18) vazios.",
+        "push_stf_naoresponda": "4 e-mails novos (21, 22, 23 e 24/07, 05h0x cada), cobrindo notícias de 20 a 24/07; todas as manchetes extraídas.",
+        "push_stf_informativos_nao_responda": "sem e-mail novo na janela; compatível com recesso forense.",
+        "stj_codju": "1 e-mail novo (22/07 03h32): Informativo de Jurisprudência Edição Extraordinária n. 32 (21/07/2026); corpo do e-mail só traz link dinâmico, conteúdo integral não extraído nesta execução.",
+        "jota": "16 e-mails no período 20-24/07; destaque aproveitado integralmente: 'STF autoriza inquéritos sobre dois ministros do STJ por venda de decisões' (24/07, com o caso Flávio Bolsonaro/Dark Horse/Vorcaro); outros aproveitados: STF se divide sobre restrição a reclamações (23/07), 90% dos advogados usam IA (22/07); demais eram conteúdo eleitoral/comercial ou já cobertos."
+      },
+      "items": [
+        {
+          "chave": "planalto|lei|15472|2026|2026-07-22",
+          "fonte": "Congresso Nacional - Últimas Leis Publicadas (Rota 13); confirmado por ConJur/Senado/OAB",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.472/2026 — reconhece natureza alimentar dos honorários advocatícios, alterando a Lei 8.906/1994 (Estatuto da OAB)",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/lei/l15472.htm"
+        },
+        {
+          "chave": "planalto|lei|15471|2026|2026-07-21",
+          "fonte": "Congresso Nacional - Últimas Leis Publicadas (Rota 13)",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.471/2026 — institui estratégia nacional para o complexo econômico-industrial da saúde",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/lei/l15471.htm"
+        },
+        {
+          "chave": "stf|noticia|inquerito-moura-ribeiro-buzzi-venda-decisoes|2026|2026-07-24",
+          "fonte": "O Tempo / Correio24Horas (convergente com JOTA)",
+          "categoria": "STF Notícias",
+          "titulo": "Zanin autoriza PF a investigar ministros do STJ Moura Ribeiro e Marco Buzzi por suspeita de venda de decisões judiciais",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "url": "https://www.otempo.com.br/politica/judiciario/2026/7/23/zanin-autoriza-pf-a-investigar-moura-ribeiro-por-suspeita-de-venda-de-decisoes"
+        },
+        {
+          "chave": "stf|noticia|mendonca-inquerito-vorcaro-dark-horse-flavio|2026|2026-07-24",
+          "fonte": "JOTA",
+          "categoria": "STF Notícias",
+          "titulo": "André Mendonça autoriza PF a investigar recursos repassados por Vorcaro ao filme 'Dark Horse', ligados a pedido de Flávio Bolsonaro",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "url": null
+        },
+        {
+          "chave": "stf|noticia|irrigacao-suspensao-120-dias|2026|2026-07-24",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "Nunes Marques suspende por mais 120 dias ação sobre recursos mínimos para irrigação cobrados por estados",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-por-mais-120-dias-acao-em-que-estados-cobram-da-uniao-percentual-minimo-de-recursos-para-irrigacao/"
+        },
+        {
+          "chave": "stf|noticia|iptu-teresina|2026|2026-07-22",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "Moraes permite retomada da cobrança de IPTU em Teresina",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "url": "https://noticias.stf.jus.br/postsnoticias/decisao-do-stf-permite-retomada-da-cobranca-de-iptu-em-teresina/"
+        },
+        {
+          "chave": "stf|noticia|fachin-angola-aula-magna|2026|2026-07-22",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "Fachin defende independência do Judiciário e alerta para ameaças à democracia em aula magna em Luanda",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-defende-independencia-do-judiciario-e-alerta-para-ameacas-a-democracia/"
+        },
+        {
+          "chave": "stj|jurisprudencia|banco-emprestimo-fraudulento-furto-celular|2026|2026-07-23",
+          "fonte": "Migalhas",
+          "categoria": "STJ Jurisprudência",
+          "titulo": "Ministra Nancy Andrighi: banco responde por empréstimo fraudulento contratado após furto de celular",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "url": null
+        },
+        {
+          "chave": "stj|informativo|extraordinario-32|2026|2026-07-21",
+          "fonte": "STJ CodJu",
+          "categoria": "Informativos",
+          "titulo": "STJ publica Informativo de Jurisprudência Edição Extraordinária n. 32 (21/07/2026)",
+          "status": "PENDENCIA_DE_VERIFICACAO",
+          "url": null
+        },
+        {
+          "chave": "concurso|dpe-rj|xxix-inscricoes-encerradas|2026|2026-07-24",
+          "fonte": "PCI Concursos / Estratégia CJ (busca dirigida)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-RJ XXIX (Defensor Substituto): inscrições encerradas (prorrogadas até 10/07, pagamento até 17/07); 35 vagas + CR, R$ 34.279,28; prova preliminar em 30/08/2026",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "url": null
+        },
+        {
+          "chave": "concurso|tjdft|edital-2022-desatualizado-checagem|2026|2026-07-24",
+          "fonte": "Cebraspe (busca dirigida)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJDFT Juiz Substituto: checagem direta ao Cebraspe retornou o edital de 2022 (desatualizado); sem confirmação de edital novo para 2026",
+          "status": "FORTE_INDICIO",
+          "url": null
+        },
+        {
+          "chave": "youversion|versiculo|1corintios-10-13|2026|2026-07-24",
+          "fonte": "YouVersion",
+          "categoria": "Versículo do dia",
+          "titulo": "1 Coríntios 10:13 (NVI) — confirmado para 24/07/2026",
+          "status": "CONFIRMADO",
+          "url": "https://www.bible.com/pt/verse-of-the-day"
+        },
+        {
+          "chave": "munger|citacao|inversao-resolva-problemas-tras-para-frente|indice-5|2026-07-24",
+          "fonte": "munger-quotes.json (índice 5 de 200)",
+          "categoria": "Conhecimento nunca é demais",
+          "titulo": "Munger — 'Resolva os problemas de trás para frente: descubra o que leva ao fracasso e evite isso com firmeza.' (índice 5)",
+          "status": "CONFIRMADO",
+          "url": null
+        }
+      ],
+      "source_status": {
+        "gmail_push_planalto_sistema_atual": "sem_email_gap_22_dias",
+        "gmail_push_planalto_legado": "sem_email",
+        "gmail_push_stf": "ok_4_emails_novos_aproveitados",
+        "gmail_push_stf_informativos": "sem_email_novo_compativel_recesso",
+        "gmail_stj_codju": "ok_1_email_conteudo_nao_expandido_link_dinamico",
+        "gmail_jota": "ok_16_emails_varios_aproveitados",
+        "congresso_ultimas_leis_publicadas_rota13": "ok_trouxe_leis_15471_e_15472",
+        "congresso_mpvs": "consultado_1362_1363_descartadas_por_nao_pertencerem_a_janela_apos_checagem_cruzada",
+        "conjur": "ok_via_fetch_direto",
+        "migalhas": "ok_via_fetch_direto",
+        "websearch_confirmacao_cruzada_stf_stj": "ok_otempo_correio24horas",
+        "gran_estrategia_cj_pci_cebraspe": "ok_via_busca_concursos",
+        "cebraspe_tjdft": "retornou_edital_desatualizado_2022_tratado_como_erro_de_fonte",
+        "stj_noticias_institucional_direto": "http_404_stj.jus.br_paginas_Comunicacao_Noticias",
+        "youversion": "ok_confirmado_via_webfetch_data_batendo",
+        "inlabs": "pulado_sem_credenciais"
+      },
+      "errors": [
+        "WebFetch congressonacional.leg.br/materias/medidas-provisorias: retornou datas de MPV 1362/1363 aparentemente equivocadas (confundiu dias de tramitação com data de edição); corrigido via WebSearch dirigido, que confirmou MPV 1362 como sendo de 25/05/2026 (fora da janela)",
+        "WebFetch cebraspe.org.br/tjdft-abre-30-vagas-para-juiz-de-direito-substituto: retornou o edital de 2022 (desatualizado), não um edital novo de 2026",
+        "WebFetch stj.jus.br/sites/portalp/Paginas/Comunicacao/Noticias.aspx: HTTP 404 Not Found",
+        "Corrupção de encoding detectada e corrigida durante a gravação do histórico: um script PowerShell (.ps1) intermediário com literais acentuados embutidos foi lido pelo powershell.exe com codepage incorreta, duplicando o encoding UTF-8 (mojibake) apenas nos campos desta execução recém-adicionada; corrigido reescrevendo a entrada a partir de um arquivo JSON autônomo em UTF-8, sem literais acentuados dentro do próprio .ps1"
+      ],
+      "pendencias": [
+        "Gmail PUSH Planalto (sistema atual e legado) — sem e-mail há 22 dias (desde 02/07/2026); Rota 13 (Congresso) segue como fallback funcional",
+        "TJDFT — edital ainda não publicado; consulta ao Cebraspe retornou o edital de 2022 (desatualizado), sem confirmação de edital novo 2026",
+        "TJ-RS — FGV contratada por dispensa de licitação, mas edital ainda sem data oficial (herdada)",
+        "PGE-MA — banca aguardada para julho, sem contratação formal confirmada nesta janela (herdada)",
+        "AGU/PFN — 170 vagas autorizadas, edital em até 6 meses da autorização (~jan/2027) (herdada)",
+        "STJ Informativo Extraordinário n. 32 (21/07) — conteúdo integral não verificado nesta execução (página dinâmica)",
+        "PGE-AL, PGE-BA, PGE-RS, MPMS, DPU VII, TRF2, TRF5, MPC-MA, DPE-RO, DPE-SC — cronogramas em curso, sem alteração confirmada nesta janela (herdados)"
+      ],
+      "verification_notes": "Execução com atraso relevante (agendada para 7h, executada a partir de ~12h de 24/07/2026, sexta-feira). Reconciliação de entrega: confirmado via search_threads que a edição de 21/07/2026 foi enviada (thread 19f84aef14ccfba0, gmail_message_id 19f84bc9b511e67e); histórico atualizado (delivery: sent). Anti-duplicata: list_drafts para o assunto de hoje retornou vazio antes e depois da criação do rascunho. Janela elástica: window_start = window_end da última execução bem-sucedida (2026-07-21T09:32), estendida por gap de dias sem execução (22 e 23/07, app fechado), cobrindo cerca de 3 dias — dentro do limite de 7 dias. Destaque da edição: revelação de que dois ministros do STJ (Moura Ribeiro e Marco Buzzi) estão sob investigação da PF por suspeita de venda de decisões judiciais, autorizada pelo ministro Zanin, confirmada cruzando JOTA com O Tempo e Correio24Horas; e inquérito autorizado por André Mendonça sobre recursos repassados por Daniel Vorcaro ao filme 'Dark Horse', ligado a pedido de Flávio Bolsonaro. Planalto: Gmail PUSH seguiu mudo (gap de 22 dias), mas Rota 13 (Congresso — Últimas Leis Publicadas) funcionou novamente e trouxe a Lei 15.472/2026 (natureza alimentar dos honorários advocatícios, alterando o Estatuto da OAB) como novidade de maior impacto na advocacia, além da Lei 15.471/2026 (herdada). Verificação ativa evitou publicar dado equivocado: o fetch da página de MPVs do Congresso atribuiu datas futuras/incorretas às MPVs 1362 e 1363; WebSearch dirigido confirmou que a MPV 1362 é de 25/05/2026, fora da janela, e os itens foram descartados antes da composição do rascunho. Da mesma forma, a checagem direta ao Cebraspe sobre o edital do TJDFT trouxe o edital de 2022 (desatualizado) em vez de confirmar um edital novo — tratado como erro de fonte, mantendo o item como FORTE_INDICIO sem upgrade indevido. STF/STJ Jurisprudência e Informativos seguiram com fluxo reduzido, compatível com o recesso forense (2-31/07). Concurso DPE-RJ teve status atualizado de 'inscrições abertas, encerram em breve' para 'inscrições encerradas' após confirmação de prorrogação até 10/07 e pagamento até 17/07, com prova preliminar marcada para 30/08/2026. Nesta execução também foi detectado e corrigido um incidente de dupla-codificação (mojibake) causado por um script PowerShell intermediário com acentos literais — ver campo errors. E-mail salvo como rascunho (r5782817246795683100) para envio pelo Google Apps Script.",
+      "gmail_message_id": "19f9cee0a950f8f3",
+      "delivery_reconciled_at": "2026-07-27T21:31:36-03:00"
+    }
+  ]
+}
