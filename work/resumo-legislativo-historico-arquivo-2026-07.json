@@ -178,6 +178,170 @@
       "verification_notes": "Execução com atraso relevante (agendada para 7h, executada a partir de ~12h de 24/07/2026, sexta-feira). Reconciliação de entrega: confirmado via search_threads que a edição de 21/07/2026 foi enviada (thread 19f84aef14ccfba0, gmail_message_id 19f84bc9b511e67e); histórico atualizado (delivery: sent). Anti-duplicata: list_drafts para o assunto de hoje retornou vazio antes e depois da criação do rascunho. Janela elástica: window_start = window_end da última execução bem-sucedida (2026-07-21T09:32), estendida por gap de dias sem execução (22 e 23/07, app fechado), cobrindo cerca de 3 dias — dentro do limite de 7 dias. Destaque da edição: revelação de que dois ministros do STJ (Moura Ribeiro e Marco Buzzi) estão sob investigação da PF por suspeita de venda de decisões judiciais, autorizada pelo ministro Zanin, confirmada cruzando JOTA com O Tempo e Correio24Horas; e inquérito autorizado por André Mendonça sobre recursos repassados por Daniel Vorcaro ao filme 'Dark Horse', ligado a pedido de Flávio Bolsonaro. Planalto: Gmail PUSH seguiu mudo (gap de 22 dias), mas Rota 13 (Congresso — Últimas Leis Publicadas) funcionou novamente e trouxe a Lei 15.472/2026 (natureza alimentar dos honorários advocatícios, alterando o Estatuto da OAB) como novidade de maior impacto na advocacia, além da Lei 15.471/2026 (herdada). Verificação ativa evitou publicar dado equivocado: o fetch da página de MPVs do Congresso atribuiu datas futuras/incorretas às MPVs 1362 e 1363; WebSearch dirigido confirmou que a MPV 1362 é de 25/05/2026, fora da janela, e os itens foram descartados antes da composição do rascunho. Da mesma forma, a checagem direta ao Cebraspe sobre o edital do TJDFT trouxe o edital de 2022 (desatualizado) em vez de confirmar um edital novo — tratado como erro de fonte, mantendo o item como FORTE_INDICIO sem upgrade indevido. STF/STJ Jurisprudência e Informativos seguiram com fluxo reduzido, compatível com o recesso forense (2-31/07). Concurso DPE-RJ teve status atualizado de 'inscrições abertas, encerram em breve' para 'inscrições encerradas' após confirmação de prorrogação até 10/07 e pagamento até 17/07, com prova preliminar marcada para 30/08/2026. Nesta execução também foi detectado e corrigido um incidente de dupla-codificação (mojibake) causado por um script PowerShell intermediário com acentos literais — ver campo errors. E-mail salvo como rascunho (r5782817246795683100) para envio pelo Google Apps Script.",
       "gmail_message_id": "19f9cee0a950f8f3",
       "delivery_reconciled_at": "2026-07-27T21:31:36-03:00"
+    },
+    {
+      "execution_id": "2026-07-27-7h",
+      "type": "diaria",
+      "run_started_at": "2026-07-27T11:29:00-03:00",
+      "run_finished_at": "2026-07-27T21:35:00-03:00",
+      "date": "2026-07-27",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-07-24T13:15:00-03:00",
+      "window_end": "2026-07-27T13:00:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 27/07/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r949452697303089098",
+      "items": [
+        {
+          "chave": "planalto|lei|15474|2026|2026-07-24",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.474/2026 - autoriza spray de pimenta para defesa pessoal",
+          "data": "2026-07-24",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15475|2026|2026-07-24",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.475/2026 - proíbe produção e comercialização de foie gras",
+          "data": "2026-07-24",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15476|2026|2026-07-24",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.476/2026 - cria o título Cidade Amiga do Idoso",
+          "data": "2026-07-24",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15477|2026|2026-07-24",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.477/2026 - institui o Dia Nacional do Rotaractiano",
+          "data": "2026-07-24",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stf|nota|luto-oficial-gallotti|2026|2026-07-26",
+          "categoria": "stf-noticia",
+          "titulo": "Morte do ministro aposentado Octavio Gallotti; luto oficial de 3 dias",
+          "data": "2026-07-26",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|rede-emendas-impositivas-responsabilizacao|2026|2026-07-23",
+          "categoria": "stf-noticia",
+          "titulo": "Rede questiona falta de responsabilização de parlamentares por emendas impositivas",
+          "data": "2026-07-23",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stj|decisao|manguinhos-recuperacao-fiscal-cobranca|2026|2026-07-24",
+          "categoria": "stj-noticia",
+          "titulo": "STJ libera cobranças do plano de recuperação fiscal de Manguinhos",
+          "data": "2026-07-24",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "concurso|mpsp|97concurso-promotor-prova-aplicada|2026|2026-07-26",
+          "categoria": "concurso-carreira",
+          "titulo": "MP-SP - 97º concurso Promotor de Justiça Substituto - prova aplicada",
+          "data": "2026-07-26",
+          "status": "PROVA REALIZADA"
+        },
+        {
+          "chave": "jota|reforma-tributaria|cnpj-nf-pessoa-fisica-adiado-2027|2026|2026-07-24",
+          "categoria": "midia",
+          "titulo": "Comitê Gestor do IBS adia para 2027 CNPJ/NF de pessoa física e produtor rural",
+          "data": "2026-07-24",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|tjsp-clausula-arbitral-foro-londres-abusividade|2026|2026-07-27",
+          "categoria": "midia",
+          "titulo": "TJ-SP vê abusividade em cláusula arbitral com foro em Londres",
+          "data": "2026-07-27",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|pf-diarias-delegados-antecipadas-regra-geral|2026|2026-07-27",
+          "categoria": "midia",
+          "titulo": "Pagamento antecipado de diárias a delegados da PF é regra geral",
+          "data": "2026-07-27",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|milei-ofensas-lula-moraes-embaixador-convocado|2026|2026-07-25",
+          "categoria": "midia",
+          "titulo": "Ofensas de Milei a Lula e Moraes levam Brasil a convocar embaixador argentino",
+          "data": "2026-07-25",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|bbc-trump-difamacao-processo|2026|2026-07-25",
+          "categoria": "midia",
+          "titulo": "BBC vira o jogo em processo por difamação movido por Trump",
+          "data": "2026-07-25",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|aprovado-oab-76-anos|2026|2026-07-27",
+          "categoria": "midia",
+          "titulo": "Aprovado na OAB aos 76 anos",
+          "data": "2026-07-27",
+          "status": "MIDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "youversion|versiculo|tiago-1-19|2026|2026-07-27",
+          "categoria": "versiculo",
+          "titulo": "Tiago 1:19 (NVI)",
+          "data": "2026-07-27",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "munger|citacao|modelos-mentais-poucos-grandes|indice-8|2026-07-27",
+          "categoria": "munger",
+          "titulo": "Domine os poucos grandes modelos de cada disciplina",
+          "data": "2026-07-27",
+          "status": "CONFIRMADO"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel - 2 e-mails, 7 itens extraídos",
+        "gmail_push_planalto": "mudo - 1 sonda, sem retorno (25 dias sem e-mail)",
+        "gmail_stj_codju": "intermitente - sem e-mail nesta janela, agravado por recesso forense",
+        "gmail_jota": "saudavel - 10 e-mails na busca, 4 na janela exata, 2 aproveitados após filtro de ruído",
+        "congresso_ultimas_leis": "saudavel - 4 leis novas confirmadas (15.474 a 15.477), cross-checadas via WebSearch/Migalhas/CNN/Senado",
+        "congresso_mpvs": "instavel - armadilha reincidiu (datas futuras/incoerentes); MPVs 1362, 1363 e 1379 checadas e descartadas por checagem cruzada",
+        "conjur": "saudavel",
+        "migalhas": "saudavel",
+        "youversion": "saudavel - data validada corresponde a 27/07/2026",
+        "aprovaconcursos_editais_dia": "consultado - nenhum edital de carreira jurídica localizado"
+      },
+      "errors": [
+        "Subagentes JOTA e Web foram interrompidos por queda do processo anterior (harness); retomados via SendMessage a partir do transcript salvo, sem perda de progresso.",
+        "congressonacional.leg.br sem 'www' retornou ENOTFOUND (DNS); resolvido usando www.congressonacional.leg.br."
+      ],
+      "pendencias": [
+        "Gmail PUSH Planalto sem e-mail há 25 dias (desde 02/07/2026) - Rota 13 segue como fallback funcional; prazo de 30 dias se aproxima para sugerir ao usuário reassinatura ou credenciais INLABS",
+        "TJDFT - edital ainda não publicado; consulta ao Cebraspe devolveu edital antigo de 2022 (herdada)",
+        "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027); verificado na 1ª execução da semana, sem alteração (herdada)",
+        "MPF 31º concurso - homologação final sem data; verificado na 1ª execução da semana, sem alteração (herdada)",
+        "PGE-AL, PGE-BA, PGE-MA, PGE-RS, MPMS, DPU VII, TRF2, TRF5, MPC-MA, DPE-RO, DPE-SC, PGM Porto Alegre - cronogramas em curso, sem movimento confirmado (herdados)"
+      ],
+      "verification_notes": [
+        "Execução atrasada: coleta/checagem concluídas por volta de 13h de 27/07, mas o rascunho só foi criado às 21h35 por atraso na execução automatizada (processo anterior caiu e precisou ser retomado). Registrado no e-mail como limitação de cobertura.",
+        "Pendência 'STJ Informativo nº 895' aposentada nesta execução conforme planejado no ledger - substituída por acompanhamento das Edições Extraordinárias (última: nº 32, 21/07/2026).",
+        "Itens já publicados em execuções anteriores e descartados por duplicidade nesta janela: stf|noticia|irrigacao-suspensao-120-dias (24/07), stf|noticia|iptu-teresina (22/07), stf|decisao|gilmar-revisao-indenizacao-bornhausen (17/07, reapareceu via JOTA em 25/07 mas é o mesmo fato).",
+        "Recesso forense (2-31/07) explica o fluxo reduzido de STJ (CodJu silencioso) e de informativos/repercussão geral do STF nesta janela - tratado como normal, não como falha.",
+        "Congresso Nacional (MPVs): página voltou a mostrar datas futuras/incoerentes (MPVs 1362, 1363, 1379 todas checadas e descartadas via WebSearch) - armadilha 'congresso_mpv' reincidiu, adicionar data 2026-07-27 a detectado_em.",
+        "Lição de processo: subagentes interrompidos por queda do harness foram recuperados com sucesso via SendMessage ao agentId, retomando do transcript salvo sem precisar refazer a coleta do zero - útil para futuras execuções que sofram interrupção similar."
+      ],
+      "gmail_message_id": "19fa624c9db8a993",
+      "delivery_reconciled_at": "2026-07-28T09:39:19-03:00"
     }
   ]
 }

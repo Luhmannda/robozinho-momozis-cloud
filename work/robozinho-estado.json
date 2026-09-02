@@ -1,92 +1,54 @@
 {
-  "gerado_em": "2026-09-01T13:53:27+00:00",
-  "gerado_por": "2026-09-01-7h",
+  "gerado_em": "2026-09-02T10:21:59+00:00",
+  "gerado_por": "2026-09-02-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-01-7h",
-    "date": "2026-09-01",
-    "email_subject": "Robozinho dos Momozis até Passar - 01/09/2026 - 7h",
+    "execution_id": "2026-09-02-7h",
+    "date": "2026-09-02",
+    "email_subject": "Robozinho dos Momozis até Passar - 02/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-2334105597244883521",
-    "window_end": "2026-09-01T10:48:00-03:00"
+    "draft_id": "r-6556572539814869932",
+    "window_end": "2026-09-02T07:18:00-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
-      "id": "gap_execucao_15_dias",
-      "texto": "Rotina nao rodou entre 17/08 e 01/09 (15 dias, recorde). Janela desta edicao limitada ao teto de 7 dias (25/08-01/09); periodo de 17 a 25/08 (~8 dias) nao recebeu varredura sistematica, exceto informativos periodicos que consolidaram parte do buraco (STF Info 1223/1224 de 22/08, STJ Info 897 de 18/08).",
-      "faixa": "nova"
-    },
-    {
-      "id": "egress_bloqueado_ambiente_nuvem",
-      "texto": "Politica de rede deste ambiente de nuvem bloqueia WebFetch/curl para congressonacional.leg.br, migalhas.com.br, conjur.com.br e todos os dominios de versiculo biblico testados. Contornado via WebSearch para legislacao/concursos/clipping; sem contorno para o versiculo do dia (secao ficou pendente). Precisa de decisao do usuario: ampliar allowlist de egress do ambiente ou aceitar a limitacao.",
-      "faixa": "nova"
-    },
-    {
       "id": "envio_edicao_31_07_atrasado",
-      "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - agora 32 dias, o dobro do recorde anterior (17 dias). Forte indicio de falha estrutural do Apps Script.",
+      "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado hoje via search_threads in:sent (vazio) - agora 33 dias de atraso",
       "faixa": "cronica"
     },
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (~61 dias)",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (62 dias)",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto - banca Cebraspe, ainda sem edital oficial confirmado, 13a execucao sem novidade. Fontes divergem entre 20 e 30 vagas.",
+      "texto": "TJDFT Juiz Substituto - banca Cebraspe, 14ª execução sem edital oficial; fontes de 2026 convergem agora em 20 vagas (não mais o range 20-30 de execuções anteriores)",
       "faixa": "ativa"
     },
     {
       "id": "mpv_1387_1388_confirmacao",
-      "texto": "MPV 1387/2026 com apenas uma fonte (sem segunda confirmacao midiatica); MPV 1388/2026 sem confirmacao suficiente de data de edicao - nao publicada como novidade.",
-      "faixa": "nova"
+      "texto": "MPV 1387/2026 (1 fonte só) e MPV 1388/2026 (sem confirmação de data) seguem pendentes de segunda fonte - não reverificadas nesta execução (coleta desta janela não trouxe nenhuma MPV nova editada, escopo do coletor foi outro)",
+      "faixa": "ativa"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "Bloco agregado revisado nesta execucao: MPMS, PGM Porto Alegre e DPE-SC ja realizaram provas (mais adiantados que o previsto). PGE-BA, PGE-MA, PGE-RS, DPU VII, DPE-RO seguem em planejamento. MPC-MA nao localizado nas buscas (sigla pouco indexada). PGE-AL e TRF2 nao foram reverificados nesta execucao.",
+      "texto": "PGE-AL e TRF2 reverificados com sucesso nesta execução (provas em 05-06/09 e orais 14-25/09, respectivamente). PGE-BA, PGE-MA, PGE-RS, DPU VII, DPE-RO seguem sem movimento. Novo achado: PGM Juazeiro (BA) com edital previsto para fim de setembro, 1 fonte só.",
       "faixa": "longo_prazo"
     },
     {
-      "id": "versiculo_pendente_egress",
-      "texto": "Secao do versiculo do dia ficou pendente nesta edicao por bloqueio de rede do ambiente (todos os dominios biblicos testados bloqueados por politica de organizacao).",
+      "id": "egress_bloqueado_ambiente_nuvem",
+      "texto": "Bloqueio de egress do ambiente de nuvem para Congresso/ConJur/Migalhas/domínios bíblicos reconfirmado ativo nesta execução (teste direto ao conjur.com.br via WebFetch). Contornado integralmente via WebSearch.",
+      "faixa": "ativa"
+    },
+    {
+      "id": "crise_institucional_stf_pgr_acompanhar",
+      "texto": "Caso Moraes/Vorcaro (crise institucional STF/PGR) publicado como mídia especializada, sem confirmação oficial - acompanhar desfecho e eventual manifestação do STF/PGR nas próximas execuções",
       "faixa": "nova"
     }
   ],
   "chaves_publicadas": [
-    "stf|decisao|aliquota-zero-veiculos-autismo-deficiencia|2026|2026-08-04",
-    "stf|decisao|acir-gurgacz-direitos-politicos-restabelecidos|2026|2026-08-03",
-    "stf|noticia|campo-grande-banheiros-trans-adi|2026|2026-08-03",
-    "stf|noticia|presidente-stf-criticas-republicanas-democracia|2026|2026-08-03",
-    "stf|noticia|fachin-decisoes-contestadas-opiniao-publica|2026|2026-08-04",
-    "stf|decisao|multas-gestor-rn-vantagens-indevidas|2026|2026-07-31",
-    "stf|decisao|bloqueio-verbas-saude-rs-suspensao|2026|2026-07-31",
-    "stf|noticia|escuta-territorializada-maranhao|2026|2026-07-31",
-    "stf|repercussao-geral|are1477280-plano-carreira-professores-curitiba|2026|2026-08-04",
-    "stj|decisao|anp-diretores-afastamento-suspenso-refit|2026|2026-08-04",
-    "stj|jurisprudencia|indenizacao-demora-aposentadoria-rn|2026|2026-08-04",
-    "planalto|lei|15480|2026|2026-07-30",
-    "planalto|lei|15481|2026|2026-07-31",
-    "planalto|mpv|1381|2026|2026-07-31",
-    "planalto|mpv|1382|2026|2026-08-01",
-    "midia|jota|plp211-comite-gestor-ibs-adicional|2026|2026-08-04",
-    "cnj|noticia|fachin-proposta-conflito-interesse-conduta-magistrados|2026|2026-08-04",
-    "midia|jota|recuperacao-judicial-pmes-alta|2026|2026-08-04",
-    "midia|migalhas|camara-pl-proibicao-redes-sociais-investigados|2026|2026-08-04",
-    "midia|migalhas|justica-barra-fatiamento-acoes-teto-juizados|2026|2026-08-04",
-    "midia|jota|nfe-ibs-cbs-cronograma-obrigatoriedade|2026|2026-08-03",
-    "midia|jota|legaltech-ia-suspensa-decisao-judicial|2026|2026-08-03",
-    "midia|conjur|deltan-rde-coisa-julgada-precedente|2026|2026-08-01",
-    "opiniao|jota|ultimo-capitulo-reforma-judiciario|2026|2026-08-04",
-    "opiniao|jota|prevencao-litigios-agu-precedentes|2026|2026-08-04",
-    "opiniao|jota|ctn-luto-sistema-cbs-ibs|2026|2026-08-03",
-    "opiniao|jota|bullying-cyberbullying-populismo-penal|2026|2026-08-03",
-    "opiniao|jota|futuros-advocacia-publica-ia|2026|2026-08-03",
-    "opiniao|jota|tribunais-contas-critica-autocritica|2026|2026-07-31",
-    "concurso|pgm-manaus|inscricoes-encerram-04-08|2026|2026-08-04",
-    "fofoquinha|stj|buzzi-aposentadoria-compulsoria-avaliacao|2026|2026-08-04",
-    "youversion|versiculo|tiago-3-13|2026|2026-08-04",
-    "munger|citacao|evitar-a-burrice-nao-estupido|indice-16|2026-08-04",
     "planalto|lei|15484|2026|2026-08-04",
     "stf|noticia|operacao-sem-desconto-buscas-quebra-sigilo|2026|2026-08-04",
     "stf|decisao|desembargador-prisao-vazamento-pf-rj|2026|2026-08-04",
@@ -243,7 +205,34 @@
     "fofoquinha|jota|disputa-vaga-tcu-pacheco-alcolumbre|2026|2026-08-31",
     "fofoquinha|jota|sindicato-magistrados-assembleia-pauta-etica-pec-mandato|2026|2026-08-25",
     "fofoquinha|jota|desembargador-tjms-reclamacao-disciplinar-cnj|2026|2026-08-28",
-    "munger|citacao|treine-matematica-probabilidades|indice-44|2026-09-01"
+    "munger|citacao|treine-matematica-probabilidades|indice-44|2026-09-01",
+    "stf|decisao|inss-teto-juros-consignado|2026|2026-09-02",
+    "stf|decisao|jornada-servidores-municipais-sp-mantida|2026|2026-09-01",
+    "stf|noticia|anadef-dpu-receitas-proprias-arcabouco-fiscal|2026|2026-09-01",
+    "stf|decisao|porte-arma-policia-cientifica-es-peritos|2026|2026-09-01",
+    "stf|noticia|jornada-italo-hispano-brasileira-direito-publico|2026|2026-09-01",
+    "stj|informativo|899|2026|2026-09-01",
+    "midia|jota-estadao-oglobo-bloomberg|crise-institucional-stf-pgr-moraes-vorcaro|2026|2026-09-02",
+    "midia|conjur|governo-decreto-coibir-abusos-venda-ingressos|2026|2026-09-01",
+    "midia|jota|carf-anula-cobranca-petro-rio-18bi|2026|2026-09-01",
+    "midia|jota|alagoas-mandado-prisao-processo-inexistente|2026|2026-09-01",
+    "midia|jota|gilmar-mendes-barra-cobranca-sindmagis|2026|2026-09-01",
+    "midia|jota|cannabis-medicinal-stf-drogometro-blitze|2026|2026-09-01",
+    "midia|jota|responsabilidade-ia-saude-regulatorio|2026|2026-09-01",
+    "midia|jota|senado-semana-esforco-concentrado-pec-6x1-minerais-criticos|2026|2026-09-01",
+    "opiniao|jota|creditos-judiciais-pis-cofins-2027|2026|2026-09-01",
+    "opiniao|jota|denuncia-espontanea-ibs-cbs|2026|2026-09-01",
+    "opiniao|jota|maturidade-regulatoria-agencias|2026|2026-09-01",
+    "opiniao|jota|custo-invisivel-leiloes-anp|2026|2026-09-01",
+    "opiniao|jota|brasil-ue-comercio-cross-border|2026|2026-09-01",
+    "opiniao|conjur|filtro-relevancia-recurso-especial-medo|2026|2026-09-01",
+    "fofoquinha|jota|pacheco-cotado-vaga-tcu|2026|2026-09-01",
+    "concurso|pge-al|provas-objetiva-discursiva-05-06-09|2026|2026-09-02",
+    "concurso|trf2|provas-orais-14-25-09|2026|2026-09-02",
+    "concurso|pgm-juazeiro-ba|edital-previsto-fim-setembro|2026|2026-09-02",
+    "concurso|tjdft|20-vagas-sem-edital|2026|2026-09-02",
+    "youversion|versiculo|2pedro-1-3|2026|2026-09-02",
+    "munger|citacao|exija-provas-nao-so-vontade|indice-45|2026-09-02"
   ],
-  "total_chaves": 190
+  "total_chaves": 184
 }
