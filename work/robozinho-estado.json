@@ -1,79 +1,54 @@
 {
-  "gerado_em": "2026-09-02T10:21:59+00:00",
-  "gerado_por": "2026-09-02-7h",
+  "gerado_em": "2026-09-03T10:21:20+00:00",
+  "gerado_por": "2026-09-03-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-02-7h",
-    "date": "2026-09-02",
-    "email_subject": "Robozinho dos Momozis até Passar - 02/09/2026 - 7h",
+    "execution_id": "2026-09-03-7h",
+    "date": "2026-09-03",
+    "email_subject": "Robozinho dos Momozis até Passar - 03/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-6556572539814869932",
-    "window_end": "2026-09-02T07:18:00-03:00"
+    "draft_id": "r-3586454126283953776",
+    "window_end": "2026-09-03T07:09:00-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "envio_edicao_31_07_atrasado",
-      "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado hoje via search_threads in:sent (vazio) - agora 33 dias de atraso",
+      "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado em 03/09 via search_threads in:sent (vazio) - agora 34 dias, novo recorde",
       "faixa": "cronica"
     },
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (62 dias)",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (63 dias)",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto - banca Cebraspe, 14ª execução sem edital oficial; fontes de 2026 convergem agora em 20 vagas (não mais o range 20-30 de execuções anteriores)",
+      "texto": "TJDFT Juiz Substituto - banca Cebraspe, 14ª execução sem edital oficial; vagas seguem em 20 (uma fonte cita 24); reconfirmada armadilha banca_edital_antigo (pagina do Cebraspe com 30 vagas e de ciclo 2022/23)",
       "faixa": "ativa"
     },
     {
-      "id": "mpv_1387_1388_confirmacao",
-      "texto": "MPV 1387/2026 (1 fonte só) e MPV 1388/2026 (sem confirmação de data) seguem pendentes de segunda fonte - não reverificadas nesta execução (coleta desta janela não trouxe nenhuma MPV nova editada, escopo do coletor foi outro)",
-      "faixa": "ativa"
+      "id": "agu_pfn_edital",
+      "texto": "AGU/PFN - 170 vagas autorizadas, edital em ate 6 meses (~jan/2027). Nao reverificado nesta execucao (nao e 1a execucao da semana)",
+      "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "PGE-AL e TRF2 reverificados com sucesso nesta execução (provas em 05-06/09 e orais 14-25/09, respectivamente). PGE-BA, PGE-MA, PGE-RS, DPU VII, DPE-RO seguem sem movimento. Novo achado: PGM Juazeiro (BA) com edital previsto para fim de setembro, 1 fonte só.",
+      "texto": "PGE-AL (provas 05-06/09) e TRF2 (orais 14-25/09) com prazos proximos; demais sem movimento. Nao reverificado nesta execucao (nao e 1a execucao da semana)",
       "faixa": "longo_prazo"
     },
     {
       "id": "egress_bloqueado_ambiente_nuvem",
-      "texto": "Bloqueio de egress do ambiente de nuvem para Congresso/ConJur/Migalhas/domínios bíblicos reconfirmado ativo nesta execução (teste direto ao conjur.com.br via WebFetch). Contornado integralmente via WebSearch.",
+      "texto": "Bloqueio de egress do ambiente de nuvem para dominios externos (ex.: conjur.com.br) reconfirmado ativo nesta execucao via teste direto (403 no CONNECT do proxy). Contornado integralmente via WebSearch.",
       "faixa": "ativa"
     },
     {
       "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Caso Moraes/Vorcaro (crise institucional STF/PGR) publicado como mídia especializada, sem confirmação oficial - acompanhar desfecho e eventual manifestação do STF/PGR nas próximas execuções",
-      "faixa": "nova"
+      "texto": "Crise STF-PGR (Moraes-Vorcaro-Mendonca-Gonet): Mendonca admite reuniao com Vorcaro em 2025 (assunto precatorios); duas novas delacoes premiadas (Mansur, Freixo) no caso Master; Fachin ainda decide entre sessao publica ou reservada, sem data marcada; sem manifestacao oficial do STF ou da PGR sobre o merito ate o fechamento desta edicao.",
+      "faixa": "ativa"
     }
   ],
   "chaves_publicadas": [
-    "planalto|lei|15484|2026|2026-08-04",
-    "stf|noticia|operacao-sem-desconto-buscas-quebra-sigilo|2026|2026-08-04",
-    "stf|decisao|desembargador-prisao-vazamento-pf-rj|2026|2026-08-04",
-    "stf|noticia|partido-plano-nacional-faccoes-territorios|2026|2026-08-04",
-    "stf|noticia|associacoes-valores-lavagem-dinheiro-mpf|2026|2026-08-04",
-    "stj|informativo|895|2026|2026-08-04",
-    "stj|jurisprudencia|soltura-nao-moeda-troca-colaboracao|2026|2026-08-04",
-    "stj|jurisprudencia|honorarios-curador-especial-sucumbencia|2026|2026-08-04",
-    "stj|jurisprudencia|justica-gratuita-mulher-cancer-patrimonio|2026|2026-08-04",
-    "stj|jurisprudencia|demolicao-app-indenizacao|2026|2026-08-04",
-    "concurso|mpf|31-homologacao-edital-25-2026|2026|2026-07-03",
-    "concurso|trf2|juiz-federal-provas-08-09-08|2026|2026-08-05",
-    "concurso|dpe-sc|prova-tribuna-homologacao-20-08|2026|2026-08-05",
-    "midia|jota|nunes-marques-remocao-posts-lula-24h|2026|2026-08-04",
-    "midia|jota|fraude-inss-weverton-rocha-pf|2026|2026-08-04",
-    "midia|jota|peru-cidh-condenacao-demissao-sem-defesa|2026|2026-08-04",
-    "midia|jota|carf-contribuicao-previdenciaria-diretor-autocontratacao|2026|2026-08-04",
-    "opiniao|jota|ia-convencoes-partidarias-crime-eleitoral|2026|2026-08-04",
-    "opiniao|jota|icms-st-base-pis-cofins|2026|2026-08-04",
-    "opiniao|jota|stf-moratoria-soja-beneficios-fiscais|2026|2026-08-04",
-    "opiniao|jota|ilusao-nova-nr1-empregador-tutor|2026|2026-08-04",
-    "opiniao|jota|stf-agosto-delibera-direitos-originarios|2026|2026-08-04",
-    "opiniao|jota|saude-politica-industrial-pl-2583-20|2026|2026-08-04",
-    "youversion|versiculo|lucas-16-10|2026|2026-08-05",
-    "munger|citacao|evitar-erros-grosseiros-arruinam-outros|indice-17|2026-08-05",
     "planalto|lei|15485|2026|2026-08-05",
     "stf|noticia|jogos-azar-fux-vota-dino-pede-vista|2026|2026-08-06",
     "stf|noticia|partido-eca-digital-verificacao-idade-jogos|2026|2026-08-05",
@@ -232,7 +207,22 @@
     "concurso|pgm-juazeiro-ba|edital-previsto-fim-setembro|2026|2026-09-02",
     "concurso|tjdft|20-vagas-sem-edital|2026|2026-09-02",
     "youversion|versiculo|2pedro-1-3|2026|2026-09-02",
-    "munger|citacao|exija-provas-nao-so-vontade|indice-45|2026-09-02"
+    "munger|citacao|exija-provas-nao-so-vontade|indice-45|2026-09-02",
+    "planalto|mpv|1388|2026|2026-08-26",
+    "stf|decisao|pis-cofins-reservas-tecnicas-seguradoras|2026|2026-09-03",
+    "stf|decisao|vinculacao-remuneracao-policiais-civis-delegados-pa-invalida|2026|2026-09-02",
+    "stf|noticia|itbi-imunidade-integralizacao-capital-imobiliarias|2026|2026-09-02",
+    "stf|noticia|fundo-constitucional-df-repasses-questionados|2026|2026-09-02",
+    "stj|jurisprudencia|booking-nao-responsabilidade-incendio-pousada|2026|2026-09-02",
+    "midia|estadao-jota-oglobo-migalhas|crise-institucional-stf-pgr-mendonca-admite-encontro-vorcaro|2026|2026-09-03",
+    "midia|jota|tse-criterios-deepfake-livra-pl-video-ia-bolsonaro|2026|2026-09-02",
+    "midia|jota|toffoli-revoga-suspensao-propaganda-renan-santos|2026|2026-09-02",
+    "congresso|senado|pacheco-confirmado-tcu|2026|2026-09-02",
+    "fofoquinha|jota|gonet-vorcaro-maquina-uisque-londres|2026|2026-09-03",
+    "fofoquinha|jota|conversa-tensa-moraes-mendonca-lauro-jardim|2026|2026-09-03",
+    "fofoquinha|jota|gilmar-mendes-procura-lula-reclamar-pf|2026|2026-09-03",
+    "youversion|versiculo|mateus-6-34|2026|2026-09-03",
+    "munger|citacao|exercite-habilidades-regularidade-atrofia|indice-46|2026-09-03"
   ],
-  "total_chaves": 184
+  "total_chaves": 174
 }

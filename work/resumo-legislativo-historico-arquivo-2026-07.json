@@ -342,6 +342,212 @@
       ],
       "gmail_message_id": "19fa624c9db8a993",
       "delivery_reconciled_at": "2026-07-28T09:39:19-03:00"
+    },
+    {
+      "execution_id": "2026-07-28-7h",
+      "type": "diaria",
+      "run_started_at": "2026-07-28T09:16:00-03:00",
+      "run_finished_at": "2026-07-28T09:45:00-03:00",
+      "date": "2026-07-28",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-07-27T13:00:00-03:00",
+      "window_end": "2026-07-28T09:16:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 28/07/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r-5177012092128417764",
+      "items": [
+        {
+          "fonte": "stf_push",
+          "categoria": "stf_noticia",
+          "titulo": "STF presta última homenagem ao ministro aposentado Octavio Gallotti",
+          "data": "2026-07-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-presta-ultima-homenagem-ao-ministro-aposentado-octavio-gallotti/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|ultima-homenagem-gallotti|2026|2026-07-27"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "stf_noticia",
+          "titulo": "STF rejeita reclamação de Arthur do Val contra cassação de mandato de deputado estadual",
+          "data": "2026-07-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-rejeita-reclamacao-de-arthur-do-val-contra-cassacao-de-mandato-de-deputado-estadual/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|arthur-do-val-reclamacao-rejeitada|2026|2026-07-27"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "stf_noticia",
+          "titulo": "Confira destaques da pauta do Plenário para o mês de agosto",
+          "data": "2026-07-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/confira-destaques-da-pauta-do-plenario-para-o-mes-de-agosto/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|pauta-plenario-agosto|2026|2026-07-27"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "stf_noticia",
+          "titulo": "Do Plenário à Agenda 2030: como o STF conecta inovação, cidades sustentáveis e proteção ambiental",
+          "data": "2026-07-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/do-plenario-a-agenda-2030-como-o-stf-conecta-inovacao-cidades-sustentaveis-e-protecao-ambiental/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|agenda-2030-ods|2026|2026-07-27"
+        },
+        {
+          "fonte": "migalhas",
+          "categoria": "stj_noticia",
+          "titulo": "STJ barra recurso de Robinho contra condenação por estupro na Itália",
+          "data": "2026-07-28",
+          "url": "https://www.migalhas.com.br/quentes/461117/stj-barra-recurso-de-robinho-contra-condenacao-por-estupro-na-italia",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "stj|noticia|robinho-recurso-negado|2026|2026-07-28"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "stj_noticia",
+          "titulo": "STJ suspende afastamento de diretores da ANP que travou processo da Refit",
+          "data": "2026-07-27",
+          "url": "https://www.jota.info/justica/stj-suspende-afastamento-de-diretores-da-anp-que-travou-processo-da-refit",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "stj|noticia|anp-refit-afastamento-suspenso|2026|2026-07-27"
+        },
+        {
+          "fonte": "migalhas",
+          "categoria": "stj_noticia",
+          "titulo": "Horas extras integram cálculo da pensão alimentícia, decide STJ",
+          "data": "2026-07-27",
+          "url": "https://www.migalhas.com.br/quentes/461115/horas-extras-integram-calculo-da-pensao-alimenticia-decide-stj",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "stj|noticia|horas-extras-pensao-alimenticia|2026|2026-07-27"
+        },
+        {
+          "fonte": "migalhas",
+          "categoria": "stj_noticia",
+          "titulo": "STJ diverge sobre hipóteses excepcionais que incidem PLR na pensão alimentícia",
+          "data": "2026-07-27",
+          "url": "https://www.migalhas.com.br/quentes/461108/stj-diverge-sobre-hipoteses-excepcionais-que-incidem-plr-na-pensao",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "stj|noticia|plr-pensao-alimenticia-divergencia|2026|2026-07-27"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "PGFN vai deixar de recorrer em concomitância de multas e desiste de recursos em andamento",
+          "data": "2026-07-27",
+          "url": "https://www.jota.info/tributos/pgfn-vai-deixar-de-recorrer-em-concomitancia-de-multas-e-desiste-de-recursos-em-andamento",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|pgfn-concomitancia-multas|2026|2026-07-27"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "Nunes Marques quer ampliar transparência de pesquisas eleitorais",
+          "data": "2026-07-28",
+          "url": null,
+          "status": "MÍDIA ESPECIALIZADA - sem link resolvido",
+          "chave": "midia|jota|tse-nunes-marques-transparencia-pesquisas|2026|2026-07-28"
+        },
+        {
+          "fonte": "migalhas",
+          "categoria": "midia",
+          "titulo": "Pix pensão: Lula tem até quinta para aprovar pagamento automático de alimentos",
+          "data": "2026-07-27",
+          "url": "https://www.migalhas.com.br/quentes/461093/lula-tem-ate-quinta-para-aprovar-pagamento-automatico-de-alimentos",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|migalhas|pix-pensao-lula-prazo-quinta|2026|2026-07-27"
+        },
+        {
+          "fonte": "migalhas",
+          "categoria": "midia",
+          "titulo": "Não pagar adicional de insalubridade autoriza rescisão indireta, decide TST",
+          "data": "2026-07-27",
+          "url": "https://www.migalhas.com.br/quentes/461109/tst-nao-pagar-adicional-de-insalubridade-autoriza-rescisao-indireta",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|migalhas|tst-rescisao-indireta-insalubridade|2026|2026-07-27"
+        },
+        {
+          "fonte": "conjur",
+          "categoria": "midia",
+          "titulo": "TJ-SC envia ao STJ controvérsia sobre perícia em crime ambiental",
+          "data": "2026-07-27",
+          "url": "https://www.conjur.com.br/2026-jul-27/desembargador-pede-que-stj-resolva-controversia-sobre-pericia-em-crime-ambiental/",
+          "status": "MÍDIA ESPECIALIZADA - via busca indexada, fetch direto bloqueado (403)",
+          "chave": "midia|conjur|tjsc-stj-pericia-crime-ambiental|2026|2026-07-27"
+        },
+        {
+          "fonte": "conjur",
+          "categoria": "midia",
+          "titulo": "Restrição da gratuidade de Justiça afeta os direitos fundamentais (PL 2.239/2022)",
+          "data": "2026-07-27",
+          "url": "https://www.conjur.com.br/2026-jul-27/pl-2-239-2022-e-o-acesso-a-justica-previdenciaria/",
+          "status": "OPINIÃO/ANÁLISE - via busca indexada, fetch direto bloqueado (403)",
+          "chave": "midia|conjur|pl-2239-gratuidade-justica-opiniao|2026|2026-07-27"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "O último capítulo da reforma do Judiciário",
+          "data": "2026-07-27",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/o-ultimo-capitulo-da-reforma-do-judiciario",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "midia|jota|opiniao-ultimo-capitulo-reforma-judiciario|2026|2026-07-27"
+        },
+        {
+          "fonte": "youversion",
+          "categoria": "versiculo",
+          "titulo": "Apocalipse 21:4 (NVI)",
+          "data": "2026-07-28",
+          "url": "https://www.bible.com/pt/verse-of-the-day",
+          "status": "VERSÍCULO DO DIA - validado com pergunta neutra",
+          "chave": "youversion|versiculo|apocalipse-21-4|2026|2026-07-28"
+        },
+        {
+          "fonte": "munger_quotes",
+          "categoria": "munger",
+          "titulo": "Pegue uma ideia simples e leve-a a sério. (indice 9, tema simplicidade)",
+          "data": "2026-07-28",
+          "url": null,
+          "status": "SABEDORIA DO DIA - indice = dia do ano (209) mod total real (200) = 9",
+          "chave": "munger|citacao|ideia-simples-leve-a-serio|indice-9|2026-07-28"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel - 2 threads, 8 noticias extraidas",
+        "gmail_push_stf_informativos": "intermitente - sem e-mail nesta janela, silencio normal (recesso)",
+        "gmail_stj_codju": "intermitente - sem e-mail nesta janela, cadencia semanal (ultimo em 24/07), silencio normal",
+        "gmail_push_planalto": "mudo - 1 sonda enviada, sem retorno, 13a execucao consecutiva sem sucesso, 26 dias sem e-mail",
+        "gmail_jota": "saudavel - 7 threads, 4 dentro da janela, 15 itens juridicos aproveitados apos filtro",
+        "congresso_ultimas_leis": "saudavel - consultado, nenhuma lei nova dentro da janela (mais recente e de 23/07)",
+        "congresso_mpvs": "instavel - armadilha reincidiu (MPV 1380 com data futura 20/09/2026; MPV 1363 nao confirmada por checagem cruzada)",
+        "conjur": "falha - HTTP 403 em fetch direto, 2 tentativas (coletor + orquestrador); fallback via WebSearch site:conjur.com.br funcionou parcialmente",
+        "migalhas": "saudavel - fetch direto funcionou, 10 itens coletados",
+        "youversion": "saudavel - validado com pergunta neutra, data bateu de primeira"
+      },
+      "errors": [
+        "ConJur (/ultimas-da-conjur/) retornou HTTP 403 Forbidden em fetch direto, tanto pelo coletor Web quanto pelo orquestrador ao refazer a fonte. Fallback via WebSearch (site:conjur.com.br) parcialmente eficaz (2 itens encontrados, sem hora de publicacao)."
+      ],
+      "pendencias": [
+        "Gmail PUSH Planalto sem e-mail há 26 dias (desde 02/07/2026) - 13ª execução seguida sem retorno; Rota 13 segue como fallback funcional; prazo de 30 dias se aproxima (~01/08) para sugerir ao usuário reassinatura ou credenciais INLABS",
+        "TJDFT - edital ainda não publicado; sem confirmação oficial (herdada)",
+        "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027); sem alteração nesta execução (herdada)",
+        "MPF 31º concurso - homologação final sem data oficialmente confirmada; esta execução encontrou indício via WebSearch de que a homologação teria sido publicada no DOU em 03/07/2026 (58 vagas, R$ 39.753,22), mas a data é anterior à abertura da pendência (06/07) e não foi confirmada em fonte oficial (DOU bloqueado) - manter pendência, verificar na próxima 1ª execução da semana",
+        "PGE-AL, PGE-BA, PGE-MA, PGE-RS, MPMS, DPU VII, TRF2, TRF5, MPC-MA, DPE-RO, DPE-SC, PGM Porto Alegre - cronogramas em curso, sem movimento confirmado (herdados)",
+        "ConJur (/ultimas-da-conjur/) com HTTP 403 nesta execução - monitorar se o bloqueio se torna recorrente; se sim, promover fallback WebSearch a rota padrão"
+      ],
+      "verification_notes": [
+        "Item 'Do Plenário à Agenda 2030' tem horário de publicação (27/07 11h51) anterior ao window_start nominal (13h), mas dentro das últimas 24h e sem chave publicada anteriormente - incluído como novidade legítima, provavelmente por atraso na entrega do digest do Push STF (email só chegou na manhã de 28/07).",
+        "Itens do Migalhas datados '27.jul.2026' sem horário exibido na fonte foram incluídos por não constarem em chaves_publicadas anteriores, mesmo sem certeza se caem antes ou depois das 13h de corte - risco reconhecido e registrado.",
+        "JOTA digest de 27/07 trouxe 15 itens juridicos utilizaveis apos filtro (de ~22 no digest, descartando eleitoral/comercial); apenas 2 artigos de opiniao foram selecionados para a edicao por limite de espaco - os demais 9 artigos de opiniao (compliance, IA, direito publico, violencia de genero, STF/superendividamento etc.) foram descartados por espaco, nao por irrelevancia.",
+        "Item de opiniao do JOTA sobre 'proposta de sumula vinculante 150' teve link com wrapper resolvendo para artigo incompatível (CARF) - descartado da edição por falta de link confiável, não republicado.",
+        "Pendencia MPF 31 NAO foi marcada como resolvida apesar do indicio de homologacao em 03/07: a data anterior a abertura da pendencia (06/07) e a fonte exclusivamente via WebSearch (armadilha conhecida 'websearch_data') pediam confirmacao mais forte antes de fechar uma pendencia de 12+ execucoes.",
+        "MPV 1380/2026 com data futura (20/09/2026) e MPV 1363/2026 sem correspondencia real confirmam novamente a armadilha 'congresso_mpv' - nenhuma MPV publicada nesta edicao.",
+        "Recesso forense (2-31/07) em curso - silencio de STF informativos, STJ CodJu e volume reduzido geral tratados como normais, nao como falhas."
+      ],
+      "gmail_message_id": "19fa8bf361399ab2",
+      "delivery_reconciled_at": "2026-07-29T09:22:52-03:00"
     }
   ]
 }
