@@ -548,6 +548,276 @@
       ],
       "gmail_message_id": "19fa8bf361399ab2",
       "delivery_reconciled_at": "2026-07-29T09:22:52-03:00"
+    },
+    {
+      "execution_id": "2026-07-29-7h",
+      "type": "diaria",
+      "run_started_at": "2026-07-29T08:22:00-03:00",
+      "run_finished_at": "2026-07-29T08:55:00-03:00",
+      "date": "2026-07-29",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-07-28T09:16:00-03:00",
+      "window_end": "2026-07-29T08:22:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 29/07/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r6230816445374017210",
+      "items": [
+        {
+          "chave": "stf|decisao|iptu-braganca-paulista-suspensao|2026|2026-07-28",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF suspende decisão do TJ-SP que invalidou mudanças no IPTU de Bragança Paulista",
+          "data": "2026-07-28",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-decisao-do-tj-sp-que-invalidou-decreto-sobre-iptu-de-braganca-paulista/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|decisao|despejo-campinas-suspensao|2026|2026-07-28",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF suspende retirada de famílias de imóvel urbano em Campinas (SP)",
+          "data": "2026-07-28",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-retirada-de-familias-de-imovel-urbano-em-campinas-sp/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|nota|entidades-apoio-moraes|2026|2026-07-28",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "Entidades jurídicas divulgam notas de apoio ao STF e ao ministro Alexandre de Moraes",
+          "data": "2026-07-28",
+          "url": "https://noticias.stf.jus.br/postsnoticias/entidades-juridicas-divulgam-notas-de-apoio-ao-stf-e-ao-ministro-alexandre-de-moraes/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|decisao|buser-parana-autorizacao|2026|2026-07-28",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF autoriza plataforma Buser a operar fretamento de ônibus por aplicativo no Paraná",
+          "data": "2026-07-28",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-autoriza-plataforma-buser-a-operar-fretamento-de-onibus-por-aplicativo-no-parana/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|midia|moraes-48h-bolsonaro-video-ia|2026|2026-07-29",
+          "fonte": "JOTA",
+          "categoria": "STF Notícias",
+          "titulo": "Moraes dá 48h para defesa de Bolsonaro esclarecer autoria de vídeo de IA exibido na convenção do PL",
+          "data": "2026-07-29",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL LOCALIZADA NESTA EXECUÇÃO"
+        },
+        {
+          "chave": "stf|midia|pt-aciona-stf-tse-video-ia|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "STF Notícias",
+          "titulo": "PT aciona STF e TSE contra vídeo de IA de Bolsonaro",
+          "data": "2026-07-28",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/pt-aciona-stf-e-tse-contra-video-de-ia-de-bolsonaro",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "stj|informativo|33|2026|2026-07-28",
+          "fonte": "STJ CodJu",
+          "categoria": "Informativos",
+          "titulo": "STJ divulga Informativo de Jurisprudência nº 33",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "tse|midia|parcerias-bigtechs-desinformacao|2026|2026-07-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE formaliza parcerias com big techs contra desinformação eleitoral",
+          "data": "2026-07-29",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "tse|midia|portaria-conformidade-plataformas|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE terá semana decisiva para divulgar portaria de conformidade de plataformas digitais",
+          "data": "2026-07-28",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/portaria-do-tse-sobre-planos-de-conformidade-abre-metodologias-de-plataformas",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "stf|midia|nunes-marques-cpi-master-atraso|2026|2026-07-29",
+          "fonte": "JOTA (O Globo)",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques mantém há mais de 4 meses sem decisão mandado de segurança da CPI do Banco Master",
+          "data": "2026-07-29",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|mp-sp-bloqueio-iluminacao-publica|2026|2026-07-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "MP-SP pede bloqueio de até R$ 1,02 bilhão em bens ligados à concessão de iluminação pública de SP",
+          "data": "2026-07-29",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|inss-delay-juros-consignado|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Ministro da Previdência diz ser justo um delay para os bancos no corte de juros do consignado do INSS",
+          "data": "2026-07-28",
+          "url": "https://www.jota.info/executivo/e-justo-um-delay-para-os-bancos-diz-ministro-sobre-corte-nos-juros-do-inss",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|ifood-metlife-inss-entregadores|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Justiça determina que iFood, MetLife e INSS garantam atendimento previdenciário a entregadores",
+          "data": "2026-07-28",
+          "url": "https://www.jota.info/trabalho/ifood-metlife-e-inss-devem-garantir-atendimento-previdenciario-a-entregadores-decide-juiza",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|tst-ludopatia-alcoolismo|2026|2026-07-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TST avalia equiparar ludopatia a alcoolismo em processos trabalhistas",
+          "data": "2026-07-29",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|vorcaro-pf-rastreamento-patrimonio-exterior|2026|2026-07-28",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Mendonça autoriza PF a rastrear patrimônio de Vorcaro no exterior",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|stf-retoma-sessoes-pos-recesso|2026|2026-07-28",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "STF retoma sessões com análise de isenção tributária a veículos para PcD",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "fofoquinha|stj|nancy-andrighi-jabuti-academico|2026|2026-07-28",
+          "fonte": "Migalhas",
+          "categoria": "Fofoquinha",
+          "titulo": "Ministra Nancy Andrighi é finalista do Jabuti Acadêmico com obra sobre herança digital",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "concurso|tjsc|gabarito-definitivo-resultado-preliminar|2026|2026-07-28",
+          "fonte": "Gran Cursos",
+          "categoria": "Concursos - Apoio",
+          "titulo": "TJ-SC divulga gabarito oficial definitivo e resultado preliminar da prova objetiva",
+          "data": "2026-07-28",
+          "url": "https://blog.grancursosonline.com.br/concurso-tj-sc/",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "concurso|mpsp|promotor-prova-preambular-aplicada|2026|2026-07-26",
+          "fonte": "Estratégia Carreira Jurídica",
+          "categoria": "Concursos - Carreira",
+          "titulo": "MP-SP (97º concurso) aplica prova preambular; escrita marcada para 13/09",
+          "data": "2026-07-26",
+          "url": "https://cj.estrategia.com/portal/concurso-mp-sp-promotor/",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "youversion|versiculo|romanos-12-1|2026|2026-07-29",
+          "fonte": "YouVersion",
+          "categoria": "Versículo",
+          "titulo": "Romanos 12:1 (NVI)",
+          "data": "2026-07-29",
+          "url": "https://www.bible.com/pt/verse-of-the-day",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "munger|citacao|evite-complexidade-desnecessaria|indice-10|2026-07-29",
+          "fonte": "munger-quotes.json",
+          "categoria": "Munger",
+          "titulo": "Evite a complexidade desnecessária; problemas difíceis pedem clareza, não malabarismo.",
+          "data": "2026-07-29",
+          "url": "",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "opiniao|jota|trump-suprema-corte-agencias-independentes|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "Opinião",
+          "titulo": "Trump, Suprema Corte e o fim das agências independentes",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|transparencia-recuperacao-judicial|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "Opinião",
+          "titulo": "Quando a transparência afugenta os melhores",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|stablecoins-regulacao-bc|2026|2026-07-28",
+          "fonte": "JOTA",
+          "categoria": "Opinião",
+          "titulo": "Por que Bancos Centrais devem repensar a regulação sobre stablecoins?",
+          "data": "2026-07-28",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel - sucesso",
+        "gmail_push_stf_informativos": "intermitente - sem e-mail, recesso forense normal",
+        "gmail_push_planalto": "mudo - sem e-mail, 27 dias (desde 2026-07-02)",
+        "gmail_stj_codju": "saudavel - sucesso, Informativo 33",
+        "gmail_jota": "saudavel - sucesso, mas wrapper t.rdsv2.net nao resolveu via WebFetch (HTTP 400) em nenhuma tentativa desta execucao",
+        "congresso_ultimas_leis": "saudavel - sucesso, sem lei nova na janela",
+        "congresso_mpvs": "instavel - armadilha reconfirmada, MPV 1363 cruzada e descartada",
+        "conjur": "instavel - HTTP 403 direto pela 2a execucao seguida (28/07 e 29/07), fallback WebSearch usado",
+        "migalhas": "saudavel - sucesso",
+        "youversion": "saudavel - sucesso, data validada 29/07/2026"
+      },
+      "errors": [
+        "ConJur: HTTP 403 em /ultimas-da-conjur/ (2a vez seguida)",
+        "JOTA: wrapper t.rdsv2.net retornou HTTP 400 em todas as tentativas de resolucao via WebFetch"
+      ],
+      "pendencias": [
+        "Gmail PUSH Planalto sem e-mail há 27 dias (desde 02/07/2026) - fallback Rota 13 funcional; prazo de 30 dias se aproxima (~01/08) para sugerir ao usuário reassinatura ou credenciais INLABS",
+        "TJDFT - edital ainda não publicado; sem confirmação oficial; sem movimento nesta execução (herdada)",
+        "AGU/PFN - 170 vagas autorizadas oficialmente (02/07); fonte secundária de 20/07 menciona pedido de 265 vagas aguardando aval orçamentário - divergência não confirmada, verificar na próxima execução de início de semana",
+        "MPF 31º concurso - homologação final sem confirmação oficial forte o bastante para fechar a pendência",
+        "PGE-AL, PGE-BA, PGE-MA, PGE-RS, MPMS, DPU VII, TRF2, TRF5, MPC-MA, DPE-RO, DPE-SC, PGM Porto Alegre - cronogramas em curso, sem movimento confirmado (herdados)",
+        "ConJur (/ultimas-da-conjur/) com HTTP 403 pela 2ª execução seguida - fallback WebSearch promovido a rota padrão"
+      ],
+      "verification_notes": [
+        "MPV 1.363/2026: checagem cruzada via WebSearch confirmou que a data '28/07/2026' exibida na página congressonacional.leg.br/materias/medidas-provisorias é o prazo de PRORROGAÇÃO da MP (publicada no DOU em 17/07/2026), não a data de edição - a MPV foi efetivamente editada em 30/05/2026. Insight novo: a página parece exibir datas de vigência/prorrogação, não de publicação original, para MPVs antigas prorrogadas - reforça a armadilha congresso_mpv.",
+        "STF autoriza Buser no Paraná (28/07) é desdobramento/consolidação da decisão monocrática de Nunes Marques de 20/07 já publicada (chave stf|decisao|buser-parana-nunesmarques|2026-07-20) - tratado como item novo por representar autorização final, não repetição.",
+        "Mendonça autoriza PF a rastrear patrimônio de Vorcaro no exterior (28/07) é desdobramento do inquérito Vorcaro/Master já noticiado em 24/07 (chave stf|noticia|mendonca-inquerito-vorcaro-dark-horse-flavio|2026-07-24) - tratado como item novo por trazer fato adicional.",
+        "STF Jurisprudência (nao_responda@stf.jus.br): sem e-mail na janela - compatível com recesso forense, não é falha de fonte.",
+        "STJ Notícias: nenhuma fonte direta consultada nesta execução (stj.jus.br segue instável); tratado como limitação da execução, não como ausência de novidade confirmada.",
+        "Gallotti (falecimento/homenagens) e demais itens dos e-mails STF de 26/07 e 27/07: já cobertos nas edições de 27/07 e 28/07 (chaves já publicadas) - não republicados.",
+        "Coletor Gmail oficial (haiku): rápido e correto, sem problemas. Coletor Web (sonnet): completo, seguiu doutrina de checagem cruzada de MPV corretamente. Coletor JOTA (sonnet): funcionou bem no filtro, mas gastou tempo elevado (~19 min) tentando resolver wrapper de link sem sucesso - nenhuma promoção de modelo necessária, é limitação do wrapper em si, não do coletor."
+      ],
+      "gmail_message_id": "19fadbd9f92c1f1e",
+      "delivery_reconciled_at": "2026-07-30T23:59:43-03:00"
     }
   ]
 }

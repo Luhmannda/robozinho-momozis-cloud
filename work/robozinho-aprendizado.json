@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. REGRA DE PODA: ao atualizar a nota de uma fonte, REESCREVER de forma compacta (status atual + politica vigente + 1 padrao recente se ainda relevante) em vez de acrescentar ao texto anterior — incidente ja resolvido ou generalizado numa regra estavel sai da nota. Licao de processo que virou regra permanente no prompt mestre sai daqui. Validar este arquivo com json.load apos editar (nenhum helper faz isso automaticamente, ao contrario do historico). Manter enxuto — este arquivo e lido todo dia, para sempre.",
-  "atualizado_em": "2026-09-03T07:20:00-03:00",
-  "atualizado_por_execucao": "2026-09-03-7h",
+  "atualizado_em": "2026-09-04T07:22:00-03:00",
+  "atualizado_por_execucao": "2026-09-04-7h",
 
   "niveis_de_esforco": {
     "saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.",
@@ -14,35 +14,35 @@
   },
 
   "fontes": [
-    { "id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-09-03", "sem_sucesso": 0,
-      "nota": "Fonte mais confiavel. Consolida dias anteriores apos gaps. Em 03/09, o thread de 02/09 recebido perto do inicio da janela (05:17 UTC) trouxe 5 noticias JA publicadas na edicao anterior — confirma que comparar contra chaves_publicadas antes de aceitar item de e-mail proximo ao limite da janela e essencial e funciona." },
+    { "id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-09-04", "sem_sucesso": 0,
+      "nota": "Fonte mais confiavel. Consolida dias anteriores apos gaps. Em 04/09 trouxe 2 digests (03 e 04/09) sem duplicatas contra chaves_publicadas." },
 
-    { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-03", "sem_sucesso": 0,
-      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional (webinars, ofertas). Links em wrapper t.rdsv2.net: WebSearch site:jota.info como unico metodo viavel em ambiente de nuvem; boletins-resumo sem link por item, publicar sem link. Teto de 6 opinioes. Em 03/09, headline do boletim ('Camara confirma indicacao ao TCU') contradisse o corpo de outro e-mail ('Senado aprovou') — TCU e indicacao do Senado (art. 73 CF); confiar no orgao constitucionalmente correto quando a manchete do JOTA divergir do teor." },
+    { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-04", "sem_sucesso": 0,
+      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional (webinars, ofertas). Links em wrapper t.rdsv2.net: WebSearch site:jota.info como unico metodo viavel em ambiente de nuvem; boletins-resumo sem link por item, publicar sem link. Teto de 6 opinioes (nao precisa esgotar o teto). Em 04/09, um boletim chegou 8min antes do inicio oficial da janela — aceito por ser o boletim matinal natural do dia, sem gerar duplicata apos checagem contra chaves_publicadas; se isso reincidir, considerar folga de ~10min no limite inicial da janela." },
 
-    { "id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
-      "nota": "Sustenta a secao Planalto durante o apagao do PUSH. EM AMBIENTE DE NUVEM: WebFetch/curl direto ao dominio e bloqueado por politica de egress — ir logo para WebSearch. Em 03/09, busca extensiva nao confirmou nenhuma lei/decreto/MPV nova editada dentro da janela — resultado legitimo, nao falha de fonte." },
+    { "id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
+      "nota": "Sustenta a secao Planalto durante o apagao do PUSH. EM AMBIENTE DE NUVEM: WebFetch/curl direto ao dominio e bloqueado por politica de egress — ir logo para WebSearch. Em 04/09, busca extensiva nao confirmou nenhuma lei/decreto/MPV nova editada dentro da janela — resultado legitimo, nao falha de fonte." },
 
-    { "id": "gmail_stj_codju", "status": "saudavel", "ultimo_sucesso": "2026-09-02",
-      "nota": "Cadencia irregular. O corpo do e-mail as vezes so tem o link (Informativo 899 veio so com link, corrompido no plaintext) — cruzar via WebSearch no portal oficial antes de publicar, nunca inventar tese a partir so do assunto. Extrair numero e data sempre do ASSUNTO. Em 03/09 o mesmo Informativo 899 (ja publicado em 01/09) voltou a aparecer na busca — nao e novidade, e reenvio/consolidacao do mesmo e-mail." },
+    { "id": "gmail_stj_codju", "status": "saudavel", "ultimo_sucesso": "2026-09-02", "sem_sucesso": 1,
+      "nota": "Cadencia irregular, silencio pontual nao e falha. Extrair numero e data sempre do ASSUNTO, nunca so do corpo. Em 04/09 nao enviou nada — decisoes do STJ da janela (IRPJ fundo de fundos, repetitivo conta-corrente) tiveram que ser publicadas so via midia convergente." },
 
-    { "id": "gmail_push_stf_informativos", "status": "saudavel", "ultimo_sucesso": "2026-08-31",
-      "nota": "Envia Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta — produtos distintos, conferir nome completo no assunto. Em 02-03/09 so trouxe acompanhamento processual pontual (andamento de processo), que NAO e informativo/RG — nao publicar andamento como tese; ausencia de informativo real e normal (cadencia irregular ja conhecida), nao falha." },
+    { "id": "gmail_push_stf_informativos", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
+      "nota": "Envia Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta — produtos distintos, conferir nome completo no assunto E o numero no PDF linkado (em 04/09 o assunto dizia 'n. 386' mas o PDF era Edicao 387 — usar o numero do slug do PDF, mais confiavel). Andamento processual pontual de caso individual NAO e informativo/RG — nao publicar como tese." },
 
-    { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 24, "dias_sem_email": 63,
-      "nota": "Sondas seguem vazias ha 63 dias em 03/09; o legado nunca retornou nada. Gastar 1 sonda e ir para a Rota 13. ESCALADO ao usuario em 31/07; nao repetir a escalada extensa todo dia, so manter a pendencia visivel." },
+    { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 25, "dias_sem_email": 64,
+      "nota": "Sondas seguem vazias ha 64 dias em 04/09; o legado nunca retornou nada. Gastar 1 sonda e ir para a Rota 13. ESCALADO ao usuario em 31/07; nao repetir a escalada extensa todo dia, so manter a pendencia visivel." },
 
     { "id": "congresso_mpvs", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
-      "nota": "Ver armadilha congresso_mpv — CHECAGEM CRUZADA OBRIGATORIA sempre. Em 03/09, reverificacao das MPVs 1387/2026 e 1388/2026 (pendentes desde 01/09) teve SUCESSO: cada uma confirmada por 2+ fontes independentes (Camara/Senado oficiais + midia setorial) via WebSearch com queries especificas por numero — reclassificado de instavel para saudavel." },
+      "nota": "Ver armadilha congresso_mpv — CHECAGEM CRUZADA OBRIGATORIA sempre. Em 04/09, nenhuma MPV nova apareceu; busca por 'MPV 1389' so achou MPV homonima de 1996 (nao confundir) — reportado corretamente como ausencia, nao inventado candidato." },
 
-    { "id": "conjur", "status": "instavel", "ultimo_sucesso": "2026-09-02",
-      "nota": "URL correta: /ultimas-da-conjur/. Em ambiente de nuvem, fetch direto e SEMPRE bloqueado por politica de egress — ir direto ao WebSearch site:conjur.com.br. Em 03/09, WebSearch so recuperou a pagina de listagem (titulos de coluna como 'DESLIZE LEGAL') sem conseguir abrir artigos individuais com URL/resumo verificavel — nao publicar titulo de listagem sem conteudo checavel; registrar como lacuna, nao inventar resumo a partir do titulo curto." },
+    { "id": "conjur", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
+      "nota": "URL correta: /ultimas-da-conjur/. Em ambiente de nuvem, fetch direto e SEMPRE bloqueado por politica de egress — ir direto ao WebSearch. Em 04/09, diferente de execucoes anteriores, WebSearch recuperou conteudo substantivo (nao so titulo de listagem) para 3 artigos usando busca sem o operador site: estrito (a busca 'site:conjur.com.br 2026-set-04' pura falhou, mas reformulada sem o site: funcionou) — reclassificado de instavel para saudavel; se a falha de listagem-sem-conteudo voltar, tentar essa reformulacao antes de desistir." },
 
     { "id": "migalhas", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
-      "nota": "Em ambiente de nuvem, fetch direto tambem bloqueado por egress (mesmo padrao do ConJur) — usar WebSearch. Em 03/09 funcionou bem: 3 materias com data exata (01-02/09) sobre a crise STF-PGR, todas com 2+ fontes convergentes." },
+      "nota": "Em ambiente de nuvem, fetch direto tambem bloqueado por egress (mesmo padrao do ConJur) — usar WebSearch. Em 04/09 sem desenvolvimento novo alem do que ja aparecia via JOTA/ConJur; ultimo achado factual proprio (01/09, Gonet pede anulacao do relatorio da PF) segue sendo a referencia mais recente." },
 
-    { "id": "youversion", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
-      "nota": "DECISAO DO USUARIO (01/09/2026): YouVersion/bible.com e o padrao fixo para o versiculo do dia — divergencia com outras fontes NAO e pendencia. Buscar 'bible.com verse of the day' resolve bem: em 03/09, 3 buscas independentes convergiram no mesmo versiculo (Mateus 6:34), confirmando a pagina live do bible.com/verse-of-the-day. WebFetch direto segue bloqueado por egress — usar WebSearch." },
+    { "id": "youversion", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
+      "nota": "DECISAO DO USUARIO (01/09/2026): YouVersion/bible.com e o padrao fixo para o versiculo do dia — divergencia com outras fontes NAO e pendencia. Buscar 'bible.com verse-of-the-day' + o parametro '?day=N' (dia do ano) resolve bem: em 04/09, 2 buscas independentes convergiram no mesmo versiculo e na mesma URL com day=247, batendo com o dia do ano calculado. WebFetch direto segue bloqueado por egress — usar WebSearch." },
 
     { "id": "noticias_stf_direto", "status": "bloqueado",
       "nota": "403 reproduzido repetidamente. O conteudo chega pelo Push STF com as URLs canonicas — publicar essas URLs normalmente." },
@@ -111,26 +111,26 @@
   ],
 
   "pendencias_vivas": [
-    { "id": "envio_edicao_31_07_atrasado", "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - reconfirmado em 03/09 via search_threads in:sent (vazio) - agora 34 dias, novo recorde", "desde": "2026-08-04", "execucoes": 7, "faixa": "cronica",
+    { "id": "envio_edicao_31_07_atrasado", "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - reconfirmado em 04/09 via search_threads in:sent (vazio) - agora 35 dias, novo recorde", "desde": "2026-08-04", "execucoes": 8, "faixa": "cronica",
       "politica": "Verificar a cada execucao se o Apps Script eventualmente envia o rascunho de 31/07 (buscar em in:sent) ou se ele fica permanentemente orfao. Confirma falha estrutural do Apps Script (nao da rotina de geracao, que cumpriu seu papel) — recomendar fortemente ao usuario checar o gatilho/trigger diretamente." },
 
-    { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (63 dias)", "desde": "2026-07-06", "execucoes": 24, "faixa": "cronica",
+    { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (64 dias)", "desde": "2026-07-06", "execucoes": 25, "faixa": "cronica",
       "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto, mas a Rota 13 (via WebSearch em nuvem) segue sustentando a secao. Ja escalado ao usuario em 31/07; nao repetir a escalada extensa todo dia." },
 
-    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 seguem convergindo em 20 vagas (uma cita 24)", "desde": "2026-07-21", "execucoes": 14, "faixa": "ativa",
-      "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo (reincidiu em 03/09 com pagina do Cebraspe/Metropoles de ciclo 2022/23). Sem movimento ate 03/09." },
+    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55 (valor ja diferente do edital-armadilha antigo de 2022/23)", "desde": "2026-07-21", "execucoes": 15, "faixa": "ativa",
+      "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo. Sem movimento ate 04/09." },
 
-    { "id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas, edital em ate 6 meses (~jan/2027)", "desde": "2026-07-07", "execucoes": 19, "faixa": "longo_prazo",
-      "politica": "Prazo so vence em jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos. Sem reverificacao em 02-03/09 (nao e 1a execucao da semana); ultimo dado confirmado (01/09): 170 vagas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), subsidio ~R$24,9-32,4 mil." },
+    { "id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas, edital em ate 6 meses (~jan/2027)", "desde": "2026-07-07", "execucoes": 20, "faixa": "longo_prazo",
+      "politica": "Prazo so vence em jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos. Nao reverificado em 04/09 (nao e 1a execucao da semana); ultimo dado confirmado (01/09): 170 vagas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), subsidio ~R$24,9-32,4 mil." },
 
-    { "id": "concursos_cronogramas", "texto": "Reverificados com sucesso em 02/09: PGE-AL (provas objetiva 05/09 e discursivas 06/09, resultado ~20/10) e TRF2 (599 habilitados na 2a etapa, orais previstas para 14-25/09). Novo achado: PGM Juazeiro/BA com edital previsto para fim de setembro/2026 (1 fonte so, sem edital ainda). Sem movimento: PGE-BA (edital sem confirmacao), PGE-MA e PGE-RS (comissao formada), DPU VII (so resolucao regulamentadora), DPE-RO (comissao organizadora via portaria), MPMS e DPE-SC (provas ja realizadas), MPC-MA (nao localizado, sigla pouco indexada).", "desde": "2026-07-07", "execucoes": 19, "faixa": "longo_prazo",
-      "politica": "Verificar na 1a execucao da semana. Promover a linha propria so com movimento confirmado. PGE-AL e TRF2 ja reverificados em 02/09 — proxima reverificacao so quando houver prazo relevante (resultado PGE-AL ~20/10, orais TRF2 14-25/09)." },
+    { "id": "concursos_cronogramas", "texto": "PGE-AL com provas neste fim de semana (objetiva 05/09 13h-18h, discursiva 06/09 8h30-12h30, resultado ~20/10) e TRF2 (orais 14-25/09) — prazos proximos, sem novidade alem do cronograma ja conhecido. PGM Juazeiro/BA esclarecido em 04/09: a selecao ANTERIOR de 2024 foi cancelada em 2025 (nao e o processo atual); edital novo segue previsto para fim de setembro/2026. Sem movimento: PGE-BA (edital sem confirmacao), PGE-MA e PGE-RS (comissao formada), DPU VII (so resolucao regulamentadora), DPE-RO (comissao organizadora via portaria), MPMS e DPE-SC (provas ja realizadas). Novo: MPC-MA (Procurador de Contas) com comissao formada e banca Cebraspe contratada, edital ainda nao publicado.", "desde": "2026-07-07", "execucoes": 20, "faixa": "longo_prazo",
+      "politica": "Verificar na 1a execucao da semana. Promover a linha propria so com movimento confirmado. Proxima reverificacao completa so quando houver prazo relevante (resultado PGE-AL ~20/10, orais TRF2 14-25/09) ou na 1a execucao da proxima semana." },
 
-    { "id": "egress_bloqueado_ambiente_nuvem", "texto": "Politica de rede desta sessao de nuvem bloqueia WebFetch/curl (EGRESS_BLOCKED / 403 no proxy) para congressonacional.leg.br, migalhas.com.br, conjur.com.br e dominios de versiculo biblico; reconfirmado ainda ativo em 03/09 (teste direto a www.conjur.com.br via curl, CONNECT 403). Contornavel via WebSearch para legislacao/concursos/clipping/versiculo (funcionou bem nas tres ultimas execucoes).", "desde": "2026-09-01", "execucoes": 3, "faixa": "ativa",
+    { "id": "egress_bloqueado_ambiente_nuvem", "texto": "Politica de rede desta sessao de nuvem bloqueia WebFetch/curl (EGRESS_BLOCKED / 403 no proxy) para bible.com, conjur.com.br, migalhas.com.br e congressonacional.leg.br; reconfirmado ainda ativo em 04/09 (teste direto a bible.com via WebFetch e a www.conjur.com.br via curl, ambos bloqueados). Contornavel via WebSearch para legislacao/concursos/clipping/versiculo (funcionou bem em todas as execucoes desde 01/09).", "desde": "2026-09-01", "execucoes": 4, "faixa": "ativa",
       "politica": "Verificar a cada execucao se o bloqueio persiste (1 teste direto basta, nao insistir se EGRESS_BLOCKED). Se persistir por muitas execucoes sem sinal de mudanca, escalar ao usuario para ampliar o allowlist de egress do ambiente de nuvem." },
 
-    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Crise STF-PGR (Moraes-Vorcaro-Mendonca-Gonet): em 03/09, Mendonca admitiu publicamente reuniao com Vorcaro em 2025 (diz que tratou so de precatorios); duas novas delacoes premiadas no caso Master (Mansur e Freixo) trazem detalhes adicionais (filme 'Dark Horse', fundo Havengate). Fachin ainda decide entre sessao publica ou reservada, sem data marcada. Publicado como midia especializada (JOTA/Estadao/O Globo/Migalhas/InfoMoney/Exame), sem manifestacao oficial do STF ou da PGR sobre o merito.", "desde": "2026-09-02", "execucoes": 2, "faixa": "ativa",
-      "politica": "Acompanhar desfecho e eventual manifestacao oficial nas proximas execucoes; promover para noticia oficial (STF/PGR) se e quando houver confirmacao, mantendo o desfecho explicito ao leitor." }
+    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Crise STF-PGR escalou em 04/09: presidente Fachin abriu a PET 16.704 e deu 5 dias (vence ~09/09) para Moraes, Mendonca, Gonet e o diretor-geral da PF se manifestarem sobre a apuracao dos contatos com Vorcaro. Moraes pediu formalmente, em despacho, a investigacao de Mendonca por abuso de autoridade, com base em relatorio da PF que o proprio documento classifica como 'sem valor probatorio'. Gonet ira negar ao Conselho Superior do MPF qualquer vinculo com Vorcaro. Sem manifestacao colegiada do plenario do STF ou decisao formal da PGR sobre o merito ate o fechamento desta edicao.", "desde": "2026-09-02", "execucoes": 3, "faixa": "ativa",
+      "politica": "Acompanhar o desfecho da PET 16.704 (prazo vence por volta de 09/09) e eventual manifestacao colegiada nas proximas execucoes; promover para noticia oficial definitiva (STF/PGR) quando houver decisao, mantendo o desfecho explicito ao leitor. Cuidado redobrado com duplicatas — a cobertura e densa e se repete entre boletins JOTA de dias seguidos; checar sempre contra chaves_publicadas antes de reportar como novidade." }
   ],
 
   "licoes_de_processo": [
@@ -144,9 +144,9 @@
   ],
 
   "metricas": {
-    "execucoes_registradas": 25,
-    "itens_ultimas_10": [24, 23, 21, 33, 26, 30, 47, 55, 27, 15],
-    "media": 30.1,
-    "alerta": "Execucao de 03/09 (janela normal de ~24h, quarta para quinta) trouxe 15 itens — dentro da faixa esperada, ainda que no limite inferior; volume menor que o normal foi coerente com o dia (pouca legislacao nova, STJ sem novidade oficial), nao sinal de falha, ja que os coletores documentaram tentativas extensas sem retorno em cada fonte. Queda abaixo de 10 itens numa janela normal de 24h fora do recesso forense continua sendo sinal de falha de fonte."
+    "execucoes_registradas": 26,
+    "itens_ultimas_10": [23, 21, 33, 26, 30, 47, 55, 27, 15, 18],
+    "media": 29.5,
+    "alerta": "Execucao de 04/09 (janela normal de ~24h, quinta para sexta) trouxe 18 itens — abaixo da media, mas por escolha editorial: dia dominado por poucas historias densas (crise institucional STF-PGR, decisao STJ sobre fundo de fundos, condenacao TRF-6 do caso Mariana), com Planalto e STJ CodJu sem novidade oficial propria e teto de opiniao do JOTA deliberadamente nao esgotado para conter o tamanho do e-mail. Nao e sinal de falha de fonte — todos os coletores documentaram tentativas extensas. Queda abaixo de 10 itens numa janela normal de 24h fora do recesso forense continua sendo sinal de falha de fonte."
   }
 }

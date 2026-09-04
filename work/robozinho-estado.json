@@ -1,82 +1,54 @@
 {
-  "gerado_em": "2026-09-03T10:21:20+00:00",
-  "gerado_por": "2026-09-03-7h",
+  "gerado_em": "2026-09-04T10:21:41+00:00",
+  "gerado_por": "2026-09-04-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-03-7h",
-    "date": "2026-09-03",
-    "email_subject": "Robozinho dos Momozis até Passar - 03/09/2026 - 7h",
+    "execution_id": "2026-09-04-7h",
+    "date": "2026-09-04",
+    "email_subject": "Robozinho dos Momozis até Passar - 04/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-3586454126283953776",
-    "window_end": "2026-09-03T07:09:00-03:00"
+    "draft_id": "r-6698522550092309915",
+    "window_end": "2026-09-04T07:09:00-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "envio_edicao_31_07_atrasado",
-      "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado em 03/09 via search_threads in:sent (vazio) - agora 34 dias, novo recorde",
+      "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado em 04/09 via search_threads in:sent (vazio) - agora 35 dias, novo recorde",
       "faixa": "cronica"
     },
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (63 dias)",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (64 dias) - sonda de 04/09 tambem vazia",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto - banca Cebraspe, 14ª execução sem edital oficial; vagas seguem em 20 (uma fonte cita 24); reconfirmada armadilha banca_edital_antigo (pagina do Cebraspe com 30 vagas e de ciclo 2022/23)",
+      "texto": "TJDFT Juiz Substituto - 15ª execução sem edital oficial; vagas seguem em 20-24 (fontes divergem), subsidio estimado ~R$37.765,55 (nao mais o valor do edital antigo-armadilha de 2022/23)",
       "faixa": "ativa"
     },
     {
       "id": "agu_pfn_edital",
-      "texto": "AGU/PFN - 170 vagas autorizadas, edital em ate 6 meses (~jan/2027). Nao reverificado nesta execucao (nao e 1a execucao da semana)",
+      "texto": "AGU/PFN - 170 vagas autorizadas, edital em ate 6 meses (~jan/2027). Nao reverificado nesta execucao (nao e 1a da semana)",
       "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "PGE-AL (provas 05-06/09) e TRF2 (orais 14-25/09) com prazos proximos; demais sem movimento. Nao reverificado nesta execucao (nao e 1a execucao da semana)",
+      "texto": "PGE-AL com provas neste fim de semana (objetiva 05/09, discursiva 06/09, resultado ~20/10) e TRF2 (orais 14-25/09) - prazos proximos. PGM Juazeiro-BA esclarecido: selecao 2024 foi cancelada em 2025, edital novo previsto fim de setembro/2026 e processo distinto. Nao reverificado por completo nesta execucao (nao e 1a da semana)",
       "faixa": "longo_prazo"
     },
     {
       "id": "egress_bloqueado_ambiente_nuvem",
-      "texto": "Bloqueio de egress do ambiente de nuvem para dominios externos (ex.: conjur.com.br) reconfirmado ativo nesta execucao via teste direto (403 no CONNECT do proxy). Contornado integralmente via WebSearch.",
+      "texto": "Bloqueio de egress do ambiente de nuvem para bible.com, conjur.com.br e outros dominios reconfirmado ativo em 04/09 (403 no CONNECT do proxy, testes diretos). Contornado integralmente via WebSearch.",
       "faixa": "ativa"
     },
     {
       "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Crise STF-PGR (Moraes-Vorcaro-Mendonca-Gonet): Mendonca admite reuniao com Vorcaro em 2025 (assunto precatorios); duas novas delacoes premiadas (Mansur, Freixo) no caso Master; Fachin ainda decide entre sessao publica ou reservada, sem data marcada; sem manifestacao oficial do STF ou da PGR sobre o merito ate o fechamento desta edicao.",
+      "texto": "Crise STF-PGR escalou em 04/09: Fachin abriu PET 16.704 dando 5 dias (vence ~09/09) para Moraes, Mendonça, Gonet e diretor-geral da PF se manifestarem. Moraes pediu formalmente investigacao de Mendonça com base em relatorio da PF 'sem valor probatorio'. Gonet negara vinculo com Vorcaro ao Conselho Superior do MPF. Sem manifestacao colegiada do plenario ate o fechamento desta edicao.",
       "faixa": "ativa"
     }
   ],
   "chaves_publicadas": [
-    "planalto|lei|15485|2026|2026-08-05",
-    "stf|noticia|jogos-azar-fux-vota-dino-pede-vista|2026|2026-08-06",
-    "stf|noticia|partido-eca-digital-verificacao-idade-jogos|2026|2026-08-05",
-    "stf|jurisprudencia|invalida-leis-educacao-curitiba-progressao-orcamento|2026|2026-08-06",
-    "stf|informativo|repercussao-geral-383|2026|2026-08-05",
-    "stj|noticia|buzzi-disponibilidade-perda-cargo-proposta-stf|2026|2026-08-06",
-    "stj|noticia|buzzi-nega-barrar-sustentacao-oral-vitimas|2026|2026-08-05",
-    "stj|jurisprudencia|insolvencia-civil-renuncia-privilegio-credito-trabalhista|2026|2026-08-05",
-    "stj|jurisprudencia|doacao-bens-familiares-fraude-execucao-fiscal|2026|2026-08-06",
-    "stj|jurisprudencia|boa-fe-construcao-restinga-evita-demolicao|2026|2026-08-06",
-    "trf3|jurisprudencia|contribuicao-patronal-terco-ferias-rescisorias|2026|2026-08-05",
-    "midia|jota|casa-da-morte-camarao-condenacao-crime-humanidade|2026|2026-08-06",
-    "midia|jota|cnj-fim-aposentadoria-compulsoria-juizes|2026|2026-08-05",
-    "midia|jota|cnj-afasta-juiza-gabriela-hardt-lava-jato|2026|2026-08-05",
-    "midia|jota|fachin-codigo-conduta-magistrados-cnj|2026|2026-08-05",
-    "midia|jota|tre-sp-marcal-inelegibilidade-8-anos|2026|2026-08-06",
-    "midia|jota|sueli-tome-ponte-presidente-trt2|2026|2026-08-06",
-    "midia|jota|cni-stf-credito-ipi-pis-cofins-lc224|2026|2026-08-06",
-    "midia|jota|iss-pis-cofins-trfs-72-favoraveis-contribuintes|2026|2026-08-06",
-    "midia|jota|otavio-calvet-corregedoria-justica-trabalho|2026|2026-08-05",
-    "opiniao|jota|psv150-efeitos-legislativo-stf|2026|2026-08-05",
-    "opiniao|jota|tributacao-vgbl-morte-segurado-ir|2026|2026-08-05",
-    "opiniao|jota|zanin-adc87-voto-divergente|2026|2026-08-06",
-    "opiniao|jota|nova-guerra-fiscal|2026|2026-08-06",
-    "opiniao|jota|ia-commodity-governanca|2026|2026-08-06",
-    "opiniao|jota|periculosidade-motociclistas-tst|2026|2026-08-06",
-    "youversion|versiculo|1joao-4-16|2026|2026-08-07",
-    "munger|citacao|sente-se-sobre-boas-ideias-inacao-inteligente|indice-19|2026-08-07",
     "planalto|lc|234|2026|2026-08-07",
     "planalto|lei|15486|2026|2026-08-07",
     "planalto|lei|15487|2026|2026-08-07",
@@ -222,7 +194,25 @@
     "fofoquinha|jota|conversa-tensa-moraes-mendonca-lauro-jardim|2026|2026-09-03",
     "fofoquinha|jota|gilmar-mendes-procura-lula-reclamar-pf|2026|2026-09-03",
     "youversion|versiculo|mateus-6-34|2026|2026-09-03",
-    "munger|citacao|exercite-habilidades-regularidade-atrofia|indice-46|2026-09-03"
+    "munger|citacao|exercite-habilidades-regularidade-atrofia|indice-46|2026-09-03",
+    "stf|noticia|fachin-pet16704-prazo-5-dias-crise-institucional|2026|2026-09-04",
+    "stf|decisao|justica-gratuita-trabalhista-criterios-8x2|2026|2026-09-03",
+    "stf|decisao|corsan-privatizacao-lei-rs-validada|2026|2026-09-03",
+    "stf|informativo|repercussao-geral-387|2026|2026-09-04",
+    "stj|jurisprudencia|irpj-fundo-de-fundos-fii-venda-cotas|2026|2026-09-03",
+    "midia|jota|moraes-pede-investigacao-mendonca-relatorio-pf-sem-valor-probatorio|2026|2026-09-04",
+    "midia|jota-folha|gonet-negara-vinculo-vorcaro-conselho-superior-mpf|2026|2026-09-04",
+    "midia|jota-valor|fonteles-defende-mendonca-legalidade-pedido-pf|2026|2026-09-04",
+    "midia|trf6|samarco-condenacao-criminal-fundao-mariana-primeira|2026|2026-09-03",
+    "midia|tjsp|suspende-demissao-delegado-da-cunha|2026|2026-09-03",
+    "midia|conjur|abracrim-sp-julgamentos-virtuais-retrocesso-defesa|2026|2026-09-03",
+    "opiniao|conjur|contradicao-sistema-acusatorio-caso-vorcaro|2026|2026-09-04",
+    "opiniao|jota|fachin-precisa-por-ordem-na-casa|2026|2026-09-03",
+    "midia|migalhas|gonet-pede-anulacao-relatorio-pf-vorcaro-moraes|2026|2026-09-01",
+    "fofoquinha|jota|folha-aliancas-internas-stf-julgamento-master|2026|2026-09-03",
+    "fofoquinha|jota|flavia-maia-bastidores-costuram-futuro-moraes|2026|2026-09-03",
+    "youversion|versiculo|galatas-5-22-23|2026|2026-09-04",
+    "munger|citacao|cultive-curiosidade-corrige-tendencias|indice-47|2026-09-04"
   ],
-  "total_chaves": 174
+  "total_chaves": 164
 }
