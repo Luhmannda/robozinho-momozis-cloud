@@ -11,10 +11,10 @@ Este é um agente de nuvem: cada execução clona este repositório do zero. Nad
 **1. Âncora de data e Munger — um único comando:**
 
 ```
-TZ='America/Sao_Paulo' date '+%Y-%m-%d %A %H:%M:%S %:z doy=%j' && TZ='America/Sao_Paulo' python3 -c "import json,time;q=json.load(open('work/munger-quotes.json',encoding='utf-8'))['quotes'];d=int(time.strftime('%j'));print('munger total=%d idx=%d'%(len(q),d%len(q)));print(json.dumps(q[d%len(q)],ensure_ascii=False))" && for h in www.bible.com dailyverses.net www.conjur.com.br www.migalhas.com.br www.congressonacional.leg.br; do printf 'egress %s=%s\n' "$h" "$(curl -sS -o /dev/null -m 8 -w '%{http_code}' "https://$h/" 2>/dev/null || echo ERR)"; done
+TZ='America/Sao_Paulo' date '+%Y-%m-%d %A %H:%M:%S %:z doy=%j' && TZ='America/Sao_Paulo' python3 -c "import json,time;q=json.load(open('work/munger-quotes.json',encoding='utf-8'))['quotes'];d=int(time.strftime('%j'));print('munger total=%d idx=%d'%(len(q),d%len(q)));print(json.dumps(q[d%len(q)],ensure_ascii=False))" && for h in www.bible.com dailyverses.net www.conjur.com.br www.migalhas.com.br www.congressonacional.leg.br; do printf 'egress %s=%s\n' "$h" "$(curl -s -o /dev/null -m 8 -w '%{http_code}' "https://$h/" 2>/dev/null)"; done
 ```
 
-As linhas `egress host=código` são o **probe de rede**: `200`/`301`/`302` = domínio liberado no allowlist do ambiente → leitura direta com `WebFetch` naquele domínio (versículo no passo 6; ConJur/Migalhas/Congresso no coletor Web); `403`/`000`/`ERR` = bloqueado → WebSearch, como até aqui. É o único teste de egress da execução — não repetir depois.
+As linhas `egress host=código` são o **probe de rede**: `200`/`301`/`302` = domínio liberado no allowlist do ambiente → leitura direta com `WebFetch` naquele domínio (versículo no passo 6; ConJur/Migalhas/Congresso no coletor Web); `000` (o proxy recusa o CONNECT) ou `403` = bloqueado → WebSearch, como até aqui. É o único teste de egress da execução — não repetir depois.
 
 Todo "hoje" — assunto, cabeçalho, janela, dia do ano — vem daí, nunca de e-mails ou notícias. Data futura ou muito antiga em qualquer item é armadilha, não novidade. O total do Munger é o **contado agora**, nunca um número lembrado; reproduza a `obs` quando houver. A saída do Bash nesta nuvem é UTF-8 e reproduziu acentos corretamente em 07/09 — se algum caractere sair estranho, leia a citação pela ferramenta de arquivo antes de publicar.
 
