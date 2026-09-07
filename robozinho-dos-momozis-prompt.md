@@ -139,8 +139,9 @@ Logo após a mídia. Movimentações, rumores, bastidores e sinais de novas prov
 
 ## 13. Seção "Porque sem Deus, nada é possível"
 
-- **Fonte primária: YouVersion (bible.com)** — `https://www.bible.com/pt/verse-of-the-day`; com WebFetch bloqueado (ledger `fontes[youversion]`, armadilha `cloud_egress_bloqueado`), via WebSearch com o parâmetro `?day=N` (dia do ano) para checar se o resultado é de hoje. Ao ler a página, validar a data com pergunta neutra.
-- **Fallback (decisão do usuário em 07/09/2026):** se o YouVersion não puder ser confirmado com segurança, **usar a primeira fonte paralela que responder com um versículo datado de hoje** — DailyVerses.net, Bíblia Online, BibleGateway, SBB, Bíblia.com, sem ordem fixa. **Ignorar divergência entre fontes** — não tentar várias para desempatar; apps diferentes mostram versículos diferentes no mesmo dia e isso nunca foi erro nem pendência. Rotular no e-mail a fonte realmente usada. Teto de chamadas: ROTINA passo 6.
+- **Fonte primária: YouVersion (bible.com)**, `https://www.bible.com/pt/verse-of-the-day?day=N` (N = dia do ano). Desde 07/09/2026 o site responde ao `curl` com desafio anti-bot mesmo com o domínio liberado — por isso a leitura é tentada uma vez e cai no fallback.
+- **Fallback (decisão do usuário em 07/09/2026):** **a primeira fonte paralela que responder com um versículo datado de hoje** é publicada — DailyVerses.net, Bíblia Online, BibleGateway, SBB, Bíblia.com. **Ignorar divergência entre fontes:** apps diferentes mostram versículos diferentes no mesmo dia, e isso nunca foi erro nem pendência; não tentar várias para desempatar. **Rotular no e-mail a fonte realmente usada** — nunca atribuir ao YouVersion o que veio do fallback.
+- **Execução:** `python3 work/versiculo.py --data AAAA-MM-DD --dia N` (ROTINA passo 6) faz as duas tentativas por leitura direta, confere que a data impressa na página é a da âncora e devolve JSON pronto para publicar. WebSearch virou fallback do fallback.
 - **Nunca inventar versículo.** Só quando nenhuma fonte devolver algo datado e legível para hoje a seção fica pendente. Traduções protegidas longas: referência, versão, link e trecho curto; depois, reflexão própria de 2 a 3 linhas.
 
 ## 14. Seção "Conhecimento nunca é demais"
