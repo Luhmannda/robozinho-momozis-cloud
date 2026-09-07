@@ -2945,7 +2945,7 @@
         "luizaxbarreto@gmail.com"
       ],
       "email_subject": "Robozinho dos Momozis até Passar - 07/09/2026 - 7h",
-      "delivery": "draft",
+      "delivery": "sent",
       "draft_id": "r7261183150767072449",
       "items": [
         {
@@ -3185,11 +3185,6 @@
       ],
       "pendencias": [
         {
-          "id": "envio_edicao_31_07_atrasado",
-          "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado em 07/09 via search_threads in:sent (vazio) - agora ~38 dias",
-          "faixa": "cronica"
-        },
-        {
           "id": "planalto_push_mudo",
           "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (67 dias) - sonda de 07/09 também vazia",
           "faixa": "cronica"
@@ -3220,7 +3215,29 @@
           "faixa": "ativa"
         }
       ],
-      "verification_notes": "Reconciliação: edição de 04/09-7h confirmada como enviada (search_threads in:sent, message_id 1a06bf6c6ea5b671). Sem draft duplicado para o assunto de hoje (list_drafts vazio antes da criação). Janela padrão de segunda-feira (72h, sexta 7h a segunda 7h), sem gap de execução a recuperar. STF notícias vieram de um push consolidado de 07/09 que recapitulava itens de 04/09 (o push STF por vezes reitera itens do dia anterior no push seguinte) - tratados como (herdada) 04/09 dado o timestamp interno de cada notícia. Item 'Supremo na Semana destaca justiça gratuita' (05/09) descartado por ser puro recap de decisão já publicada em 03/09, sem fato novo. Item 'STF institui teto de R$5 mil justiça gratuita' (JOTA, elaboração da decisão de 03/09 com detalhe do placar 8x2 e impacto TST/STJ) também descartado por duplicar chave já publicada. Concursos: armadilha banca_edital_antigo checada para TJRS e TRF5 - datas de prova/inscrição batem com o ciclo 2026, sem contaminação de edital antigo. Armadilha congresso_mpv aplicada - única menção de MPV nova (alterando Lei 12.933/2013) não teve segunda fonte confirmando, então não publicada. Item TRT-RJ (PL 1.400/2015, 180 cargos) encontrado pelo coletor Web mas fora da janela (01-02/09, antes de window_start 04/09 07:09) - não incluído. Padrão do JOTA (link wrapper t.rdsv2.net) resolvido via WebSearch site:jota.info com checagem de título; 4 itens de opinião ficaram sem link por não haver correspondência confirmada em 1-2 tentativas (publicados sem URL, conforme protocolo)."
+      "verification_notes": "Reconciliação: edição de 04/09-7h confirmada como enviada (search_threads in:sent, message_id 1a06bf6c6ea5b671). Sem draft duplicado para o assunto de hoje (list_drafts vazio antes da criação). Janela padrão de segunda-feira (72h, sexta 7h a segunda 7h), sem gap de execução a recuperar. STF notícias vieram de um push consolidado de 07/09 que recapitulava itens de 04/09 (o push STF por vezes reitera itens do dia anterior no push seguinte) - tratados como (herdada) 04/09 dado o timestamp interno de cada notícia. Item 'Supremo na Semana destaca justiça gratuita' (05/09) descartado por ser puro recap de decisão já publicada em 03/09, sem fato novo. Item 'STF institui teto de R$5 mil justiça gratuita' (JOTA, elaboração da decisão de 03/09 com detalhe do placar 8x2 e impacto TST/STJ) também descartado por duplicar chave já publicada. Concursos: armadilha banca_edital_antigo checada para TJRS e TRF5 - datas de prova/inscrição batem com o ciclo 2026, sem contaminação de edital antigo. Armadilha congresso_mpv aplicada - única menção de MPV nova (alterando Lei 12.933/2013) não teve segunda fonte confirmando, então não publicada. Item TRT-RJ (PL 1.400/2015, 180 cargos) encontrado pelo coletor Web mas fora da janela (01-02/09, antes de window_start 04/09 07:09) - não incluído. Padrão do JOTA (link wrapper t.rdsv2.net) resolvido via WebSearch site:jota.info com checagem de título; 4 itens de opinião ficaram sem link por não haver correspondência confirmada em 1-2 tentativas (publicados sem URL, conforme protocolo). DESFECHO (07/09, pos-execucao): a pendencia envio_edicao_31_07_atrasado foi encerrada — get_draft do r-4276239737789945707 devolveu labelIds [DRAFT, TRASH]: o rascunho de 31/07 esta na lixeira, e o Apps Script nao ve lixeira; nao houve falha estrutural do script. Ha 6 rascunhos de 29/06 (1 x 7h, 5 x 18h) parados em Rascunhos desde o setup, nao tocados pela rotina. Versiculo de hoje via fallback (DailyVerses.net, Tiago 4:10 NVI) foi localizado apos o envio e nao entrou no e-mail.",
+      "gmail_message_id": "1a07b699f7a34562",
+      "delivery_note": "Enviado pelo Apps Script as 07:28 -03 (~40 min apos a criacao do rascunho), antes da correcao do versiculo; o e-mail saiu com a secao do versiculo pendente.",
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 53666,
+          "chamadas": 9,
+          "duracao_ms": 47590
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 184811,
+          "chamadas": 36,
+          "duracao_ms": 274662
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 92965,
+          "chamadas": 34,
+          "duracao_ms": 138021
+        }
+      }
     }
   ]
 }

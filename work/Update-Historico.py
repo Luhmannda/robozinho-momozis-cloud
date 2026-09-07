@@ -40,7 +40,60 @@ def write_json_no_bom(path, data):
 
 
 def now_iso_with_offset():
-    return datetime.now().astimezone().isoformat(timespec="seconds")
+    # Fuso da newsletter, nao o do container (que e UTC na nuvem).
+    try:
+        from zoneinfo import ZoneInfo
+
+        return datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(timespec="seconds")
+    except Exception:
+        return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def metricas_derivadas(historico, execucoes_principal):
+    """Numeros que antes eram mantidos a mao no ledger (metricas.itens_ultimas_10,
+    media). Calculados do historico para nao depender de aritmetica manual.
+    Tambem agrega o uso dos coletores (campo opcional `coletores` de cada
+    execucao: {nome: {tokens, chamadas, duracao_ms, modelo}})."""
+    pasta = os.path.dirname(os.path.abspath(historico_path_global))
+    arquivadas = 0
+    for nome in historico.get("archive_files") or []:
+        caminho = os.path.join(pasta, nome)
+        if os.path.exists(caminho):
+            try:
+                arquivadas += len(read_json(caminho).get("executions") or [])
+            except Exception:
+                pass
+
+    ult10 = execucoes_principal[-10:]
+    itens = [len(e.get("items") or []) for e in ult10]
+    media = round(sum(itens) / len(itens), 1) if itens else 0
+
+    coletores = {}
+    for e in ult10:
+        for nome, uso in (e.get("coletores") or {}).items():
+            c = coletores.setdefault(
+                nome, {"execucoes": 0, "tokens_total": 0, "chamadas_total": 0}
+            )
+            c["execucoes"] += 1
+            c["tokens_total"] += int(uso.get("tokens") or 0)
+            c["chamadas_total"] += int(uso.get("chamadas") or 0)
+    for c in coletores.values():
+        n = c["execucoes"] or 1
+        c["tokens_media"] = round(c["tokens_total"] / n)
+        c["chamadas_media"] = round(c["chamadas_total"] / n, 1)
+
+    ultima = ult10[-1] if ult10 else {}
+    return {
+        "execucoes_registradas": len(execucoes_principal) + arquivadas,
+        "itens_ultimas_10": itens,
+        "media_itens": media,
+        "itens_ultima": itens[-1] if itens else 0,
+        "coletores_ultima": ultima.get("coletores") or {},
+        "coletores_ultimas_10": coletores,
+    }
+
+
+historico_path_global = ""
 
 
 def main():
@@ -250,6 +303,10 @@ def main():
 
     pend = [p for p in (ultima.get("pendencias") or []) if p]
 
+    global historico_path_global
+    historico_path_global = args.historico_path
+    metricas = metricas_derivadas(verif, todas)
+
     estado = {
         "gerado_em": now_iso_with_offset(),
         "gerado_por": ultima.get("execution_id"),
@@ -270,12 +327,22 @@ def main():
         "pendencias_ultima": pend,
         "chaves_publicadas": chaves,
         "total_chaves": len(chaves),
+        "metricas": metricas,
     }
 
     write_json_no_bom(estado_path, estado)
     add_log(
         f"Estado emitido: robozinho-estado.json ({len(chaves)} chaves, "
         f"ultima execucao {ultima.get('execution_id')})"
+    )
+    add_log(
+        "Metricas: itens_ultima=%d media_itens_10=%s execucoes_registradas=%d coletores_ultima=%s"
+        % (
+            metricas["itens_ultima"],
+            metricas["media_itens"],
+            metricas["execucoes_registradas"],
+            json.dumps(metricas["coletores_ultima"], ensure_ascii=False),
+        )
     )
 
     add_log("STATUS: OK")

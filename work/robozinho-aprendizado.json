@@ -101,9 +101,6 @@
   ],
 
   "pendencias_vivas": [
-    { "id": "envio_edicao_31_07_atrasado", "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - reconfirmado em 07/09 via search_threads in:sent (vazio) - ~38 dias", "desde": "2026-08-04", "execucoes": 9, "faixa": "cronica",
-      "politica": "1 busca in:sent por execucao (junto com as buscas do passo 4). Confirma falha estrutural do Apps Script naquele dia (nao da rotina de geracao) — recomendar ao usuario checar o gatilho diretamente." },
-
     { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (67 dias)", "desde": "2026-07-06", "execucoes": 26, "faixa": "cronica",
       "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto; a Rota 13 (WebSearch) sustenta a secao. Ja escalado em 31/07; nao repetir a escalada." },
 
@@ -128,15 +125,15 @@
 
     { "id": "list_drafts_indice_desatualizado", "licao": "Logo apos create_draft retornar id valido, list_drafts/search_threads in:draft podem nao mostrar o rascunho (indice defasado). Isso NAO e falha.", "acao": "Retorno de create_draft com id nao vazio e confirmacao suficiente. Nunca recriar por causa disso — geraria duplicata e o Apps Script enviaria duas vezes." },
 
+    { "id": "rascunho_nao_enviado_checar_trash", "licao": "A 'pendencia cronica' do rascunho de 31/07 (38 dias 'nao enviado pelo Apps Script') era um rascunho na LIXEIRA: get_draft devolveu labelIds ['DRAFT','TRASH']. O Apps Script nao ve lixeira, e a busca in:sent nunca ia mudar de resultado. Ha ainda 6 rascunhos de 29/06 (1 da edicao 7h, 5 da extinta 18h) parados em Rascunhos desde o setup — sao do usuario, a rotina nao apaga.", "acao": "Edicao anterior sem in:sent → get_draft MINIMAL e olhar labelIds ANTES de abrir pendencia (ROTINA passo 4). Nunca manter pendencia cuja verificacao diaria nao pode mudar de resultado." },
+
     { "id": "apps_script_envia_em_minutos", "licao": "Em 07/09 o Apps Script enviou o rascunho ~40 min apos a criacao. Depois disso o draft_id deixa de existir (update_draft devolve 'draft could not be found') e o e-mail ja esta nas caixas dos destinatarios.", "acao": "O rascunho nasce completo (checklist da ROTINA passo 7). Correcao pos-criacao so e possivel se list_drafts ainda mostrar o rascunho; se o assunto de hoje ja esta em in:sent, nao criar outro (ROTINA passo 4c)." },
 
     { "id": "execucao_atrasada_padroes", "licao": "Execucoes atrasadas sao absorvidas pela janela elastica sem edicao retroativa, com teto de 7 dias mesmo que o gap seja maior. Gap de 15 dias (01/09): o digest do STF NAO recuperou o buraco — nao presumir que produtos periodicos cobrem gaps grandes.", "acao": "Usar a hora REAL da execucao para janela e assunto. Em gap > 7 dias, registrar nas pendencias que o intervalo alem do teto pode ter lacunas; conferir a data mais antiga retornada por cada fonte." }
   ],
 
   "metricas": {
-    "execucoes_registradas": 27,
-    "itens_ultimas_10": [21, 33, 26, 30, 47, 55, 27, 15, 18, 27],
-    "media": 29.9,
+    "onde": "Os numeros (itens das ultimas 10, media, execucoes registradas, uso dos coletores) sao calculados pelo helper e vivem em work/robozinho-estado.json → metricas. Nao editar numeros aqui.",
     "alerta": "Queda abaixo de 10 itens numa janela normal de 24h fora do recesso forense e sinal de falha de fonte. Dia dominado por poucas historias densas (ex.: crise STF-PGR) pode ficar abaixo da media por escolha editorial — nao e falha se os coletores documentaram tentativas."
   }
 }

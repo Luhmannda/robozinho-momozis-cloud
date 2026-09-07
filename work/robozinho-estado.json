@@ -1,22 +1,17 @@
 {
-  "gerado_em": "2026-09-07T10:24:42+00:00",
+  "gerado_em": "2026-09-07T09:06:58-03:00",
   "gerado_por": "2026-09-07-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
     "execution_id": "2026-09-07-7h",
     "date": "2026-09-07",
     "email_subject": "Robozinho dos Momozis até Passar - 07/09/2026 - 7h",
-    "delivery": "draft",
+    "delivery": "sent",
     "draft_id": "r7261183150767072449",
     "window_end": "2026-09-07T07:17:32-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
-    {
-      "id": "envio_edicao_31_07_atrasado",
-      "texto": "Rascunho da edição de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, não enviado pelo Apps Script - reconfirmado em 07/09 via search_threads in:sent (vazio) - agora ~38 dias",
-      "faixa": "cronica"
-    },
     {
       "id": "planalto_push_mudo",
       "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (67 dias) - sonda de 07/09 também vazia",
@@ -194,5 +189,65 @@
     "concurso|trt8|banca-fcc-contratada-edital-iminente|2026|2026-08-28",
     "concurso|dpdf|banca-instituto-access-contratada-edital-pendente|2026|2026-09-07"
   ],
-  "total_chaves": 144
+  "total_chaves": 144,
+  "metricas": {
+    "execucoes_registradas": 15,
+    "itens_ultimas_10": [
+      21,
+      33,
+      25,
+      28,
+      47,
+      57,
+      27,
+      15,
+      18,
+      27
+    ],
+    "media_itens": 29.8,
+    "itens_ultima": 27,
+    "coletores_ultima": {
+      "gmail": {
+        "modelo": "haiku",
+        "tokens": 53666,
+        "chamadas": 9,
+        "duracao_ms": 47590
+      },
+      "jota": {
+        "modelo": "sonnet",
+        "tokens": 184811,
+        "chamadas": 36,
+        "duracao_ms": 274662
+      },
+      "web": {
+        "modelo": "sonnet",
+        "tokens": 92965,
+        "chamadas": 34,
+        "duracao_ms": 138021
+      }
+    },
+    "coletores_ultimas_10": {
+      "gmail": {
+        "execucoes": 1,
+        "tokens_total": 53666,
+        "chamadas_total": 9,
+        "tokens_media": 53666,
+        "chamadas_media": 9.0
+      },
+      "jota": {
+        "execucoes": 1,
+        "tokens_total": 184811,
+        "chamadas_total": 36,
+        "tokens_media": 184811,
+        "chamadas_media": 36.0
+      },
+      "web": {
+        "execucoes": 1,
+        "tokens_total": 92965,
+        "chamadas_total": 34,
+        "tokens_media": 92965,
+        "chamadas_media": 34.0
+      }
+    }
+  }
 }
