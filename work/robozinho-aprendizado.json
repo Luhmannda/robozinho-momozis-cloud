@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. REGRA DE PODA: ao atualizar a nota de uma fonte, REESCREVER de forma compacta (status atual + politica vigente + 1 padrao recente se ainda relevante) em vez de acrescentar ao texto anterior — incidente ja resolvido ou generalizado numa regra estavel sai da nota. Licao de processo que virou regra permanente no prompt mestre sai daqui. Validar este arquivo com json.load apos editar (nenhum helper faz isso automaticamente, ao contrario do historico). Manter enxuto — este arquivo e lido todo dia, para sempre.",
-  "atualizado_em": "2026-09-07T07:35:00-03:00",
-  "atualizado_por_execucao": "2026-09-07-7h",
+  "atualizado_em": "2026-09-07T08:11:45-03:00",
+  "atualizado_por_execucao": "2026-09-07-7h (correcao pos-execucao: fallback do versiculo do dia)",
 
   "niveis_de_esforco": {
     "saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.",
@@ -42,7 +42,7 @@
       "nota": "Em ambiente de nuvem, fetch direto tambem bloqueado por egress (mesmo padrao do ConJur) — usar WebSearch. Em 07/09 nenhuma materia propria com data confirmada de 06 ou 07/09 encontrada (buscas por 'migalhas 7 setembro 2026' so trouxeram materias antigas de anos anteriores) — tratado como ausencia legitima de fim de semana, nao falha." },
 
     { "id": "youversion", "status": "instavel", "ultimo_sucesso": "2026-09-04", "sem_sucesso": 1,
-      "nota": "DECISAO DO USUARIO (01/09/2026): YouVersion/bible.com e o padrao fixo — divergencia com OUTRAS FONTES nao e pendencia. MAS em 07/09, WebFetch direto confirmou EGRESS_BLOCKED e 3 buscas WebSearch independentes para a mesma URL parametrizada (?day=250) devolveram 3 titulos DIFERENTES e conflitantes entre si (1 Timothy 5:1, John 8:32) — sinal de que o indice de busca nao tem snapshot confiavel para o dia exato, nao apenas divergencia editorial entre apps. Alem disso, a pagina SEM parametro (bible.com/verse-of-the-day) mostrou consistentemente 'Psalms 121:2', que uma busca por site:bible.com confirmou corresponder a day=249 (ONTEM), nao ao dia corrente — ou seja, o snapshot generico tende a atrasar 1 dia. Ver armadilha nova websearch_youversion_dia_instavel. Reclassificado de saudavel para instavel; se reincidir mais 1x, considerar buscar tambem em dailyverses.net so como triangulacao de convergencia (nao como fonte alternativa de publicacao, que continua proibida pela decisao do usuario)." },
+      "nota": "DECISAO DO USUARIO (07/09/2026, atualiza a de 01/09): YouVersion/bible.com continua sendo a fonte PRIMARIA, mas agora com FALLBACK explicito — se o YouVersion nao puder ser confirmado (egress bloqueado + WebSearch sem resultado datado e claro, como ocorreu em 07/09 com 3 buscas conflitantes para day=250), usar a PRIMEIRA fonte paralela que responder com um versiculo datado de hoje (DailyVerses.net, Biblia Online, BibleGateway, SBB, Biblia.com — sem ordem fixa) e publicar direto, SEM cruzar nem desempatar entre fontes. Rotular a fonte real usada no e-mail (nunca atribuir a YouVersion o que veio do fallback). Ver Secao 13 do prompt mestre e armadilha websearch_youversion_dia_instavel (que descreve por que a busca direta ao YouVersion e frequentemente nao confiavel)." },
 
     { "id": "noticias_stf_direto", "status": "bloqueado",
       "nota": "403 reproduzido repetidamente. O conteudo chega pelo Push STF com as URLs canonicas — publicar essas URLs normalmente." },
@@ -112,7 +112,7 @@
     { "id": "websearch_youversion_dia_instavel", "fonte": "WebSearch para bible.com/verse-of-the-day (com ou sem parametro ?day=N)",
       "sintoma": "A mesma URL parametrizada (?day=N) devolve titulos de versiculo DIFERENTES entre buscas independentes na mesma execucao (ex.: 1 Timothy 5:1 numa busca, John 8:32 noutra, para o mesmo day=250). A pagina SEM parametro tende a mostrar o snapshot de ONTEM (day=N-1), nao o de hoje — confirmado em 07/09: 'Psalms 121:2' aparecia de forma consistente na pagina generica, mas uma busca por site:bible.com confirmou que esse versiculo corresponde a day=249 (ontem), nao day=250 (hoje).",
       "detectado_em": ["2026-09-07"],
-      "regra": "Nao confiar em uma unica busca WebSearch para o versiculo do dia, mesmo com o parametro day=N explicito. Exigir 2+ buscas independentes que CONVIRJAM no mesmo versiculo/referencia antes de publicar. Se as buscas divergirem entre si (nao apenas divergirem de outras fontes tipo DailyVerses, o que e normal), a secao fica PENDENTE nesta execucao — nao escolher arbitrariamente uma das respostas conflitantes. Nao usar a pagina sem parametro como confirmacao sozinha, pois ela pode estar mostrando o dia anterior." }
+      "regra": "Nao insistir tentando varias buscas para o YouVersion convergirem. Se a primeira tentativa direta (WebFetch bloqueado, ou WebSearch sem um resultado datado e claro para hoje) falhar, ir direto ao FALLBACK definido na fonte youversion e na Secao 13 do prompt mestre (decisao do usuario, 07/09/2026): usar a primeira fonte paralela que responder com um versiculo datado de hoje (DailyVerses.net, Biblia Online, BibleGateway, SBB, Biblia.com), publicar direto e rotular a fonte real usada — sem cruzar nem desempatar. Nao usar a pagina bible.com/verse-of-the-day SEM parametro como confirmacao sozinha, pois pode estar mostrando o snapshot do dia anterior (confirmado em 07/09: 'Psalms 121:2' ali correspondia a day=249, nao ao dia corrente)." }
   ],
 
   "pendencias_vivas": [
