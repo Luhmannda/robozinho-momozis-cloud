@@ -1,60 +1,78 @@
 # Robozinho dos Momozis até Passar — rotina (versão nuvem)
 
-Gere a edição diária (dias úteis) da newsletter jurídica "Robozinho dos Momozis até Passar" e salve como RASCUNHO no Gmail. NÃO envie — quem envia é um Apps Script que localiza o rascunho pelo assunto exato.
+Gere a edição diária (dias úteis) da newsletter jurídica "Robozinho dos Momozis até Passar" e salve como RASCUNHO no Gmail. NÃO envie — quem envia é um Apps Script que localiza o rascunho pelo assunto exato. **Ele pode enviar poucos minutos depois da criação** (em 07/09 enviou ~40 min depois): o rascunho precisa nascer completo; não existe "depois eu corrijo".
 
 Você é ORQUESTRADOR E REVISOR: delega a coleta volumosa, mas o ceticismo e o julgamento são seus e não se delegam.
 
-Este é um agente de nuvem: cada execução clona este repositório do zero. Nada que não for commitado e enviado (`git push`) de volta para este repositório sobrevive até a próxima execução — por isso o passo 10 (persistir) é obrigatório e novo em relação à versão local desta rotina.
+Este é um agente de nuvem: cada execução clona este repositório do zero. Nada que não for commitado e enviado (`git push`) de volta sobrevive até a próxima execução — por isso o passo 10 é obrigatório.
 
-**1. Âncora de data.** Rode `TZ='America/Sao_Paulo' date` (o ambiente Linux entende IDs IANA nativamente — ao contrário do Windows, aqui não há necessidade de gambiarra). Todo "hoje" — assunto, cabeçalho, janela, dia do ano do Munger — vem daí, nunca de e-mails ou notícias. Use também como filtro: data futura ou muito antiga é armadilha, não novidade.
+**Economia de contexto (vale para a rotina inteira).** Cada chamada de ferramenta reenvia todo o contexto; o custo real é contexto × turnos. Portanto: (a) **não use TaskCreate/TaskUpdate** — esta rotina já é o checklist; (b) **agrupe numa mesma mensagem toda chamada independente** (as buscas do passo 4, os 3 coletores, os `Edit` do ledger, o git do passo 10); (c) **não leia** `work/Update-Historico.py`, `README.md` nem o histórico integral — o que a rotina precisa deles está escrito aqui; (d) não releia arquivo que você acabou de escrever; (e) não ecoe relatórios de coletores nem o corpo do e-mail em texto para o usuário. Economizar **verificação**, nunca: a otimização é gastar melhor, não menos.
 
-**2. Leia, nesta ordem:**
-- `robozinho-dos-momozis-prompt.md` (raiz do repositório) — prompt mestre (v6): identidade visual, selos, seções, rotas e regras editoriais.
-- `work/robozinho-aprendizado.json` — ledger. Calibra o esforço: fonte `mudo` leva 1 sonda e fallback imediato; `bloqueado_estrutural` e `descontinuado` **não são tentadas**; silêncio de fonte `intermitente_por_natureza` **não é pendência**. Traz também as armadilhas que exigem checagem cruzada e a faixa de cada pendência. **Em conflito com o prompt mestre, o ledger vence.**
-- `work/robozinho-estado.json` — resumo gerado pelo helper: `window_end` da última execução, assunto/entrega dela, chaves já publicadas e pendências abertas. **Não leia o histórico integral** — só em caso de dúvida real. Se o estado não existir, leia `work/resumo-legislativo-historico.json` uma vez; o helper passa a gerá-lo a partir da próxima gravação.
+**1. Âncora de data e Munger — um único comando:**
 
-**3. Janela elástica.** Do `window_end` da última execução até agora, máximo 7 dias. Segunda dá ~72h (cobre o fim de semana). Após dias sem execução, estende até fechar o buraco. Itens anteriores às últimas 24h entram como *(herdada)* com data explícita; o resto é novidade de hoje. Em execução atrasada, cubra até agora — mas o assunto leva a data de HOJE. Nunca gere edição retroativa.
+```
+TZ='America/Sao_Paulo' date '+%Y-%m-%d %A %H:%M:%S %:z doy=%j' && TZ='America/Sao_Paulo' python3 -c "import json,time;q=json.load(open('work/munger-quotes.json',encoding='utf-8'))['quotes'];d=int(time.strftime('%j'));print('munger total=%d idx=%d'%(len(q),d%len(q)));print(json.dumps(q[d%len(q)],ensure_ascii=False))"
+```
 
-**4. Reconciliação e anti-duplicata.** (a) Use as ferramentas MCP do Gmail conectadas a esta sessão para buscar (`search_threads`) o assunto exato da edição anterior + `in:sent`: anote o `gmail_message_id` para passar ao helper no passo 8 — **não grave o histórico agora**. (b) `list_drafts` com o assunto de hoje: se já existir, **não crie outro** — vá aos passos 8, 9 e 10 com `delivery: "draft_ja_existente"` e encerre.
+Todo "hoje" — assunto, cabeçalho, janela, dia do ano — vem daí, nunca de e-mails ou notícias. Data futura ou muito antiga em qualquer item é armadilha, não novidade. O total do Munger é o **contado agora**, nunca um número lembrado; reproduza a `obs` quando houver. A saída do Bash nesta nuvem é UTF-8 e reproduziu acentos corretamente em 07/09 — se algum caractere sair estranho, leia a citação pela ferramenta de arquivo antes de publicar.
 
-**5. Coleta — 3 subagentes em paralelo, numa única mensagem** (`Agent`, `subagent_type: "general-purpose"`), já com a janela do passo 3:
-- **Gmail oficial** (`haiku`): Push STF (`naoresponda@stf.jus.br`), 1 sonda do PUSH Planalto (`presidencia.gov.br in:anywhere newer_than:Nd` — fonte muda, não gaste mais queries) e STJ CodJu (`stj.codju@stj.jus.br`).
-- **JOTA** (`sonnet`): `contato@jota.info`. Muito volume e muito ruído — só conteúdo jurídico, descartando eleitoral/comercial/institucional. Links vêm em wrapper `t.rdsv2.net`: resolver para URL direta ou publicar sem link, **nunca o wrapper**. **Teto:** notícias, todas; opinião/análise, no máximo 6 — resolver link só do que tem chance de sair, nunca do digest inteiro. Boletins-resumo (ex.: "Últimas notícias", digests de CNJ) **não têm link por item no HTML** — não insistir em WebFetch/WebSearch para esses, publicar sem link direto (economiza a maior fatia do custo deste coletor).
-- **Web** (`sonnet`): Rota 13 (Congresso — Últimas Leis Publicadas) e MPVs; concursos (Gran, Estratégia CJ, Magistrar, PCI, bancas); ConJur (`/ultimas-da-conjur/`) e Migalhas. **Se o ledger indicar bloqueio de egress ativo para algum desses domínios** (armadilha `cloud_egress_bloqueado`), informe isso já no prompt do subagente e mande ir direto ao WebSearch — não gastar uma tentativa de WebFetch/curl fadada a falhar (o subagente parte do zero e não lê o ledger sozinho).
+**2. Leia, nesta ordem (e só isto):**
+- `robozinho-dos-momozis-prompt.md` — prompt mestre (v10, enxuto): selos, protocolos de fonte, classificação de status e regras editoriais. Ele não repete o que está aqui.
+- `work/robozinho-aprendizado.json` — ledger. Calibra o esforço: fonte `mudo` leva 1 sonda e fallback imediato; `bloqueado`/`descontinuado` **não são tentadas**; silêncio de `intermitente` **não é pendência**. Traz as armadilhas que exigem checagem cruzada e a faixa de cada pendência. **Em conflito com o prompt mestre, o ledger vence.**
+- `work/robozinho-estado.json` — `window_end` da última execução, assunto/entrega dela, chaves já publicadas e pendências abertas. Não leia o histórico integral; se o estado não existir, leia `work/resumo-legislativo-historico.json` uma vez.
+- `work/template-newsletter-referencia.html` — **só no passo 7**, imediatamente antes de compor, para não carregar 14 KB de HTML durante toda a coleta.
 
-Instrua cada um, em uma linha: *devolva evidência — título, data visível na fonte e URL —, relate o que tentou incluindo o que voltou vazio ou com erro, e nunca conclua ausência de novidade.* Relatório vazio **não** é ausência de novidade: quem interpreta ausência é você. Coletor incompleto ou incoerente, refaça a fonte você mesmo — mas **erro determinístico (403/404/DNS) não se repete na mão**: vá direto ao fallback documentado e registre a falha.
+**3. Janela elástica.** Do `window_end` da última execução até agora, máximo 7 dias. Segunda dá ~72h (cobre o fim de semana). Após dias sem execução, estende até fechar o buraco. Itens anteriores às últimas 24h entram como *(herdada)* com data explícita; o resto é novidade de hoje. Em execução atrasada, cubra até agora — mas o assunto leva a data de HOJE. Nunca gere edição retroativa. Gap > 7 dias: registrar nas pendências que o intervalo além do teto pode ter lacunas.
 
-**6. Verifique e julgue (indelegável).** Para cada item: a data cabe na janela? a fonte sustenta o selo? item de fonte com armadilha registrada passou por checagem cruzada? a chave já foi publicada (estado do passo 2)? Item que não sobrevive não entra, ou entra com selo rebaixado e a incerteza dita ao leitor. Nunca trate erro técnico como ausência de novidade. Em recesso forense (2–31/jul; 20/dez–31/jan), fluxo reduzido de STF/STJ é normal — registre como "fluxo reduzido de recesso", não como falha. Munger: índice = (dia do ano) mod (total REAL de `work/munger-quotes.json`, contado nesta execução); reproduza a `obs` quando houver.
+**4. Reconciliação e anti-duplicata — três buscas numa única mensagem:** (a) `search_threads` com o assunto exato da edição anterior + `in:sent`: anote o `gmail_message_id` para o passo 8 — não grave agora; (b) `list_drafts` com o assunto de hoje; (c) `search_threads` com o assunto de hoje + `in:sent` (uma re-execução no mesmo dia, depois de o Apps Script já ter enviado, não pode gerar segundo e-mail). Se (b) ou (c) devolver algo, **não crie outro rascunho** — vá aos passos 8, 9 e 10 com `delivery: "draft_ja_existente"` e encerre. Se o ledger ainda tiver a pendência crônica de envio de uma edição antiga, inclua a busca `in:sent` dela nesta mesma mensagem.
 
-**7. Crie o rascunho** (ferramenta `create_draft` do Gmail MCP — só você, uma única vez):
+**5. Coleta — 3 subagentes em paralelo, numa única mensagem** (`Agent`, `subagent_type: "general-purpose"`, `run_in_background: true`), já com a janela do passo 3. **Todo prompt de coletor leva estas duas linhas:** *"Agrupe chamadas independentes na mesma mensagem (várias buscas ou vários `get_thread` por vez) — cada turno reenvia seu contexto inteiro."* e *"Devolva evidência — título, data visível na fonte e URL —, relate o que tentou incluindo o que voltou vazio ou com erro, e nunca conclua ausência de novidade; quem interpreta ausência é o orquestrador."*
+
+- **Gmail oficial** (`haiku`): Push STF notícias (`naoresponda@stf.jus.br`) e jurisprudência/informativos (`nao_responda@stf.jus.br` — número pelo slug do PDF, andamento processual não é informativo), STJ CodJu (`stj.codju@stj.jus.br`, número e data do ASSUNTO) e 1 sonda do PUSH Planalto (`presidencia.gov.br in:anywhere newer_than:Nd` — fonte muda, nenhuma outra query). `get_thread` com `PLAIN_TEXT`. O push do STF do dia D reitera itens de D-1: usar o timestamp interno de cada notícia, não a data do e-mail.
+- **JOTA** (`sonnet`): `contato@jota.info`, `search_threads` com `pageSize: 50`. Só conteúdo jurídico — descartar eleitoral/comercial/institucional/patrocinado. **Teto:** notícias, todas as relevantes; opinião/análise, no máximo 6. **Links** vêm em wrapper `t.rdsv2.net` — nunca publicar; resolver via WebSearch `site:jota.info` conferindo que o título bate, **1 tentativa por item, em lotes de 5 buscas por mensagem, no máximo 16 buscas no total**; não bateu → publicar sem link. Boletins-resumo (Últimas notícias, digests de CNJ) não têm link por item: não tentar. Thread grande demais para `get_thread` é salva pelo harness — filtrar por script, não reler.
+- **Web** (`sonnet`): Rota 13 (Congresso — Últimas Leis Publicadas) e MPVs; concursos; ConJur (`/ultimas-da-conjur/`) e Migalhas (2–3 buscas cada, data confirmada no slug/página). **Cole no prompt, a partir do ledger:** (i) as armadilhas `cloud_egress_bloqueado` (ir direto ao WebSearch, não gastar WebFetch/curl), `congresso_mpv` e `banca_edital_antigo`, uma linha cada; (ii) a lista `pendencias_vivas` de concursos com `id`, `texto` e `faixa`; (iii) a regra de faixa: **1ª execução da semana** (segunda, ou 1ª após gap) → reverificar `ativa` e `longo_prazo`; **demais dias** → reverificar só `ativa` e buscar apenas edital/inscrição/banca/resultado **novos** (≤ 6 buscas de concursos). Sem isso o subagente re-varre tudo do zero todo dia.
+
+Relatório vazio **não** é ausência de novidade: quem interpreta ausência é você. Coletor incompleto ou incoerente, refaça a fonte você mesmo — mas **erro determinístico (403/404/DNS/EGRESS_BLOCKED) não se repete na mão**: fallback documentado e registrar a falha. Coletor interrompido pelo harness: `SendMessage` para o mesmo agente pedindo para concluir — ele retoma do transcript. Enquanto os coletores rodam, faça o versículo (passo 6) — não sonde nem agende wakeup; a notificação de término chega sozinha.
+
+**6. Verifique e julgue (indelegável).** Para cada item: a data cabe na janela? a fonte sustenta o selo? item de fonte com armadilha passou por checagem cruzada? a chave já foi publicada (estado do passo 2)? itens do mesmo coletor com títulos diferentes apontam para URLs diferentes ou é a mesma matéria (comparar a URL final)? Item que não sobrevive não entra, ou entra com selo rebaixado e a incerteza dita ao leitor. Nunca trate erro técnico como ausência de novidade. Recesso forense (2–31/jul; 20/dez–31/jan): fluxo reduzido de STF/STJ é normal — "fluxo reduzido de recesso", não falha. Munger: o índice já veio do passo 1.
+
+**Versículo (você, não subagente — teto de 3 chamadas de WebSearch, WebFetch está bloqueado, não tente):** 1) `bible.com verse-of-the-day day=N` (N = `doy` do passo 1) — publique se vier referência e texto claros para hoje; 2) senão, `dailyverses.net/AAAA/M/D versículo do dia` — a primeira fonte paralela que responder com versículo datado de hoje publica, sem cruzar nem desempatar (decisão do usuário, 07/09/2026); 3) uma terceira busca (bibliaonline.com.br ou biblegateway.com) só se as duas primeiras falharem. Rotule a fonte realmente usada. Só com as três vazias a seção fica pendente.
+
+**7. Crie o rascunho** (`create_draft` do Gmail MCP — só você, **uma única vez**; `update_draft` custa o corpo inteiro de novo e o Apps Script pode já ter enviado). Leia o template agora (passo 2) e componha **direto na chamada** — sem arquivo intermediário e sem releitura.
 - **to:** `["pereirafranciscofilho@gmail.com", "luizaxbarreto@gmail.com"]`
-- **subject EXATO:** `Robozinho dos Momozis até Passar - DD/MM/AAAA - 7h` (data de HOJE, caractere por caractere — o Apps Script depende disso).
-- **htmlBody:** reproduzir o template `work/template-newsletter-referencia.html`, preenchendo só os `{{ }}`. Compor **direto na chamada** — sem arquivo intermediário e sem releitura, que fariam o corpo passar três vezes pelo contexto. Não inventar layout. Preheader com os destaques; tabelas 600px; estilos inline; navy `#0b2545` / dourado `#c5a253`; zebra `#f9fafc` nos concursos; carimbo de geração no "Suporte usado"; URLs diretas; corpo < ~100 KB. Cabeçalho com o dia da semana; rodapé "Próxima edição: amanhã, às 7h." — nas sextas, "segunda-feira".
+- **subject EXATO:** `Robozinho dos Momozis até Passar - DD/MM/AAAA - 7h` (data de HOJE, caractere por caractere).
+- **htmlBody:** o template, preenchendo só os `{{ }}`. Não inventar layout.
 
-**8. Grave o histórico.** Escreva a execução num `.json` separado em `/tmp/execucao.json` (`delivery`, `draft_id`, `items` com chave estável, `source_status`, `errors`, `pendencias`, `verification_notes`) e chame o helper Python (porte fiel do antigo `Update-Historico.ps1`, mesma lógica de merge, reconciliação, arquivamento e detecção de mojibake):
+**Checklist antes de chamar `create_draft` — confira mentalmente os 6 pontos; o e-mail nasce completo:**
+1. Preheader oculto com 2–3 destaques do dia.
+2. Cabeçalho com `DD/MM/AAAA (dia-da-semana)`; resumo executivo com 3–5 cards; janela de cobertura descrita.
+3. As 13 entradas do índice têm seção correspondente, na ordem do template — inclusive o **bloco OPINIÃO/ANÁLISE dentro da seção Mídia** (esquecido em 07/09, custou um `update_draft` inteiro) e a seção Munger.
+4. Nenhum `{{` sobrando; nenhum wrapper (`t.rdsv2.net`, `google.com/url`); **selos só da lista fechada** do prompt mestre §2 (em 07/09 saiu um "SEM NOVIDADE" inexistente — usar `EM ANDAMENTO` ou `PENDÊNCIA`).
+5. Rodapé "Próxima edição: amanhã, às 7h." (seg–qui) ou "segunda-feira" (sex); carimbo "Gerado em DD/MM/AAAA HH:MM · execução <id>" no "Suporte usado".
+6. Corpo < ~100 KB; estilos inline; tabelas 600px.
 
-```
-python3 work/Update-Historico.py \
-    --nova-execucao "/tmp/execucao.json" \
-    --reconciliar-id "<id da edição anterior>" \
-    --reconciliar-message-id "<message_id do passo 4>" \
-    --relatorio-path "/tmp/relatorio.txt"
-```
+Retorno com `id` não vazio é confirmação suficiente — `list_drafts` logo em seguida pode não mostrar o rascunho (índice defasado); não recrie.
 
-`--nova-execucao` é o **caminho de um arquivo** (o script faz `Test-Path`/`os.path.exists`), nunca o JSON inline. Ele faz merge, reconciliação, arquivamento (máx. 10), detecção de mojibake e regenera `work/robozinho-estado.json`. Depois **leia o arquivo do `--relatorio-path`** — a saída do console não valida acentuação, mente nos dois sentidos.
-
-**9. Atualize o ledger.** Fonte que silenciou (incrementar contador; ≥5 execuções → `mudo`); fonte que voltou (zerar, reclassificar, registrar a data); fonte que devolveu conteúdo errado (nova armadilha, ou só mais uma data em `detectado_em` se já existir); pendência parada (rebaixar de faixa ou aposentar); pendência resolvida (remover e dar o desfecho no e-mail); desempenho dos coletores (falha recorrente → promover de `haiku` para `sonnet`, ou reabsorver). **Só registre o que muda uma decisão da próxima execução** — o resto vai para `verification_notes`. **Ao editar a nota de uma fonte, reescreva-a compacta em vez de prependar/acrescentar ao texto antigo** (concatenar quebra aspas do JSON e infla o arquivo lido todo dia). **Depois de editar o ledger, valide com** `python3 -c "import json; json.load(open('work/robozinho-aprendizado.json', encoding='utf-8'))"` **— ao contrário do histórico, este arquivo não tem helper que valide sozinho, e corrupção silenciosa aqui só aparece na próxima execução.**
-
-**10. Persista no repositório (NOVO — não existia na versão local).** `work/robozinho-aprendizado.json`, `work/robozinho-estado.json`, `work/resumo-legislativo-historico.json` e qualquer `work/resumo-legislativo-historico-arquivo-*.json` novo foram alterados nos passos 8 e 9. Faça:
+**8. Grave o histórico.** Escreva `/tmp/execucao.json` — os `items` são os mesmos que foram ao e-mail, com os mesmos títulos (copiar, não reescrever) e chave estável `fonte|tipo|slug|ano|data`; mais `delivery`, `draft_id`, `source_status`, `errors`, `pendencias` (id, texto, faixa) e `verification_notes`. Campos completos: prompt mestre §4. Depois, uma única chamada:
 
 ```
-git add work/robozinho-aprendizado.json work/robozinho-estado.json work/resumo-legislativo-historico.json work/resumo-legislativo-historico-arquivo-*.json
-git commit -m "Robozinho: execução <execution_id>"
-git push
+python3 work/Update-Historico.py --nova-execucao /tmp/execucao.json --reconciliar-id "<id da edição anterior>" --reconciliar-message-id "<message_id do passo 4>" --relatorio-path /tmp/relatorio.txt && cat /tmp/relatorio.txt
 ```
 
-Se o `git push` falhar (sem credenciais, branch protegida etc.), registre o erro claramente no relatório final — sem essa gravação, a próxima execução perde a memória e reaprende do zero.
+`--nova-execucao` é **caminho de arquivo**, nunca JSON inline. O helper faz merge, reconciliação, arquivamento (máx. 10), detecção de mojibake e regenera `work/robozinho-estado.json`. Confira no relatório: `STATUS: OK` e "nenhuma marca de mojibake". Se o relatório acusar mojibake, aí sim leia o arquivo pela ferramenta de arquivo — o console não valida acentuação.
 
-**Rascunho mínimo viável:** sempre gere o rascunho; se uma seção falhar, publique no lugar dela o quadro de pendências. A única exceção é o anti-duplicata do passo 4b.
+**9. Atualize o ledger — em 1 ou 2 chamadas de `Edit`, não uma por campo.** Fonte que silenciou (incrementar; ≥5 execuções → `mudo`); fonte que voltou (zerar, reclassificar, registrar a data); fonte que devolveu conteúdo errado (nova armadilha, ou só mais uma data em `detectado_em`); pendência parada (rebaixar ou aposentar); pendência resolvida (remover e dar o desfecho no e-mail); coletor que falhou (promover `haiku`→`sonnet` ou reabsorver). **Só registre o que muda uma decisão da próxima execução** — o resto vai para `verification_notes`. **Reescreva a nota compacta** (status + política + no máximo 1 padrão recente); nunca prependar "Nota anterior:" nem acumular "Em DD/MM…". Depois, **valide:** `python3 -c "import json; json.load(open('work/robozinho-aprendizado.json', encoding='utf-8'))"` — este arquivo não tem helper.
+
+**10. Persista no repositório — uma única chamada.** O HEAD desta nuvem costuma estar **detached**; empurre explicitamente para `main`:
+
+```
+git add work/robozinho-aprendizado.json work/robozinho-estado.json work/resumo-legislativo-historico.json work/resumo-legislativo-historico-arquivo-*.json && git commit -m "Robozinho: execução <execution_id>" && git push origin HEAD:main
+```
+
+Se o `push` falhar (credenciais, branch protegida), registre o erro no relatório final — sem essa gravação, a próxima execução reaprende do zero.
+
+**11. Notifique — uma vez, no fim.** `PushNotification` com `<routine_summary>`: 1ª frase = assunto criado (ou "duplicata detectada, nada criado") e nº de itens; depois 2–3 destaques e o que ficou pendente ou falhou (fonte, versículo, push). Execução que não gerou rascunho por erro: notificar do mesmo jeito, com o erro.
+
+**Rascunho mínimo viável:** sempre gere o rascunho; se uma seção falhar, publique no lugar dela o quadro de pendências. A única exceção é o anti-duplicata do passo 4.
 
 **Imutável:** template, assunto, destinatários e horário são fixados pelo usuário — nenhum aprendizado os altera. E nenhum aprendizado autoriza baixar o padrão de prova: a otimização é para gastar **melhor** a verificação, nunca **menos**.

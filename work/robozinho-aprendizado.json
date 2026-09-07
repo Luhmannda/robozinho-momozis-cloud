@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. REGRA DE PODA: ao atualizar a nota de uma fonte, REESCREVER de forma compacta (status atual + politica vigente + 1 padrao recente se ainda relevante) em vez de acrescentar ao texto anterior — incidente ja resolvido ou generalizado numa regra estavel sai da nota. Licao de processo que virou regra permanente no prompt mestre sai daqui. Validar este arquivo com json.load apos editar (nenhum helper faz isso automaticamente, ao contrario do historico). Manter enxuto — este arquivo e lido todo dia, para sempre.",
-  "atualizado_em": "2026-09-07T08:11:45-03:00",
-  "atualizado_por_execucao": "2026-09-07-7h (correcao pos-execucao: fallback do versiculo do dia)",
+  "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. REGRA DE PODA: ao atualizar a nota de uma fonte, REESCREVER de forma compacta (status atual + politica vigente + no maximo 1 padrao recente) em vez de acrescentar ao texto anterior — nunca prependar 'Nota anterior:' nem acumular 'Em DD/MM...'; incidente ja resolvido ou generalizado numa regra estavel sai da nota. Licao de processo que virou regra na ROTINA ou no prompt mestre sai daqui. Validar com json.load apos editar (nenhum helper faz isso). Manter enxuto — este arquivo e lido todo dia, para sempre.",
+  "atualizado_em": "2026-09-07T08:40:00-03:00",
+  "atualizado_por_execucao": "2026-09-07-7h (poda pos-execucao: ROTINA v2 / prompt v10)",
 
   "niveis_de_esforco": {
     "saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.",
@@ -15,37 +15,37 @@
 
   "fontes": [
     { "id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-09-07", "sem_sucesso": 0,
-      "nota": "Fonte mais confiavel. O push consolidado por vezes reitera no dia seguinte itens ja publicados no push anterior (confirmado em 07/09 — item de 04/09 reapareceu no push de 07/09) — usar o timestamp interno de cada noticia, nao a data do e-mail, para decidir se e (herdada) ou novidade." },
+      "nota": "Fonte mais confiavel. O push do dia D reitera itens de D-1 e consolida dias anteriores apos gaps — decidir (herdada)/novidade pelo timestamp interno de cada noticia, nao pela data do e-mail." },
 
     { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-07", "sem_sucesso": 0,
-      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional (webinars, ofertas, pesquisas eleitorais patrocinadas). Links em wrapper t.rdsv2.net: WebSearch site:jota.info como unico metodo viavel em ambiente de nuvem; boletins-resumo sem link por item, publicar sem link. Teto de 6 opinioes (nao precisa esgotar o teto). Em 07/09 (janela de 72h, sex-seg), zero e-mails no sabado/domingo e na manha de hoje — normal, JOTA nao publica fim de semana." },
+      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional/patrocinado. Wrapper t.rdsv2.net: WebSearch site:jota.info e o unico metodo viavel em nuvem, 1 tentativa por item em lotes de 5 (teto 16 buscas), titulo tem que bater. Boletins-resumo nao tem link por item. Teto de 6 opinioes. Sem e-mails no fim de semana e normal. Boletim que chega minutos antes do inicio da janela e o matinal natural do dia — aceitar apos checar chaves_publicadas." },
 
     { "id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-09-07",
-      "nota": "Sustenta a secao Planalto durante o apagao do PUSH. EM AMBIENTE DE NUVEM: WebFetch/curl direto ao dominio e bloqueado por politica de egress — ir logo para WebSearch. Em 07/09, WebSearch confirmou lei sancionada (15.499/2026) via multiplas fontes convergentes (gov.br, Agencia Brasil, Migalhas); nenhuma MPV nova confirmada na janela." },
+      "nota": "Sustenta a secao Planalto durante o apagao do PUSH. Em nuvem, fetch direto e bloqueado por egress — ir direto ao WebSearch; leis sancionadas costumam confirmar por gov.br + Agencia Brasil + Migalhas convergentes (OFICIAL ALTERNATIVA). Se o fetch direto voltar a funcionar algum dia, usar sempre www.congressonacional.leg.br (sem www da ENOTFOUND)." },
 
     { "id": "gmail_stj_codju", "status": "saudavel", "ultimo_sucesso": "2026-09-02", "sem_sucesso": 2,
-      "nota": "Cadencia irregular, silencio pontual nao e falha. Extrair numero e data sempre do ASSUNTO, nunca so do corpo. Sem e-mail tambem em 07/09 (2a execucao seguida sem retorno) — sem novidade oficial propria do STJ identificada via midia nesta janela." },
+      "nota": "Cadencia irregular, silencio pontual nao e falha. Extrair numero e data sempre do ASSUNTO. Quando silencia, decisoes do STJ da janela saem so via midia convergente (ConJur/Migalhas/JOTA)." },
 
     { "id": "gmail_push_stf_informativos", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
-      "nota": "Envia Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta — produtos distintos, conferir nome completo no assunto E o numero no PDF linkado (em 04/09 o assunto dizia 'n. 386' mas o PDF era Edicao 387 — usar o numero do slug do PDF, mais confiavel). Andamento processual pontual de caso individual NAO e informativo/RG — nao publicar como tese. Sem edicao nova em 07/09 (normal, produto periodico)." },
+      "nota": "Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta sao produtos distintos — conferir nome completo no assunto E o numero no slug do PDF (o assunto ja errou o numero). Andamento processual de caso individual NAO e informativo/RG. Produto periodico: semana sem edicao nova e normal." },
 
     { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 26, "dias_sem_email": 67,
-      "nota": "Sondas seguem vazias ha 67 dias em 07/09; o legado nunca retornou nada. Gastar 1 sonda e ir para a Rota 13. ESCALADO ao usuario em 31/07; nao repetir a escalada extensa todo dia, so manter a pendencia visivel." },
+      "nota": "Sondas vazias desde 02/07; o legado nunca retornou nada. 1 sonda e ir para a Rota 13. Escalado ao usuario em 31/07 — nao repetir a escalada, so manter a pendencia visivel." },
 
     { "id": "congresso_mpvs", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
-      "nota": "Ver armadilha congresso_mpv — CHECAGEM CRUZADA OBRIGATORIA sempre. Em 07/09, unico candidato encontrado (MPV alterando Lei 12.933/2013) nao teve segunda fonte confirmando — corretamente descartado, nao publicado como novidade." },
+      "nota": "Ver armadilha congresso_mpv — checagem cruzada obrigatoria. Candidato de MPV com 1 fonte so nao entra (nem como PENDENCIA se nem numero confiavel tiver); busca por numero pode achar MPV homonima de anos anteriores." },
 
     { "id": "conjur", "status": "saudavel", "ultimo_sucesso": "2026-09-07",
-      "nota": "URL correta: /ultimas-da-conjur/. Em ambiente de nuvem, fetch direto e SEMPRE bloqueado por politica de egress — ir direto ao WebSearch. Em 07/09, WebSearch recuperou 2 materias substantivas com data explicita no proprio slug da URL (2026-set-05); nenhuma materia com data 06 ou 07/09 encontrada (normal, pouca publicacao juridica de fim de semana)." },
+      "nota": "URL correta: /ultimas-da-conjur/. Em nuvem, fetch direto bloqueado — WebSearch. Se 'site:conjur.com.br AAAA-mes-DD' devolver so listagem sem conteudo, reformular a busca sem o operador site:. A data confiavel esta no slug da URL (2026-set-05). Pouca publicacao de fim de semana e normal." },
 
     { "id": "migalhas", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
-      "nota": "Em ambiente de nuvem, fetch direto tambem bloqueado por egress (mesmo padrao do ConJur) — usar WebSearch. Em 07/09 nenhuma materia propria com data confirmada de 06 ou 07/09 encontrada (buscas por 'migalhas 7 setembro 2026' so trouxeram materias antigas de anos anteriores) — tratado como ausencia legitima de fim de semana, nao falha." },
+      "nota": "Em nuvem, fetch direto bloqueado — WebSearch. Buscas por 'DD mes AAAA' trazem materias de anos anteriores: confirmar o ano na URL/pagina. Fim de semana sem materia propria e normal." },
 
     { "id": "youversion", "status": "instavel", "ultimo_sucesso": "2026-09-04", "sem_sucesso": 1,
-      "nota": "DECISAO DO USUARIO (07/09/2026, atualiza a de 01/09): YouVersion/bible.com continua sendo a fonte PRIMARIA, mas agora com FALLBACK explicito — se o YouVersion nao puder ser confirmado (egress bloqueado + WebSearch sem resultado datado e claro, como ocorreu em 07/09 com 3 buscas conflitantes para day=250), usar a PRIMEIRA fonte paralela que responder com um versiculo datado de hoje (DailyVerses.net, Biblia Online, BibleGateway, SBB, Biblia.com — sem ordem fixa) e publicar direto, SEM cruzar nem desempatar entre fontes. Rotular a fonte real usada no e-mail (nunca atribuir a YouVersion o que veio do fallback). Ver Secao 13 do prompt mestre e armadilha websearch_youversion_dia_instavel (que descreve por que a busca direta ao YouVersion e frequentemente nao confiavel)." },
+      "nota": "Fonte PRIMARIA do versiculo, com FALLBACK (decisao do usuario, 07/09/2026): 1 busca WebSearch com ?day=N; se nao vier referencia+texto claros para hoje, usar a primeira fonte paralela que responder (DailyVerses.net por URL datada /AAAA/M/D e a mais estavel; depois Biblia Online, BibleGateway, SBB, Biblia.com), publicar direto e rotular a fonte real — sem cruzar nem desempatar. Teto de 3 buscas (ROTINA passo 6). Ver armadilha websearch_youversion_dia_instavel." },
 
     { "id": "noticias_stf_direto", "status": "bloqueado",
-      "nota": "403 reproduzido repetidamente. O conteudo chega pelo Push STF com as URLs canonicas — publicar essas URLs normalmente." },
+      "nota": "403 reproduzido. O conteudo chega pelo Push STF com as URLs canonicas — publicar essas URLs normalmente." },
 
     { "id": "stj_jus_br_direto", "status": "instavel",
       "nota": "Cache desatualizado, 429, 404 na pagina de Noticias. Preferir WebSearch + cruzamento com ConJur/Migalhas. Falha aqui nunca autoriza concluir 'STJ sem novidade'." },
@@ -54,10 +54,10 @@
       "nota": "Rota 14, ultimo recurso: ECONNRESET recorrente. Tentar 1 vez e seguir. O fallback que funciona e a Rota 13." },
 
     { "id": "planalto_dou_rotas_1_a_6", "status": "bloqueado",
-      "nota": "Bloqueio TCP/CAPTCHA/403 reconfirmado em toda execucao testada. Links ccivil_03 podem ser PUBLICADOS como referencia mesmo sem fetch." },
+      "nota": "Bloqueio TCP/CAPTCHA/403 reconfirmado em toda execucao testada. Links ccivil_03 podem ser PUBLICADOS como referencia sem fetch." },
 
     { "id": "dou_informe_cjf", "status": "descontinuado", "desde": "2026-07-01",
-      "nota": "O proprio CJF confirmou o encerramento. O sucessor nominal (Clipping STJ/Enfam) devolve conteudo estatico independente da data — tambem nao usar." },
+      "nota": "O proprio CJF confirmou o encerramento. O sucessor nominal (Clipping STJ/Enfam) devolve conteudo estatico — tambem nao usar." },
 
     { "id": "inlabs", "status": "indisponivel",
       "nota": "Sem credenciais. Seria a solucao definitiva para o apagao do Planalto se o usuario as fornecer." }
@@ -65,9 +65,9 @@
 
   "armadilhas": [
     { "id": "congresso_mpv", "fonte": "congressonacional.leg.br/materias/medidas-provisorias",
-      "sintoma": "Numeros de MPV fora da sequencia real e datas incoerentes na listagem (o desvio pode ser de poucos dias ou de dezenas de dias).",
+      "sintoma": "Numeros de MPV fora da sequencia real e datas incoerentes na listagem (desvio de dias ou de dezenas de dias).",
       "detectado_em": ["2026-07-13", "2026-07-24", "2026-07-28", "2026-07-29", "2026-08-07", "2026-08-17", "2026-09-01", "2026-09-03"],
-      "regra": "CHECAGEM CRUZADA OBRIGATORIA por WebSearch ou pagina de detalhe (/mpv/ID) antes de publicar, em toda execucao, independente do tamanho do desvio observado. Data futura em relacao a ancora e alerta imediato. Em ambiente de nuvem, a pagina de detalhe pode estar bloqueada por egress — nesse caso, exigir 2+ fontes de midia independentes convergentes antes de publicar; com so 1 fonte, selo PENDENCIA DE VERIFICACAO, nunca CONFIRMADO." },
+      "regra": "CHECAGEM CRUZADA OBRIGATORIA por WebSearch ou pagina de detalhe (/mpv/ID) antes de publicar, sempre. Data futura em relacao a ancora e alerta imediato. Em nuvem a pagina de detalhe pode estar bloqueada — exigir 2+ fontes de midia independentes convergentes; com 1 so, PENDENCIA DE VERIFICACAO, nunca CONFIRMADO." },
 
     { "id": "websearch_data", "fonte": "WebSearch (resumo do buscador)",
       "sintoma": "Atribui a data de hoje a noticia antiga.",
@@ -75,83 +75,68 @@
       "regra": "Noticia de WebSearch que va ao e-mail precisa ter a data confirmada na fonte primaria (slug, cabecalho ou pagina oficial). Nunca confiar na data implicita do resumo." },
 
     { "id": "banca_edital_antigo", "fonte": "cebraspe.org.br e paginas de bancas",
-      "sintoma": "Consulta sobre concurso do ano corrente devolve edital antigo de estrutura identica.",
+      "sintoma": "Consulta sobre concurso do ano corrente devolve edital antigo de estrutura identica (ex.: TJDFT 2022/23, 30 vagas, R$32.004,65, quando o ciclo 2026 tem 20-24 vagas e ~R$37.765,55).",
       "detectado_em": ["2026-07-24", "2026-08-07", "2026-08-17", "2026-09-01", "2026-09-02", "2026-09-03"],
-      "regra": "Conferir o ano no conteudo (inscricoes, data de prova, subsidio). Edital antigo NAO e confirmacao de edital novo — manter o status anterior, sem upgrade para EDITAL PUBLICADO. Reincidiu em 03/09 para o TJDFT: pagina do Cebraspe e materia da Metropoles citando '30 vagas' eram do ciclo de edital 2022/23 (prova em 05/02/2023, subsidio R$32.004,65), descartadas; fontes de cursinhos de 2026 seguem convergindo em 20 vagas (uma cita 24), sem edital novo publicado." },
+      "regra": "Conferir o ano no conteudo (inscricoes, data de prova, subsidio). Edital antigo NAO e confirmacao de edital novo — manter o status anterior, sem upgrade para EDITAL PUBLICADO." },
 
     { "id": "scon_stj_edicao_errada", "fonte": "scon.stj.jus.br / processo.stj.jus.br",
       "sintoma": "Busca por uma edicao devolve outra (numero e ano diferentes).",
       "detectado_em": ["2026-07-01"],
       "regra": "Conferir numero E ano da edicao retornada. Preferir o e-mail do STJ CodJu, que traz numero e data confiaveis no assunto." },
 
-    { "id": "acento_em_ps1", "fonte": "powershell.exe invocado pelo Bash",
-      "sintoma": "Campos recem-escritos saem com dupla codificacao enquanto os pre-existentes ficam intactos.",
-      "detectado_em": ["2026-07-24"],
-      "regra": "So se aplica ao ambiente local (Windows/PowerShell) — em nuvem (Linux/Python), work/Update-Historico.py grava UTF-8 sem BOM diretamente. Validar sempre pelo -RelatorioPath/--relatorio-path, nunca pela saida do console." },
-
-    { "id": "congresso_dns_sem_www", "fonte": "congressonacional.leg.br",
-      "sintoma": "Fetch direto no dominio sem 'www' devolve erro de DNS (ENOTFOUND); com 'www' funciona normalmente.",
-      "detectado_em": ["2026-07-27"],
-      "regra": "So relevante se algum dia o fetch direto voltar a ser viavel neste ambiente (hoje bloqueado por egress, ver fonte congresso_ultimas_leis) — usar sempre www.congressonacional.leg.br." },
-
     { "id": "jota_link_wrapper_mismatch", "fonte": "e-mails do JOTA (contato@jota.info), wrapper t.rdsv2.net",
-      "sintoma": "O link 'Leia mais' de um item pode resolver, apos o redirect do wrapper, para uma URL de um artigo com titulo completamente diferente do anunciado.",
+      "sintoma": "O link 'Leia mais' pode resolver para um artigo com titulo completamente diferente do anunciado.",
       "detectado_em": ["2026-08-05", "2026-08-17"],
-      "regra": "Ao resolver link de item do JOTA, conferir que o TITULO da pagina de destino bate com o titulo anunciado no e-mail antes de publicar o link. Se nao bater, publicar o item sem link. Em ambiente de nuvem, WebFetch do proprio wrapper tambem sofre bloqueio de egress — usar so WebSearch site:jota.info; se nao achar o artigo exato em 1-2 tentativas, publicar sem link (aconteceu com ~15 itens em 01/09)." },
-
-    { "id": "ps1_concatenacao_quebra_json", "fonte": "edicao manual do ledger via Edit/Write tool",
-      "sintoma": "Prependar texto novo antes de 'Nota anterior: <texto antigo>' pode deixar aspas soltas e quebrar o JSON.",
-      "detectado_em": ["2026-08-07"],
-      "regra": "Nunca concatenar texto novo + 'Nota anterior: ' + string antiga completa. REESCREVER a nota inteira de forma compacta. Validar com json.load apos qualquer edicao manual do ledger." },
+      "regra": "Publicar o link so se o TITULO da pagina de destino bater com o anunciado. Em nuvem o WebFetch do wrapper e bloqueado — usar so WebSearch site:jota.info; 1 tentativa por item, senao publicar sem link." },
 
     { "id": "cloud_egress_bloqueado", "fonte": "WebFetch e curl direto, ambiente de nuvem (proxy de egress da sessao)",
-      "sintoma": "WebFetch/curl para dominios externos fora de um allowlist estreito retornam EGRESS_BLOCKED / 403 no CONNECT do proxy — confirmado em 01/09 para congressonacional.leg.br, migalhas.com.br, conjur.com.br e 7 dominios de versiculo biblico (bible.com, dailyverses.net, bibliaonline.com.br, biblegateway.com, sbb.org.br, biblia.com, bibliaon.com). NAO e falha da fonte, e politica de rede da sessao (confirmavel via curl -sS $HTTPS_PROXY/__agentproxy/status).",
-      "detectado_em": ["2026-09-01"],
-      "regra": "Em execucao de nuvem, NAO tentar WebFetch/curl direto para dominios fora do allowlist conhecido (github, npm, pypi, apis anthropic) — ir direto para WebSearch, que nao sofre esse bloqueio. Isso funciona bem para legislacao/concursos/clipping (contorno viavel). Para o versiculo do dia, ver fonte youversion: desde 01/09/2026 o usuario definiu YouVersion/bible.com como padrao fixo — buscar por ele via WebSearch e publicar sem exigir corroboracao de outras fontes (divergencia entre apps e normal, cada um tem sua propria escolha editorial diaria). Reconfirmado em 07/09 (bloqueio ainda ativo, EGRESS_BLOCKED via WebFetch direto a www.bible.com). Se o bloqueio persistir em execucoes futuras, escalar ao usuario para ampliar o allowlist do ambiente." },
+      "sintoma": "WebFetch/curl para dominios fora de um allowlist estreito retornam EGRESS_BLOCKED / 403 no CONNECT do proxy — confirmado para congressonacional.leg.br, migalhas.com.br, conjur.com.br, noticias.stf.jus.br, en.wikipedia.org e todos os dominios de versiculo testados (bible.com, dailyverses.net, bibliaonline.com.br, biblegateway.com, sbb.org.br, biblia.com, bibliaon.com). NAO e falha da fonte, e politica de rede da sessao.",
+      "detectado_em": ["2026-09-01", "2026-09-07"],
+      "regra": "Em nuvem, NAO gastar WebFetch/curl em dominios fora do allowlist conhecido (github, npm, pypi, apis anthropic) — ir direto ao WebSearch, que nao sofre o bloqueio e resolve legislacao/concursos/clipping. Para o versiculo, ver fonte youversion (fallback). Se o bloqueio persistir por muitas execucoes, escalar ao usuario para ampliar o allowlist." },
 
-    { "id": "websearch_youversion_dia_instavel", "fonte": "WebSearch para bible.com/verse-of-the-day (com ou sem parametro ?day=N)",
-      "sintoma": "A mesma URL parametrizada (?day=N) devolve titulos de versiculo DIFERENTES entre buscas independentes na mesma execucao (ex.: 1 Timothy 5:1 numa busca, John 8:32 noutra, para o mesmo day=250). A pagina SEM parametro tende a mostrar o snapshot de ONTEM (day=N-1), nao o de hoje — confirmado em 07/09: 'Psalms 121:2' aparecia de forma consistente na pagina generica, mas uma busca por site:bible.com confirmou que esse versiculo corresponde a day=249 (ontem), nao day=250 (hoje).",
+    { "id": "websearch_youversion_dia_instavel", "fonte": "WebSearch para bible.com/verse-of-the-day (com ou sem ?day=N)",
+      "sintoma": "A mesma URL parametrizada devolve titulos de versiculo diferentes entre buscas na mesma execucao (07/09: 1 Timothy 5:1 numa, John 8:32 noutra, para day=250). A pagina SEM parametro tende a mostrar o snapshot de ONTEM (day=N-1) — 'Psalms 121:2' correspondia a day=249.",
       "detectado_em": ["2026-09-07"],
-      "regra": "Nao insistir tentando varias buscas para o YouVersion convergirem. Se a primeira tentativa direta (WebFetch bloqueado, ou WebSearch sem um resultado datado e claro para hoje) falhar, ir direto ao FALLBACK definido na fonte youversion e na Secao 13 do prompt mestre (decisao do usuario, 07/09/2026): usar a primeira fonte paralela que responder com um versiculo datado de hoje (DailyVerses.net, Biblia Online, BibleGateway, SBB, Biblia.com), publicar direto e rotular a fonte real usada — sem cruzar nem desempatar. Nao usar a pagina bible.com/verse-of-the-day SEM parametro como confirmacao sozinha, pois pode estar mostrando o snapshot do dia anterior (confirmado em 07/09: 'Psalms 121:2' ali correspondia a day=249, nao ao dia corrente)." }
+      "regra": "Nao insistir em varias buscas para o YouVersion convergirem. Falhou a 1a tentativa (sem referencia+texto claros para hoje) → fallback da fonte youversion: primeira fonte paralela que responder, publicar, rotular. Nao usar a pagina sem parametro como confirmacao sozinha." }
   ],
 
   "pendencias_vivas": [
-    { "id": "envio_edicao_31_07_atrasado", "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - reconfirmado em 07/09 via search_threads in:sent (vazio) - agora ~38 dias, novo recorde", "desde": "2026-08-04", "execucoes": 9, "faixa": "cronica",
-      "politica": "Verificar a cada execucao se o Apps Script eventualmente envia o rascunho de 31/07 (buscar em in:sent) ou se ele fica permanentemente orfao. Confirma falha estrutural do Apps Script (nao da rotina de geracao, que cumpriu seu papel) — recomendar fortemente ao usuario checar o gatilho/trigger diretamente." },
+    { "id": "envio_edicao_31_07_atrasado", "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - reconfirmado em 07/09 via search_threads in:sent (vazio) - ~38 dias", "desde": "2026-08-04", "execucoes": 9, "faixa": "cronica",
+      "politica": "1 busca in:sent por execucao (junto com as buscas do passo 4). Confirma falha estrutural do Apps Script naquele dia (nao da rotina de geracao) — recomendar ao usuario checar o gatilho diretamente." },
 
     { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (67 dias)", "desde": "2026-07-06", "execucoes": 26, "faixa": "cronica",
-      "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto, mas a Rota 13 (via WebSearch em nuvem) segue sustentando a secao. Ja escalado ao usuario em 31/07; nao repetir a escalada extensa todo dia." },
+      "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto; a Rota 13 (WebSearch) sustenta a secao. Ja escalado em 31/07; nao repetir a escalada." },
 
-    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55 (valor ja diferente do edital-armadilha antigo de 2022/23)", "desde": "2026-07-21", "execucoes": 16, "faixa": "ativa",
+    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55", "desde": "2026-07-21", "execucoes": 16, "faixa": "ativa",
       "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo. Sem movimento ate 07/09." },
 
-    { "id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas, edital em ate 6 meses (~jan/2027)", "desde": "2026-07-07", "execucoes": 21, "faixa": "longo_prazo",
-      "politica": "Prazo so vence em jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos. Reverificado em 07/09 (1a execucao da semana) — sem mudanca: 170 vagas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), edital ainda nao publicado, banca ainda nao confirmada." },
+    { "id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), edital em ate 6 meses (~jan/2027), banca nao confirmada", "desde": "2026-07-07", "execucoes": 21, "faixa": "longo_prazo",
+      "politica": "Prazo so vence em jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos. Reverificado em 07/09 sem mudanca." },
 
-    { "id": "concursos_cronogramas", "texto": "PGE-AL: provas objetiva (05/09) e discursiva (06/09) REALIZADAS neste fim de semana, resultado preliminar previsto ~20/10 — pendencia de cronograma resolvida, so falta o resultado. TRF2 (orais 14-25/09) sem novidade. PGM Juazeiro/BA: selecao ANTERIOR de 2024 foi cancelada em 2025 (nao e o processo atual); edital novo segue previsto para fim de setembro/2026. Sem movimento: PGE-BA (edital sem confirmacao), PGE-MA e PGE-RS (comissao formada), DPU VII (so resolucao regulamentadora), DPE-RO (comissao organizadora via portaria), MPMS e DPE-SC (provas ja realizadas). MPC-MA (Procurador de Contas) com comissao formada e banca Cebraspe contratada, edital ainda nao publicado. Novo em 07/09 (fora deste agrupamento, ver Carreira/Apoio no e-mail): TJRS Juiz Substituto (edital publicado, 30 vagas) e TRF5 Juiz Federal Substituto (inscricoes abertas); Quadro de Apoio TRT8 (banca FCC contratada) e DPDF (banca Instituto Access contratada).", "desde": "2026-07-07", "execucoes": 21, "faixa": "longo_prazo",
-      "politica": "Verificar na 1a execucao da semana. Promover a linha propria so com movimento confirmado. Proxima reverificacao completa: resultado preliminar PGE-AL (~20/10), orais TRF2 (14-25/09), ou na 1a execucao da proxima semana." },
+    { "id": "concursos_cronogramas", "texto": "PGE-AL: provas realizadas 05-06/09, resultado preliminar ~20/10. TRF2: orais 14-25/09. PGM Juazeiro/BA: selecao de 2024 cancelada em 2025 (processo distinto), edital novo previsto fim de setembro/2026. MPC-MA (Procurador de Contas): comissao formada, banca Cebraspe contratada, edital nao publicado. Sem movimento: PGE-BA (edital sem confirmacao), PGE-MA e PGE-RS (comissao formada), DPU VII (so resolucao regulamentadora), DPE-RO (comissao formada), MPMS e DPE-SC (provas realizadas). Novos em 07/09 (linhas proprias no e-mail): TJRS Juiz Substituto (edital 27/08, 30 vagas, FGV, inscricoes 15/09, prova 13/12), TRF5 Juiz Federal Substituto (inscricoes ate 28/09), MP-SP Promotor (discursiva 13/09); apoio: TRT8 (banca FCC contratada), DPDF (banca Instituto Access contratada).", "desde": "2026-07-07", "execucoes": 21, "faixa": "longo_prazo",
+      "politica": "Reverificar na 1a execucao da semana (o coletor Web recebe esta lista e a faixa no prompt — ROTINA passo 5). Promover a linha propria so com movimento confirmado. Prazos a observar: MP-SP 13/09, TRF2 14-25/09, TRF5 inscricoes 28/09, TJRS inscricoes 15/09, resultado PGE-AL ~20/10." },
 
-    { "id": "egress_bloqueado_ambiente_nuvem", "texto": "Politica de rede desta sessao de nuvem bloqueia WebFetch/curl (EGRESS_BLOCKED / 403 no proxy) para bible.com, conjur.com.br, migalhas.com.br e congressonacional.leg.br; reconfirmado ainda ativo em 07/09 (teste direto a www.bible.com via WebFetch, EGRESS_BLOCKED). Contornavel via WebSearch para legislacao/concursos/clipping (funciona bem), mas para o versiculo do dia o contorno FALHOU em 07/09 pela primeira vez — ver fonte youversion e armadilha websearch_youversion_dia_instavel.", "desde": "2026-09-01", "execucoes": 5, "faixa": "ativa",
-      "politica": "Verificar a cada execucao se o bloqueio persiste (1 teste direto basta, nao insistir se EGRESS_BLOCKED). Se persistir por muitas execucoes sem sinal de mudanca, escalar ao usuario para ampliar o allowlist de egress do ambiente de nuvem." },
+    { "id": "egress_bloqueado_ambiente_nuvem", "texto": "Politica de rede da nuvem bloqueia WebFetch/curl (EGRESS_BLOCKED) para bible.com, conjur.com.br, migalhas.com.br, congressonacional.leg.br e outros; reconfirmado em 07/09. Contornado via WebSearch; para o versiculo, agora com fallback de fonte paralela.", "desde": "2026-09-01", "execucoes": 5, "faixa": "ativa",
+      "politica": "Nao testar todo dia — a armadilha cloud_egress_bloqueado ja manda ir direto ao WebSearch. Se algum WebFetch a esses dominios funcionar, registrar a data e reavaliar. Persistindo por muitas execucoes, escalar ao usuario para ampliar o allowlist." },
 
-    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Crise STF-PGR seguiu escalando entre 04-05/09: Fachin retirou a apuracao contra Mendonca do inquerito das fake news e a recolocou no mesmo processo aberto contra Moraes; Moraes formalizou a Fachin pedido de providencias contra Mendonca por abuso de autoridade e favorecimento de grupo politico; PGR abriu procedimento para apurar a atuacao da PF na elaboracao do relatorio sobre os contatos Moraes-Vorcaro; Mendonca deixou a sociedade do instituto Iter um dia apos revelacao do encontro com Vorcaro; Gilmar Mendes propos proibir policiais/militares em gabinetes do STF; BC decretou liquidacao extrajudicial de duas distribuidoras ligadas a ex-socio do Master. Prazo de 5 dias da PET 16.704 (aberta por Fachin) vence por volta de 09/09 — ainda sem manifestacao colegiada do plenario ate o fechamento desta edicao (07/09).", "desde": "2026-09-02", "execucoes": 4, "faixa": "ativa",
-      "politica": "Acompanhar o desfecho da PET 16.704 (prazo vence por volta de 09/09, deve aparecer ja na proxima execucao) e eventual manifestacao colegiada; promover para noticia oficial definitiva (STF/PGR) quando houver decisao, mantendo o desfecho explicito ao leitor. Cuidado redobrado com duplicatas — a cobertura e densa e se repete entre boletins JOTA de dias seguidos; checar sempre contra chaves_publicadas antes de reportar como novidade." }
+    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Crise STF-PGR escalou entre 04-05/09: Fachin retirou a apuracao contra Mendonca do inquerito das fake news e a recolocou no mesmo processo de Moraes; Moraes formalizou a Fachin pedido de providencias contra Mendonca por abuso de autoridade; PGR abriu procedimento para apurar a atuacao da PF no relatorio; Mendonca deixou a sociedade do instituto Iter; Gilmar propos proibir policiais/militares em gabinetes; BC decretou liquidacao de duas distribuidoras ligadas a ex-socio do Master. Prazo de 5 dias da PET 16.704 vence ~09/09 — sem manifestacao colegiada ate 07/09.", "desde": "2026-09-02", "execucoes": 4, "faixa": "ativa",
+      "politica": "Acompanhar o desfecho da PET 16.704 (~09/09) e eventual manifestacao colegiada; promover para noticia oficial definitiva (STF/PGR) quando houver decisao, com o desfecho explicito ao leitor. Cobertura densa e repetida entre boletins JOTA de dias seguidos — checar sempre contra chaves_publicadas." }
   ],
 
   "licoes_de_processo": [
-    { "id": "resumo_subagente_interrompido", "licao": "O processo pode cair enquanto subagentes coletores rodam (harness reporta 'failed'/'stopped' em vez de 'completed'), mas os transcripts ficam salvos. Reincidiu em 01/09 com o coletor JOTA (erro de API/conexao mid-response).", "acao": "Usar SendMessage para o agentId (nao Agent de novo) pedindo para concluir e reportar — o agente retoma do transcript salvo, sem refazer a coleta do zero. So reiniciar do zero se o agente nao tiver progresso registrado." },
+    { "id": "resumo_subagente_interrompido", "licao": "O processo pode cair enquanto coletores rodam (harness reporta 'failed'/'stopped'), mas os transcripts ficam salvos.", "acao": "SendMessage para o mesmo agentId pedindo para concluir e reportar — ele retoma do transcript. Reiniciar do zero so se nao houver progresso registrado." },
 
-    { "id": "list_drafts_indice_desatualizado", "licao": "Logo apos create_draft retornar um id valido (sem erro), list_drafts e search_threads (in:draft) podem nao mostrar o rascunho recem-criado — o indice de busca de rascunhos parece defasado. Isso NAO significa que o create_draft falhou.", "acao": "Confiar no retorno de create_draft (id nao vazio, sem excecao) como confirmacao suficiente de sucesso. Nao tentar recriar o rascunho so porque list_drafts nao o mostra logo em seguida — isso geraria duplicata. So investigar de verdade se create_draft der erro explicito." },
+    { "id": "list_drafts_indice_desatualizado", "licao": "Logo apos create_draft retornar id valido, list_drafts/search_threads in:draft podem nao mostrar o rascunho (indice defasado). Isso NAO e falha.", "acao": "Retorno de create_draft com id nao vazio e confirmacao suficiente. Nunca recriar por causa disso — geraria duplicata e o Apps Script enviaria duas vezes." },
 
-    { "id": "execucao_atrasada_padroes", "licao": "Execucoes atrasadas sao absorvidas pela janela elastica sem gerar edicao retroativa (Secao 3), com teto de 7 dias mesmo que o gap real seja maior. Confirmado 2x: gap de 10 dias (17/08, digest do STF recuperou o buraco gratuitamente) e gap de 15 dias — RECORDE (01/09, digest do STF NAO recuperou o buraco desta vez, deixando ~8 dias sem varredura sistematica, so parcialmente preenchidos por informativos periodicos que calharam de cair no intervalo). NAO presumir que digests sempre recuperam gaps grandes — conferir a data mais antiga retornada em cada execucao.", "acao": "Usar sempre a hora REAL da execucao para decidir janela e assunto. Em gap > 7 dias, registrar explicitamente nas pendencias que o intervalo entre o teto e o window_end anterior pode ter lacunas nao sistematicas — sem presumir que algum produto periodico vai cobrir o buraco." },
+    { "id": "apps_script_envia_em_minutos", "licao": "Em 07/09 o Apps Script enviou o rascunho ~40 min apos a criacao. Depois disso o draft_id deixa de existir (update_draft devolve 'draft could not be found') e o e-mail ja esta nas caixas dos destinatarios.", "acao": "O rascunho nasce completo (checklist da ROTINA passo 7). Correcao pos-criacao so e possivel se list_drafts ainda mostrar o rascunho; se o assunto de hoje ja esta em in:sent, nao criar outro (ROTINA passo 4c)." },
 
-    { "id": "cloud_egress_bloqueado_geral", "licao": "Em 01/09/2026, primeira vez que a rotina rodou apos um gap de 15 dias, descobriu-se que o ambiente de nuvem desta sessao bloqueia por politica de rede (nao por falha do site) o WebFetch/curl direto para uma lista grande de dominios externos fora de um allowlist estreito (github, npm, pypi, apis anthropic) — afetou Congresso Nacional, Migalhas, ConJur e TODOS os dominios de versiculo biblico testados; reconfirmado ainda ativo horas depois, incluindo dominios fora da lista original (noticias.stf.jus.br, en.wikipedia.org). WebSearch nao sofre esse bloqueio e serviu de contorno para quase tudo. Para o versiculo do dia, que tinha ficado pendente por divergencia entre fontes, o usuario esclareceu no mesmo dia que a divergencia e normal (cada app/site faz sua propria escolha editorial diaria) e definiu YouVersion/bible.com como padrao fixo — nao e mais motivo de pendencia.", "acao": "Ver armadilha cloud_egress_bloqueado e fonte congresso_ultimas_leis/conjur/migalhas/youversion. Em execucoes futuras de nuvem, ir direto ao WebSearch para esses dominios (nao gastar uma chamada de WebFetch fadada a falhar). Para o versiculo, buscar YouVersion/bible.com especificamente e publicar sem exigir corroboracao cruzada. Se o bloqueio geral de egress persistir por varias execucoes, escalar ao usuario para ampliar o allowlist do ambiente." }
+    { "id": "execucao_atrasada_padroes", "licao": "Execucoes atrasadas sao absorvidas pela janela elastica sem edicao retroativa, com teto de 7 dias mesmo que o gap seja maior. Gap de 15 dias (01/09): o digest do STF NAO recuperou o buraco — nao presumir que produtos periodicos cobrem gaps grandes.", "acao": "Usar a hora REAL da execucao para janela e assunto. Em gap > 7 dias, registrar nas pendencias que o intervalo alem do teto pode ter lacunas; conferir a data mais antiga retornada por cada fonte." }
   ],
 
   "metricas": {
     "execucoes_registradas": 27,
     "itens_ultimas_10": [21, 33, 26, 30, 47, 55, 27, 15, 18, 27],
     "media": 29.9,
-    "alerta": "Execucao de 07/09 (janela de 72h, sexta a segunda) trouxe 27 itens — dentro da media, dominada pela crise institucional STF-PGR (7 midia + 2 fofoquinha + 6 opiniao) e por concursos de magistratura (TJRS, TRF5 novos). Planalto (push mudo) e STJ CodJu (2a execucao seguida sem e-mail) seguiram sem novidade oficial propria, compensados por Rota 13/midia. Primeira execucao em que o versiculo do dia ficou pendente por instabilidade do proprio WebSearch (nao por falta de tentativa) — ver fonte youversion."
+    "alerta": "Queda abaixo de 10 itens numa janela normal de 24h fora do recesso forense e sinal de falha de fonte. Dia dominado por poucas historias densas (ex.: crise STF-PGR) pode ficar abaixo da media por escolha editorial — nao e falha se os coletores documentaram tentativas."
   }
 }
