@@ -1,106 +1,49 @@
 {
-  "gerado_em": "2026-09-07T09:06:58-03:00",
-  "gerado_por": "2026-09-07-7h",
+  "gerado_em": "2026-09-08T07:19:36-03:00",
+  "gerado_por": "2026-09-08-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-07-7h",
-    "date": "2026-09-07",
-    "email_subject": "Robozinho dos Momozis até Passar - 07/09/2026 - 7h",
-    "delivery": "sent",
-    "draft_id": "r7261183150767072449",
-    "window_end": "2026-09-07T07:17:32-03:00"
+    "execution_id": "2026-09-08-7h",
+    "date": "2026-09-08",
+    "email_subject": "Robozinho dos Momozis até Passar - 08/09/2026 - 7h",
+    "delivery": "draft",
+    "draft_id": "r6811601522802821316",
+    "window_end": "2026-09-08T07:18:52-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (67 dias) - sonda de 07/09 também vazia",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (68 dias) - sonda de 08/09 também vazia",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto - 16ª execução sem edital oficial; vagas seguem em 20-24, subsídio estimado ~R$37.765,55; sem novidade nesta execução",
+      "texto": "TJDFT Juiz Substituto - 17ª execução sem edital oficial; buscas de 08/09 encontraram só páginas do edital antigo (2022/23, 30-71 vagas), armadilha banca_edital_antigo confirmada de novo, sem novidade real",
       "faixa": "ativa"
     },
     {
       "id": "agu_pfn_edital",
-      "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Reverificado nesta execução (1ª da semana) - sem mudança: edital ainda não publicado, banca não confirmada",
+      "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 08/09 (faixa longo_prazo, só na 1ª execução da semana); status mantido do check de 07/09",
       "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "PGE-AL com provas realizadas neste fim de semana (objetiva 05/09, discursiva 06/09), resultado ~20/10. TRF2 orais 14-25/09. PGM Juazeiro-BA: edital novo previsto fim de setembro/2026. Novo: MPC-MA com comissão formada e banca Cebraspe contratada, edital ainda não publicado. Sem movimento: PGE-BA, PGE-MA, PGE-RS, DPU VII, DPE-RO, MPMS, DPE-SC",
+      "texto": "Não reverificado em 08/09 (faixa longo_prazo). Prazos a observar: MP-SP 13/09, TJ-RS inscrições até 15/09, TRF5 inscrições até 28/09, PGE-AL resultado ~20/10, TRF2 orais 14-25/09. Sem movimento novo confirmado.",
       "faixa": "longo_prazo"
     },
     {
-      "id": "egress_bloqueado_ambiente_nuvem",
-      "texto": "Bloqueio de egress do ambiente de nuvem para bible.com e outros domínios reconfirmado ativo em 07/09 (EGRESS_BLOCKED via WebFetch direto). Contornado via WebSearch para legislação/concursos/clipping; para o versículo do dia, o contorno falhou desta vez (resultados conflitantes)",
+      "id": "crise_institucional_stf_pgr_acompanhar",
+      "texto": "Seguiu evoluindo em 08/09: empresários da Faria Lima articulam manifesto por 'aperfeiçoamento institucional' do STF (via Valor/JOTA); Simonetti (OAB) cobra transparência do STF (via Migalhas). Prazo de 5 dias da PET 16.704 vence ~09/09, ainda sem manifestação colegiada do STF até esta execução.",
       "faixa": "ativa"
     },
     {
-      "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Crise STF-PGR seguiu escalando entre 04-05/09: Fachin retirou a apuração contra Mendonça do inquérito das fake news e a recolocou no mesmo processo de Moraes; Moraes formalizou a Fachin pedido de providências contra Mendonça por abuso de autoridade e favorecimento de grupo político; PGR abriu procedimento para apurar a atuação da PF na elaboração do relatório; Mendonça deixou sociedade de instituto (Iter); Gilmar propôs proibir policiais/militares em gabinetes do STF. Prazo de 5 dias da PET 16.704 (aberta por Fachin) vence por volta de 09/09 - ainda sem manifestação colegiada do plenário",
+      "id": "conjur_egress_regressao",
+      "texto": "ConJur ficou inacessível em 08/09: www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão — contraria o probe do passo 1, que indicou www liberado. Pode ser regressão pontual (comportamento do site) ou mudança na configuração do allowlist do ambiente; acompanhar na próxima execução.",
       "faixa": "ativa"
     }
   ],
   "chaves_publicadas": [
-    "planalto|lc|235|2026|2026-08-28",
-    "planalto|mpv|1386|2026|2026-08-24",
-    "planalto|mpv|1387|2026|2026-08-31",
-    "stf|noticia|pauta-plenario-setembro|2026|2026-09-01",
-    "stf|noticia|autarquias-fundacoes-sc-procuradoria-estado|2026|2026-08-31",
-    "stf|noticia|consulta-publica-sumula-anpp-justica-militar|2026|2026-08-27",
-    "stf|noticia|associacao-pcd-servico-publico-regra-nacional|2026|2026-08-31",
-    "stf|noticia|audiencia-publica-lei-antifaccao-2-dias|2026|2026-08-25",
-    "stf|noticia|inventario-emissoes-gee-2025|2026|2026-08-31",
-    "stf|noticia|fachin-altera-pauta-uber-rappi-uberizacao-adiada|2026|2026-08-27",
-    "stf|decisao|ipva-sp-dupla-cobranca-proibida|2026|2026-08-27",
-    "stf|decisao|acesso-dados-sigilosos-investigacoes-limites|2026|2026-08-28",
-    "stf|decisao|cargos-comissao-mppe-mantidos|2026|2026-08-27",
-    "stf|decisao|irpj-csll-lucros-exterior-vale-destaque-zera-placar|2026|2026-08-28",
-    "stf|decisao|devedor-contumaz-proibido-recuperacao-judicial|2026|2026-08-25",
-    "stf|noticia|sumula-vinculante-pautas-bomba-contribuicoes|2026|2026-08-25",
-    "stj|noticia|salomao-assume-presidencia-stj|2026|2026-09-01",
-    "stj|noticia|filtro-relevancia-entra-vigor-3-setembro|2026|2026-08-27",
-    "stj|noticia|benedito-goncalves-corregedoria-nacional-justica|2026|2026-08-26",
-    "stj|noticia|1a-secao-nega-reajuste-2886-auditores-fiscais|2026|2026-09-01",
-    "stj|jurisprudencia|rejeita-revisao-emprestimos-compulsorios-eletrobras|2026|2026-08-25",
-    "stj|jurisprudencia|execucao-fiscal-espolio-citacao-antes-morte|2026|2026-08-26",
-    "stf|informativo|repercussao-geral-386|2026|2026-08-26",
-    "stf|informativo|1223|2026|2026-08-22",
-    "stf|informativo|1224|2026|2026-08-22",
-    "stj|informativo|898|2026|2026-08-25",
-    "stj|informativo|897|2026|2026-08-18",
-    "concurso|tjdft|juiz-substituto-sem-edital|2026|2026-09-01",
-    "concurso|mpms|provas-realizadas-21-25-07|2026|2026-08-21",
-    "concurso|agu-pfn|edital-unificado-170-vagas-planejamento|2026|2026-09-01",
-    "concurso|pge-ma|comissao-formada|2026|2026-08-25",
-    "concurso|pge-rs|comissao-formada|2026|2026-08-25",
-    "concurso|pge-ba|edital-sem-confirmacao|2026|2026-09-01",
-    "concurso|pgm-porto-alegre|resultado-provisorio-12-08|2026|2026-08-12",
-    "concurso|dpe-sc|prova-tribuna-realizada-01-02-08|2026|2026-08-02",
-    "concurso|dpe-ro|comissao-formada-05-08|2026|2026-08-05",
-    "concurso|dpu-vii|resolucao-regulamentadora|2026|2026-06-18",
-    "midia|jota|bruno-dantas-renuncia-tcu|2026|2026-08-31",
-    "midia|jota|braskem-recuperacao-extrajudicial-187bi|2026|2026-08-25",
-    "midia|jota|tjrj-confirma-falencia-oi|2026|2026-08-26",
-    "midia|jota|refit-falencia-sonegacao-fiscal|2026|2026-09-01",
-    "midia|jota|trt10-mantem-suspensao-demissoes-casas-bahia|2026|2026-08-26",
-    "midia|jota|pec-fim-escala-6x1-omar-aziz-rejeita-emendas|2026|2026-08-28",
-    "midia|jota|mp-taxa-blusinhas-relatora-adia-parecer|2026|2026-09-01",
-    "midia|jota|anpd-multa-tiktok-1537-milhoes|2026|2026-08-25",
-    "midia|jota|governo-acao-discord-500-milhoes|2026|2026-08-27",
-    "midia|jota|tse-toffoli-suspende-propaganda-renan-santos|2026|2026-09-01",
-    "opiniao|jota|triunfo-morte-anunciada-novo-stj|2026|2026-08-28",
-    "opiniao|jota|mandatos-stf-nao-resolvem-problemas|2026|2026-08-28",
-    "opiniao|jota|orcamento-2027-esconde-esconde-fiscal|2026|2026-08-27",
-    "opiniao|jota|ponto-cego-fim-contencioso-tributario|2026|2026-08-31",
-    "opiniao|jota|stj-distante-precedentes-proximos-empresas|2026|2026-08-26",
-    "opiniao|jota|devedor-contumaz-lc225-problema-solucao|2026|2026-08-25",
-    "fofoquinha|jota|disputa-vaga-tcu-pacheco-alcolumbre|2026|2026-08-31",
-    "fofoquinha|jota|sindicato-magistrados-assembleia-pauta-etica-pec-mandato|2026|2026-08-25",
-    "fofoquinha|jota|desembargador-tjms-reclamacao-disciplinar-cnj|2026|2026-08-28",
-    "munger|citacao|treine-matematica-probabilidades|indice-44|2026-09-01",
     "stf|decisao|inss-teto-juros-consignado|2026|2026-09-02",
     "stf|decisao|jornada-servidores-municipais-sp-mantida|2026|2026-09-01",
     "stf|noticia|anadef-dpu-receitas-proprias-arcabouco-fiscal|2026|2026-09-01",
@@ -187,13 +130,22 @@
     "concurso|mpsp|promotor-prova-discursiva-13-09|2026|2026-09-07",
     "concurso|pge-al|provas-realizadas-resultado-20-10|2026|2026-09-07",
     "concurso|trt8|banca-fcc-contratada-edital-iminente|2026|2026-08-28",
-    "concurso|dpdf|banca-instituto-access-contratada-edital-pendente|2026|2026-09-07"
+    "concurso|dpdf|banca-instituto-access-contratada-edital-pendente|2026|2026-09-07",
+    "fofoquinha|jota|empresarios-articulam-aperfeicoamento-institucional-stf|2026|2026-09-08",
+    "midia|jota|reforma-tributaria-contencioso-restrito-turivius|2026|2026-09-08",
+    "midia|jota|justica-federal-deducao-ir-educacao-tea|2026|2026-09-08",
+    "midia|migalhas|stf-valida-planos-estaduais-presidios|2026|2026-09-07",
+    "midia|migalhas|simonetti-cobra-resposta-stf-transparencia|2026|2026-09-07",
+    "midia|migalhas|tjsp-afasta-tarifa-carga-poluidora-sabesp|2026|2026-09-07",
+    "midia|migalhas|trf3-transparencia-salarial|2026|2026-09-07",
+    "midia|migalhas|justica-limita-reajuste-plano-falso-coletivo-ans|2026|2026-09-07",
+    "versiculo|dailyverses|lucas-12-2|2026|2026-09-08",
+    "munger|citacao|otimo-negocio-preco-justo|indice-51|2026-09-08"
   ],
-  "total_chaves": 144,
+  "total_chaves": 97,
   "metricas": {
-    "execucoes_registradas": 15,
+    "execucoes_registradas": 16,
     "itens_ultimas_10": [
-      21,
       33,
       25,
       28,
@@ -202,51 +154,52 @@
       27,
       15,
       18,
-      27
+      27,
+      10
     ],
-    "media_itens": 29.8,
-    "itens_ultima": 27,
+    "media_itens": 28.7,
+    "itens_ultima": 10,
     "coletores_ultima": {
       "gmail": {
         "modelo": "haiku",
-        "tokens": 53666,
-        "chamadas": 9,
-        "duracao_ms": 47590
+        "tokens": 43869,
+        "chamadas": 8,
+        "duracao_ms": 46052
       },
       "jota": {
         "modelo": "sonnet",
-        "tokens": 184811,
-        "chamadas": 36,
-        "duracao_ms": 274662
+        "tokens": 77201,
+        "chamadas": 11,
+        "duracao_ms": 105944
       },
       "web": {
         "modelo": "sonnet",
-        "tokens": 92965,
-        "chamadas": 34,
-        "duracao_ms": 138021
+        "tokens": 74812,
+        "chamadas": 17,
+        "duracao_ms": 155661
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
-        "execucoes": 1,
-        "tokens_total": 53666,
-        "chamadas_total": 9,
-        "tokens_media": 53666,
-        "chamadas_media": 9.0
+        "execucoes": 2,
+        "tokens_total": 97535,
+        "chamadas_total": 17,
+        "tokens_media": 48768,
+        "chamadas_media": 8.5
       },
       "jota": {
-        "execucoes": 1,
-        "tokens_total": 184811,
-        "chamadas_total": 36,
-        "tokens_media": 184811,
-        "chamadas_media": 36.0
+        "execucoes": 2,
+        "tokens_total": 262012,
+        "chamadas_total": 47,
+        "tokens_media": 131006,
+        "chamadas_media": 23.5
       },
       "web": {
-        "execucoes": 1,
-        "tokens_total": 92965,
-        "chamadas_total": 34,
-        "tokens_media": 92965,
-        "chamadas_media": 34.0
+        "execucoes": 2,
+        "tokens_total": 167777,
+        "chamadas_total": 51,
+        "tokens_media": 83888,
+        "chamadas_media": 25.5
       }
     }
   }

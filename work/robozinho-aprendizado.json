@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. REGRA DE PODA: ao atualizar a nota de uma fonte, REESCREVER de forma compacta (status atual + politica vigente + no maximo 1 padrao recente) em vez de acrescentar ao texto anterior — nunca prependar 'Nota anterior:' nem acumular 'Em DD/MM...'; incidente ja resolvido ou generalizado numa regra estavel sai da nota. Licao de processo que virou regra na ROTINA ou no prompt mestre sai daqui. Validar com json.load apos editar (nenhum helper faz isso). Manter enxuto — este arquivo e lido todo dia, para sempre.",
-  "atualizado_em": "2026-09-07T08:40:00-03:00",
-  "atualizado_por_execucao": "2026-09-07-7h (poda pos-execucao: ROTINA v2 / prompt v10)",
+  "atualizado_em": "2026-09-08T07:20:00-03:00",
+  "atualizado_por_execucao": "2026-09-08-7h",
 
   "niveis_de_esforco": {
     "saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.",
@@ -17,26 +17,26 @@
     { "id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-09-07", "sem_sucesso": 0,
       "nota": "Fonte mais confiavel. O push do dia D reitera itens de D-1 e consolida dias anteriores apos gaps — decidir (herdada)/novidade pelo timestamp interno de cada noticia, nao pela data do e-mail." },
 
-    { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-07", "sem_sucesso": 0,
-      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional/patrocinado. Wrapper t.rdsv2.net: WebSearch site:jota.info e o unico metodo viavel em nuvem, 1 tentativa por item em lotes de 5 (teto 16 buscas), titulo tem que bater. Boletins-resumo nao tem link por item. Teto de 6 opinioes. Sem e-mails no fim de semana e normal. Boletim que chega minutos antes do inicio da janela e o matinal natural do dia — aceitar apos checar chaves_publicadas." },
+    { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-08", "sem_sucesso": 0,
+      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional/patrocinado. Wrapper t.rdsv2.net: WebSearch site:jota.info e o unico metodo viavel em nuvem, 1 tentativa por item em lotes de 5 (teto 16 buscas), titulo tem que bater; quando o item e clipping citando outro veiculo (Valor, Folha) sem materia propria do JOTA, a busca nao acha nada — pode publicar sem link direto sem gastar a tentativa. Boletins-resumo nao tem link por item. Teto de 6 opinioes. Boletim que chega minutos antes do inicio da janela e o matinal natural do dia — aceitar apos checar chaves_publicadas." },
 
     { "id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-09-07",
       "nota": "Sustenta a secao Planalto durante o apagao do PUSH. Em nuvem, fetch direto e bloqueado por egress — ir direto ao WebSearch; leis sancionadas costumam confirmar por gov.br + Agencia Brasil + Migalhas convergentes (OFICIAL ALTERNATIVA). Se o fetch direto voltar a funcionar algum dia, usar sempre www.congressonacional.leg.br (sem www da ENOTFOUND)." },
 
-    { "id": "gmail_stj_codju", "status": "saudavel", "ultimo_sucesso": "2026-09-02", "sem_sucesso": 2,
+    { "id": "gmail_stj_codju", "status": "saudavel", "ultimo_sucesso": "2026-09-02", "sem_sucesso": 3,
       "nota": "Cadencia irregular, silencio pontual nao e falha. Extrair numero e data sempre do ASSUNTO. Quando silencia, decisoes do STJ da janela saem so via midia convergente (ConJur/Migalhas/JOTA)." },
 
     { "id": "gmail_push_stf_informativos", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
       "nota": "Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta sao produtos distintos — conferir nome completo no assunto E o numero no slug do PDF (o assunto ja errou o numero). Andamento processual de caso individual NAO e informativo/RG. Produto periodico: semana sem edicao nova e normal." },
 
-    { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 26, "dias_sem_email": 67,
+    { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 27, "dias_sem_email": 68,
       "nota": "Sondas vazias desde 02/07; o legado nunca retornou nada. 1 sonda e ir para a Rota 13. Escalado ao usuario em 31/07 — nao repetir a escalada, so manter a pendencia visivel." },
 
     { "id": "congresso_mpvs", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
       "nota": "Ver armadilha congresso_mpv — checagem cruzada obrigatoria. Candidato de MPV com 1 fonte so nao entra (nem como PENDENCIA se nem numero confiavel tiver); busca por numero pode achar MPV homonima de anos anteriores." },
 
-    { "id": "conjur", "status": "saudavel", "ultimo_sucesso": "2026-09-07",
-      "nota": "URL correta: /ultimas-da-conjur/. Em nuvem, fetch direto bloqueado — WebSearch. Se 'site:conjur.com.br AAAA-mes-DD' devolver so listagem sem conteudo, reformular a busca sem o operador site:. A data confiavel esta no slug da URL (2026-set-05). Pouca publicacao de fim de semana e normal." },
+    { "id": "conjur", "status": "instavel", "ultimo_sucesso": "2026-09-07", "sem_sucesso": 1,
+      "nota": "URL correta: /ultimas-da-conjur/. Em 08/09, www.conjur.com.br passou a redirecionar (301) para o apex conjur.com.br, que o proxy bloqueia (403) — ficou inacessivel mesmo com o dominio liberado no probe. Antes disso o padrao era fetch direto bloqueado com fallback por WebSearch (site:conjur.com.br AAAA-mes-DD; sem match, reformular sem o operador site:; data confiavel no slug, ex. 2026-set-05). Testar os dois caminhos na proxima execucao antes de decidir o status definitivo." },
 
     { "id": "migalhas", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
       "nota": "Em nuvem, fetch direto bloqueado — WebSearch. Buscas por 'DD mes AAAA' trazem materias de anos anteriores: confirmar o ano na URL/pagina. Fim de semana sem materia propria e normal." },
@@ -107,8 +107,8 @@
     { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (67 dias)", "desde": "2026-07-06", "execucoes": 26, "faixa": "cronica",
       "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto; a Rota 13 (WebSearch) sustenta a secao. Ja escalado em 31/07; nao repetir a escalada." },
 
-    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55", "desde": "2026-07-21", "execucoes": 16, "faixa": "ativa",
-      "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo. Sem movimento ate 07/09." },
+    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55", "desde": "2026-07-21", "execucoes": 17, "faixa": "ativa",
+      "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo (em 08/09 buscas voltaram a trazer paginas do edital antigo 2022/23, 30/71 vagas — nao confirma novidade). Sem movimento ate 08/09." },
 
     { "id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), edital em ate 6 meses (~jan/2027), banca nao confirmada", "desde": "2026-07-07", "execucoes": 21, "faixa": "longo_prazo",
       "politica": "Prazo so vence em jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos. Reverificado em 07/09 sem mudanca." },
@@ -117,8 +117,11 @@
       "politica": "Reverificar na 1a execucao da semana (o coletor Web recebe esta lista e a faixa no prompt — ROTINA passo 5). Promover a linha propria so com movimento confirmado. Prazos a observar: MP-SP 13/09, TRF2 14-25/09, TRF5 inscricoes 28/09, TJRS inscricoes 15/09, resultado PGE-AL ~20/10." },
 
 
-    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Crise STF-PGR escalou entre 04-05/09: Fachin retirou a apuracao contra Mendonca do inquerito das fake news e a recolocou no mesmo processo de Moraes; Moraes formalizou a Fachin pedido de providencias contra Mendonca por abuso de autoridade; PGR abriu procedimento para apurar a atuacao da PF no relatorio; Mendonca deixou a sociedade do instituto Iter; Gilmar propos proibir policiais/militares em gabinetes; BC decretou liquidacao de duas distribuidoras ligadas a ex-socio do Master. Prazo de 5 dias da PET 16.704 vence ~09/09 — sem manifestacao colegiada ate 07/09.", "desde": "2026-09-02", "execucoes": 4, "faixa": "ativa",
-      "politica": "Acompanhar o desfecho da PET 16.704 (~09/09) e eventual manifestacao colegiada; promover para noticia oficial definitiva (STF/PGR) quando houver decisao, com o desfecho explicito ao leitor. Cobertura densa e repetida entre boletins JOTA de dias seguidos — checar sempre contra chaves_publicadas." }
+    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Em 08/09: empresarios da Faria Lima articulam manifesto por 'aperfeicoamento institucional' do STF (via Valor/JOTA); Simonetti (OAB) cobra transparencia do STF (via Migalhas). Prazo de 5 dias da PET 16.704 vence ~09/09 — sem manifestacao colegiada ate 08/09.", "desde": "2026-09-02", "execucoes": 5, "faixa": "ativa",
+      "politica": "Acompanhar o desfecho da PET 16.704 (~09/09) e eventual manifestacao colegiada; promover para noticia oficial definitiva (STF/PGR) quando houver decisao, com o desfecho explicito ao leitor. Cobertura densa e repetida entre boletins JOTA de dias seguidos — checar sempre contra chaves_publicadas." },
+
+    { "id": "conjur_apex_bloqueado", "texto": "Em 08/09, www.conjur.com.br passou a redirecionar (301) para o apex conjur.com.br, que o proxy da sessao bloqueia (403) — ConJur ficou inacessivel via curl mesmo com o dominio liberado no probe do passo 1. WebSearch tambem nao achou materia datada de 07-08/09.", "desde": "2026-09-08", "execucoes": 1, "faixa": "ativa",
+      "politica": "Testar curl em www.conjur.com.br na proxima execucao antes de assumir bloqueio; se persistir por 2+ execucoes, reclassificar a fonte conjur de forma mais permanente e apoiar-se so em WebSearch." }
   ],
 
   "licoes_de_processo": [

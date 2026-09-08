@@ -12,245 +12,6 @@
   ],
   "executions": [
     {
-      "execution_id": "2026-07-31-7h",
-      "type": "diaria",
-      "run_started_at": "2026-07-31T08:49:00-03:00",
-      "run_finished_at": "2026-07-31T10:02:00-03:00",
-      "date": "2026-07-31",
-      "timezone": "America/Sao_Paulo",
-      "window_start": "2026-07-30T23:54:00-03:00",
-      "window_end": "2026-07-31T10:02:00-03:00",
-      "recipients": [
-        "pereirafranciscofilho@gmail.com",
-        "luizaxbarreto@gmail.com"
-      ],
-      "email_subject": "Robozinho dos Momozis até Passar - 31/07/2026 - 7h",
-      "delivery": "draft",
-      "draft_id": "r-4276239737789945707",
-      "items": [
-        {
-          "fonte": "stf",
-          "categoria": "noticia",
-          "titulo": "Divergência no cálculo da correção monetária leva STF a suspender cobrança contra Petrobras",
-          "data": "2026-07-30",
-          "url": "https://noticias.stf.jus.br/postsnoticias/divergencia-no-calculo-da-correcao-monetaria-leva-stf-a-suspender-cobranca-contra-petrobras/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|petrobras-correcao-monetaria-suspensao|2026|2026-07-30"
-        },
-        {
-          "fonte": "stf",
-          "categoria": "noticia",
-          "titulo": "União deve complementar informações sobre orçamento da CVM em plano a ser enviado ao STF",
-          "data": "2026-07-30",
-          "url": "https://noticias.stf.jus.br/postsnoticias/uniao-deve-complementar-informacoes-sobre-orcamento-da-cvm-em-plano-a-ser-enviado-ao-stf/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|cvm-orcamento-plano-stf|2026|2026-07-30"
-        },
-        {
-          "fonte": "stf",
-          "categoria": "noticia",
-          "titulo": "Adepol aciona STF contra idade mínima para aposentadoria de policiais civis do AM",
-          "data": "2026-07-30",
-          "url": "https://noticias.stf.jus.br/postsnoticias/adepol-aciona-stf-contra-idade-minima-para-aposentadoria-de-policiais-civis-do-am/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|adepol-aposentadoria-pc-am|2026|2026-07-30"
-        },
-        {
-          "fonte": "stf",
-          "categoria": "noticia",
-          "titulo": "Confira destaques da pauta do Plenário para o mês de agosto (retomada confirmada em 03/08)",
-          "data": "2026-07-31",
-          "url": "https://noticias.stf.jus.br/postsnoticias/confira-destaques-da-pauta-do-plenario-para-o-mes-de-agosto/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|pauta-plenario-agosto-retomada-3-8|2026|2026-07-31"
-        },
-        {
-          "fonte": "stj",
-          "categoria": "jurisprudencia",
-          "titulo": "PGFN vai deixar de recorrer em casos de dedução de JCP extemporâneo (após Tema 1319)",
-          "data": "2026-07-30",
-          "url": "https://www.jota.info/tributos/pgfn-vai-deixar-de-recorrer-em-casos-sobre-deducao-de-jcp-extemporaneo",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|pgfn-nao-recorre-jcp-extemporaneo-tema1319|2026|2026-07-30"
-        },
-        {
-          "fonte": "migalhas",
-          "categoria": "midia",
-          "titulo": "Lula sanciona lei que repassa até 3% da arrecadação das bets à PF (sem número oficial confirmado)",
-          "data": "2026-07-30",
-          "url": "https://www.migalhas.com.br/quentes/461349/lula-sanciona-lei-que-repassa-ate-3-da-arrecadacao-das-bets-a-pf",
-          "status": "PENDÊNCIA DE VERIFICAÇÃO",
-          "chave": "midia|migalhas|lei-bets-pf-sancionada-sem-numero|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "midia",
-          "titulo": "PGR pede arquivamento de inquérito contra ministro do STJ Og Fernandes (Operação Sisamnes)",
-          "data": "2026-07-31",
-          "url": null,
-          "status": "MÍDIA ESPECIALIZADA — link não resolvido",
-          "chave": "midia|jota|og-fernandes-pgr-arquivamento-sisamnes|2026|2026-07-31"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "midia",
-          "titulo": "Banco Central amplia para 80 dias o prazo de contestação de fraude no Pix (IN 766/2026)",
-          "data": "2026-07-30",
-          "url": "https://www.jota.info/tributos-e-empresas/mercado/bc-uniformiza-prazos-de-contestacao-de-operacoes-com-suspeita-de-fraude-no-pix",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|bc-pix-in-766-prazo-contestacao|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "midia",
-          "titulo": "Dino sinaliza regime de responsabilidade para toda a cadeia de agentes em emendas parlamentares",
-          "data": "2026-07-29",
-          "url": null,
-          "status": "MÍDIA ESPECIALIZADA — link não resolvido",
-          "chave": "midia|jota|dino-emendas-responsabilidade-cadeia|2026|2026-07-29"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "midia",
-          "titulo": "Tribunal do Júri de SP absolve PMs por morte de jovem em Paraisópolis",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "MÍDIA ESPECIALIZADA — link não resolvido",
-          "chave": "midia|jota|juri-sp-absolve-pms-paraisopolis|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "midia",
-          "titulo": "Viih Tube e Eliezer assinam TAC com o MPT, pagam R$ 350 mil por dano moral coletivo",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "MÍDIA ESPECIALIZADA — link não resolvido",
-          "chave": "midia|jota|viihtube-eliezer-tac-mpt|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "midia",
-          "titulo": "Missão quer que STF proíba coleta de dados biométricos para aferição de idade (ECA Digital)",
-          "data": "2026-07-30",
-          "url": "https://www.jota.info/stf/do-supremo/missao-quer-que-stf-proiba-coleta-de-dados-biometricos-para-afericao-de-idade",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|missao-stf-biometria-eca-digital|2026|2026-07-30"
-        },
-        {
-          "fonte": "migalhas",
-          "categoria": "midia",
-          "titulo": "Mulher deve excluir fotos em redes sociais com família de ex-companheiro",
-          "data": "2026-07-30",
-          "url": "https://www.migalhas.com.br/quentes/461329/mulher-deve-excluir-fotos-em-redes-sociais-com-familia-de-ex",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|migalhas|mulher-excluir-fotos-redes-sociais-ex|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "opiniao",
-          "titulo": "Litigância contra o Estado",
-          "data": "2026-07-30",
-          "url": "https://www.jota.info/opiniao-e-analise/colunas/controle-publico/litigancia-contra-o-estado",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|jota|litigancia-contra-o-estado|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "opiniao",
-          "titulo": "Infraestrutura digital e capacidade estatal: lições do caso SuperSapiens",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "OPINIÃO/ANÁLISE — link não resolvido",
-          "chave": "opiniao|jota|infraestrutura-digital-supersapiens|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "opiniao",
-          "titulo": "A transação como instrumento de regulação",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "OPINIÃO/ANÁLISE — link não resolvido",
-          "chave": "opiniao|jota|transacao-instrumento-regulacao|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "opiniao",
-          "titulo": "Nova lei do complexo industrial da saúde: o que o setor farmacêutico precisa saber",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "OPINIÃO/ANÁLISE — link não resolvido",
-          "chave": "opiniao|jota|nova-lei-complexo-industrial-saude|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "opiniao",
-          "titulo": "O decreto brasileiro que copia o problema europeu da moderação de conteúdo",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "OPINIÃO/ANÁLISE — link não resolvido",
-          "chave": "opiniao|jota|decreto-moderacao-conteudo-europeu|2026|2026-07-30"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "opiniao",
-          "titulo": "CNS quer recriar a Conep como Comissão Intersetorial de Ética em Pesquisa",
-          "data": "2026-07-30",
-          "url": null,
-          "status": "OPINIÃO/ANÁLISE — link não resolvido",
-          "chave": "opiniao|jota|cns-conep-comissao-etica-pesquisa|2026|2026-07-30"
-        },
-        {
-          "fonte": "youversion",
-          "categoria": "versiculo",
-          "titulo": "Efésios 3:20-21 (NVI)",
-          "data": "2026-07-31",
-          "url": null,
-          "status": "CONFIRMADO",
-          "chave": "youversion|versiculo|efesios-3-20-21|2026|2026-07-31"
-        },
-        {
-          "fonte": "munger",
-          "categoria": "citacao",
-          "titulo": "Nunca subestime o poder dos incentivos; eles moldam o comportamento mais do que sermões.",
-          "data": "2026-07-31",
-          "url": null,
-          "status": "CONFIRMADO",
-          "chave": "munger|citacao|nunca-subestime-poder-incentivos|indice-12|2026-07-31"
-        }
-      ],
-      "source_status": {
-        "gmail_push_stf": "saudavel — 5 e-mails, 4 dentro da janela util (1 duplicado descartado)",
-        "gmail_push_stf_informativos": "intermitente — sem e-mail, esperado no ultimo dia do recesso",
-        "gmail_stj_codju": "saudavel mas sem novidade — thread encontrada fora da janela (Informativo 33 ja publicado)",
-        "gmail_push_planalto": "mudo — sonda vazia, 29 dias sem e-mail (desde 02/07)",
-        "gmail_jota": "saudavel — 7 threads, alto volume de duplicatas com edicao de ontem",
-        "congresso_ultimas_leis": "saudavel — consultada, sem lei nova na janela",
-        "congresso_mpvs": "instavel — checagem cruzada nao confirmou nenhuma MPV nova",
-        "conjur": "instavel — 403 em fetch direto (nao tentado); WebSearch nao indexou item com slug de 30 ou 31/07",
-        "migalhas": "saudavel — fetch direto funcionou, 3 itens uteis (1 descartado por duplicata)",
-        "youversion": "saudavel — data bateu de primeira (31/07/2026)",
-        "dou_direto": "erro tecnico — socket hang up ao tentar confirmar numero da lei das bets/PF"
-      },
-      "errors": [
-        "Fetch direto ao DOU (in.gov.br/leiturajornal) falhou com socket hang up ao tentar confirmar o numero da lei das bets/PF — erro tecnico, nao ausencia de conteudo",
-        "ConJur seguiu com HTTP 403 em fetch direto (nao tentado nesta execucao); WebSearch nao indexou nenhum item com slug de 30 ou 31/07 ate o horario da execucao"
-      ],
-      "pendencias": [
-        "Gmail PUSH Planalto sem e-mail ha 29 dias (desde 02/07/2026) - perto do marco de 30 dias, sugerido ao usuario reassinar ou fornecer credenciais INLABS",
-        "Lei que repassa ate 3% da arrecadacao das bets a PF (Migalhas, 30/07) sem numero oficial confirmado - Rota 13 e DOU direto nao confirmaram; DOU teve falha tecnica",
-        "TJDFT - Juiz Substituto (Cebraspe): edital segue sem data de publicacao, apesar do tribunal dizer que esta 'praticamente pronto'",
-        "AGU/PFN, MPF 31 concurso e bloco de cronogramas (PGE-AL, PGE-BA, PGE-MA, PGE-RS, MPMS, DPU VII, TRF2, TRF5, MPC-MA, DPE-RO, DPE-SC, PGM Porto Alegre) nao reverificados nesta execucao - retomar na 1a execucao de segunda-feira"
-      ],
-      "verification_notes": [
-        "JOTA trouxe forte sobreposicao com a edicao de ontem (30/07): Mendonca/Lulinha, Raizen, CNJ conflito de interesse, STJ volume processos FGV, TSE/Moraes-IA-Bolsonaro e TRE-SP/Lula ja estavam publicados como midia|migalhas ou midia|tse do dia anterior - todos descartados como duplicata apos checagem por chave publicada",
-        "Migalhas trouxe item sobre superlotacao no presidio de Americana ja publicado ontem (midia|migalhas|sp-superlotacao-presidio-americana-90-dias) - descartado como duplicata",
-        "Taxa de resolucao de link do JOTA ficou baixa nesta execucao (~29%, 6 de 21 itens) - buscas site:jota.info nao indexaram boa parte das materias mais recentes; itens sem link foram publicados com aviso explicito, conforme protocolo",
-        "MPV: nenhuma passou na checagem cruzada obrigatoria (armadilha congresso_mpv) - resultado limpo, sem MPV nova publicada",
-        "Item 'pauta do Plenario para agosto' (31/07) e atualizacao/confirmacao do mesmo tema ja publicado em 27/07 (stf|noticia|pauta-plenario-agosto), agora com data especifica de retomada (03/08) - tratado como atualizacao, nao noticia inteiramente nova",
-        "Janela desta execucao foi curta (~10h, de 23h54 de ontem as 10h de hoje) porque a execucao anterior fechou tarde na noite de 30/07 - normal, nao e falha"
-      ]
-    },
-    {
       "execution_id": "2026-08-04-7h",
       "type": "diaria",
       "run_started_at": "2026-08-04T10:12:00-03:00",
@@ -3236,6 +2997,182 @@
           "tokens": 92965,
           "chamadas": 34,
           "duracao_ms": 138021
+        }
+      },
+      "delivery_reconciled_at": "2026-09-08T07:19:36-03:00"
+    },
+    {
+      "execution_id": "2026-09-08-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-08T07:09:19-03:00",
+      "run_finished_at": "2026-09-08T07:18:52-03:00",
+      "date": "2026-09-08",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-07T07:17:32-03:00",
+      "window_end": "2026-09-08T07:18:52-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 08/09/2026 - 7h",
+      "delivery": "draft",
+      "draft_id": "r6811601522802821316",
+      "items": [
+        {
+          "chave": "fofoquinha|jota|empresarios-articulam-aperfeicoamento-institucional-stf|2026|2026-09-08",
+          "fonte": "JOTA (citando Valor Econômico)",
+          "categoria": "fofoquinha",
+          "titulo": "Empresários se articulam para propor 'aperfeiçoamento institucional' do STF",
+          "data": "2026-09-08",
+          "status": "SEM CONFIRMAÇÃO OFICIAL"
+        },
+        {
+          "chave": "midia|jota|reforma-tributaria-contencioso-restrito-turivius|2026|2026-09-08",
+          "fonte": "JOTA (citando Folha de S.Paulo/Turivius)",
+          "categoria": "midia",
+          "titulo": "Reforma tributária deve gerar contencioso mais restrito e concentrado",
+          "data": "2026-09-08",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|justica-federal-deducao-ir-educacao-tea|2026|2026-09-08",
+          "fonte": "JOTA (citando coluna Mônica Bergamo/Folha)",
+          "categoria": "midia",
+          "titulo": "Justiça Federal reconhece dedução integral de IR para educação de filho com TEA",
+          "data": "2026-09-08",
+          "status": "MÍDIA ESPECIALIZADA, sem confirmação oficial"
+        },
+        {
+          "chave": "midia|migalhas|stf-valida-planos-estaduais-presidios|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "STF valida planos estaduais para enfrentar violações em presídios",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA, sem confirmação oficial"
+        },
+        {
+          "chave": "midia|migalhas|simonetti-cobra-resposta-stf-transparencia|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "Simonetti cobra respostas do STF e defende transparência para recuperar confiança",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463970/simonetti-cobra-resposta-do-stf-e-defende-transparencia-para-confianca"
+        },
+        {
+          "chave": "midia|migalhas|tjsp-afasta-tarifa-carga-poluidora-sabesp|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "TJ/SP afasta tarifa de carga poluidora cobrada pela Sabesp em comércio",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463930/tj-sp-afasta-tarifa-de-carga-poluidora-cobrada-pela-sabesp-em-comercio"
+        },
+        {
+          "chave": "midia|migalhas|trf3-transparencia-salarial|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "TRF-3 mantém obrigação de empresas divulgarem relatórios de transparência salarial",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463802/trf-3-empresas-divulgarem-relatorios-de-transparencia-salarial"
+        },
+        {
+          "chave": "midia|migalhas|justica-limita-reajuste-plano-falso-coletivo-ans|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "Justiça limita reajuste de plano falso coletivo a índices da ANS",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463643/justica-limita-reajuste-de-plano-falso-coletivo-a-indices-da-ans"
+        },
+        {
+          "chave": "versiculo|dailyverses|lucas-12-2|2026|2026-09-08",
+          "fonte": "DailyVerses.net",
+          "categoria": "versiculo",
+          "titulo": "Lucas 12:2 (ARC)",
+          "data": "2026-09-08",
+          "status": "VERSÍCULO DO DIA",
+          "url": "https://dailyverses.net/pt/2026/9/8"
+        },
+        {
+          "chave": "munger|citacao|otimo-negocio-preco-justo|indice-51|2026-09-08",
+          "fonte": "work/munger-quotes.json",
+          "categoria": "munger",
+          "titulo": "Um ótimo negócio a preço justo vale mais que um negócio medíocre a preço de banana.",
+          "data": "2026-09-08",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel — 2 itens no push de hoje, ambos já cobertos/sem conteúdo publicável (1 duplicata de 04/09, 1 nota de pesar sem detalhe)",
+        "gmail_push_stf_informativos": "saudavel — só andamento processual individual (ARE 1594146), não conta como informativo",
+        "gmail_stj_codju": "silente nesta janela (mais um dia sem sucesso)",
+        "gmail_push_planalto": "mudo — sonda de hoje vazia, mantém-se",
+        "gmail_jota": "saudavel — 1 boletim, 3 notícias aproveitadas, 0 opinião, nenhum link resolvido (fontes citadas são Valor/Folha, não matérias próprias do JOTA)",
+        "congresso_ultimas_leis": "saudavel — consultado via curl, sem lei nova na janela (mais recente: Lei 15.496/2026 de 03/09)",
+        "congresso_mpvs": "saudavel — sem MPV nova; checagem cruzada da MPV 1388 feita, sem anomalia, mas já publicada antes",
+        "conjur": "FALHA NOVA — www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão; inacessível mesmo com o domínio liberado no probe do passo 1",
+        "migalhas": "saudavel — curl funcionou, 10 manchetes extraídas, 8 aproveitadas na janela"
+      },
+      "errors": [
+        {
+          "fonte": "conjur",
+          "erro": "www.conjur.com.br devolve 301 para o apex conjur.com.br, que retorna 403 (CONNECT tunnel failed) no proxy da sessão",
+          "impacto": "nenhum item do ConJur coletado ou confirmado nesta execução"
+        }
+      ],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (68 dias) - sonda de 08/09 também vazia",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto - 17ª execução sem edital oficial; buscas de 08/09 encontraram só páginas do edital antigo (2022/23, 30-71 vagas), armadilha banca_edital_antigo confirmada de novo, sem novidade real",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 08/09 (faixa longo_prazo, só na 1ª execução da semana); status mantido do check de 07/09",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "Não reverificado em 08/09 (faixa longo_prazo). Prazos a observar: MP-SP 13/09, TJ-RS inscrições até 15/09, TRF5 inscrições até 28/09, PGE-AL resultado ~20/10, TRF2 orais 14-25/09. Sem movimento novo confirmado.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Seguiu evoluindo em 08/09: empresários da Faria Lima articulam manifesto por 'aperfeiçoamento institucional' do STF (via Valor/JOTA); Simonetti (OAB) cobra transparência do STF (via Migalhas). Prazo de 5 dias da PET 16.704 vence ~09/09, ainda sem manifestação colegiada do STF até esta execução.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "conjur_egress_regressao",
+          "texto": "ConJur ficou inacessível em 08/09: www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão — contraria o probe do passo 1, que indicou www liberado. Pode ser regressão pontual (comportamento do site) ou mudança na configuração do allowlist do ambiente; acompanhar na próxima execução.",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": "STF Notícias: único reenvio do push de hoje repetia notícia já publicada em 04/09 (limites a símbolos religiosos, chave stf|noticia|limites-nomes-simbolos-religiosos-denominacoes já em chaves_publicadas) — excluída por duplicata. Uma 'nota de pesar' de 07/09 chegou pelo mesmo canal mas sem teor detalhado pelo coletor (apenas título genérico) — não publicada por falta de conteúdo verificável, não por falha técnica. STF Jurisprudência: único e-mail trouxe apenas andamento processual individual (ARE 1594146), que por regra do ledger não conta como informativo. STJ CodJu silente (mais um dia sem sucesso; ainda não atingiu o limiar de 5 execuções para reclassificar como mudo). Concursos: reverificação de hoje limitada à pendência 'ativa' (TJDFT), conforme regra de faixa para dia que não é 1ª execução da semana; itens longo_prazo mantidos com o status do último check (07/09). Web collector também encontrou, sem ter sido solicitado, menções a TRF5/TJ-RS/SETEC Campinas/PGM Valinhos-SP numa busca genérica de concursos — TRF5 e TJ-RS já estavam publicados anteriormente (sem novidade real, não repetidos como 'novos'); SETEC Campinas e PGM Valinhos-SP não fazem parte da lista de pendências rastreadas e não foram verificados (nem ano, nem fonte oficial) — descartados desta edição por falta de verificação, não incluídos no e-mail nem no ledger.",
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 43869,
+          "chamadas": 8,
+          "duracao_ms": 46052
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 77201,
+          "chamadas": 11,
+          "duracao_ms": 105944
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 74812,
+          "chamadas": 17,
+          "duracao_ms": 155661
         }
       }
     }
