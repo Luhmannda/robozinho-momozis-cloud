@@ -330,6 +330,287 @@
       "verification_notes": "Janela estendida (31/07 10h a 04/08 11h, ~4 dias) por ausencia de execucao na segunda-feira 03/08 - absorveu sexta a tarde, fim de semana e a segunda inteira sem gerar edicao retroativa. Reconciliacao: edicao de 31/07 (draft r-4276239737789945707) NUNCA foi enviada pelo Apps Script ate o momento desta execucao - sem gmail_message_id para reconciliar; nao ha registro de erro do Apps Script alem do aviso as 10:13 UTC de 31/07 dizendo que o rascunho ainda nao existia (checagem prematura, o rascunho so foi criado as 13:06 UTC do mesmo dia). Lei das bets/PF (pendencia desde 30/07) resolvida: numero oficial Lei 15.480/2026 confirmado via fontes secundarias (Senado, Camara, Migalhas); Rota 13 nao trouxe essa lei especifica nesta consulta (mesma defasagem ja notada em execucoes anteriores) - o numero foi obtido fora da Rota 13. Cruzamento CNJ: item de 04/08 (Fachin apresenta proposta concreta) tratado como atualizacao/desdobramento do item ja publicado em 30/07 (CNJ vai pautar resolucao), nao duplicata pura. ConJur via WebSearch encontrou itens para todas as datas de 31/07 a 03/08 desta vez (diferente de execucoes anteriores onde so achava ate 1 dia atras) - enfraquece um pouco a hipotese de defasagem de indexacao maior que 1 dia; para 04/08 (mesmo dia da execucao) nao achou nada, o que e esperado. Concursos: nenhum edital novo confirmado nesta janela; PGM Manaus tem prazo de inscricao encerrando hoje (nao e pendencia continua, e um lembrete pontual). Munger: indice recalculado nesta execucao com grep real do array (200 itens, dia do ano 216, indice 216 mod 200 = 16).",
       "gmail_message_id": "19fcd573ae6f5ba5",
       "delivery_reconciled_at": "2026-08-05T07:05:33-03:00"
+    },
+    {
+      "execution_id": "2026-08-05-7h",
+      "type": "diaria",
+      "run_started_at": "2026-08-05T06:33:00-03:00",
+      "run_finished_at": "2026-08-05T07:25:00-03:00",
+      "date": "2026-08-05",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-08-04T11:06:00-03:00",
+      "window_end": "2026-08-05T07:02:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 05/08/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r6495616818993406526",
+      "items": [
+        {
+          "chave": "planalto|lei|15484|2026|2026-08-04",
+          "fonte": "midia (ConJur/Migalhas/Poder360/Metropoles/Jornal de Brasilia)",
+          "categoria": "legislacao",
+          "titulo": "Lei 15.484/2026 - filtro de relevancia no STJ",
+          "data": "2026-08-04",
+          "status": "sem_confirmacao_oficial",
+          "url": "https://conjur.com.br/2026-ago-04/lula-sanciona-sem-vetos-lei-que-cria-filtro-da-relevancia-no-stj/"
+        },
+        {
+          "chave": "stf|noticia|operacao-sem-desconto-buscas-quebra-sigilo|2026|2026-08-04",
+          "fonte": "gmail_push_stf",
+          "categoria": "stf_noticia",
+          "titulo": "STF autoriza buscas e quebra de sigilo - Operacao Sem Desconto",
+          "data": "2026-08-04T14:04:22-03:00",
+          "status": "confirmado_oficial",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-autoriza-buscas-e-quebra-de-sigilo-de-dados-telefonicos-em-investigacao-da-operacao-sem-desconto/"
+        },
+        {
+          "chave": "stf|decisao|desembargador-prisao-vazamento-pf-rj|2026|2026-08-04",
+          "fonte": "gmail_push_stf",
+          "categoria": "stf_noticia",
+          "titulo": "STF mantem prisao de desembargador acusado de vazar informacoes de operacao da PF-RJ",
+          "data": "2026-08-04T19:11:26-03:00",
+          "status": "confirmado_oficial"
+        },
+        {
+          "chave": "stf|noticia|partido-plano-nacional-faccoes-territorios|2026|2026-08-04",
+          "fonte": "gmail_push_stf",
+          "categoria": "stf_noticia",
+          "titulo": "Partido pede que STF determine plano nacional para retomar areas sob dominio de faccoes",
+          "data": "2026-08-04T16:25:49-03:00",
+          "status": "confirmado_oficial"
+        },
+        {
+          "chave": "stf|noticia|associacoes-valores-lavagem-dinheiro-mpf|2026|2026-08-04",
+          "fonte": "gmail_push_stf",
+          "categoria": "stf_noticia",
+          "titulo": "Associacoes pedem que Justica Federal e MPF recebam valores de acoes por lavagem de dinheiro",
+          "data": "2026-08-04T21:04:05-03:00",
+          "status": "confirmado_oficial"
+        },
+        {
+          "chave": "stj|informativo|895|2026|2026-08-04",
+          "fonte": "gmail_stj_codju",
+          "categoria": "informativo",
+          "titulo": "STJ retoma Informativo de Jurisprudencia com o n.895, pos-recesso",
+          "data": "2026-08-04",
+          "status": "confirmado_oficial",
+          "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=895.cod."
+        },
+        {
+          "chave": "stj|jurisprudencia|soltura-nao-moeda-troca-colaboracao|2026|2026-08-04",
+          "fonte": "migalhas",
+          "categoria": "stj_jurisprudencia",
+          "titulo": "STJ mantem acordo de colaboracao e diz que soltura nao e moeda de troca",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.migalhas.com.br/quentes/461640/"
+        },
+        {
+          "chave": "stj|jurisprudencia|honorarios-curador-especial-sucumbencia|2026|2026-08-04",
+          "fonte": "migalhas",
+          "categoria": "stj_jurisprudencia",
+          "titulo": "STJ permite cumular honorarios de curador especial e de sucumbencia",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.migalhas.com.br/quentes/461660/"
+        },
+        {
+          "chave": "stj|jurisprudencia|justica-gratuita-mulher-cancer-patrimonio|2026|2026-08-04",
+          "fonte": "migalhas",
+          "categoria": "stj_jurisprudencia",
+          "titulo": "STJ concede Justica gratuita a mulher com cancer mesmo com patrimonio",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.migalhas.com.br/quentes/461658/"
+        },
+        {
+          "chave": "stj|jurisprudencia|demolicao-app-indenizacao|2026|2026-08-04",
+          "fonte": "migalhas",
+          "categoria": "stj_jurisprudencia",
+          "titulo": "STJ substitui demolicao de edificio em APP por indenizacao",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.migalhas.com.br/quentes/461659/"
+        },
+        {
+          "chave": "concurso|mpf|31-homologacao-edital-25-2026|2026|2026-07-03",
+          "fonte": "site oficial MPF",
+          "categoria": "concurso",
+          "titulo": "MPF 31 concurso - homologacao confirmada, Edital PGR/MPF 25/2026",
+          "data": "2026-07-03",
+          "status": "confirmado_oficial"
+        },
+        {
+          "chave": "concurso|trf2|juiz-federal-provas-08-09-08|2026|2026-08-05",
+          "fonte": "websearch",
+          "categoria": "concurso",
+          "titulo": "TRF2 Juiz Federal Substituto - provas escritas 08-09/08/2026",
+          "data": "2026-08-05",
+          "status": "midia_especializada"
+        },
+        {
+          "chave": "concurso|dpe-sc|prova-tribuna-homologacao-20-08|2026|2026-08-05",
+          "fonte": "websearch",
+          "categoria": "concurso",
+          "titulo": "DPE-SC - prova de tribuna aplicada, homologacao prevista 20/08/2026",
+          "data": "2026-08-05",
+          "status": "midia_especializada"
+        },
+        {
+          "chave": "midia|jota|nunes-marques-remocao-posts-lula-24h|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "clipping",
+          "titulo": "Nunes Marques manda remover em 24h postagens oficiais que destaquem Lula",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/nunes-marques-manda-remover-em-24h-postagens-oficiais-que-destaquem-figura-de-lula"
+        },
+        {
+          "chave": "midia|jota|fraude-inss-weverton-rocha-pf|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "clipping",
+          "titulo": "Fraude no INSS - advogado e parentes do senador Weverton Rocha alvo da PF",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.jota.info/stf/do-supremo/fraude-no-inss-advogado-e-parentes-do-senador-weverton-rocha-sao-alvos-da-pf"
+        },
+        {
+          "chave": "midia|jota|peru-cidh-condenacao-demissao-sem-defesa|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "clipping",
+          "titulo": "Corte IDH condena o Peru por demitir trabalhadores sem direito de defesa",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.jota.info/coberturas-especiais/direitos-humanos/peru-e-condenado-30-anos-depois-por-demitir-trabalhadores-sem-direito-de-defesa"
+        },
+        {
+          "chave": "midia|jota|carf-contribuicao-previdenciaria-diretor-autocontratacao|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "clipping",
+          "titulo": "Carf mantem contribuicao previdenciaria de diretor que assinou a propria contratacao",
+          "data": "2026-08-04",
+          "status": "midia_especializada",
+          "url": "https://www.jota.info/tributos/carf-mantem-contribuicao-previdenciaria-em-caso-de-diretor-que-assinou-a-propria-contratacao"
+        },
+        {
+          "chave": "opiniao|jota|ia-convencoes-partidarias-crime-eleitoral|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "opiniao",
+          "titulo": "Uso de IA nas convencoes partidarias configura crime eleitoral?",
+          "data": "2026-08-04",
+          "status": "opiniao_analise"
+        },
+        {
+          "chave": "opiniao|jota|icms-st-base-pis-cofins|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "opiniao",
+          "titulo": "ICMS-ST na base de calculo do PIS e da Cofins",
+          "data": "2026-08-04",
+          "status": "opiniao_analise"
+        },
+        {
+          "chave": "opiniao|jota|stf-moratoria-soja-beneficios-fiscais|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "opiniao",
+          "titulo": "O STF e a moratoria da soja - muito alem dos beneficios fiscais",
+          "data": "2026-08-04",
+          "status": "opiniao_analise",
+          "observacao": "publicado sem link - wrapper JOTA apontava para artigo diferente"
+        },
+        {
+          "chave": "opiniao|jota|ilusao-nova-nr1-empregador-tutor|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "opiniao",
+          "titulo": "A ilusao da nova NR-1",
+          "data": "2026-08-04",
+          "status": "opiniao_analise"
+        },
+        {
+          "chave": "opiniao|jota|stf-agosto-delibera-direitos-originarios|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "opiniao",
+          "titulo": "Em agosto, STF decide como se delibera sobre direitos originarios",
+          "data": "2026-08-04",
+          "status": "opiniao_analise"
+        },
+        {
+          "chave": "opiniao|jota|saude-politica-industrial-pl-2583-20|2026|2026-08-04",
+          "fonte": "gmail_jota",
+          "categoria": "opiniao",
+          "titulo": "A saude como politica industrial - PL 2583/20",
+          "data": "2026-08-04",
+          "status": "opiniao_analise"
+        },
+        {
+          "chave": "youversion|versiculo|lucas-16-10|2026|2026-08-05",
+          "fonte": "youversion",
+          "categoria": "versiculo",
+          "titulo": "Lucas 16:10 (NTLH)",
+          "data": "2026-08-05",
+          "status": "confirmado"
+        },
+        {
+          "chave": "munger|citacao|evitar-erros-grosseiros-arruinam-outros|indice-17|2026-08-05",
+          "fonte": "munger-quotes.json",
+          "categoria": "munger",
+          "titulo": "Boa parte do sucesso vem apenas de evitar os erros grosseiros que arruinam os outros",
+          "data": "2026-08-05",
+          "status": "confirmado"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel - 2 digests, itens novos confirmados",
+        "gmail_push_stf_informativos": "mudo - unico retorno foi andamento processual isolado (ARE 1594146), nao e o digest de informativo",
+        "gmail_stj_codju": "saudavel - Informativo n.895 novo, primeiro pos-recesso",
+        "gmail_push_planalto": "mudo - 34 dias sem e-mail (desde 02/07/2026)",
+        "gmail_jota": "saudavel - 14 itens uteis apos filtro, 1 link com mapeamento incorreto do proprio remetente",
+        "congresso_ultimas_leis": "saudavel - respondeu sem erro, mas nao lista ainda a Lei 15.484/2026 (lag confirmado por midia)",
+        "congresso_mpvs": "instavel - respondeu, checagem cruzada da MPV 1382 limpa (ja publicada em edicao anterior), sem armadilha desta vez",
+        "conjur": "instavel - fetch direto nao tentado (403 conhecido), WebSearch funcionou normalmente",
+        "migalhas": "saudavel - fetch direto funcionou, bom volume de jurisprudencia STJ",
+        "youversion": "saudavel - bateu de primeira (execucao matinal)",
+        "mpf_site_oficial": "saudavel - fetch direto sem bloqueio, confirmou homologacao do 31 concurso",
+        "tjdft_site_oficial": "saudavel - fetch direto sem bloqueio, confirmou ausencia de edital"
+      },
+      "errors": [],
+      "pendencias": [
+        {
+          "id": "lei_15484_confirmacao_oficial",
+          "texto": "Lei 15.484/2026 (filtro de relevancia no STJ) confirmada por multiplas fontes de midia, mas ainda sem confirmacao via Rota 13 ou DOU direto",
+          "faixa": "ativa"
+        },
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (34 dias)",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto - ainda sem edital oficial, 9a execucao sem novidade",
+          "faixa": "ativa"
+        },
+        {
+          "id": "envio_edicao_31_07_atrasado",
+          "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) ainda nao enviado pelo Apps Script - 2a execucao consecutiva registrando o atraso (5 dias)",
+          "faixa": "ativa"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "PGE-AL, PGE-BA, PGE-MA, PGE-RS, MPMS, DPU VII, TRF5, MPC-MA, DPE-RO, PGM Porto Alegre - cronogramas em curso (TRF2 e DPE-SC promovidos a linha propria nesta execucao)",
+          "faixa": "longo_prazo"
+        }
+      ],
+      "verification_notes": [
+        "STJ CodJu: numero do informativo saltou de n.33 (28/07) para n.895 (04/08) - cross-check via WebSearch confirmou que a serie real 'Informativo de Jurisprudencia' do STJ estava em 890 (26/05) e 893 (23/06), tornando 895 plausivel como primeira edicao pos-recesso. O n.33 provavelmente era um produto distinto (ex.: Informativo de Precedentes Qualificados, que reinicia numeracao anualmente) - nao tratar como mesma serie em comparacoes futuras.",
+        "Push STF Informativos (nao_responda@stf.jus.br) devolveu apenas um alerta de andamento processual de um caso especifico (ARE 1594146) - isso nao e o digest de informativo/repercussao geral habitual; classificacao mudo mantida para conteudo de informativo.",
+        "Lei 15.484/2026 verificada por WebSearch direto do orquestrador (nao apenas pelo coletor) - 6 veiculos independentes (ConJur, Migalhas, Poder360 x2, Metropoles, Jornal de Brasilia, Diario do Grande ABC) convergem no mesmo numero e data - confianca alta apesar de ausencia de fonte oficial direta.",
+        "MPF 31 concurso: pendencia resolvida - Edital PGR/MPF 25/2026 confirmado via fetch direto ao site oficial do MPF, sem erro tecnico. Homologacao ocorreu em 03/07/2026 (DOU), antes da janela, mas e a primeira confirmacao forte (nao apenas WebSearch) desde a abertura da pendencia em 06/07."
+      ],
+      "gmail_message_id": "19fd16a18f2b8185",
+      "delivery_reconciled_at": "2026-08-07T07:00:51-03:00"
     }
   ]
 }

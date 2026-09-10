@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. REGRA DE PODA: ao atualizar a nota de uma fonte, REESCREVER de forma compacta (status atual + politica vigente + no maximo 1 padrao recente) em vez de acrescentar ao texto anterior — nunca prependar 'Nota anterior:' nem acumular 'Em DD/MM...'; incidente ja resolvido ou generalizado numa regra estavel sai da nota. Licao de processo que virou regra na ROTINA ou no prompt mestre sai daqui. Validar com json.load apos editar (nenhum helper faz isso). Manter enxuto — este arquivo e lido todo dia, para sempre.",
-  "atualizado_em": "2026-09-09T07:23:00-03:00",
-  "atualizado_por_execucao": "2026-09-09-7h",
+  "atualizado_em": "2026-09-10T07:23:00-03:00",
+  "atualizado_por_execucao": "2026-09-10-7h",
 
   "niveis_de_esforco": {
     "saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.",
@@ -14,13 +14,13 @@
   },
 
   "fontes": [
-    { "id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-09-09", "sem_sucesso": 0,
+    { "id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-09-10", "sem_sucesso": 0,
       "nota": "Fonte mais confiavel. O push pode reiterar itens de ate varios dias antes (visto ate D-4 em 08-09/09, sem gap de execucao) — decidir (herdada)/novidade sempre pelo timestamp interno de cada noticia, nunca pela data do e-mail nem por ja ter aparecido num push anterior; cruzar sempre com chaves_publicadas." },
 
-    { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-09", "sem_sucesso": 0,
+    { "id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-09-10", "sem_sucesso": 0,
       "nota": "Ruido alto — filtrar eleitoral/comercial/institucional/patrocinado. Wrapper t.rdsv2.net: WebSearch site:jota.info e o unico metodo viavel em nuvem, 1 tentativa por item em lotes de 5 (teto 16 buscas), titulo tem que bater; quando o item e clipping citando outro veiculo (Valor, Folha) sem materia propria do JOTA, a busca nao acha nada — pode publicar sem link direto sem gastar a tentativa. Boletins-resumo nao tem link por item. Teto de 6 opinioes. Boletim que chega minutos antes do inicio da janela e o matinal natural do dia — aceitar apos checar chaves_publicadas." },
 
-    { "id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-09-09",
+    { "id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-09-10",
       "nota": "Sustenta a secao Planalto durante o apagao do PUSH. Fetch direto via curl funciona nesta nuvem desde pelo menos 08-09/09/2026 (200, extracao por regex) — nao e mais necessario WebSearch como caminho primario. Usar sempre www.congressonacional.leg.br (sem www da ENOTFOUND)." },
 
     { "id": "gmail_stj_codju", "status": "saudavel", "ultimo_sucesso": "2026-09-02", "sem_sucesso": 4,
@@ -29,22 +29,22 @@
     { "id": "gmail_push_stf_informativos", "status": "saudavel", "ultimo_sucesso": "2026-09-04",
       "nota": "Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta sao produtos distintos — conferir nome completo no assunto E o numero no slug do PDF (o assunto ja errou o numero). Andamento processual de caso individual NAO e informativo/RG. Produto periodico: semana sem edicao nova e normal." },
 
-    { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 28, "dias_sem_email": 69,
+    { "id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 29, "dias_sem_email": 70,
       "nota": "Sondas vazias desde 02/07; o legado nunca retornou nada. 1 sonda e ir para a Rota 13. Escalado ao usuario em 31/07 — nao repetir a escalada, so manter a pendencia visivel." },
 
-    { "id": "congresso_mpvs", "status": "saudavel", "ultimo_sucesso": "2026-09-09",
+    { "id": "congresso_mpvs", "status": "saudavel", "ultimo_sucesso": "2026-09-10",
       "nota": "Ver armadilha congresso_mpv — checagem cruzada obrigatoria. Candidato de MPV com 1 fonte so nao entra (nem como PENDENCIA se nem numero confiavel tiver); busca por numero pode achar MPV homonima de anos anteriores." },
 
-    { "id": "conjur", "status": "saudavel", "ultimo_sucesso": "2026-09-09", "sem_sucesso": 0,
+    { "id": "conjur", "status": "saudavel", "ultimo_sucesso": "2026-09-10", "sem_sucesso": 0,
       "nota": "Apex conjur.com.br (sem www) e a leitura direta desde 07/09; teve regressao pontual em 08/09 (403 no apex, so descoberto apos o rascunho ja ter sido enviado) mas voltou a 200 em 09/09 — tratar bloqueio do apex como possivel instabilidade transitoria, reconferir no probe do passo 1 antes de presumir bloqueio permanente. Rotas: /noticias/, /artigos/, /colunas/, /entrevistas/, /especiais/, /boletim-juridico/ (/ultimas-da-conjur/ nao existe mais, 404). Extracao: <h2 class=\"conjur-posts-tipo-titulo\"><a href=\"https://conjur.com.br/AAAA-mes-DD/slug/\">Titulo</a></h2> — data confiavel vem do path da URL. www.conjur.com.br redireciona (301) pro apex — usar direto o apex." },
 
-    { "id": "migalhas", "status": "saudavel", "ultimo_sucesso": "2026-09-03",
+    { "id": "migalhas", "status": "saudavel", "ultimo_sucesso": "2026-09-10",
       "nota": "Em nuvem, fetch direto bloqueado — WebSearch. Buscas por 'DD mes AAAA' trazem materias de anos anteriores: confirmar o ano na URL/pagina. Fim de semana sem materia propria e normal." },
 
     { "id": "youversion", "status": "instavel", "ultimo_sucesso": "2026-09-04", "sem_sucesso": 2,
       "nota": "Fonte PRIMARIA do versiculo, mas com anti-bot: mesmo com o dominio liberado no allowlist (07/09), curl recebe 'Client Challenge' em vez do HTML. O script work/versiculo.py tenta o YouVersion 1x e cai no DailyVerses.net, que serve a pagina datada /pt/AAAA/M/D com referencia e texto em og:title/description e permite conferir a data no <title>. Isso implementa a decisao do usuario de 07/09/2026 (primeira fonte paralela que responder vence, sem cruzar nem desempatar) sem gastar WebSearch. Se algum dia o YouVersion parar de desafiar o curl, ele volta a ser a fonte publicada sozinho, sem editar nada." },
 
-    { "id": "dailyverses", "status": "saudavel", "ultimo_sucesso": "2026-09-09",
+    { "id": "dailyverses", "status": "saudavel", "ultimo_sucesso": "2026-09-10",
       "nota": "Fallback efetivo do versiculo desde 07/09. URL datada https://dailyverses.net/pt/AAAA/M/D; referencia e versao em og:title ('Tiago 4:10 - ARC'), texto em meta description, data por extenso no <title> (o script exige que ela bata com a ancora — pagina inexistente cai em 'Arquivo' e e recusada). Lido por work/versiculo.py, nao por WebSearch." },
 
     { "id": "noticias_stf_direto", "status": "bloqueado",
@@ -79,7 +79,7 @@
 
     { "id": "banca_edital_antigo", "fonte": "cebraspe.org.br e paginas de bancas",
       "sintoma": "Consulta sobre concurso do ano corrente devolve edital antigo de estrutura identica (ex.: TJDFT 2022/23, 30 vagas, R$32.004,65, quando o ciclo 2026 tem 20-24 vagas e ~R$37.765,55).",
-      "detectado_em": ["2026-07-24", "2026-08-07", "2026-08-17", "2026-09-01", "2026-09-02", "2026-09-03"],
+      "detectado_em": ["2026-07-24", "2026-08-07", "2026-08-17", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-10"],
       "regra": "Conferir o ano no conteudo (inscricoes, data de prova, subsidio). Edital antigo NAO e confirmacao de edital novo — manter o status anterior, sem upgrade para EDITAL PUBLICADO." },
 
     { "id": "scon_stj_edicao_errada", "fonte": "scon.stj.jus.br / processo.stj.jus.br",
@@ -104,11 +104,11 @@
   ],
 
   "pendencias_vivas": [
-    { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (69 dias)", "desde": "2026-07-06", "execucoes": 27, "faixa": "cronica",
+    { "id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (70 dias)", "desde": "2026-07-06", "execucoes": 28, "faixa": "cronica",
       "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto; a Rota 13 (curl direto, desde 08-09/09) sustenta a secao. Ja escalado em 31/07; nao repetir a escalada." },
 
-    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55", "desde": "2026-07-21", "execucoes": 18, "faixa": "ativa",
-      "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo. Sem movimento ate 09/09." },
+    { "id": "tjdft_edital", "texto": "TJDFT Juiz Substituto — banca Cebraspe, edital sem confirmacao oficial; fontes de 2026 convergem em 20-24 vagas, subsidio estimado ~R$37.765,55", "desde": "2026-07-21", "execucoes": 19, "faixa": "ativa",
+      "politica": "Verificar a cada execucao — dos mais aguardados. Cuidado com a armadilha banca_edital_antigo (reproduzida de novo em 10/09, resultado de topo do Cebraspe). Sem movimento ate 10/09." },
 
     { "id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), GT com 30 dias para propor modelagem (portaria assinada por Jorge Messias), edital em ate 6 meses (~jan/2027), banca nao confirmada", "desde": "2026-07-07", "execucoes": 22, "faixa": "longo_prazo",
       "politica": "Prazo so vence em jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos. Nao reverificado em 09/09 (faixa longo_prazo)." },
@@ -116,8 +116,8 @@
     { "id": "concursos_cronogramas", "texto": "PGE-AL: provas realizadas 05-06/09, resultado preliminar ~20/10. TRF2: orais 14-25/09. PGM Juazeiro/BA: edital novo previsto fim de setembro/2026. TJRS Juiz Substituto (edital 27/08, 30 vagas, FGV, inscricoes 15/09, prova 13/12), TRF5 Juiz Federal Substituto (inscricoes ate 28/09), MP-SP Promotor (discursiva 13/09), ENAM 6a edicao (inscricoes abertas, 08/09). Apoio: TRT8 (banca FCC contratada), DPDF (banca Instituto Access contratada). Sem movimento: PGE-BA/MA/RS, DPU VII, DPE-RO.", "desde": "2026-07-07", "execucoes": 22, "faixa": "longo_prazo",
       "politica": "Reverificar na 1a execucao da semana (o coletor Web recebe esta lista e a faixa no prompt — ROTINA passo 5). Promover a linha propria so com movimento confirmado. Prazos a observar: MP-SP 13/09, TRF2 14-25/09, TRF5 inscricoes 28/09, TJRS inscricoes 15/09, resultado PGE-AL ~20/10." },
 
-    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Escalada maior em 08-09/09: Mendonca afastou cautelarmente o diretor-geral da PF (Andrei Rodrigues) e o diretor de Inteligencia, alegando relatorios de monitoramento ilicito; AGU (Messias) pediu a Fachin suspensao da decisao; Fachin deu 72h a Mendonca antes de decidir; 2a Turma formou maioria (Fux, Nunes Marques) mas Gilmar Mendes pediu destaque ao Plenario. PET 16.704 (prazo de 5 dias dado por Fachin em 03/09 a Moraes/Mendonca/Gonet/Andrei) segue sem manifestacao colegiada; vencimento exato incerto (feriado de 07/09 pode deslocar para 09 ou 10/09).", "desde": "2026-09-02", "execucoes": 6, "faixa": "ativa",
-      "politica": "PRIORIDADE continua: acompanhar a decisao de Fachin sobre a suspensao pedida pela AGU e o desfecho do julgamento destacado ao Plenario. Cobertura densa e repetida entre boletins — checar sempre contra chaves_publicadas antes de republicar." }
+    { "id": "crise_institucional_stf_pgr_acompanhar", "texto": "Desfecho parcial em 09-10/09: Fachin usou a presidencia para suspender as decisoes conflitantes de Mendonca e Dino sobre a direcao-geral da PF, retomou pessoalmente a relatoria do Inquerito das Fake News (antes com Moraes) e marcou sessao plenaria para 15/09/2026. OAB nacional criou grupo para estudar eventual impeachment no STF; 13 ex-ministros publicaram manifesto pedindo sessao publica (Marco Aurelio dissentiu); Mendonca homologou delacao de operador financeiro de Vorcaro.", "desde": "2026-09-02", "execucoes": 7, "faixa": "ativa",
+      "politica": "PRIORIDADE continua: acompanhar a sessao plenaria marcada para 15/09/2026 — provavel desfecho ou nova escalada. Cobertura densa e repetida entre boletins — checar sempre contra chaves_publicadas antes de republicar." }
   ],
 
   "licoes_de_processo": [
