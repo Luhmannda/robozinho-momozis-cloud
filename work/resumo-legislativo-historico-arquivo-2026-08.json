@@ -611,6 +611,318 @@
       ],
       "gmail_message_id": "19fd16a18f2b8185",
       "delivery_reconciled_at": "2026-08-07T07:00:51-03:00"
+    },
+    {
+      "execution_id": "2026-08-07-7h",
+      "type": "diaria",
+      "run_started_at": "2026-08-07T06:10:00-03:00",
+      "run_finished_at": "2026-08-07T06:52:00-03:00",
+      "date": "2026-08-07",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-08-05T07:02:00-03:00",
+      "window_end": "2026-08-07T06:10:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 07/08/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r5890266376362868362",
+      "items": [
+        {
+          "fonte": "planalto",
+          "categoria": "lei",
+          "titulo": "Lei 15.485/2026 - Nova Lei do Frete, altera Lei 13.703/2018 (CIOT)",
+          "data": "2026-08-05",
+          "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/lei/l15485.htm",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "planalto|lei|15485|2026|2026-08-05"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "noticia",
+          "titulo": "Julgamento sobre jogos de azar: Fux vota pela manutencao da punicao, Dino pede vista",
+          "data": "2026-08-06",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-julgamento-sobre-aplicacao-de-norma-que-proibe-jogos-de-azar/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|jogos-azar-fux-vota-dino-pede-vista|2026|2026-08-06"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "noticia",
+          "titulo": "Partido questiona no STF regras do ECA Digital sobre verificacao de idade e jogos",
+          "data": "2026-08-05",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|partido-eca-digital-verificacao-idade-jogos|2026|2026-08-05"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "jurisprudencia",
+          "titulo": "STF invalida trechos de leis que reestruturaram carreiras da educacao em Curitiba (falta de dotacao orcamentaria)",
+          "data": "2026-08-06",
+          "url": "https://www.migalhas.com.br/quentes/461856/stf-invalida-leis-da-educacao-por-falta-de-previsao-orcamentaria",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|jurisprudencia|invalida-leis-educacao-curitiba-progressao-orcamento|2026|2026-08-06"
+        },
+        {
+          "fonte": "stf_push",
+          "categoria": "informativo",
+          "titulo": "Informativo n.383 - Boletim Repercussao Geral em Pauta",
+          "data": "2026-08-05",
+          "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio383.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|informativo|repercussao-geral-383|2026|2026-08-05"
+        },
+        {
+          "fonte": "midia_jota_migalhas",
+          "categoria": "noticia",
+          "titulo": "Caso Buzzi: STJ aplica disponibilidade e propoe ao STF perda do cargo do ministro",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/justica/em-decisao-inedita-stj-decide-por-disponibilidade-e-propoe-perda-do-cargo-de-marco-buzzi",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "stj|noticia|buzzi-disponibilidade-perda-cargo-proposta-stf|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "noticia",
+          "titulo": "STJ nega pedido de Buzzi para barrar sustentacao oral de advogados das vitimas",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/justica/stj-nega-pedido-de-buzzi-para-barrar-sustentacao-oral-de-advogados-de-vitimas",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "stj|noticia|buzzi-nega-barrar-sustentacao-oral-vitimas|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "jurisprudencia",
+          "titulo": "Acao de insolvencia civil gera renuncia a privilegio de credito trabalhista, diz STJ",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/justica/acao-de-insolvencia-civil-gera-renuncia-a-privilegio-de-credito-trabalhista-diz-stj",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "stj|jurisprudencia|insolvencia-civil-renuncia-privilegio-credito-trabalhista|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "jurisprudencia",
+          "titulo": "Doacao de bens a familiares pode configurar fraude a execucao fiscal mesmo antes da citacao formal",
+          "data": "2026-08-06",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "stj|jurisprudencia|doacao-bens-familiares-fraude-execucao-fiscal|2026|2026-08-06"
+        },
+        {
+          "fonte": "conjur",
+          "categoria": "jurisprudencia",
+          "titulo": "Boa-fe ao construir em area de restinga faz STJ evitar demolicao",
+          "data": "2026-08-06",
+          "url": "https://conjur.com.br/2026-ago-06/boa-fe-ao-construir-predio-em-area-de-restinga-faz-stj-evitar-demolicao/",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "stj|jurisprudencia|boa-fe-construcao-restinga-evita-demolicao|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "jurisprudencia",
+          "titulo": "TRF3 afasta contribuicao patronal sobre 1/3 de ferias em acoes rescisorias (Tema 985/STF)",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/tributos/trf3-afasta-em-acoes-rescisorias-contribuicao-patronal-sobre-1-3-de-ferias",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "trf3|jurisprudencia|contribuicao-patronal-terco-ferias-rescisorias|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "Justica Federal do RJ condena 'Camarao' pela Casa da Morte - 1a condenacao por crime contra a humanidade no Brasil",
+          "data": "2026-08-06",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|casa-da-morte-camarao-condenacao-crime-humanidade|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "CNJ aprova norma que regulamenta fim da aposentadoria compulsoria de juizes",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/justica/cnj-aprova-norma-regulamentando-fim-da-aposentadoria-compulsoria-de-juizes",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|cnj-fim-aposentadoria-compulsoria-juizes|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "CNJ afasta juiza Gabriela Hardt, ex-Lava Jato, por dois anos",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/justica/cnj-afasta-juiza-gabriela-hardt-ex-lava-jato-por-dois-anos",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|cnj-afasta-juiza-gabriela-hardt-lava-jato|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "Fachin apresenta ao CNJ proposta de codigo de conduta para magistrados",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/stf/do-supremo/fachin-apresenta-no-cnj-proposta-de-codigo-de-conduta-para-magistrados-regras-nao-atingem-stf",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|fachin-codigo-conduta-magistrados-cnj|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "TRE-SP mantem condenacao e inelegibilidade de Pablo Marcal por 8 anos",
+          "data": "2026-08-06",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|tre-sp-marcal-inelegibilidade-8-anos|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "Sueli Tome da Ponte e eleita presidente do TRT2 (2026-2028)",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/trabalho/sueli-tome-da-ponte-e-eleita-nova-presidente-do-trt2-em-sao-paulo",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|sueli-tome-ponte-presidente-trt2|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "CNI pede ao STF credito de IPI, PIS e Cofins apos reoneracao da LC 224/25",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/tributos/cni-pede-ao-stf-direito-a-credito-de-ipi-pis-e-cofins-depois-da-reoneracao-da-lc-224-25",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|cni-stf-credito-ipi-pis-cofins-lc224|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "72,5% das decisoes dos TRFs sobre exclusao do ISS da base de PIS/Cofins favorecem contribuintes",
+          "data": "2026-08-06",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|iss-pis-cofins-trfs-72-favoraveis-contribuintes|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "midia",
+          "titulo": "Juiz Otavio Calvet e investigado pela Corregedoria da Justica do Trabalho por posts nas redes sociais",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/trabalho/juiz-otavio-calvet-e-alvo-da-corregedoria-da-justica-do-trabalho-por-posts-nas-redes-sociais",
+          "status": "MIDIA ESPECIALIZADA",
+          "chave": "midia|jota|otavio-calvet-corregedoria-justica-trabalho|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "opiniao",
+          "titulo": "A PSV 150 e seus efeitos no comportamento do Legislativo e do STF",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/defensor-legis/a-psv-150-e-seus-efeitos-no-comportamento-do-legislativo-e-do-stf",
+          "status": "OPINIAO/ANALISE",
+          "chave": "opiniao|jota|psv150-efeitos-legislativo-stf|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "opiniao",
+          "titulo": "Tributacao do VGBL apos a morte do segurado: ha incidencia de Imposto de Renda?",
+          "data": "2026-08-05",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/tributacao-do-vgbl-apos-a-morte-do-segurado-ha-incidencia-de-imposto-de-renda",
+          "status": "OPINIAO/ANALISE",
+          "chave": "opiniao|jota|tributacao-vgbl-morte-segurado-ir|2026|2026-08-05"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "opiniao",
+          "titulo": "Voto divergente de Zanin na ADC 87 da ao STF chance de se redimir",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/voto-divergente-de-zanin-na-adc-87-da-ao-stf-chance-de-se-redimir",
+          "status": "OPINIAO/ANALISE",
+          "chave": "opiniao|jota|zanin-adc87-voto-divergente|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "opiniao",
+          "titulo": "A nova guerra fiscal",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/coluna-fiscal/a-nova-guerra-fiscal",
+          "status": "OPINIAO/ANALISE",
+          "chave": "opiniao|jota|nova-guerra-fiscal|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "opiniao",
+          "titulo": "Quando a IA vira commodity, governanca ganha impulso",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/quando-a-ia-vira-commodity-governanca-ganha-impulso",
+          "status": "OPINIAO/ANALISE",
+          "chave": "opiniao|jota|ia-commodity-governanca|2026|2026-08-06"
+        },
+        {
+          "fonte": "jota",
+          "categoria": "opiniao",
+          "titulo": "Periculosidade sobre duas rodas: TST acelerou, mas norma ainda derrapa",
+          "data": "2026-08-06",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/trabalho-previdencia-empresas/periculosidade-sobre-duas-rodas-tst-acelerou-mas-norma-ainda-derrapa",
+          "status": "OPINIAO/ANALISE",
+          "chave": "opiniao|jota|periculosidade-motociclistas-tst|2026|2026-08-06"
+        },
+        {
+          "fonte": "youversion",
+          "categoria": "versiculo",
+          "titulo": "1Joao 4:16 (NTLH)",
+          "data": "2026-08-07",
+          "status": "CONFIRMADO",
+          "chave": "youversion|versiculo|1joao-4-16|2026|2026-08-07"
+        },
+        {
+          "fonte": "munger-quotes.json",
+          "categoria": "citacao",
+          "titulo": "Sente-se sobre boas ideias; a inacao inteligente e uma virtude rara e lucrativa.",
+          "data": "2026-08-07",
+          "status": "CONFIRMADO",
+          "chave": "munger|citacao|sente-se-sobre-boas-ideias-inacao-inteligente|indice-19|2026-08-07"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel - 3 digests (05,06,07/08), todos com sucesso",
+        "gmail_push_stf_informativos": "VOLTOU - Informativo n.383 (Repercussao Geral em Pauta) recebido em 05/08, apos 17+ execucoes mudo desde 02/07. Reclassificar para saudavel e zerar contador.",
+        "gmail_stj_codju": "saudavel tecnicamente, mas sem edicao nova - reencontrou o mesmo Informativo n.895 (04/08) ja publicado na edicao anterior",
+        "gmail_push_planalto": "mudo - sonda unica (newer_than:3d) sem retorno, 36 dias sem e-mail (desde 02/07)",
+        "gmail_jota": "saudavel - 8 threads na janela (12 brutos, 4 fora da janela), wrapper t.rdsv2.net resolvido sem erro HTTP desta vez",
+        "congresso_ultimas_leis": "saudavel - Lei 15.485 encontrada; Lei 15.484 (pendencia) finalmente apareceu com data 04/08, confirmando a defasagem estrutural ja mapeada",
+        "congresso_mpvs": "instavel - armadilha confirmada de novo (ver ledger), nenhuma MPV nova genuina identificada apos checagem cruzada",
+        "conjur": "instavel mas funcional via WebSearch - fetch direto seguiu 403 (esperado), WebSearch encontrou itens de 05 e 06/08 normalmente",
+        "migalhas": "saudavel - fetch direto funcionou sem erro, bom volume (11 itens na janela)",
+        "youversion": "saudavel - bateu de primeira (execucao matinal), data validada 07/08/2026 direto na pagina"
+      },
+      "errors": [],
+      "pendencias": [
+        {
+          "id": "envio_edicao_31_07_atrasado",
+          "texto": "Rascunho da edicao de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - 7 dias, recorde de atraso (maximo anterior ~13h), 3a execucao consecutiva registrando o problema",
+          "faixa": "ativa",
+          "execucoes": 3
+        },
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (36 dias)",
+          "faixa": "cronica",
+          "execucoes": 20
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto - banca Cebraspe, ainda sem edital oficial, 10a execucao sem novidade",
+          "faixa": "ativa",
+          "execucoes": 10
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN - 170 vagas autorizadas, edital em preparacao pelo MGI, previsao ate jan/2027. Sem novidade.",
+          "faixa": "longo_prazo",
+          "execucoes": 16
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "PGE-AL, PGE-BA, PGE-MA, PGE-RS, MPMS, DPU VII, MPC-MA, DPE-RO, PGM Porto Alegre - cronogramas em curso, sem movimento",
+          "faixa": "longo_prazo",
+          "execucoes": 16
+        }
+      ],
+      "verification_notes": "Pendencia lei_15484_confirmacao_oficial RESOLVIDA nesta execucao: a Lei 15.484/2026 apareceu na Rota 13 com data 04/08/2026, confirmando pela terceira vez o padrao estrutural de defasagem entre sancao presidencial e listagem no portal do Congresso (mesmo padrao ja visto com a lei das bets/PF em 30/07-04/08). Fofoquinha buzzi-aposentadoria-compulsoria-avaliacao (publicada em 04/08) teve desfecho oficial nesta janela (STJ aplicou disponibilidade e propos ao STF a perda do cargo) - promovida de fofoquinha para noticia STJ confirmada. MPV: nova camada da armadilha congresso_mpv mapeada com precisao - a pagina de MPVs mostra o PRAZO DE DELIBERACAO (60/120 dias) ao lado de cada MPV, nao a data de edicao; 3 MPVs (1365, 1366, 1367) que pareciam ser de agosto (algumas com datas futuras) sao na verdade de junho/2026, confirmado via pagina de detalhe do Congresso e noticias da Camara/Senado. Armadilha banca_edital_antigo reconfirmada para o TJDFT (cebraspe.org.br segue devolvendo pagina de 2022). Item de fronteira: 5 itens do coletor JOTA vieram de um e-mail com timestamp 07:01:07 BRT, 53 segundos antes do inicio oficial da janela (07:02:00) - incluidos por continuidade editorial, sem impacto pratico. Coletor JOTA teve boa taxa de resolucao de link via wrapper t.rdsv2.net desta vez (18 de 28 noticias com link, sem erro HTTP 400); 10 itens vieram de boletins-resumo sem link por item e foram publicados sem URL, conforme protocolo. Nenhuma armadilha de link (jota_link_wrapper_mismatch) detectada nesta execucao.",
+      "gmail_message_id": "19fdbb6d117cdaa3",
+      "delivery_reconciled_at": "2026-08-17T07:39:38-03:00"
     }
   ]
 }
