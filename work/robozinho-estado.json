@@ -1,71 +1,44 @@
 {
-  "gerado_em": "2026-09-11T07:22:02-03:00",
-  "gerado_por": "2026-09-11-7h",
+  "gerado_em": "2026-09-14T07:23:17-03:00",
+  "gerado_por": "2026-09-14-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-11-7h",
-    "date": "2026-09-11",
-    "email_subject": "Robozinho dos Momozis até Passar - 11/09/2026 - 7h",
+    "execution_id": "2026-09-14-7h",
+    "date": "2026-09-14",
+    "email_subject": "Robozinho dos Momozis até Passar - 14/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-2368425307230738398",
-    "window_end": "2026-09-11T07:18:37-03:00"
+    "draft_id": "r-7247627698847000219",
+    "window_end": "2026-09-14T07:08:44-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
+      "id": "crise_institucional_stf_pgr_acompanhar",
+      "texto": "Sessão plenária extraordinária de terça (15/09) decide sobre investigar Moraes; Fachin assumiu relatoria da Pet 16.662; escalada Zanin/Gilmar Mendes vs PF por dados de Vorcaro; bastidores de estratégia processual (preliminares, possível pedido de vista, questionamentos de suspeição de Fux e Nunes Marques).",
+      "faixa": "ativa"
+    },
+    {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (71 dias) - sonda de 11/09 também vazia",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (74 dias) - sonda de 14/09 também vazia",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto - 20ª execução sem edital oficial; reverificado em 11/09 sem novidade, fontes seguem em 20-24 vagas / ~R$37.765,55; armadilha banca_edital_antigo reproduzida de novo",
+      "texto": "TJDFT Juiz Substituto - reverificado em 14/09 sem novidade oficial; fontes seguem em 20-24 vagas / ~R$37.765,55; armadilha banca_edital_antigo checada e descartada novamente",
       "faixa": "ativa"
     },
     {
       "id": "agu_pfn_edital",
-      "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 11/09 (faixa longo_prazo)",
+      "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 14/09 (faixa longo_prazo)",
       "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "Não reverificado em 11/09 (faixa longo_prazo). Prazos a observar: MP-SP 13/09, TJRS inscrições até 15/09, TRF5 inscrições até 28/09, PGE-AL resultado ~20/10, TRF2 orais 14-25/09",
+      "texto": "Reverificado em 14/09 (1ª execução da semana). TJRS: correção de dado - inscrições abrem 15/09 até 14/10 (não encerram em 15/09). MP-SP: discursiva realizada 13/09, resultado pendente. TRF2: orais 14-25/09 confirmado em andamento. PGE-AL: sem novidade sobre resultado (~20/10). PGM Juazeiro/BA, DPDF, ENAM não reverificados por limite de buscas.",
       "faixa": "longo_prazo"
-    },
-    {
-      "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Grande atualização em 11/09: Mendonça levantou o sigilo do processo principal do caso Master e de 14 derivados (linha sobre Flávio Bolsonaro segue secreta); Fachin manteve o Plenário extraordinário de terça (15/09); JOTA/Estadão estimam placar 3x3 sobre investigar Moraes; O Globo relata risco de pedido de vista; OAB-DF pediu impeachment de Moraes e Toffoli; Moraes fará pronunciamento público na segunda-feira.",
-      "faixa": "ativa"
     }
   ],
   "chaves_publicadas": [
-    "planalto|lei|15499|2026|2026-09-04",
-    "legislativo|congresso|mp-blusinhas-aprovada-plenarios|2026|2026-09-04",
-    "stf|noticia|limites-nomes-simbolos-religiosos-denominacoes|2026|2026-09-04",
-    "stf|noticia|pernambuco-tratamento-alergia-grave-mantido|2026|2026-09-04",
-    "stf|noticia|mg-decreto-publicidade-bets-questionado|2026|2026-09-04",
-    "stf|decisao|mpu-poder-requisicao-orgaos-estaduais|2026|2026-09-04",
-    "stf|noticia|fachin-fim-inquerito-fake-news-codigo-conduta|2026|2026-09-04",
-    "midia|conjur|pgr-apura-atuacao-pf-relatorio-vorcaro|2026|2026-09-05",
-    "midia|conjur|gilmar-proibir-policiais-militares-gabinetes-stf|2026|2026-09-05",
-    "midia|jota|mendonca-deixa-sociedade-instituto-iter-pos-vorcaro|2026|2026-09-04",
-    "midia|jota|bc-liquidacao-extrajudicial-distribuidoras-ex-socio-master|2026|2026-09-04",
-    "midia|jota|lula-avalia-indicar-governador-rj-stf-pressao-trocar-pf|2026|2026-09-04",
-    "midia|jota|moraes-formaliza-pedido-fachin-investigar-mendonca-abuso-autoridade|2026|2026-09-04",
-    "opiniao|jota|contra-ataque-moraes-mendonca-implosao-processo-master|2026|2026-09-04",
-    "opiniao|jota|supremo-nas-urnas-eleicao-outubro-crise-stf|2026|2026-09-04",
-    "opiniao|jota|silencio-insustentavel-lula-descolar-moraes|2026|2026-09-04",
-    "opiniao|jota|presuncao-relevancia-questao-federal-regimento-stj|2026|2026-09-04",
-    "opiniao|jota|responsabilidade-civil-empresarial-dever-cuidado|2026|2026-09-04",
-    "opiniao|jota|stf-limite-retroatividade-compensacoes-tributarias|2026|2026-09-04",
-    "fofoquinha|jota|mendonca-ultrapassou-limites-pf-identificar-vorcaro-pergunta|2026|2026-09-04",
-    "fofoquinha|jota|agu-proximidade-mendonca-alcolumbre-alvo-relatorio-pf|2026|2026-09-04",
-    "concurso|tjrs|juiz-substituto-edital-30vagas-fgv|2026|2026-08-27",
-    "concurso|trf5|juiz-federal-substituto-inscricoes-abertas|2026|2026-09-07",
-    "concurso|mpsp|promotor-prova-discursiva-13-09|2026|2026-09-07",
-    "concurso|pge-al|provas-realizadas-resultado-20-10|2026|2026-09-07",
-    "concurso|trt8|banca-fcc-contratada-edital-iminente|2026|2026-08-28",
-    "concurso|dpdf|banca-instituto-access-contratada-edital-pendente|2026|2026-09-07",
     "fofoquinha|jota|empresarios-articulam-aperfeicoamento-institucional-stf|2026|2026-09-08",
     "midia|jota|reforma-tributaria-contencioso-restrito-turivius|2026|2026-09-08",
     "midia|jota|justica-federal-deducao-ir-educacao-tea|2026|2026-09-08",
@@ -176,13 +149,41 @@
     "fofoquinha|jota|moraes-pronunciamento-publico-segunda|2026|2026-09-11",
     "fofoquinha|jota|pt-formaliza-defesa-mandato-ministros-stf|2026|2026-09-11",
     "versiculo|dailyverses|mateus-5-37|2026|2026-09-11",
-    "munger|citacao|evite-risco-minimo-ruina|indice-54|2026-09-11"
+    "munger|citacao|evite-risco-minimo-ruina|indice-54|2026-09-11",
+    "stf|noticia|fachin-assume-relatoria-pet16662-master-darkhorse|2026|2026-09-14",
+    "stj|jurisprudencia|crianca-familia-acolhedora-mantida|2026|2026-09-13",
+    "stj|jurisprudencia|multa-mp-nao-convertida-lei|2026|2026-09-13",
+    "stj|jurisprudencia|prazo-mp-defensoria-recurso-juri|2026|2026-09-13",
+    "stj|jurisprudencia|paradoxo-do-quitus-assembleia-geral|2026|2026-09-13",
+    "midia|jota-migalhas|zanin-gilmar-oficiam-pf-celular-vorcaro|2026|2026-09-14",
+    "midia|migalhas|mendonca-tumultuar-julgamento-dados-vorcaro|2026|2026-09-13",
+    "midia|migalhas|moraes-peticao-sigilosa-fachin-pgr|2026|2026-09-13",
+    "midia|migalhas|explicativo-o-que-stf-julgara-terca|2026|2026-09-12",
+    "midia|conjur|cnj-nega-mp-acesso-tornozeleiras|2026|2026-09-13",
+    "midia|conjur|tre-rj-nega-candidaturas-organizacoes-criminosas|2026|2026-09-13",
+    "midia|conjur|tse-afasta-flagrante-preparado|2026|2026-09-13",
+    "midia|conjur|tjsp-construtora-nao-pode-reter-chaves|2026|2026-09-13",
+    "midia|conjur|testemunho-ouvi-dizer-nao-sustenta-pronuncia|2026|2026-09-13",
+    "midia|conjur|tdah-tratamento-nao-interrompido-plano-saude|2026|2026-09-13",
+    "opiniao|jota|fim-sigilo-master-mendonca-senhor-republica|2026|2026-09-11",
+    "opiniao|conjur|tempo-stf-nao-e-tempo-da-midia-sessao-dia-15|2026|2026-09-12",
+    "opiniao|conjur|judiciarismo-coalizao-eleicoes-2026|2026|2026-09-13",
+    "opiniao|conjur|inaplicabilidade-artigo-66-lref-arrendamento-rural|2026|2026-09-14",
+    "opiniao|jota|jose-eduardo-faria-crise-legitimidade-stf|2026|2026-09-11",
+    "fofoquinha|jota|escurinho-gabinetes-reunioes-fachin|2026|2026-09-11",
+    "fofoquinha|jota-oglobo|sete-preliminares-sessao-terca|2026|2026-09-14",
+    "fofoquinha|jota-estadao|pedido-vista-adiar-decisao|2026|2026-09-14",
+    "fofoquinha|jota|suspeicao-fux-nunes-marques-tv-justica|2026|2026-09-14",
+    "concurso|tjrs|juiz-substituto-inscricoes-15-09-a-14-10|2026|2026-09-14",
+    "concurso|trf2|juiz-federal-orais-14-25-09|2026|2026-09-14",
+    "concurso|mpsp|promotor-prova-discursiva-realizada|2026|2026-09-13",
+    "versiculo|dailyverses|efesios-4-26-27|2026|2026-09-14",
+    "munger|citacao|acerte-incentivos-pessoas-certas|indice-57|2026-09-14"
   ],
-  "total_chaves": 138,
+  "total_chaves": 140,
   "metricas": {
-    "execucoes_registradas": 19,
+    "execucoes_registradas": 20,
     "itens_ultimas_10": [
-      47,
       57,
       27,
       15,
@@ -191,51 +192,52 @@
       10,
       26,
       43,
-      32
+      32,
+      29
     ],
-    "media_itens": 30.2,
-    "itens_ultima": 32,
+    "media_itens": 28.4,
+    "itens_ultima": 29,
     "coletores_ultima": {
       "gmail": {
         "modelo": "haiku",
-        "tokens": 47005,
+        "tokens": 47370,
         "chamadas": 8,
-        "duracao_ms": 47101
+        "duracao_ms": 36430
       },
       "jota": {
         "modelo": "sonnet",
-        "tokens": 126221,
-        "chamadas": 14,
-        "duracao_ms": 142059
+        "tokens": 169768,
+        "chamadas": 24,
+        "duracao_ms": 217309
       },
       "web": {
         "modelo": "sonnet",
-        "tokens": 87220,
-        "chamadas": 27,
-        "duracao_ms": 211363
+        "tokens": 120326,
+        "chamadas": 52,
+        "duracao_ms": 293972
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
-        "execucoes": 5,
-        "tokens_total": 243368,
-        "chamadas_total": 46,
-        "tokens_media": 48674,
-        "chamadas_media": 9.2
+        "execucoes": 6,
+        "tokens_total": 290738,
+        "chamadas_total": 54,
+        "tokens_media": 48456,
+        "chamadas_media": 9.0
       },
       "jota": {
-        "execucoes": 5,
-        "tokens_total": 738432,
-        "chamadas_total": 100,
-        "tokens_media": 147686,
-        "chamadas_media": 20.0
+        "execucoes": 6,
+        "tokens_total": 908200,
+        "chamadas_total": 124,
+        "tokens_media": 151367,
+        "chamadas_media": 20.7
       },
       "web": {
-        "execucoes": 5,
-        "tokens_total": 442081,
-        "chamadas_total": 142,
-        "tokens_media": 88416,
-        "chamadas_media": 28.4
+        "execucoes": 6,
+        "tokens_total": 562407,
+        "chamadas_total": 194,
+        "tokens_media": 93734,
+        "chamadas_media": 32.3
       }
     }
   }

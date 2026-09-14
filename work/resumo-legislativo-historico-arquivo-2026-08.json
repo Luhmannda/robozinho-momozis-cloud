@@ -923,6 +923,453 @@
       "verification_notes": "Pendencia lei_15484_confirmacao_oficial RESOLVIDA nesta execucao: a Lei 15.484/2026 apareceu na Rota 13 com data 04/08/2026, confirmando pela terceira vez o padrao estrutural de defasagem entre sancao presidencial e listagem no portal do Congresso (mesmo padrao ja visto com a lei das bets/PF em 30/07-04/08). Fofoquinha buzzi-aposentadoria-compulsoria-avaliacao (publicada em 04/08) teve desfecho oficial nesta janela (STJ aplicou disponibilidade e propos ao STF a perda do cargo) - promovida de fofoquinha para noticia STJ confirmada. MPV: nova camada da armadilha congresso_mpv mapeada com precisao - a pagina de MPVs mostra o PRAZO DE DELIBERACAO (60/120 dias) ao lado de cada MPV, nao a data de edicao; 3 MPVs (1365, 1366, 1367) que pareciam ser de agosto (algumas com datas futuras) sao na verdade de junho/2026, confirmado via pagina de detalhe do Congresso e noticias da Camara/Senado. Armadilha banca_edital_antigo reconfirmada para o TJDFT (cebraspe.org.br segue devolvendo pagina de 2022). Item de fronteira: 5 itens do coletor JOTA vieram de um e-mail com timestamp 07:01:07 BRT, 53 segundos antes do inicio oficial da janela (07:02:00) - incluidos por continuidade editorial, sem impacto pratico. Coletor JOTA teve boa taxa de resolucao de link via wrapper t.rdsv2.net desta vez (18 de 28 noticias com link, sem erro HTTP 400); 10 itens vieram de boletins-resumo sem link por item e foram publicados sem URL, conforme protocolo. Nenhuma armadilha de link (jota_link_wrapper_mismatch) detectada nesta execucao.",
       "gmail_message_id": "19fdbb6d117cdaa3",
       "delivery_reconciled_at": "2026-08-17T07:39:38-03:00"
+    },
+    {
+      "execution_id": "2026-08-17-7h",
+      "type": "diaria",
+      "run_started_at": "2026-08-17T07:20:09-03:00",
+      "run_finished_at": "2026-08-17T07:37:51-03:00",
+      "date": "2026-08-17",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-08-10T07:20:00-03:00",
+      "window_end": "2026-08-17T07:20:00-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 17/08/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r-7717439915328507585",
+      "items": [
+        {
+          "fonte": "planalto",
+          "categoria": "legislacao",
+          "titulo": "Lei Complementar nº 234/2026 - emendas parlamentares saude bombeiros militares",
+          "data": "2026-08-07",
+          "chave": "planalto|lc|234|2026|2026-08-07",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "planalto",
+          "categoria": "legislacao",
+          "titulo": "Lei nº 15.486/2026 - prazos creditos FGTS hospitais filantropicos",
+          "data": "2026-08-07",
+          "chave": "planalto|lei|15486|2026|2026-08-07",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "planalto",
+          "categoria": "legislacao",
+          "titulo": "Lei nº 15.487/2026 - crimes violencia sexual criancas e adolescentes",
+          "data": "2026-08-07",
+          "chave": "planalto|lei|15487|2026|2026-08-07",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "planalto",
+          "categoria": "legislacao",
+          "titulo": "MPV 1383/2026 - credito extraordinario R$360mi Integracao Regional",
+          "data": "2026-08-13",
+          "chave": "planalto|mpv|1383|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "planalto",
+          "categoria": "legislacao",
+          "titulo": "MPV 1384/2026 - credito extraordinario R$925mi Desenv. Agrario/Assistencia Social",
+          "data": "2026-08-13",
+          "chave": "planalto|mpv|1384|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "planalto",
+          "categoria": "legislacao",
+          "titulo": "MPV 1385/2026 - credito extraordinario R$3,5bi Cidades/habitacao",
+          "data": "2026-08-13",
+          "chave": "planalto|mpv|1385|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "noticia",
+          "titulo": "PF apura possiveis crimes na execucao das Emendas Pix",
+          "data": "2026-08-07",
+          "chave": "stf|noticia|pf-apura-emendas-pix|2026|2026-08-07",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "noticia",
+          "titulo": "Negociacao sobre solucao financeira para Banco de Brasilia",
+          "data": "2026-08-13",
+          "chave": "stf|noticia|negociacao-banco-brasilia|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "noticia",
+          "titulo": "Acao contra decisoes que obrigam ferroviarias a manter dois condutores",
+          "data": "2026-08-13",
+          "chave": "stf|noticia|acao-condutores-ferroviarias|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "noticia",
+          "titulo": "Julgamento Parque Estadual Serra do Tabuleiro aguarda composicao completa",
+          "data": "2026-08-12",
+          "chave": "stf|noticia|parque-tabuleiro-aguarda-composicao|2026|2026-08-12",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "noticia",
+          "titulo": "20 anos da Lei Maria da Penha - retrospectiva de decisoes do STF",
+          "data": "2026-08-10",
+          "chave": "stf|noticia|20-anos-lei-maria-da-penha|2026|2026-08-10",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "jurisprudencia",
+          "titulo": "STF reconhece validade da Moratoria da Soja, extingue acoes Judiciario e Cade",
+          "data": "2026-08-13",
+          "chave": "stf|jurisprudencia|moratoria-soja-validade-cade|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "jurisprudencia",
+          "titulo": "Congresso tem 24 meses para editar lei sobre mineracao em terras indigenas",
+          "data": "2026-08-14",
+          "chave": "stf|jurisprudencia|congresso-24-meses-mineracao-terras-indigenas|2026|2026-08-14",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "jurisprudencia",
+          "titulo": "STF invalida exigencia de licenciamento ambiental para infra de telecom no PA",
+          "data": "2026-08-07",
+          "chave": "stf|jurisprudencia|licenciamento-ambiental-telecom-pa-invalido|2026|2026-08-07",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "jurisprudencia",
+          "titulo": "Quatro ministros do STF mandam devolucao de penduricalhos por juizes de 7 tribunais",
+          "data": "2026-08-13",
+          "chave": "stf|jurisprudencia|penduricalhos-devolucao-7-tribunais|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "noticia",
+          "titulo": "Estado de SP vence no STJ processo de R$7,7 bi (megaprecatorio)",
+          "data": "2026-08-10",
+          "chave": "stj|noticia|sp-vence-megaprecatorio-7-7-bi|2026|2026-08-10",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "noticia",
+          "titulo": "STJ regulamenta filtro de relevancia do recurso especial (Lei 15.484)",
+          "data": "2026-08-12",
+          "chave": "stj|noticia|filtro-relevancia-resp-regulamentado|2026|2026-08-12",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "jurisprudencia",
+          "titulo": "Indenizacao pelos Crimes de Maio (SP) nao prescreve",
+          "data": "2026-08-13",
+          "chave": "stj|jurisprudencia|crimes-maio-sp-nao-prescreve|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "jurisprudencia",
+          "titulo": "Indenizacao por demora na concessao de aposentadoria a servidores publicos",
+          "data": "2026-08-13",
+          "chave": "stj|jurisprudencia|indenizacao-demora-aposentadoria-servidores|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "jurisprudencia",
+          "titulo": "Aliquota zero de PIS/Cofins-Importacao sobre aeronaves vale desde a lei",
+          "data": "2026-08-14",
+          "chave": "stj|jurisprudencia|aliquota-zero-pis-cofins-aeronaves|2026|2026-08-14",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "stf",
+          "categoria": "informativo",
+          "titulo": "Boletim Repercussao Geral em Pauta, edicao 384",
+          "data": "2026-08-14",
+          "chave": "stf|informativo|repercussao-geral-384|2026|2026-08-14",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "informativo",
+          "titulo": "Informativo de Jurisprudencia n. 896",
+          "data": "2026-08-12",
+          "chave": "stj|informativo|896|2026|2026-08-12",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "stj",
+          "categoria": "jurisprudencia_em_teses",
+          "titulo": "Jurisprudencia em Teses ed. 285 - Direito a Educacao III",
+          "data": "2026-08-14",
+          "chave": "stj|jurisprudencia-em-teses|285-direito-educacao-iii|2026|2026-08-14",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "concurso",
+          "categoria": "magistratura_estadual",
+          "titulo": "TJMG Juiz Substituto - provas escritas realizadas 08-09/08",
+          "data": "2026-08-09",
+          "chave": "concurso|tjmg|juiz-substituto-provas-08-09-08-realizadas|2026|2026-08-09",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "concurso",
+          "categoria": "magistratura_federal",
+          "titulo": "TRF2 XIX Concurso - Edital 78/2026, 599 habilitados para 2a etapa",
+          "data": "2026-08-13",
+          "chave": "concurso|trf2|edital78-599-habilitados-2a-etapa|2026|2026-08-13",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "concurso",
+          "categoria": "pge",
+          "titulo": "PGE-AL - resultado preliminar discursivas, prova remarcada 05/09",
+          "data": "2026-08-11",
+          "chave": "concurso|pge-al|resultado-preliminar-discursivas-prova-05-09|2026|2026-08-11",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "concurso",
+          "categoria": "pgm",
+          "titulo": "PGM Manaus - inscricoes encerradas",
+          "data": "2026-08-04",
+          "chave": "concurso|pgm-manaus|inscricoes-encerradas|2026|2026-08-04",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "jota",
+          "titulo": "EUA avaliariam novas sancoes contra Alexandre de Moraes",
+          "data": "2026-08-17",
+          "chave": "midia|jota|eua-sancoes-moraes-avaliadas|2026|2026-08-17",
+          "status": "midia_especializada"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "jota",
+          "titulo": "Moraes autoriza buscas contra fontes de jornalista que investigava Dino",
+          "data": "2026-08-14",
+          "chave": "midia|jota|moraes-buscas-fontes-jornalista-dino|2026|2026-08-14",
+          "status": "midia_especializada"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "jota",
+          "titulo": "PF deflagra Operacao Arena contra Pixbet e advogado Nelson Wilians",
+          "data": "2026-08-14",
+          "chave": "midia|jota|pf-operacao-arena-pixbet-nelson-wilians|2026|2026-08-14",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "jota",
+          "titulo": "Banco Central multa Banco Genial em R$21,6 milhoes",
+          "data": "2026-08-12",
+          "chave": "midia|jota|bc-multa-banco-genial-216-milhoes|2026|2026-08-12",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "jota",
+          "titulo": "Justica nega pedido da Netflix contra multa Procon-SP",
+          "data": "2026-08-11",
+          "chave": "midia|jota|netflix-multa-procon-sp-compartilhamento-senhas|2026|2026-08-11",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "jota",
+          "titulo": "CNJ afasta juiz por negociacao de bens Banco Santos/Banco Master",
+          "data": "2026-08-14",
+          "chave": "midia|jota|cnj-afasta-juiz-banco-santos-master|2026|2026-08-14",
+          "status": "confirmado_fonte_oficial_alternativa"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "migalhas_jota",
+          "titulo": "ANPD suspende lives e videos do Discord no Brasil",
+          "data": "2026-08-16",
+          "chave": "midia|migalhas-jota|anpd-suspende-discord|2026|2026-08-16",
+          "status": "midia_especializada"
+        },
+        {
+          "fonte": "midia",
+          "categoria": "migalhas",
+          "titulo": "Desembargador do TJ-GO critica o quinto constitucional",
+          "data": "2026-08-16",
+          "chave": "midia|migalhas|tjgo-critica-quinto-constitucional|2026|2026-08-16",
+          "status": "midia_especializada"
+        },
+        {
+          "fonte": "opiniao",
+          "categoria": "jota",
+          "titulo": "Confianca nos tribunais e mais",
+          "data": "2026-08-14",
+          "chave": "opiniao|jota|confianca-nos-tribunais|2026|2026-08-14",
+          "status": "opiniao_analise"
+        },
+        {
+          "fonte": "opiniao",
+          "categoria": "jota",
+          "titulo": "Sobre a nova variavel eleitoral nas coligacoes",
+          "data": "2026-08-14",
+          "chave": "opiniao|jota|variavel-eleitoral-coligacoes|2026|2026-08-14",
+          "status": "opiniao_analise"
+        },
+        {
+          "fonte": "opiniao",
+          "categoria": "jota",
+          "titulo": "O enfraquecimento gradual do sigilo da fonte jornalistica",
+          "data": "2026-08-14",
+          "chave": "opiniao|jota|sigilo-fonte-jornalistica-enfraquecimento|2026|2026-08-14",
+          "status": "opiniao_analise"
+        },
+        {
+          "fonte": "opiniao",
+          "categoria": "jota",
+          "titulo": "O STF como garantidor da sustentabilidade e da livre iniciativa",
+          "data": "2026-08-12",
+          "chave": "opiniao|jota|stf-garantidor-sustentabilidade-moratoria-soja|2026|2026-08-12",
+          "status": "opiniao_analise"
+        },
+        {
+          "fonte": "opiniao",
+          "categoria": "jota",
+          "titulo": "Fim da aposentadoria compulsoria: o que muda na punicao dos magistrados",
+          "data": "2026-08-12",
+          "chave": "opiniao|jota|fim-aposentadoria-compulsoria-punicao-magistrados|2026|2026-08-12",
+          "status": "opiniao_analise"
+        },
+        {
+          "fonte": "opiniao",
+          "categoria": "jota",
+          "titulo": "O filtro de relevancia e a ausencia de recurso",
+          "data": "2026-08-12",
+          "chave": "opiniao|jota|filtro-relevancia-ausencia-recurso|2026|2026-08-12",
+          "status": "opiniao_analise"
+        },
+        {
+          "fonte": "fofoquinha",
+          "categoria": "jota",
+          "titulo": "Mendonca foi o ministro do STF que mais concedeu HC no 1o semestre",
+          "data": "2026-08-10",
+          "chave": "fofoquinha|jota|mendonca-mais-hc-concedidos-1-semestre|2026|2026-08-10",
+          "status": "confirmado"
+        },
+        {
+          "fonte": "fofoquinha",
+          "categoria": "jota",
+          "titulo": "TJMG afasta desembargador flagrado bebendo vinho em videoconferencia",
+          "data": "2026-08-12",
+          "chave": "fofoquinha|jota|tjmg-desembargador-afastado-videoconferencia|2026|2026-08-12",
+          "status": "confirmado"
+        },
+        {
+          "fonte": "fofoquinha",
+          "categoria": "jota",
+          "titulo": "Escritorios estrangeiros de advocacia ampliam equipes no Brasil",
+          "data": "2026-08-10",
+          "chave": "fofoquinha|jota|escritorios-estrangeiros-ampliam-brasil|2026|2026-08-10",
+          "status": "forte_indicio"
+        },
+        {
+          "fonte": "fofoquinha",
+          "categoria": "jota",
+          "titulo": "Tensao entre TSE e STF por campanhas de impeachment e regras de IA",
+          "data": "2026-08-12",
+          "chave": "fofoquinha|jota|tensao-tse-stf-impeachment-ia-eleicoes|2026|2026-08-12",
+          "status": "rumor"
+        },
+        {
+          "fonte": "youversion",
+          "categoria": "versiculo",
+          "titulo": "Efesios 4:2 (NTLH)",
+          "data": "2026-08-17",
+          "chave": "youversion|versiculo|efesios-4-2|2026|2026-08-17",
+          "status": "confirmado_fonte_oficial"
+        },
+        {
+          "fonte": "munger",
+          "categoria": "citacao",
+          "titulo": "Force-se a ser objetivo sobre voce, seus bens e suas decisoes",
+          "data": "2026-08-17",
+          "chave": "munger|citacao|force-se-objetivo-sobre-voce|indice-29|2026-08-17",
+          "status": "publicado"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel - 6 e-mails, 24 itens (digest consolidou desde 07/08)",
+        "gmail_push_stf_informativos": "saudavel - 1 e-mail (RG ed.384)",
+        "gmail_push_planalto": "mudo - sonda unica vazia, ~46 dias sem e-mail",
+        "gmail_stj_codju": "saudavel - 2 e-mails, 2 produtos (Informativo 896 + Jurisprudencia em Teses 285)",
+        "gmail_jota": "saudavel - 23 e-mails na janela ampliada de 7 dias, ~65 noticias brutas filtradas, 6 opinioes selecionadas",
+        "congresso_ultimas_leis": "saudavel - leis herdadas de 07/08 recuperadas",
+        "congresso_mpvs": "instavel - armadilha de data na listagem confirmada novamente (discrepancia de 2 dias, nao o padrao de ~60 dias ja visto), corrigida via pagina de detalhe",
+        "conjur": "instavel - fetch direto 403 esperado; WebSearch nao indexou 15-17/08 (lacuna, nao necessariamente ausencia)",
+        "migalhas": "saudavel - fetch direto na home funcionou",
+        "youversion": "saudavel - data validada por pergunta neutra, bateu com a ancora"
+      },
+      "errors": [
+        "ConJur fetch direto: 403 (esperado, nao repetido)",
+        "Gmail PUSH Planalto: sonda unica vazia (politica de fonte muda)",
+        "Varios links do JOTA nao resolvidos (titulo de destino nao confirmado ou boletim-resumo sem link por item) - publicados sem link conforme protocolo"
+      ],
+      "pendencias": [
+        {
+          "id": "gap_execucao_10_dias",
+          "texto": "Rotina nao rodou entre 07/08 e 17/08 (10 dias). Janela desta edicao limitada ao teto de 7 dias (10-17/08); periodo de 07 a 10/08 nao recebeu varredura sistematica fora do digest STF consolidado.",
+          "faixa": "nova"
+        },
+        {
+          "id": "envio_edicao_31_07_atrasado",
+          "texto": "Rascunho de 31/07/2026 (draft r-4276239737789945707) segue como RASCUNHO, nao enviado pelo Apps Script - agora 17 dias, 4a verificacao consecutiva confirmando o problema.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (~46 dias)",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto - banca Cebraspe, ainda sem edital oficial confirmado, 11a execucao sem novidade",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN - 170 vagas autorizadas, edital em preparacao, previsao ate jan/2027. Sem novidade.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "PGE-BA (edital nao publicado, banca nao definida), PGE-MA, PGE-RS, MPMS, DPU VII, MPC-MA, DPE-RO, PGM Porto Alegre - sem movimento novo esta semana. PGE-AL e TRF2 promovidos a linha propria (movimento confirmado).",
+          "faixa": "longo_prazo"
+        }
+      ],
+      "verification_notes": "Janela excepcionalmente ampla (7 dias, teto maximo) por gap de execucao de 10 dias - a rotina nao rodou entre a edicao de 07/08 (enviada, confirmada por search_threads/in:sent, message_id 19fdbb6d117cdaa3) e hoje 17/08. Itens de 07/08 a tarde/noite (apos o fechamento da janela anterior, que terminava as 06:10) foram recuperados porque o digest do STF Push consolida dias anteriores automaticamente - sem isso, ficariam definitivamente sem cobertura, ja que o teto de 7 dias comeca em 10/08. O periodo de 07 a 10/08 nao foi varrido sistematicamente nas demais fontes (Congresso, JOTA, ConJur, Migalhas, concursos), entao pode haver itens desse intervalo especifico nunca publicados - risco considerado baixo mas registrado. MPV: armadilha de data na pagina de listagem do Congresso reincidiu, mas desta vez o desvio foi de apenas ~2 dias (listagem mostrava 11/08, DOU real 13/08), diferente do padrao de ~60 dias ja registrado no ledger para MPVs com prazo de deliberacao duplo - pode ser um mecanismo de atraso de indexacao diferente, vale observar em proximas execucoes antes de generalizar. JOTA: volume muito acima do normal (23 e-mails, ~65 noticias brutas) dado a janela de 7 dias; о coletor precisou salvar respostas grandes em arquivo para nao estourar tokens - sem perda de conteudo, mas registrar como padrao esperado para janelas grandes. STF Push trouxe muitos itens puramente institucionais/ceremoniais (eventos, homenagens, cooperacao internacional) que foram deliberadamente deixados de fora da edicao por baixo teor normativo - nao sao pendencia, foi corte editorial do orquestrador. Fofoquinha antiga sobre aposentadoria compulsoria do min. Buzzi nao foi repetida por falta de desfecho novo especifico nesta janela.",
+      "gmail_message_id": "1a00f51d678c907d",
+      "delivery_reconciled_at": "2026-09-01T13:53:27+00:00"
     }
   ]
 }
