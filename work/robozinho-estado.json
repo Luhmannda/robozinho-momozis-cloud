@@ -1,76 +1,44 @@
 {
-  "gerado_em": "2026-09-17T07:26:32-03:00",
-  "gerado_por": "2026-09-17-7h",
+  "gerado_em": "2026-09-18T07:24:45-03:00",
+  "gerado_por": "2026-09-18-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-17-7h",
-    "date": "2026-09-17",
-    "email_subject": "Robozinho dos Momozis até Passar - 17/09/2026 - 7h",
+    "execution_id": "2026-09-18-7h",
+    "date": "2026-09-18",
+    "email_subject": "Robozinho dos Momozis até Passar - 18/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r7578170701814949026",
-    "window_end": "2026-09-17T07:07:27-03:00"
+    "draft_id": "r492221731640997350",
+    "window_end": "2026-09-18T07:08:23-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (77 dias) — sonda de 17/09 também vazia. Rota 13 recuperou LC 237/2026 e Lei 15.505/2026 (herdadas de 15/09).",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (78 dias) — 35ª sonda vazia consecutiva. Rota 13 sustenta a seção; sem novidade legislativa na janela de hoje.",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto — reverificado em 17/09 sem novidade oficial; armadilha banca_edital_antigo reconfirmada (edital antigo 2022/23, 30 vagas, ainda aparece em buscas).",
+      "texto": "TJDFT Juiz Substituto — reverificado em 18/09 sem novidade oficial; armadilha banca_edital_antigo reconfirmada (edital antigo 2022/23, 30 vagas, ainda aparece em buscas).",
       "faixa": "ativa"
     },
     {
       "id": "agu_pfn_edital",
-      "texto": "AGU/PFN — 170 vagas autorizadas, edital em até ~jan/2027. Não reverificado em 17/09 (faixa longo_prazo).",
+      "texto": "AGU/PFN — 170 vagas autorizadas, edital em até ~jan/2027. Não reverificado em 18/09 (faixa longo_prazo).",
       "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "TJRS, TRF2, TRF5, MP-SP, PGE-AL, PGM Juazeiro/BA, ENAM, TRT8, DPDF não reverificados em 17/09 (faixa longo_prazo, sem achado incidental).",
+      "texto": "TJRS, TRF2, TRF5, MP-SP, PGE-AL, PGM Juazeiro/BA, ENAM, TRT8, DPDF não reverificados em 18/09 (faixa longo_prazo, sem achado incidental).",
       "faixa": "longo_prazo"
     },
     {
       "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Crise STF-PGR: sessão de 15/09 (Pet 16.662) encerrou com vista de Dino (até 90 dias), placar provisório 4x3 pela separação Moraes/Mendonça. Novidades de 16/09: Kassio Nunes Marques (impedido) pode retomar o caso após as eleições (especulação); Fux criticou pedidos de vista e a ordem da pauta; OAB criticou fala de Dino sobre 'compra de sentenças'; Toffoli elogiou o plenário virtual em contraste com a preferência de Cármen Lúcia pelo presencial. Acompanhar retomada do julgamento e desdobramentos sobre os familiares citados (Vorcaro).",
+      "texto": "Crise STF-PGR: Fachin adiou sem nova data a sessão que julgaria a conduta de Mendonça (marcada para 23/09), em meio ao impasse sobre reunir/separar os casos Moraes/Mendonça; vista de Dino segue em aberto (até 90 dias). Dino determinou à PF/CVM investigar Master-cemitérios em SP e vetou investigação sobre Moraes. Mensagens de Vorcaro citam pagamentos a Kevin Marques (filho de Nunes Marques) e tentativa de aproximação com Rodrigo Fux (filho de Fux) — ambos negados. PGR Gonet nega proximidade com Vorcaro. Acompanhar retomada do julgamento e desdobramentos oficiais sobre os familiares citados.",
       "faixa": "ativa"
     }
   ],
   "chaves_publicadas": [
-    "planalto|lei|15501|2026|2026-09-10",
-    "stf|noticia|audiencia-publica-emendas-parlamentares-dino|2026|2026-09-10",
-    "stf|decisao|dark-horse-pf-operacao-49-mandados-mario-frias|2026|2026-09-10",
-    "stf|decisao|homologa-planos-estaduais-sistema-prisional|2026|2026-09-10",
-    "stf|noticia|fachin-mantem-plenario-extraordinario-terca-15-09|2026|2026-09-10",
-    "stf|decisao|dino-determina-identificador-unico-emendas-prazo-30-11|2026|2026-09-10",
-    "stf|decisao|icms-creditos-combustiveis-operacoes-interestaduais|2026|2026-09-10",
-    "stf|decisao|suspende-julgamento-caca-especies-exoticas-invasoras|2026|2026-09-10",
-    "stf|noticia|nunes-marques-vota-criterios-renda-escola-publica-cotas-raciais|2026|2026-09-10",
-    "stf|informativo|repercussao-geral-388|2026|2026-09-10",
-    "stj|jurisprudencia|estado-responde-feminicidio-predio-publico|2026|2026-09-10",
-    "stj|jurisprudencia|irpj-csll-selic-emprestimo-compulsorio-bacen|2026|2026-09-10",
-    "stj|jurisprudencia|honorarios-execucao-sentenca-coletiva-rescindida|2026|2026-09-10",
-    "stj|jurisprudencia|frete-filiais-pis-cofins-sem-credito|2026|2026-09-10",
-    "midia|conjur|tst-contratos-experiencia-prorrogacao-90-dias|2026|2026-09-10",
-    "midia|conjur|tjsp-credito-inalterado-quorum-recuperacao-extrajudicial|2026|2026-09-10",
-    "midia|conjur|tjsp-mantem-demissao-professor-assedio-alunas|2026|2026-09-10",
-    "midia|jota|sigilo-caso-master-levantado-linha-flavio-segue-secreta|2026|2026-09-11",
-    "midia|jota|carf-10-propostas-sumula-votacao-14-09|2026|2026-09-10",
-    "opiniao|conjur|norma-cfm-ia-ato-medico|2026|2026-09-11",
-    "opiniao|conjur|direito-a-deepfakes|2026|2026-09-11",
-    "opiniao|conjur|ue-mercosul-coerencia-regulatoria|2026|2026-09-11",
-    "opiniao|conjur|papel-stj-direito-tributario|2026|2026-09-10",
-    "opiniao|conjur|instancias-independentes-fatos-nao|2026|2026-09-10",
-    "opiniao|conjur|dimensao-analitica-ia|2026|2026-09-10",
-    "fofoquinha|jota-estadao|placar-3x3-sessao-15-09-investigar-moraes|2026|2026-09-11",
-    "fofoquinha|jota-oglobo|risco-pedido-vista-adiar-decisao-moraes|2026|2026-09-11",
-    "fofoquinha|jota|oabdf-pede-impeachment-moraes-toffoli|2026|2026-09-11",
-    "fofoquinha|jota|moraes-pronunciamento-publico-segunda|2026|2026-09-11",
-    "fofoquinha|jota|pt-formaliza-defesa-mandato-ministros-stf|2026|2026-09-11",
-    "versiculo|dailyverses|mateus-5-37|2026|2026-09-11",
-    "munger|citacao|evite-risco-minimo-ruina|indice-54|2026-09-11",
     "stf|noticia|fachin-assume-relatoria-pet16662-master-darkhorse|2026|2026-09-14",
     "stj|jurisprudencia|crianca-familia-acolhedora-mantida|2026|2026-09-13",
     "stj|jurisprudencia|multa-mp-nao-convertida-lei|2026|2026-09-13",
@@ -190,11 +158,10 @@
     "versiculo|dailyverses|romanos-13-7|2026|2026-09-17",
     "munger|citacao|aversao-a-duvida-suspender-juizo|indice-60|2026-09-17"
   ],
-  "total_chaves": 150,
+  "total_chaves": 118,
   "metricas": {
-    "execucoes_registradas": 23,
+    "execucoes_registradas": 24,
     "itens_ultimas_10": [
-      18,
       27,
       10,
       26,
@@ -203,51 +170,52 @@
       29,
       34,
       23,
-      32
+      32,
+      22
     ],
-    "media_itens": 27.4,
-    "itens_ultima": 32,
+    "media_itens": 27.8,
+    "itens_ultima": 22,
     "coletores_ultima": {
       "gmail": {
         "modelo": "haiku",
-        "tokens": 45182,
-        "chamadas": 10,
-        "duracao_ms": 64052
+        "tokens": 47846,
+        "chamadas": 11,
+        "duracao_ms": 69772
       },
       "jota": {
         "modelo": "sonnet",
-        "tokens": 129864,
-        "chamadas": 14,
-        "duracao_ms": 192544
+        "tokens": 200289,
+        "chamadas": 26,
+        "duracao_ms": 416159
       },
       "web": {
         "modelo": "sonnet",
-        "tokens": 103109,
-        "chamadas": 36,
-        "duracao_ms": 306226
+        "tokens": 94427,
+        "chamadas": 26,
+        "duracao_ms": 288064
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
-        "execucoes": 9,
-        "tokens_total": 426383,
-        "chamadas_total": 81,
-        "tokens_media": 47376,
-        "chamadas_media": 9.0
+        "execucoes": 10,
+        "tokens_total": 474229,
+        "chamadas_total": 92,
+        "tokens_media": 47423,
+        "chamadas_media": 9.2
       },
       "jota": {
-        "execucoes": 9,
-        "tokens_total": 1378474,
-        "chamadas_total": 186,
-        "tokens_media": 153164,
-        "chamadas_media": 20.7
+        "execucoes": 10,
+        "tokens_total": 1578763,
+        "chamadas_total": 212,
+        "tokens_media": 157876,
+        "chamadas_media": 21.2
       },
       "web": {
-        "execucoes": 9,
-        "tokens_total": 846457,
-        "chamadas_total": 288,
-        "tokens_media": 94051,
-        "chamadas_media": 32.0
+        "execucoes": 10,
+        "tokens_total": 940884,
+        "chamadas_total": 314,
+        "tokens_media": 94088,
+        "chamadas_media": 31.4
       }
     }
   }
