@@ -14,183 +14,6 @@
   ],
   "executions": [
     {
-      "execution_id": "2026-09-08-7h",
-      "type": "diaria",
-      "run_started_at": "2026-09-08T07:09:19-03:00",
-      "run_finished_at": "2026-09-08T07:18:52-03:00",
-      "date": "2026-09-08",
-      "timezone": "America/Sao_Paulo",
-      "window_start": "2026-09-07T07:17:32-03:00",
-      "window_end": "2026-09-08T07:18:52-03:00",
-      "recipients": [
-        "pereirafranciscofilho@gmail.com",
-        "luizaxbarreto@gmail.com"
-      ],
-      "email_subject": "Robozinho dos Momozis até Passar - 08/09/2026 - 7h",
-      "delivery": "sent",
-      "draft_id": "r6811601522802821316",
-      "items": [
-        {
-          "chave": "fofoquinha|jota|empresarios-articulam-aperfeicoamento-institucional-stf|2026|2026-09-08",
-          "fonte": "JOTA (citando Valor Econômico)",
-          "categoria": "fofoquinha",
-          "titulo": "Empresários se articulam para propor 'aperfeiçoamento institucional' do STF",
-          "data": "2026-09-08",
-          "status": "SEM CONFIRMAÇÃO OFICIAL"
-        },
-        {
-          "chave": "midia|jota|reforma-tributaria-contencioso-restrito-turivius|2026|2026-09-08",
-          "fonte": "JOTA (citando Folha de S.Paulo/Turivius)",
-          "categoria": "midia",
-          "titulo": "Reforma tributária deve gerar contencioso mais restrito e concentrado",
-          "data": "2026-09-08",
-          "status": "MÍDIA ESPECIALIZADA"
-        },
-        {
-          "chave": "midia|jota|justica-federal-deducao-ir-educacao-tea|2026|2026-09-08",
-          "fonte": "JOTA (citando coluna Mônica Bergamo/Folha)",
-          "categoria": "midia",
-          "titulo": "Justiça Federal reconhece dedução integral de IR para educação de filho com TEA",
-          "data": "2026-09-08",
-          "status": "MÍDIA ESPECIALIZADA, sem confirmação oficial"
-        },
-        {
-          "chave": "midia|migalhas|stf-valida-planos-estaduais-presidios|2026|2026-09-07",
-          "fonte": "Migalhas",
-          "categoria": "midia",
-          "titulo": "STF valida planos estaduais para enfrentar violações em presídios",
-          "data": "2026-09-07",
-          "status": "MÍDIA ESPECIALIZADA, sem confirmação oficial"
-        },
-        {
-          "chave": "midia|migalhas|simonetti-cobra-resposta-stf-transparencia|2026|2026-09-07",
-          "fonte": "Migalhas",
-          "categoria": "midia",
-          "titulo": "Simonetti cobra respostas do STF e defende transparência para recuperar confiança",
-          "data": "2026-09-07",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/463970/simonetti-cobra-resposta-do-stf-e-defende-transparencia-para-confianca"
-        },
-        {
-          "chave": "midia|migalhas|tjsp-afasta-tarifa-carga-poluidora-sabesp|2026|2026-09-07",
-          "fonte": "Migalhas",
-          "categoria": "midia",
-          "titulo": "TJ/SP afasta tarifa de carga poluidora cobrada pela Sabesp em comércio",
-          "data": "2026-09-07",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/463930/tj-sp-afasta-tarifa-de-carga-poluidora-cobrada-pela-sabesp-em-comercio"
-        },
-        {
-          "chave": "midia|migalhas|trf3-transparencia-salarial|2026|2026-09-07",
-          "fonte": "Migalhas",
-          "categoria": "midia",
-          "titulo": "TRF-3 mantém obrigação de empresas divulgarem relatórios de transparência salarial",
-          "data": "2026-09-07",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/463802/trf-3-empresas-divulgarem-relatorios-de-transparencia-salarial"
-        },
-        {
-          "chave": "midia|migalhas|justica-limita-reajuste-plano-falso-coletivo-ans|2026|2026-09-07",
-          "fonte": "Migalhas",
-          "categoria": "midia",
-          "titulo": "Justiça limita reajuste de plano falso coletivo a índices da ANS",
-          "data": "2026-09-07",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/463643/justica-limita-reajuste-de-plano-falso-coletivo-a-indices-da-ans"
-        },
-        {
-          "chave": "versiculo|dailyverses|lucas-12-2|2026|2026-09-08",
-          "fonte": "DailyVerses.net",
-          "categoria": "versiculo",
-          "titulo": "Lucas 12:2 (ARC)",
-          "data": "2026-09-08",
-          "status": "VERSÍCULO DO DIA",
-          "url": "https://dailyverses.net/pt/2026/9/8"
-        },
-        {
-          "chave": "munger|citacao|otimo-negocio-preco-justo|indice-51|2026-09-08",
-          "fonte": "work/munger-quotes.json",
-          "categoria": "munger",
-          "titulo": "Um ótimo negócio a preço justo vale mais que um negócio medíocre a preço de banana.",
-          "data": "2026-09-08",
-          "status": "SABEDORIA DO DIA"
-        }
-      ],
-      "source_status": {
-        "gmail_push_stf": "saudavel — 2 itens no push de hoje, ambos já cobertos/sem conteúdo publicável (1 duplicata de 04/09, 1 nota de pesar sem detalhe)",
-        "gmail_push_stf_informativos": "saudavel — só andamento processual individual (ARE 1594146), não conta como informativo",
-        "gmail_stj_codju": "silente nesta janela (mais um dia sem sucesso)",
-        "gmail_push_planalto": "mudo — sonda de hoje vazia, mantém-se",
-        "gmail_jota": "saudavel — 1 boletim, 3 notícias aproveitadas, 0 opinião, nenhum link resolvido (fontes citadas são Valor/Folha, não matérias próprias do JOTA)",
-        "congresso_ultimas_leis": "saudavel — consultado via curl, sem lei nova na janela (mais recente: Lei 15.496/2026 de 03/09)",
-        "congresso_mpvs": "saudavel — sem MPV nova; checagem cruzada da MPV 1388 feita, sem anomalia, mas já publicada antes",
-        "conjur": "FALHA NOVA — www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão; inacessível mesmo com o domínio liberado no probe do passo 1",
-        "migalhas": "saudavel — curl funcionou, 10 manchetes extraídas, 8 aproveitadas na janela"
-      },
-      "errors": [
-        {
-          "fonte": "conjur",
-          "erro": "www.conjur.com.br devolve 301 para o apex conjur.com.br, que retorna 403 (CONNECT tunnel failed) no proxy da sessão",
-          "impacto": "nenhum item do ConJur coletado ou confirmado nesta execução"
-        }
-      ],
-      "pendencias": [
-        {
-          "id": "planalto_push_mudo",
-          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (68 dias) - sonda de 08/09 também vazia",
-          "faixa": "cronica"
-        },
-        {
-          "id": "tjdft_edital",
-          "texto": "TJDFT Juiz Substituto - 17ª execução sem edital oficial; buscas de 08/09 encontraram só páginas do edital antigo (2022/23, 30-71 vagas), armadilha banca_edital_antigo confirmada de novo, sem novidade real",
-          "faixa": "ativa"
-        },
-        {
-          "id": "agu_pfn_edital",
-          "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 08/09 (faixa longo_prazo, só na 1ª execução da semana); status mantido do check de 07/09",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "concursos_cronogramas",
-          "texto": "Não reverificado em 08/09 (faixa longo_prazo). Prazos a observar: MP-SP 13/09, TJ-RS inscrições até 15/09, TRF5 inscrições até 28/09, PGE-AL resultado ~20/10, TRF2 orais 14-25/09. Sem movimento novo confirmado.",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "crise_institucional_stf_pgr_acompanhar",
-          "texto": "Seguiu evoluindo em 08/09: empresários da Faria Lima articulam manifesto por 'aperfeiçoamento institucional' do STF (via Valor/JOTA); Simonetti (OAB) cobra transparência do STF (via Migalhas). Prazo de 5 dias da PET 16.704 vence ~09/09, ainda sem manifestação colegiada do STF até esta execução.",
-          "faixa": "ativa"
-        },
-        {
-          "id": "conjur_egress_regressao",
-          "texto": "ConJur ficou inacessível em 08/09: www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão — contraria o probe do passo 1, que indicou www liberado. Pode ser regressão pontual (comportamento do site) ou mudança na configuração do allowlist do ambiente; acompanhar na próxima execução.",
-          "faixa": "ativa"
-        }
-      ],
-      "verification_notes": "STF Notícias: único reenvio do push de hoje repetia notícia já publicada em 04/09 (limites a símbolos religiosos, chave stf|noticia|limites-nomes-simbolos-religiosos-denominacoes já em chaves_publicadas) — excluída por duplicata. Uma 'nota de pesar' de 07/09 chegou pelo mesmo canal mas sem teor detalhado pelo coletor (apenas título genérico) — não publicada por falta de conteúdo verificável, não por falha técnica. STF Jurisprudência: único e-mail trouxe apenas andamento processual individual (ARE 1594146), que por regra do ledger não conta como informativo. STJ CodJu silente (mais um dia sem sucesso; ainda não atingiu o limiar de 5 execuções para reclassificar como mudo). Concursos: reverificação de hoje limitada à pendência 'ativa' (TJDFT), conforme regra de faixa para dia que não é 1ª execução da semana; itens longo_prazo mantidos com o status do último check (07/09). Web collector também encontrou, sem ter sido solicitado, menções a TRF5/TJ-RS/SETEC Campinas/PGM Valinhos-SP numa busca genérica de concursos — TRF5 e TJ-RS já estavam publicados anteriormente (sem novidade real, não repetidos como 'novos'); SETEC Campinas e PGM Valinhos-SP não fazem parte da lista de pendências rastreadas e não foram verificados (nem ano, nem fonte oficial) — descartados desta edição por falta de verificação, não incluídos no e-mail nem no ledger.",
-      "coletores": {
-        "gmail": {
-          "modelo": "haiku",
-          "tokens": 43869,
-          "chamadas": 8,
-          "duracao_ms": 46052
-        },
-        "jota": {
-          "modelo": "sonnet",
-          "tokens": 77201,
-          "chamadas": 11,
-          "duracao_ms": 105944
-        },
-        "web": {
-          "modelo": "sonnet",
-          "tokens": 74812,
-          "chamadas": 17,
-          "duracao_ms": 155661
-        }
-      },
-      "gmail_message_id": "1a08090066efbc25",
-      "delivery_reconciled_at": "2026-09-09T07:24:10-03:00"
-    },
-    {
       "execution_id": "2026-09-09-7h",
       "type": "diaria",
       "run_started_at": "2026-09-09T07:09:21-03:00",
@@ -3124,9 +2947,9 @@
         "luizaxbarreto@gmail.com"
       ],
       "email_subject": "Robozinho dos Momozis até Passar - 21/09/2026 - 7h",
-      "delivery": "draft",
+      "delivery": "sent",
       "draft_id": "r-8014218545864186090",
-      "gmail_message_id": null,
+      "gmail_message_id": "1a0c382b083f26e4",
       "source_status": {
         "gmail_push_stf": "saudavel",
         "gmail_push_stf_informativos": "saudavel_sem_novidade",
@@ -3449,6 +3272,365 @@
           "tokens": 106858,
           "chamadas": 41,
           "duracao_ms": 287718
+        }
+      },
+      "delivery_reconciled_at": "2026-09-22T07:32:03-03:00"
+    },
+    {
+      "execution_id": "2026-09-22-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-22T07:19:05-03:00",
+      "run_finished_at": "2026-09-22T07:36:00-03:00",
+      "date": "2026-09-22",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-21T07:07:50-03:00",
+      "window_end": "2026-09-22T07:19:05-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 22/09/2026 - 7h",
+      "delivery": "draft",
+      "draft_id": "r-3316155552380965493",
+      "items": [
+        {
+          "chave": "stf|noticia|dia-nacional-pessoa-deficiencia|2026|2026-09-22",
+          "fonte": "stf",
+          "categoria": "STF Notícias",
+          "titulo": "STF garante direitos das pessoas com deficiência em decisões e assegura inclusão no dia a dia da Corte",
+          "data": "2026-09-22",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-garante-direitos-das-pessoas-com-deficiencia-em-decisoes-e-assegura-inclusao-no-dia-a-dia-da-corte/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|ministros-separar-apuracao-etica-criminal-vorcaro|2026|2026-09-22",
+          "fonte": "jota",
+          "categoria": "STF Notícias",
+          "titulo": "Ministros querem separar casos éticos de criminais para análise no STF (caso Vorcaro)",
+          "data": "2026-09-22",
+          "url": null,
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "stf|decisao|gilmar-mendes-valida-decreto-bolsa-familia|2026|2026-09-18",
+          "fonte": "jota",
+          "categoria": "STF Jurisprudência",
+          "titulo": "Gilmar Mendes valida decreto que reajustou Bolsa Família e afasta violação à lei eleitoral",
+          "data": "2026-09-18",
+          "url": "https://www.jota.info/stf/do-supremo/gilmar-mendes-valida-decreto-que-reajustou-bolsa-familia-e-afasta-violacao-a-lei-eleitoral",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "stf|decisao|proibe-municipio-reter-pagamentos-onibus-greve|2026|2026-09-21",
+          "fonte": "conjur",
+          "categoria": "STF Jurisprudência",
+          "titulo": "STF proíbe município de reter pagamentos de empresas de ônibus em greve",
+          "data": "2026-09-21",
+          "url": "https://conjur.com.br/2026-set-21/stf-proibe-municipio-de-reter-pagamentos-de-empresas-de-onibus-em-greve/",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stf|decisao|mantem-decreto-mineiro-bets|2026|2026-09-21",
+          "fonte": "conjur",
+          "categoria": "STF Jurisprudência",
+          "titulo": "STF mantém validade de decreto mineiro que restringe propaganda de bets",
+          "data": "2026-09-21",
+          "url": "https://conjur.com.br/2026-set-21/stf-mantem-validade-de-decreto-mineiro-que-restringe-propaganda-de-bets/",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stf|informativo|1225|2026|2026-09-21",
+          "fonte": "stf_push",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF 1225/2026",
+          "data": "2026-09-21",
+          "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "obs": "conteudo nao resumido nesta execucao"
+        },
+        {
+          "chave": "stf|informativo|1226|2026|2026-09-21",
+          "fonte": "stf_push",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF 1226/2026",
+          "data": "2026-09-21",
+          "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "obs": "conteudo nao resumido nesta execucao"
+        },
+        {
+          "chave": "stf|informativo|1227|2026|2026-09-21",
+          "fonte": "stf_push",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF 1227/2026",
+          "data": "2026-09-21",
+          "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "obs": "conteudo nao resumido nesta execucao"
+        },
+        {
+          "chave": "stf|informativo|1228|2026|2026-09-21",
+          "fonte": "stf_push",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF 1228/2026",
+          "data": "2026-09-21",
+          "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "obs": "conteudo nao resumido nesta execucao"
+        },
+        {
+          "chave": "stf|informativo|1229|2026|2026-09-21",
+          "fonte": "stf_push",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF 1229/2026",
+          "data": "2026-09-21",
+          "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "obs": "conteudo nao resumido nesta execucao"
+        },
+        {
+          "chave": "stj|decisao|restabelece-grupos-reeducacao-violencia-domestica|2026|2026-09-21",
+          "fonte": "conjur",
+          "categoria": "STJ Notícias",
+          "titulo": "STJ restabelece grupos de reeducação para condenados por violência doméstica",
+          "data": "2026-09-21",
+          "url": "https://conjur.com.br/2026-set-21/stj-restabelece-grupos-de-reeducacao-para-condenados-por-violencia-domestica/",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stj|decisao|homologa-acordo-improbidade-tjpe|2026|2026-09-21",
+          "fonte": "conjur",
+          "categoria": "STJ Notícias",
+          "titulo": "Ministro do STJ homologa acordo que mantém condenado por improbidade no TJ-PE",
+          "data": "2026-09-21",
+          "url": "https://conjur.com.br/2026-set-21/ministro-do-stj-homologa-acordo-que-mantem-condenado-por-improbidade-no-tj-pe/",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stj|decisao|avalia-sobrestar-pad-acao-penal|2026|2026-09-21",
+          "fonte": "conjur",
+          "categoria": "STJ Notícias",
+          "titulo": "STJ avalia se sobrestar PAD para aguardar ação penal vincula resultados",
+          "data": "2026-09-21",
+          "url": "https://conjur.com.br/2026-set-21/stj-avalia-se-sobrestar-pad-para-aguardar-acao-penal-vincula-resultados/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|jota|compras-publicas-oito-projetos-licitacoes|2026|2026-09-21",
+          "fonte": "jota",
+          "categoria": "Mídia",
+          "titulo": "Compras públicas: oito projetos que mudam regras de licitações avançam no Congresso",
+          "data": "2026-09-21",
+          "url": null,
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|tst-tema39-prescricao-intercorrente-pauta|2026|2026-09-22",
+          "fonte": "jota",
+          "categoria": "Mídia",
+          "titulo": "TST deve fixar retroatividade da prescrição intercorrente trabalhista (Tema 39)",
+          "data": "2026-09-22",
+          "url": null,
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|cnj-adia-2027-execucoes|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "CNJ adia para 2027 vigência de regras para acelerar execuções judiciais",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464973/cnj-adia-para-2027-vigencia-de-regras-para-acelerar-execucoes-judiciais",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|stm-cha-de-manta-condenacao-militares|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "STM mantém condenação de 7 militares por 'chá de manta' que fez soldado perder baço",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464954/cha-de-manta-que-causou-perda-do-baco-leva-a-condenacao-de-militares",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|tjsp-apple-restringe-acesso-menores-cassino|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "TJ/SP manda Apple restringir acesso de menores a aplicativo de cassino",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464986/tj-sp-manda-apple-restringir-acesso-de-menores-a-aplicativo-de-cassino",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|tjsp-mantem-suspensao-paineis-led-times-square|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "TJ/SP mantém suspensão de painéis de LED em 'Times Square de SP'",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464998/tj-sp-mantem-suspensao-de-paineis-de-led-em-times-square-de-sp",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|tjdf-nega-indenizacao-deepfake-antes-tese-stf|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "TJ/DF nega indenização por deepfake impulsionado antes da nova tese do STF",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464974/tj-df-nega-indenizacao-por-deepfake-impulsionado-antes-da-nova-tese-do-stf",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas-aasp|processo-civil-eficiente-palestra-30-09|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "AASP e OAB-DF promovem palestra sobre Processo Civil Eficiente em 30/09",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/agenda/456918/processo-civil-eficiente--tecnicas-para-aceleracao-do-resultado",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|tjpe-falso-coletivo-plano-empresarial|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "TJ/PE considera 'falso coletivo' plano empresarial com seis familiares",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464953/tj-pe-considera-falso-coletivo-plano-empresarial-com-seis-familiares",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|migalhas|trt2-afasta-justa-causa-fotos-empresa|2026|2026-09-21",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "TRT-2 afasta justa causa por uso de fotos da empresa em ação judicial",
+          "data": "2026-09-21",
+          "url": "https://www.migalhas.com.br/quentes/464979/trt-2-afasta-justa-causa-por-uso-de-fotos-da-empresa-em-acao-judicial",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "opiniao|conjur|fenotipagem-genetica-investigacao-criminal|2026|2026-09-22",
+          "fonte": "conjur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Fenotipagem genética na investigação criminal: o que a Lei 15.295/25 realmente proibiu?",
+          "data": "2026-09-22",
+          "url": "https://conjur.com.br/2026-set-22/fenotipagem-genetica-na-investigacao-criminal-o-que-a-lei-15-295-25-realmente-proibiu/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|reforma-concursos-cartorio-cnj|2026|2026-09-22",
+          "fonte": "conjur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Reforma dos concursos de cartório: papel do CNJ na construção de novo paradigma",
+          "data": "2026-09-22",
+          "url": "https://conjur.com.br/2026-set-22/reforma-dos-concursos-de-cartorio-papel-do-cnj-na-construcao-de-novo-paradigma/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|limites-poder-regulamentar-anp|2026|2026-09-22",
+          "fonte": "conjur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Os limites do poder regulamentar da ANP",
+          "data": "2026-09-22",
+          "url": "https://conjur.com.br/2026-set-22/os-limites-do-poder-regulamentar-da-anp/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "fofoquinha|imprensa-geral|barci-moraes-nota-voo-jato-vorcaro|2026|2026-09-21",
+          "fonte": "websearch",
+          "categoria": "Fofoquinha",
+          "titulo": "Escritório Barci de Moraes reage à revelação do jato ligado a Vorcaro, gabinete do ministro não responde",
+          "data": "2026-09-21",
+          "url": null,
+          "status": "FORTE INDÍCIO"
+        },
+        {
+          "chave": "versiculo|dailyverses|mateus-18-10|2026|2026-09-22",
+          "fonte": "versiculo.py",
+          "categoria": "Versículo",
+          "titulo": "Mateus 18:10 (ARC)",
+          "data": "2026-09-22",
+          "url": "https://dailyverses.net/pt/2026/9/22",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|negacao-dor-mente|indice-65|2026-09-22",
+          "fonte": "munger-quotes.json",
+          "categoria": "Munger",
+          "titulo": "A dor faz a mente negar o que é verdadeiro mas insuportável; a realidade não some por isso.",
+          "data": "2026-09-22",
+          "url": null,
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel",
+        "gmail_push_stf_informativos": "saudavel",
+        "gmail_stj_codju": "intermitente_sem_edicao_na_janela",
+        "gmail_push_planalto": "mudo",
+        "gmail_jota": "saudavel",
+        "congresso_ultimas_leis": "saudavel_sem_novidade_na_janela",
+        "congresso_mpvs": "saudavel_sem_novidade_na_janela",
+        "conjur": "saudavel",
+        "migalhas": "saudavel",
+        "youversion": "instavel_client_challenge",
+        "dailyverses": "saudavel"
+      },
+      "errors": [
+        {
+          "descricao": "Coletor JOTA: 1 thread (Palver/pesquisa eleitoral) excedeu o limite de tokens do get_thread e não pôde ser lido por inteiro; classificado como eleitoral só pelo assunto e descartado.",
+          "impacto": "baixo — item era claramente fora de escopo (pesquisa eleitoral)."
+        }
+      ],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (82 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; nenhuma lei/MPV nova confirmada na janela de hoje.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto — reverificado em 22/09: banca Cebraspe e subsídio ~R$37.765,55 confirmados, ~20 vagas; edital ainda sem data oficial de publicação. Armadilha banca_edital_antigo checada e descartada novamente.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Não reverificado em 22/09 (faixa longo prazo, próxima execução de segunda-feira).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TRF5, TJRS, PGE-AL, PGM Juazeiro/BA não reverificados em 22/09 (faixa longo prazo). TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO seguem sem reverificação.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Ministros do STF avaliam separar apuração ética da criminal no caso Vorcaro (Moraes, Toffoli, Gilmar, filho de Fux mencionados); vista de Dino sobre unificar/separar casos Moraes/Mendonça segue em aberto (até 90 dias). Escritório Barci de Moraes (esposa do ministro) confirmou uso de táxi aéreo da Prime Aviation e que o ministro a acompanhou em viagens, negando Vorcaro a bordo — contradiz nota anterior do gabinete (mar/abr 2026); gabinete do ministro não respondeu à nova revelação (imagens de 22/08/2025 publicadas por Lauro Jardim/O Globo em 21/09). TSE manteve por 4-0 a suspensão da campanha de Dallagnol (já noticiada em 20/09).",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": [
+        "As 5 edições do Informativo STF (1225-1229/2026) foram verificadas pelo orquestrador via search_threads direto (assuntos e horários distintos confirmados, 22h05-22h41 de 21/09) — são edições legítimas e distintas, não duplicatas; porém o link de cada e-mail aponta ao portal de busca genérico (verTexto.asp), não ao PDF/conteúdo específico de cada edição, então o conteúdo jurisprudencial não foi resumido nesta execução.",
+        "ConJur (/noticias/, /artigos/, /colunas/) não expõe horário de publicação, só a data no slug — itens datados 21/09 foram tratados como (herdada) por precaução, já que não é possível saber se foram publicados antes ou depois das 07h07 de 21/09 (início da janela).",
+        "Migalhas: dos 10 itens extraídos de /quentes, 6 foram confirmados por checagem cruzada (2+ fontes independentes cada); 2 permanecem PENDÊNCIA DE VERIFICAÇÃO (fonte única); os 2 itens datados 22/09 (OAB/RJ-TRT1, AASP) foram checados pelo orquestrador — AASP confirmado por fonte própria (aasp.org.br); OAB/RJ-TRT1 não teve correspondência exata encontrada (busca trouxe reunião de 18/09 sobre celulares em audiência, tema possivelmente diferente do anunciado) — item excluído do e-mail por precaução.",
+        "Thread JOTA 'Fachin muda estratégia...' (21/09 07:00:41 -03:00) ficou 7 minutos antes do início da janela (07:07:50) — excluído por estar fora da janela; o conteúdo já estava substancialmente refletido na nota da pendência crise_institucional_stf_pgr_acompanhar da execução anterior (21/09).",
+        "Thread STF Notícias 'Confira os destaques do Plenário Virtual (18-25/09)' (21/09 02:07 -03:00) já havia sido publicado na edição anterior (chave stf|agenda|plenario-virtual-18-a-25-09|2026-09-21) — não republicado."
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 51114,
+          "chamadas": 15,
+          "duracao_ms": 75444
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 169674,
+          "chamadas": 14,
+          "duracao_ms": 160062
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 101663,
+          "chamadas": 29,
+          "duracao_ms": 221043
         }
       }
     }

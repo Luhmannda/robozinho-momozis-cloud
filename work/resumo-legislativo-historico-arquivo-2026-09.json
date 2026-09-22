@@ -1632,6 +1632,183 @@
         }
       },
       "delivery_reconciled_at": "2026-09-08T07:19:36-03:00"
+    },
+    {
+      "execution_id": "2026-09-08-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-08T07:09:19-03:00",
+      "run_finished_at": "2026-09-08T07:18:52-03:00",
+      "date": "2026-09-08",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-07T07:17:32-03:00",
+      "window_end": "2026-09-08T07:18:52-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 08/09/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r6811601522802821316",
+      "items": [
+        {
+          "chave": "fofoquinha|jota|empresarios-articulam-aperfeicoamento-institucional-stf|2026|2026-09-08",
+          "fonte": "JOTA (citando Valor Econômico)",
+          "categoria": "fofoquinha",
+          "titulo": "Empresários se articulam para propor 'aperfeiçoamento institucional' do STF",
+          "data": "2026-09-08",
+          "status": "SEM CONFIRMAÇÃO OFICIAL"
+        },
+        {
+          "chave": "midia|jota|reforma-tributaria-contencioso-restrito-turivius|2026|2026-09-08",
+          "fonte": "JOTA (citando Folha de S.Paulo/Turivius)",
+          "categoria": "midia",
+          "titulo": "Reforma tributária deve gerar contencioso mais restrito e concentrado",
+          "data": "2026-09-08",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|justica-federal-deducao-ir-educacao-tea|2026|2026-09-08",
+          "fonte": "JOTA (citando coluna Mônica Bergamo/Folha)",
+          "categoria": "midia",
+          "titulo": "Justiça Federal reconhece dedução integral de IR para educação de filho com TEA",
+          "data": "2026-09-08",
+          "status": "MÍDIA ESPECIALIZADA, sem confirmação oficial"
+        },
+        {
+          "chave": "midia|migalhas|stf-valida-planos-estaduais-presidios|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "STF valida planos estaduais para enfrentar violações em presídios",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA, sem confirmação oficial"
+        },
+        {
+          "chave": "midia|migalhas|simonetti-cobra-resposta-stf-transparencia|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "Simonetti cobra respostas do STF e defende transparência para recuperar confiança",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463970/simonetti-cobra-resposta-do-stf-e-defende-transparencia-para-confianca"
+        },
+        {
+          "chave": "midia|migalhas|tjsp-afasta-tarifa-carga-poluidora-sabesp|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "TJ/SP afasta tarifa de carga poluidora cobrada pela Sabesp em comércio",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463930/tj-sp-afasta-tarifa-de-carga-poluidora-cobrada-pela-sabesp-em-comercio"
+        },
+        {
+          "chave": "midia|migalhas|trf3-transparencia-salarial|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "TRF-3 mantém obrigação de empresas divulgarem relatórios de transparência salarial",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463802/trf-3-empresas-divulgarem-relatorios-de-transparencia-salarial"
+        },
+        {
+          "chave": "midia|migalhas|justica-limita-reajuste-plano-falso-coletivo-ans|2026|2026-09-07",
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "Justiça limita reajuste de plano falso coletivo a índices da ANS",
+          "data": "2026-09-07",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.migalhas.com.br/quentes/463643/justica-limita-reajuste-de-plano-falso-coletivo-a-indices-da-ans"
+        },
+        {
+          "chave": "versiculo|dailyverses|lucas-12-2|2026|2026-09-08",
+          "fonte": "DailyVerses.net",
+          "categoria": "versiculo",
+          "titulo": "Lucas 12:2 (ARC)",
+          "data": "2026-09-08",
+          "status": "VERSÍCULO DO DIA",
+          "url": "https://dailyverses.net/pt/2026/9/8"
+        },
+        {
+          "chave": "munger|citacao|otimo-negocio-preco-justo|indice-51|2026-09-08",
+          "fonte": "work/munger-quotes.json",
+          "categoria": "munger",
+          "titulo": "Um ótimo negócio a preço justo vale mais que um negócio medíocre a preço de banana.",
+          "data": "2026-09-08",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel — 2 itens no push de hoje, ambos já cobertos/sem conteúdo publicável (1 duplicata de 04/09, 1 nota de pesar sem detalhe)",
+        "gmail_push_stf_informativos": "saudavel — só andamento processual individual (ARE 1594146), não conta como informativo",
+        "gmail_stj_codju": "silente nesta janela (mais um dia sem sucesso)",
+        "gmail_push_planalto": "mudo — sonda de hoje vazia, mantém-se",
+        "gmail_jota": "saudavel — 1 boletim, 3 notícias aproveitadas, 0 opinião, nenhum link resolvido (fontes citadas são Valor/Folha, não matérias próprias do JOTA)",
+        "congresso_ultimas_leis": "saudavel — consultado via curl, sem lei nova na janela (mais recente: Lei 15.496/2026 de 03/09)",
+        "congresso_mpvs": "saudavel — sem MPV nova; checagem cruzada da MPV 1388 feita, sem anomalia, mas já publicada antes",
+        "conjur": "FALHA NOVA — www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão; inacessível mesmo com o domínio liberado no probe do passo 1",
+        "migalhas": "saudavel — curl funcionou, 10 manchetes extraídas, 8 aproveitadas na janela"
+      },
+      "errors": [
+        {
+          "fonte": "conjur",
+          "erro": "www.conjur.com.br devolve 301 para o apex conjur.com.br, que retorna 403 (CONNECT tunnel failed) no proxy da sessão",
+          "impacto": "nenhum item do ConJur coletado ou confirmado nesta execução"
+        }
+      ],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (68 dias) - sonda de 08/09 também vazia",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto - 17ª execução sem edital oficial; buscas de 08/09 encontraram só páginas do edital antigo (2022/23, 30-71 vagas), armadilha banca_edital_antigo confirmada de novo, sem novidade real",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 08/09 (faixa longo_prazo, só na 1ª execução da semana); status mantido do check de 07/09",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "Não reverificado em 08/09 (faixa longo_prazo). Prazos a observar: MP-SP 13/09, TJ-RS inscrições até 15/09, TRF5 inscrições até 28/09, PGE-AL resultado ~20/10, TRF2 orais 14-25/09. Sem movimento novo confirmado.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Seguiu evoluindo em 08/09: empresários da Faria Lima articulam manifesto por 'aperfeiçoamento institucional' do STF (via Valor/JOTA); Simonetti (OAB) cobra transparência do STF (via Migalhas). Prazo de 5 dias da PET 16.704 vence ~09/09, ainda sem manifestação colegiada do STF até esta execução.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "conjur_egress_regressao",
+          "texto": "ConJur ficou inacessível em 08/09: www.conjur.com.br redireciona (301) para o apex, que está bloqueado (403) pelo proxy da sessão — contraria o probe do passo 1, que indicou www liberado. Pode ser regressão pontual (comportamento do site) ou mudança na configuração do allowlist do ambiente; acompanhar na próxima execução.",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": "STF Notícias: único reenvio do push de hoje repetia notícia já publicada em 04/09 (limites a símbolos religiosos, chave stf|noticia|limites-nomes-simbolos-religiosos-denominacoes já em chaves_publicadas) — excluída por duplicata. Uma 'nota de pesar' de 07/09 chegou pelo mesmo canal mas sem teor detalhado pelo coletor (apenas título genérico) — não publicada por falta de conteúdo verificável, não por falha técnica. STF Jurisprudência: único e-mail trouxe apenas andamento processual individual (ARE 1594146), que por regra do ledger não conta como informativo. STJ CodJu silente (mais um dia sem sucesso; ainda não atingiu o limiar de 5 execuções para reclassificar como mudo). Concursos: reverificação de hoje limitada à pendência 'ativa' (TJDFT), conforme regra de faixa para dia que não é 1ª execução da semana; itens longo_prazo mantidos com o status do último check (07/09). Web collector também encontrou, sem ter sido solicitado, menções a TRF5/TJ-RS/SETEC Campinas/PGM Valinhos-SP numa busca genérica de concursos — TRF5 e TJ-RS já estavam publicados anteriormente (sem novidade real, não repetidos como 'novos'); SETEC Campinas e PGM Valinhos-SP não fazem parte da lista de pendências rastreadas e não foram verificados (nem ano, nem fonte oficial) — descartados desta edição por falta de verificação, não incluídos no e-mail nem no ledger.",
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 43869,
+          "chamadas": 8,
+          "duracao_ms": 46052
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 77201,
+          "chamadas": 11,
+          "duracao_ms": 105944
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 74812,
+          "chamadas": 17,
+          "duracao_ms": 155661
+        }
+      },
+      "gmail_message_id": "1a08090066efbc25",
+      "delivery_reconciled_at": "2026-09-09T07:24:10-03:00"
     }
   ]
 }
