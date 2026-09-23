@@ -1,67 +1,44 @@
 {
-  "gerado_em": "2026-09-22T07:32:03-03:00",
-  "gerado_por": "2026-09-22-7h",
+  "gerado_em": "2026-09-23T07:30:30-03:00",
+  "gerado_por": "2026-09-23-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-22-7h",
-    "date": "2026-09-22",
-    "email_subject": "Robozinho dos Momozis até Passar - 22/09/2026 - 7h",
+    "execution_id": "2026-09-23-7h",
+    "date": "2026-09-23",
+    "email_subject": "Robozinho dos Momozis até Passar - 23/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-3316155552380965493",
-    "window_end": "2026-09-22T07:19:05-03:00"
+    "draft_id": "r5736228775529341918",
+    "window_end": "2026-09-23T07:17:20-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (82 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; nenhuma lei/MPV nova confirmada na janela de hoje.",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (83 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; 5 leis novas confirmadas por ela hoje.",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto — reverificado em 22/09: banca Cebraspe e subsídio ~R$37.765,55 confirmados, ~20 vagas; edital ainda sem data oficial de publicação. Armadilha banca_edital_antigo checada e descartada novamente.",
+      "texto": "TJDFT Juiz Substituto — reverificado em 23/09: banca Cebraspe e subsídio ~R$37.765,55 confirmados novamente, ~20 vagas; edital ainda sem data oficial de publicação. Armadilha banca_edital_antigo checada e descartada de novo.",
       "faixa": "ativa"
     },
     {
       "id": "agu_pfn_edital",
-      "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Não reverificado em 22/09 (faixa longo prazo, próxima execução de segunda-feira).",
+      "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Não reverificado em 23/09 (faixa longo prazo).",
       "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "TRF5, TJRS, PGE-AL, PGM Juazeiro/BA não reverificados em 22/09 (faixa longo prazo). TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO seguem sem reverificação.",
+      "texto": "TRF5 (inscrições até 28/09, prova 20/12), TJRS (inscrições até 14/10, prova 13/12), PGE-AL (resultado ~20/10), PGM Juazeiro/BA (edital previsto fim de set/2026) não reverificados em 23/09 (faixa longo prazo). TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO seguem sem reverificação.",
       "faixa": "longo_prazo"
     },
     {
       "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Ministros do STF avaliam separar apuração ética da criminal no caso Vorcaro (Moraes, Toffoli, Gilmar, filho de Fux mencionados); vista de Dino sobre unificar/separar casos Moraes/Mendonça segue em aberto (até 90 dias). Escritório Barci de Moraes (esposa do ministro) confirmou uso de táxi aéreo da Prime Aviation e que o ministro a acompanhou em viagens, negando Vorcaro a bordo — contradiz nota anterior do gabinete (mar/abr 2026); gabinete do ministro não respondeu à nova revelação (imagens de 22/08/2025 publicadas por Lauro Jardim/O Globo em 21/09). TSE manteve por 4-0 a suspensão da campanha de Dallagnol (já noticiada em 20/09).",
+      "texto": "Vazamento do celular de Vorcaro revela contrato de honorários (>R$400 milhões) com o Banco Master envolvendo a advogada Camilla Ramos e um familiar do desembargador Newton Pereira Ramos Neto (TRF-1) — grau de parentesco divergente entre fontes agregadas, checar em fonte primária. Mendonça sinaliza investigar Moraes por denunciação caluniosa e pede acesso ao inquérito das fake news. Fux sorteado relator de ação sobre entrada de esposa de Moraes e de Vorcaro no Senado. Gilmar Mendes cogita levar ao plenário do STF a exigência de perícia individual nos créditos do setor sucroalcooleiro (mencionado incidentalmente, sem confirmação — não publicado como item próprio).",
       "faixa": "ativa"
     }
   ],
   "chaves_publicadas": [
-    "stf|noticia|pedido-vista-suspende-julgamento-conjunto-peticoes-master|2026|2026-09-15",
-    "stf|decisao|combustiveis-venda-interestadual-conclusao-nao-cancela-icms|2026|2026-09-15",
-    "stf|noticia|presidente-stf-papel-institucional-sessao-extraordinaria|2026|2026-09-15",
-    "planalto|lei|15502|2026|2026-09-10",
-    "planalto|mpv|1391|2026|2026-09-11",
-    "planalto|lei|15503|2026|2026-09-14",
-    "midia|conjur-migalhas-jota|sessao-stf-pet16662-termina-vista-carmen-separar-casos|2026|2026-09-15",
-    "midia|jota|stf-mantem-poder-requisicao-mpu-orgaos-estaduais|2026|2026-09-15",
-    "midia|jota|anadef-dpu-teto-gastos|2026|2026-09-15",
-    "midia|conjur|banco-horas-sem-acordo-coletivo-invalido|2026|2026-09-15",
-    "midia|conjur|grupo-recuperacao-fiscal-sp-premio-cnj|2026|2026-09-15",
-    "midia|conjur|carf-oito-sumulas-tributarias|2026|2026-09-15",
-    "midia|conjur|stf-valida-teto-compensacao-creditos-tributarios|2026|2026-09-15",
-    "midia|conjur|prescricao-punitiva-extingue-poder-disciplinar|2026|2026-09-15",
-    "opiniao|conjur|ministros-stf-impeachment-prisao|2026|2026-09-16",
-    "opiniao|conjur|desenho-mp1357-delegacao-normativa-jabuti|2026|2026-09-15",
-    "opiniao|conjur|guia-pratico-julgamento-stf-terca-parte2|2026|2026-09-15",
-    "opiniao|conjur|limbo-juridico-interposicao-fraudulenta|2026|2026-09-15",
-    "opiniao|conjur|recado-153-milhoes-anpd-mercado|2026|2026-09-16",
-    "opiniao|conjur|lc236-vedacao-multa-isolada-compensacoes-tributarias|2026|2026-09-15",
-    "fofoquinha|jota|celular-vorcaro-filhos-nunesmarques-fux|2026|2026-09-15",
-    "fofoquinha|jota|lula-avalia-indicar-governador-rj-stf|2026|2026-09-15",
-    "concurso|trf5|juiz-federal-substituto-inscricoes-ate-28-09|2026|2026-09-16",
     "stf|noticia|programa-lideranca-feminina-reconhecido|2026|2026-09-16",
     "stf|noticia|avanca-itbi-imunidade-capital-social-imobiliarias|2026|2026-09-16",
     "stf|noticia|comeca-analisar-unificacao-licenca-maternidade|2026|2026-09-16",
@@ -147,13 +124,49 @@
     "opiniao|conjur|limites-poder-regulamentar-anp|2026|2026-09-22",
     "fofoquinha|imprensa-geral|barci-moraes-nota-voo-jato-vorcaro|2026|2026-09-21",
     "versiculo|dailyverses|mateus-18-10|2026|2026-09-22",
-    "munger|citacao|negacao-dor-mente|indice-65|2026-09-22"
+    "munger|citacao|negacao-dor-mente|indice-65|2026-09-22",
+    "planalto|lei|15511|2026|2026-09-21",
+    "planalto|lei|15509|2026|2026-09-21",
+    "planalto|lei|15510|2026|2026-09-21",
+    "planalto|lei|15508|2026|2026-09-21",
+    "planalto|lei|15507|2026|2026-09-21",
+    "stf|noticia|audiencia-emendas-parlamentares-responsabilidade|2026|2026-09-23",
+    "midia|conjur-migalhas|lei-arbitragem-30-anos|2026|2026-09-23",
+    "midia|conjur|notarios-registradores-prescricao-5-anos|2026|2026-09-22",
+    "midia|conjur|stj-altera-modelo-juizes-convocados-dedicacao-exclusiva|2026|2026-09-22",
+    "midia|conjur|rito-relevancia-stj-absorve-repetitivos|2026|2026-09-22",
+    "midia|jota|tse-mantem-suspensao-campanha-dallagnol-maioria|2026|2026-09-22",
+    "midia|jota|torniquete-consignado-inss-lei-15327|2026|2026-09-22",
+    "midia|jota|agu-acao-buzzi-perda-cargo-stj|2026|2026-09-22",
+    "midia|jota-estadao|stj-banco-financia-obra-nao-responde-solidariamente|2026|2026-09-23",
+    "midia|jota|carf-afasta-prescricao-intercorrente-interposicao-fraudulenta|2026|2026-09-22",
+    "midia|migalhas|oab-es-compromisso-publico-candidatos|2026|2026-09-23",
+    "midia|conjur|alcantara-conflito-fundiario-quilombola|2026|2026-09-23",
+    "midia|conjur|direito-internacional-privado-transformacao|2026|2026-09-23",
+    "midia|conjur|tse-beco-sem-saida-retotalizacao-votos|2026|2026-09-22",
+    "midia|jota|agu-precatorios-rastrear-beneficiario-final|2026|2026-09-22",
+    "midia|jota|dino-emendas-parlamentares-pos-eleicao|2026|2026-09-22",
+    "midia|jota|dino-mantem-proibicao-bets-mg|2026|2026-09-22",
+    "midia|jota|bc-incidentes-ciberneticos-recorde|2026|2026-09-22",
+    "midia|jota|nicaragua-indenizar-americano-deportado|2026|2026-09-22",
+    "midia|jota|uniao-discord-regras-mais-duras|2026|2026-09-22",
+    "midia|migalhas|oabsp-conselheira-comissao-cfoab-reforma-judiciario|2026|2026-09-23",
+    "opiniao|jota|supremo-problema-agencia|2026|2026-09-22",
+    "opiniao|jota|eca-digital-reclamacao-brf-stf-teste|2026|2026-09-22",
+    "opiniao|jota|inconstitucionalidade-cbs-ibs-base-iss|2026|2026-09-22",
+    "opiniao|jota|gratuidade-justica-hipossuficiencia-trabalhista|2026|2026-09-22",
+    "opiniao|jota|indigenismo-judiciario-brasileiro|2026|2026-09-22",
+    "opiniao|jota|bets-brasil-legalizacao-restricoes|2026|2026-09-22",
+    "fofoquinha|jota-estadao|vazamento-celular-vorcaro-contrato-turma-kn-desembargador-trf1|2026|2026-09-22",
+    "fofoquinha|jota|mendonca-investigar-moraes-denunciacao-caluniosa|2026|2026-09-22",
+    "fofoquinha|jota|fux-relator-acao-esposa-moraes-vorcaro-senado|2026|2026-09-22",
+    "versiculo|dailyverses|1joao-4-1|2026|2026-09-23",
+    "munger|citacao|excesso-autoestima|indice-66|2026-09-23"
   ],
-  "total_chaves": 109,
+  "total_chaves": 123,
   "metricas": {
-    "execucoes_registradas": 26,
+    "execucoes_registradas": 27,
     "itens_ultimas_10": [
-      26,
       43,
       32,
       29,
@@ -162,51 +175,52 @@
       32,
       22,
       25,
-      29
+      29,
+      37
     ],
-    "media_itens": 29.5,
-    "itens_ultima": 29,
+    "media_itens": 30.6,
+    "itens_ultima": 37,
     "coletores_ultima": {
       "gmail": {
         "modelo": "haiku",
-        "tokens": 51114,
-        "chamadas": 15,
-        "duracao_ms": 75444
+        "tokens": 42226,
+        "chamadas": 7,
+        "duracao_ms": 41289
       },
       "jota": {
         "modelo": "sonnet",
-        "tokens": 169674,
-        "chamadas": 14,
-        "duracao_ms": 160062
+        "tokens": 118270,
+        "chamadas": 10,
+        "duracao_ms": 185933
       },
       "web": {
         "modelo": "sonnet",
-        "tokens": 101663,
+        "tokens": 97042,
         "chamadas": 29,
-        "duracao_ms": 221043
+        "duracao_ms": 228726
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
         "execucoes": 10,
-        "tokens_total": 472891,
-        "chamadas_total": 98,
-        "tokens_media": 47289,
-        "chamadas_media": 9.8
+        "tokens_total": 467037,
+        "chamadas_total": 95,
+        "tokens_media": 46704,
+        "chamadas_media": 9.5
       },
       "jota": {
         "execucoes": 10,
-        "tokens_total": 1706367,
-        "chamadas_total": 199,
-        "tokens_media": 170637,
-        "chamadas_media": 19.9
+        "tokens_total": 1633351,
+        "chamadas_total": 185,
+        "tokens_media": 163335,
+        "chamadas_media": 18.5
       },
       "web": {
         "execucoes": 10,
-        "tokens_total": 981628,
-        "chamadas_total": 333,
-        "tokens_media": 98163,
-        "chamadas_media": 33.3
+        "tokens_total": 981088,
+        "chamadas_total": 326,
+        "tokens_media": 98109,
+        "chamadas_media": 32.6
       }
     }
   }
