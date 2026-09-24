@@ -1,6 +1,6 @@
 # Robozinho dos Momozis até Passar — Prompt da Newsletter Jurídica
 
-> **Versão 10 — 07/09/2026.** Só o que **muda uma decisão em tempo de execução**: selos, protocolos de fonte, classificação de status e regras editoriais. O passo a passo operacional está em `ROTINA.md`; o estado corrente das fontes, no ledger; histórico de versões e narrativa de incidentes, em `resumo-legislativo-historico.json`. **Nesta versão:** removido tudo o que a ROTINA, o template ou o ledger já dizem (era lido todo dia sem decidir nada — de 34 KB para ~24 KB, sem contar o que a ROTINA absorveu); a numeração das seções foi preservada para não quebrar as referências do ledger. Regras de prova e conteúdo: nenhuma foi alterada.
+> **Versão 10.1 — 24/09/2026** (só referências de passo atualizadas: a ROTINA passou a usar scripts determinísticos — `inicio.py`, `coleta_web.py`, `versiculo.py`, `Update-Historico.py --ledger`). **Versão 10 — 07/09/2026.** Só o que **muda uma decisão em tempo de execução**: selos, protocolos de fonte, classificação de status e regras editoriais. O passo a passo operacional está em `ROTINA.md`; o estado corrente das fontes, no ledger; histórico de versões e narrativa de incidentes, em `resumo-legislativo-historico.json`. **Nesta versão:** removido tudo o que a ROTINA, o template ou o ledger já dizem (era lido todo dia sem decidir nada — de 34 KB para ~24 KB, sem contar o que a ROTINA absorveu); a numeração das seções foi preservada para não quebrar as referências do ledger. Regras de prova e conteúdo: nenhuma foi alterada.
 
 **Tarefa recorrente:** dias úteis (segunda a sexta), 7h (`America/Sao_Paulo`), newsletter em português **"Robozinho dos Momozis até Passar"**, salva como **RASCUNHO** no Gmail para **pereirafranciscofilho@gmail.com** e **luizaxbarreto@gmail.com**, sem pedir confirmação. **A rotina nunca envia** — o Apps Script `EnviarRobozinho.gs` (fora deste repositório) envia pelo assunto exato, às vezes minutos depois da criação e já enviou bem fora da janela nominal (14h15 em 10/07; 20h23 em 06/07): **criar sempre, a qualquer hora**, nunca presumir que rascunho atrasado fica sem envio.
 
@@ -32,7 +32,7 @@ Ver ROTINA passo 3 (elástica: `window_end` anterior → 7h de hoje, teto de 7 d
 
 ## 4. Histórico e não duplicidade
 
-- **Gravação: sempre pelo helper** (ROTINA passo 8), passando o **caminho do arquivo** da nova execução, nunca JSON inline. Em tempo de execução, ler apenas `work/robozinho-estado.json`; o histórico integral só em dúvida real — e nunca se conclui "não existe edição do dia X" a partir de leitura truncada.
+- **Gravação: sempre pelo helper** (ROTINA passo 9), passando o **caminho do arquivo** da nova execução, nunca JSON inline. Em tempo de execução, ler apenas `work/robozinho-estado.json`; o histórico integral só em dúvida real — e nunca se conclui "não existe edição do dia X" a partir de leitura truncada.
 - **Campos por execução:** `execution_id`, `type`, `run_started_at`, `run_finished_at`, `date`, `timezone`, `window_start`, `window_end`, `recipients`, `email_subject`, `delivery` (`sent`/`draft`/`draft_ja_existente`), `gmail_message_id` ou `draft_id`, `items`, `source_status`, `errors`, `pendencias`, `verification_notes`. Campos extras são permitidos.
 - **Por item:** fonte, categoria, título, data, identificador, URL oficial, status e **chave única estável** `fonte|tipo|numero|ano|data`, minúsculas (ex.: `dou|decreto|11999|2026|2026-06-29`). Item que muda de estado (prova marcada → prova realizada; rumor → desfecho) recebe chave nova com o desfecho; nunca reutiliza a chave anterior.
 - **Arquivamento (automático):** o principal mantém as 10 execuções mais recentes; o excedente vai para `resumo-legislativo-historico-arquivo-AAAA-MM.json`. **Nunca apagar, apenas mover.**
@@ -139,9 +139,9 @@ Logo após a mídia. Movimentações, rumores, bastidores e sinais de novas prov
 
 ## 13. Seção "Porque sem Deus, nada é possível"
 
-Fonte e fallback já resolvidos por `work/versiculo.py` (ROTINA passo 6, que tenta o YouVersion e cai no DailyVerses.net/outras se houver desafio anti-bot ou página não datada) — publique exatamente o que ele retornar (`fonte`, `referência`, `versão`, `texto`), **rotulando a fonte REAL informada** (nunca atribua ao YouVersion o que veio de outra fonte). Ignorar divergência entre apps no mesmo dia não é erro nem pendência. Traduções protegidas longas: referência, versão, link e trecho curto; sempre acrescentar reflexão própria de 2–3 linhas conectada ao dia.
+Fonte e fallback já resolvidos por `work/versiculo.py` (ROTINA passo 5, que tenta o YouVersion e cai no DailyVerses.net/outras se houver desafio anti-bot ou página não datada) — publique exatamente o que ele retornar (`fonte`, `referência`, `versão`, `texto`), **rotulando a fonte REAL informada** (nunca atribua ao YouVersion o que veio de outra fonte). Ignorar divergência entre apps no mesmo dia não é erro nem pendência. Traduções protegidas longas: referência, versão, link e trecho curto; sempre acrescentar reflexão própria de 2–3 linhas conectada ao dia.
 
-Saída `"ok": false`: fallback manual por WebSearch (até 2 buscas, ver ROTINA passo 6). Nada resolvendo, a seção fica **pendente** — nunca inventar versículo.
+Saída `"ok": false`: fallback manual por WebSearch (até 2 buscas, ver ROTINA passo 5). Nada resolvendo, a seção fica **pendente** — nunca inventar versículo.
 
 ## 14. Seção "Conhecimento nunca é demais"
 
@@ -165,7 +165,7 @@ O ledger `work/robozinho-aprendizado.json` é memória **operacional**, lida no 
 
 | Gatilho | Registro |
 |---|---|
-| Fonte falhou/silenciou | Incrementar contador; ≥5 execuções e antes funcionava → `mudo`, esforço reduzido |
+| Fonte falhou/silenciou | Contador incrementado pelo helper (`--ledger`, a partir de `source_status`); ≥5 execuções e antes funcionava → `mudo`, esforço reduzido |
 | Fonte voltou | Zerar contador, `saudavel`, registrar a data da volta |
 | Fonte devolveu conteúdo errado | Nova `armadilha` com sintoma + regra; se o `id` já existe, só somar a data em `detectado_em` |
 | Pendência parada | Rebaixar de faixa ou aposentar com justificativa |
@@ -184,7 +184,7 @@ Se o ledger não existir, criar com `{"fontes":[],"armadilhas":[],"pendencias_vi
 
 ## 17. Orquestração e delegação
 
-O modelo principal é **orquestrador e revisor**; coleta volumosa vai para subagentes com modelos eficientes (escopo, modelos e prompts: ROTINA passo 5). **Critério: volume, não dificuldade** — subagente parte do zero e reconstrói contexto; delegar tarefa de 1 chamada custa mais do que executá-la.
+O modelo principal é **orquestrador e revisor**; o que é determinístico (datas, janela, listagens web, contadores) vai para scripts em `work/`; coleta volumosa vai para subagentes com modelos eficientes (escopo, modelos e prompts: ROTINA passo 5). **Critério: volume, não dificuldade** — subagente parte do zero e reconstrói contexto; delegar tarefa de 1 chamada custa mais do que executá-la.
 
 **Nunca delegar:** ancoragem de data; checagem cruzada de armadilhas; classificação de status e selos; versículo; composição do e-mail; decisões do ledger; e `create_draft` — o rascunho é criado uma única vez, pelo orquestrador, após revisão. Subagente jamais cria, edita ou envia e-mail.
 

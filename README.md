@@ -12,7 +12,12 @@ Repositório de suporte para rodar a newsletter "Robozinho dos Momozis até Pass
 - `work/robozinho-estado.json` — resumo de estado gerado automaticamente. Atualizado a cada execução.
 - `work/resumo-legislativo-historico.json` — histórico das últimas execuções. Atualizado a cada execução.
 - `work/resumo-legislativo-historico-arquivo-*.json` — arquivos mensais arquivados pelo helper (surgem com o tempo).
-- `work/Update-Historico.py` — porte em Python do helper `Update-Historico.ps1` (Windows), para rodar no ambiente Linux da rotina de nuvem. Mesma lógica: merge, reconciliação, arquivamento (máx. 10), detecção de mojibake, emissão do estado.
+- `work/Update-Historico.py` — porte em Python do helper `Update-Historico.ps1` (Windows), para rodar no ambiente Linux da rotina de nuvem. Merge, reconciliação, arquivamento (máx. 10), detecção de mojibake, emissão do estado; valida categoria/selo/chave/URL de cada item antes de gravar e, com `--ledger`, aplica os contadores mecânicos do ledger.
+- `work/inicio.py` — passo 1: âncora de data, janela, assuntos, rodapé, Munger e os prompts prontos dos coletores (`/tmp/coletor-*.md`).
+- `work/prompts/coletor-*.md` — modelos fixos dos prompts dos coletores Gmail, JOTA e Concursos (preenchidos pelo `inicio.py`).
+- `work/coleta_web.py` — coleta determinística de Congresso (leis e MPVs), ConJur e Migalhas, com hora exata por matéria e dedupe contra o histórico.
+- `work/versiculo.py` — versículo do dia (YouVersion → DailyVerses.net), com conferência da data.
+- `work/resolver_jota.py` — resolve os links-wrapper do JOTA por curl; só funciona com `www.jota.info` e `t.rdsv2.net` no allowlist do ambiente (senão avisa `BLOQUEADO` e o coletor usa WebSearch).
 
 ## Por que este repositório existe
 

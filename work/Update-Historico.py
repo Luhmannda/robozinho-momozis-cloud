@@ -16,9 +16,16 @@
 #       --reconciliar-message-id "19f84bc9b511e67e" \
 #       --relatorio-path "<scratchpad>/relatorio.txt"
 #
-#   Depois, SEMPRE ler o arquivo indicado em --relatorio-path com a
-#   ferramenta de leitura de arquivos (nunca confiar na saida do console
-#   para validar acentuacao).
+#   Com --ledger work/robozinho-aprendizado.json, aplica tambem os
+#   contadores mecanicos do ledger (ultimo_sucesso, sem_sucesso,
+#   dias_sem_email, execucoes das pendencias, atualizado_em) a partir de
+#   source_status e pendencias da nova execucao. So 1 vez por execution_id.
+#
+#   ANTES de gravar, valida a nova execucao: categoria (lista fechada, com
+#   apelidos normalizados), status (lista fechada de selos do prompt
+#   mestre; sufixo "(...)" vai para observacao), chave (5 partes,
+#   minusculas), URL sem wrapper/rastreio. Erro -> nada e gravado, exit 2.
+#   Chave ja publicada em execucao anterior -> aviso REPUBLICADA.
 # =====================================================================
 
 import argparse
@@ -26,7 +33,160 @@ import json
 import os
 import re
 import sys
-from datetime import datetime
+import unicodedata
+from datetime import datetime, date
+
+CATEGORIAS = [
+    "Planalto/Legislação", "STF Notícias", "STF Jurisprudência", "STJ Notícias",
+    "STJ Jurisprudência", "Informativos", "Concursos - Carreira", "Concursos - Apoio",
+    "Mídia", "Opinião/Análise", "Fofoquinha", "Versículo", "Munger",
+]
+SELOS = [
+    "NOVO", "URGENTE", "INSCRIÇÕES ABERTAS", "INSCRIÇÕES ENCERRADAS", "ENCERRA EM BREVE",
+    "ENCERRA HOJE", "EDITAL PUBLICADO", "EM ANDAMENTO", "EM PLANEJAMENTO", "PROVA EM BREVE",
+    "PROVA REALIZADA", "CONFIRMADO", "CONFIRMADO POR FONTE OFICIAL",
+    "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA", "FORTE INDÍCIO", "RUMOR",
+    "SEM CONFIRMAÇÃO OFICIAL", "PENDÊNCIA", "PENDÊNCIA DE VERIFICAÇÃO",
+    "MÍDIA ESPECIALIZADA", "OPINIÃO/ANÁLISE", "VERSÍCULO DO DIA", "SABEDORIA DO DIA",
+]
+SELO_FIXO = {"Opinião/Análise": "OPINIÃO/ANÁLISE", "Versículo": "VERSÍCULO DO DIA",
+             "Munger": "SABEDORIA DO DIA"}
+STATUS_FONTE = ("ok", "vazio", "falha", "nao_tentada")
+
+
+def norm(s):
+    s = unicodedata.normalize("NFKD", str(s or ""))
+    return re.sub(r"[^a-z]", "", "".join(c for c in s if not unicodedata.combining(c)).lower())
+
+
+ALIAS_CAT = {norm(c): c for c in CATEGORIAS}
+ALIAS_CAT.update({
+    "planalto": "Planalto/Legislação", "legislacao": "Planalto/Legislação",
+    "planaltolei": "Planalto/Legislação", "planaltompv": "Planalto/Legislação",
+    "stfnoticia": "STF Notícias", "stfdecisao": "STF Notícias", "stjnoticia": "STJ Notícias",
+    "informativo": "Informativos", "stfinformativo": "Informativos", "stjinformativo": "Informativos",
+    "concurso": "Concursos - Carreira",
+    "concursos": "Concursos - Carreira", "concursocarreira": "Concursos - Carreira",
+    "concursoapoio": "Concursos - Apoio", "midia": "Mídia", "clipping": "Mídia",
+    "opiniao": "Opinião/Análise", "fofoca": "Fofoquinha", "versiculo": "Versículo",
+    "sabedoria": "Munger",
+})
+ALIAS_SELO = {norm(s): s for s in SELOS}
+
+
+def validar(ex, chaves_anteriores):
+    """Normaliza ex no lugar. Devolve (erros, avisos)."""
+    erros, avisos = [], []
+    for campo in ("execution_id", "date", "window_start", "window_end", "email_subject",
+                  "delivery", "items"):
+        if campo not in ex or ex[campo] in (None, ""):
+            erros.append("campo obrigatorio ausente: " + campo)
+    if ex.get("delivery") not in ("draft", "draft_ja_existente", "sent"):
+        erros.append("delivery invalido: %r" % ex.get("delivery"))
+    if ex.get("delivery") == "draft" and not ex.get("draft_id"):
+        erros.append("delivery=draft sem draft_id")
+    vistas = set()
+    for n, it in enumerate(ex.get("items") or []):
+        ch = it.get("chave") or ""
+        rot = ch or "item %d" % n
+        cat = ALIAS_CAT.get(norm(it.get("categoria")))
+        if not cat:
+            erros.append("%s: categoria fora da lista %r" % (rot, it.get("categoria")))
+        else:
+            it["categoria"] = cat
+        base, _, resto = (it.get("status") or "").partition(" (")
+        selo = SELO_FIXO.get(cat) or ALIAS_SELO.get(norm(base))
+        if not selo:
+            erros.append("%s: status fora da lista fechada de selos %r" % (rot, it.get("status")))
+        else:
+            if resto:
+                it["observacao"] = ((it.get("observacao") or "") + " (" + resto).strip()
+            if selo != it.get("status"):
+                avisos.append("%s: status normalizado %r -> %r" % (rot, it.get("status"), selo))
+            it["status"] = selo
+        partes = ch.split("|")
+        if ch != ch.lower() or " " in ch or len(partes) != 5 or not all(partes):
+            erros.append("%s: chave malformada (esperado fonte|tipo|slug|ano|data, minusculas)" % rot)
+        if ch in vistas:
+            erros.append("%s: chave duplicada nesta execucao" % rot)
+        vistas.add(ch)
+        if ch in chaves_anteriores:
+            avisos.append("REPUBLICADA (chave ja saiu em edicao anterior): " + ch)
+        if re.search(r"t\.rdsv2\.net|google\.com/url|[?&]utm_", it.get("url") or ""):
+            erros.append("%s: URL com wrapper/rastreio: %s" % (rot, it.get("url")))
+    for fid, v in (ex.get("source_status") or {}).items():
+        if v not in STATUS_FONTE:
+            avisos.append("source_status[%s]=%r fora de %s (contador do ledger nao aplicado)"
+                          % (fid, v, "/".join(STATUS_FONTE)))
+    for nome, uso in (ex.get("coletores") or {}).items():
+        if not all(isinstance((uso or {}).get(k), int) for k in ("tokens", "chamadas", "duracao_ms")):
+            avisos.append("coletores[%s] sem tokens/chamadas/duracao_ms inteiros" % nome)
+    return erros, avisos
+
+
+def gravar_ledger(caminho, led):
+    """Uma entrada de lista por linha: compacto para ler e estavel para diff."""
+    partes = []
+    for k, v in led.items():
+        if isinstance(v, list) and v:
+            corpo = ",\n".join("    " + json.dumps(x, ensure_ascii=False) for x in v)
+            partes.append("  %s: [\n%s\n  ]" % (json.dumps(k), corpo))
+        else:
+            partes.append("  %s: %s" % (json.dumps(k), json.dumps(v, ensure_ascii=False)))
+    texto = "{\n" + ",\n\n".join(partes) + "\n}\n"
+    json.loads(texto)
+    with open(caminho, "w", encoding="utf-8", newline="") as f:
+        f.write(texto)
+
+
+def aplicar_ledger(caminho, ex, add_log):
+    led = read_json(caminho)
+    if led.get("atualizado_por_execucao") == ex["execution_id"]:
+        add_log("Ledger: contadores ja aplicados para %s — nada a fazer." % ex["execution_id"])
+        return
+    hoje = ex["date"]
+    fontes = {f.get("id"): f for f in led.get("fontes") or []}
+    for fid, v in (ex.get("source_status") or {}).items():
+        f = fontes.get(fid)
+        if f is None:
+            add_log("Ledger: fonte '%s' nao existe no ledger (criar so se mudar uma decisao)." % fid)
+            continue
+        if v == "ok":
+            f["ultimo_email" if "ultimo_email" in f else "ultimo_sucesso"] = hoje
+            if "dias_sem_email" in f:
+                f["dias_sem_email"] = 0
+            if "sem_sucesso" in f:
+                f["sem_sucesso"] = 0
+            if f.get("status") == "mudo":
+                f["status"], f["voltou_em"] = "saudavel", hoje
+                add_log("Ledger: fonte %s VOLTOU -> saudavel (revise a nota)." % fid)
+        elif v in ("vazio", "falha"):
+            if v == "vazio" and f.get("status") == "intermitente":
+                continue
+            f["sem_sucesso"] = int(f.get("sem_sucesso") or 0) + 1
+            if f.get("ultimo_email"):
+                f["dias_sem_email"] = (date.fromisoformat(hoje) - date.fromisoformat(f["ultimo_email"])).days
+            if f.get("status") == "saudavel" and f["sem_sucesso"] >= 5:
+                f["status"] = "mudo"
+                add_log("Ledger: fonte %s REBAIXADA -> mudo (%d execucoes sem sucesso; revise a nota)."
+                        % (fid, f["sem_sucesso"]))
+    ids = {p.get("id") for p in ex.get("pendencias") or [] if p.get("id")}
+    no_ledger = set()
+    for p in led.get("pendencias_vivas") or []:
+        no_ledger.add(p.get("id"))
+        if p.get("id") in ids:
+            p["execucoes"] = int(p.get("execucoes") or 0) + 1
+            if p.get("faixa") == "ativa" and p["execucoes"] > 21:
+                add_log("Ledger: pendencia %s ativa ha %d execucoes (>21) — rebaixar ou aposentar."
+                        % (p["id"], p["execucoes"]))
+        else:
+            add_log("Ledger: pendencia %s nao foi a edicao — se resolvida, remova-a." % p.get("id"))
+    for novo in sorted(ids - no_ledger):
+        add_log("Ledger: pendencia %s saiu na edicao mas nao existe no ledger." % novo)
+    led["atualizado_em"] = now_iso_with_offset()
+    led["atualizado_por_execucao"] = ex["execution_id"]
+    gravar_ledger(caminho, led)
+    add_log("Ledger: contadores aplicados e JSON validado.")
 
 
 def read_json(path):
@@ -113,12 +273,21 @@ def main():
     )
     parser.add_argument("--max-execucoes", dest="max_execucoes", type=int, default=10)
     parser.add_argument("--relatorio-path", dest="relatorio_path", default="")
+    parser.add_argument("--ledger", dest="ledger_path", default="")
     args = parser.parse_args()
 
     log = []
 
     def add_log(linha):
         log.append(linha)
+
+    def emitir(status_final):
+        add_log(status_final)
+        texto = "\n".join(log)
+        if args.relatorio_path:
+            with open(args.relatorio_path, "w", encoding="utf-8", newline="") as f:
+                f.write(texto)
+        print(texto)
 
     # -------------------------------------------------------------
     # 1. Carregar historico e nova execucao
@@ -148,6 +317,25 @@ def main():
     if not nova_exec.get("execution_id"):
         raise SystemExit("A nova execucao nao possui execution_id.")
     add_log("Nova execucao: " + nova_exec["execution_id"])
+
+    chaves_anteriores = {
+        it.get("chave")
+        for e in historico["executions"]
+        if e.get("execution_id") != nova_exec["execution_id"]
+        for it in e.get("items") or []
+        if it.get("chave")
+    }
+    erros, avisos = validar(nova_exec, chaves_anteriores)
+    for a in avisos:
+        add_log("AVISO: " + a)
+    if erros:
+        for e in erros:
+            add_log("ERRO: " + e)
+        emitir("STATUS: ERRO DE VALIDACAO — nada foi gravado. Corrija o arquivo da "
+               "nova execucao e rode de novo.")
+        sys.exit(2)
+    # grava a versao normalizada, para o historico ficar consistente
+    write_json_no_bom(args.nova_execucao_path, nova_exec)
 
     # -------------------------------------------------------------
     # 2. Reconciliacao de entrega da edicao anterior (opcional)
@@ -345,16 +533,16 @@ def main():
         )
     )
 
-    add_log("STATUS: OK")
+    # -------------------------------------------------------------
+    # 7. Contadores mecanicos do ledger (opcional)
+    # -------------------------------------------------------------
+    if args.ledger_path:
+        if os.path.exists(args.ledger_path):
+            aplicar_ledger(args.ledger_path, nova_exec, add_log)
+        else:
+            add_log("AVISO: ledger nao encontrado: " + args.ledger_path)
 
-    # -------------------------------------------------------------
-    # 7. Relatorio (ler este arquivo para validar de verdade)
-    # -------------------------------------------------------------
-    texto = "\n".join(log)
-    if args.relatorio_path:
-        with open(args.relatorio_path, "w", encoding="utf-8", newline="") as f:
-            f.write(texto)
-    print(texto)
+    emitir("STATUS: OK")
 
 
 if __name__ == "__main__":
