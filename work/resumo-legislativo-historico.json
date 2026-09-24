@@ -14,463 +14,6 @@
   ],
   "executions": [
     {
-      "execution_id": "2026-09-10-7h",
-      "type": "diaria",
-      "run_started_at": "2026-09-10T07:08:52-03:00",
-      "run_finished_at": "2026-09-10T07:22:31-03:00",
-      "date": "2026-09-10",
-      "timezone": "America/Sao_Paulo",
-      "window_start": "2026-09-09T07:23:06-03:00",
-      "window_end": "2026-09-10T07:22:31-03:00",
-      "recipients": [
-        "pereirafranciscofilho@gmail.com",
-        "luizaxbarreto@gmail.com"
-      ],
-      "email_subject": "Robozinho dos Momozis até Passar - 10/09/2026 - 7h",
-      "delivery": "sent",
-      "draft_id": "r4203791864069347285",
-      "items": [
-        {
-          "fonte": "stf",
-          "categoria": "STF Notícias",
-          "titulo": "Fachin suspende decisões de Mendonça e Dino sobre a direção-geral da PF, retoma relatoria do Inquérito das Fake News e marca plenário para 15/09",
-          "data": "2026-09-10",
-          "identificador": "Nota à Imprensa 46",
-          "url": "https://noticias.stf.jus.br/postsnoticias/nota-a-imprensa-46/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|fachin-suspende-decisoes-mendonca-dino-avoca-fake-news|2026|2026-09-10"
-        },
-        {
-          "fonte": "stf",
-          "categoria": "STF Notícias",
-          "titulo": "Governo e Congresso deverão propor código único para rastrear emendas parlamentares, decide relator",
-          "data": "2026-09-09",
-          "url": "https://noticias.stf.jus.br/postsnoticias/governo-e-congresso-deverao-propor-codigo-unico-para-rastrear-emendas-parlamentares-decide-relator/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|codigo-unico-rastrear-emendas-parlamentares|2026|2026-09-09"
-        },
-        {
-          "fonte": "stf",
-          "categoria": "STF Notícias",
-          "titulo": "STF rejeita ação contra perícias do INSS por telemedicina e análise documental",
-          "data": "2026-09-09",
-          "url": "https://noticias.stf.jus.br/postsnoticias/stf-rejeita-acao-contra-pericias-do-inss-por-telemedicina-e-analise-documental/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|pericias-inss-telemedicina-analise-documental|2026|2026-09-09"
-        },
-        {
-          "fonte": "stf",
-          "categoria": "STF Notícias",
-          "titulo": "STF mantém subordinação administrativa de consultorias jurídicas da AGU a ministérios",
-          "data": "2026-09-09",
-          "url": "https://noticias.stf.jus.br/postsnoticias/stf-mantem-subordinacao-administrativa-de-consultorias-juridicas-da-agu-a-ministerios/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stf|noticia|consultorias-juridicas-agu-subordinacao-ministerios|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STF Jurisprudência",
-          "titulo": "STF fortalece controle externo de plano para melhorar sistema prisional",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/decisao-do-stf-fortalece-controle-externo-de-plano-para-melhorar-sistema-prisional/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stf|decisao|controle-externo-plano-sistema-prisional|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STF Jurisprudência",
-          "titulo": "Regras para repasse de recursos da saúde de SC são inconstitucionais, decide STF",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/regras-para-repasse-de-recursos-da-saude-de-sc-sao-inconstitucionais-decide-stf/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stf|decisao|repasse-saude-sc-inconstitucional|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STF Jurisprudência",
-          "titulo": "Dino pede destaque e STF reiniciará julgamento sobre tributação da Selic em depósitos judiciais",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/dino-pede-destaque-e-stf-reiniciara-julgamento-sobre-tributacao-da-selic/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stf|decisao|selic-depositos-judiciais-destaque-dino|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "STF Jurisprudência",
-          "titulo": "Cármen Lúcia rejeita ação sobre idade mínima para candidatos nas eleições de 2026",
-          "data": "2026-09-09",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stf|decisao|idade-minima-candidatos-eleicoes-2026-rejeitada|2026|2026-09-09"
-        },
-        {
-          "fonte": "stj_codju",
-          "categoria": "Informativos",
-          "titulo": "STJ divulga Informativo de Jurisprudência nº 900",
-          "data": "2026-09-08",
-          "identificador": "Informativo 900",
-          "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "chave": "stj|informativo|900|2026|2026-09-08"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ nega restituição de PIS/Cofins a varejistas de cigarros",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/stj-nega-restituicao-de-pis-e-cofins-a-varejistas-de-cigarros/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|pis-cofins-varejistas-cigarros-restituicao-negada|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ libera ANTT para autuar empresas de fretamento por aplicativo",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/stj-libera-antt-para-autuar-empresas-de-fretamento-por-aplicativo/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|antt-autuar-fretamento-aplicativo|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ autoriza ação rescisória para cobrar tributo que STF julgou constitucional",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/stj-autoriza-rescisoria-para-cobrar-tributo-que-stf-julgou-constitucional/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|rescisoria-tributo-constitucional-stf|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ afasta demolição de edifício em área de proteção ambiental",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/stj-afasta-demolicao-de-edificio-em-area-de-protecao-ambiental-o-que-a-decisao-representa-para-a-construcao-civil/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|demolicao-edificio-area-protecao-ambiental|2026|2026-09-09"
-        },
-        {
-          "fonte": "migalhas",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ mantém contribuição sobre a receita bruta na base do PIS/Cofins",
-          "data": "2026-09-09",
-          "url": "https://www.migalhas.com.br/quentes/464201/stj-mantem-contribuicao-sobre-a-receita-bruta-na-base-do-pis-cofins",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|contribuicao-receita-bruta-base-pis-cofins|2026|2026-09-09"
-        },
-        {
-          "fonte": "migalhas",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "União não precisa integrar possessórias sobre faixas de rodovias, decide STJ",
-          "data": "2026-09-09",
-          "url": "https://www.migalhas.com.br/quentes/464198/stj-uniao-nao-precisa-integrar-possessorias-sobre-faixas-de-rodovias",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|uniao-possessorias-faixas-rodovias|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ autoriza supressão de sobrenome familiar a viúva cujos irmãos assassinaram marido",
-          "data": "2026-09-09",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|supressao-sobrenome-familiar-viuva|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "STJ Jurisprudência",
-          "titulo": "STJ valida honorários sucumbenciais em recuperação judicial extinta por ilegitimidade ativa",
-          "data": "2026-09-09",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "stj|jurisprudencia|honorarios-sucumbenciais-recuperacao-judicial-extinta|2026|2026-09-09"
-        },
-        {
-          "fonte": "congresso",
-          "categoria": "Planalto/Legislação",
-          "titulo": "MPV 1389/2026 abre crédito extraordinário de R$ 6,605 bi para subsídio a combustíveis",
-          "data": "2026-09-08",
-          "identificador": "MPV 1389/2026",
-          "url": "https://www12.senado.leg.br/noticias/materias/2026/09/09/mp-libera-r-6-6-bilhoes-para-subsidios-a-combustiveis",
-          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
-          "chave": "planalto|mpv|1389|2026|2026-09-08"
-        },
-        {
-          "fonte": "congresso",
-          "categoria": "Planalto/Legislação",
-          "titulo": "MPV 1390/2026 abre crédito extraordinário de R$ 375 mi para o Pronaf",
-          "data": "2026-09-09",
-          "identificador": "MPV 1390/2026",
-          "url": "https://www12.senado.leg.br/noticias/materias/2026/09/09/publicada-mp-com-credito-extraordinario-para-a-agricultura-familiar",
-          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
-          "chave": "planalto|mpv|1390|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "Mendonça homologa delação premiada de \"Mineiro\", operador financeiro de Vorcaro",
-          "data": "2026-09-09",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|mendonca-homologa-delacao-mineiro-vorcaro|2026|2026-09-09"
-        },
-        {
-          "fonte": "migalhas",
-          "categoria": "Mídia",
-          "titulo": "OAB pede apuração e cria grupo para analisar eventual impeachment no STF",
-          "data": "2026-09-09",
-          "url": "https://www.migalhas.com.br/quentes/464213/oab-pede-apuracao-e-cria-grupo-para-apurar-possivel-impeachment-no-stf",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|migalhas|oab-grupo-analisar-impeachment-stf|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "OAB-DF abre procedimento disciplinar contra escritório ligado à família de Alexandre de Moraes",
-          "data": "2026-09-10",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|oabdf-procedimento-disciplinar-escritorio-barci-moraes|2026|2026-09-10"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "CSJT registra 694 ações por assédio eleitoral nos TRTs entre maio/2023 e dez/2025",
-          "data": "2026-09-10",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|trts-694-acoes-assedio-eleitoral|2026|2026-09-10"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "Planalto aposta em Fachin para tirar caso Master de Mendonça e conter desgaste eleitoral",
-          "data": "2026-09-09",
-          "url": "https://www.jota.info/eleicoes/eleicoes-2026/planalto-aposta-em-fachin-para-tirar-caso-master-de-mendonca-e-conter-desgaste-eleitoral",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|planalto-aposta-fachin-tirar-caso-master-mendonca|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "Treze ex-ministros do STF pedem sessão pública para apurar gravíssimos fatos (desfecho da fofoquinha de 08/09)",
-          "data": "2026-09-09",
-          "url": "https://www.jota.info/stf/do-supremo/ministros-aposentados-pedem-sessao-publica-do-stf-para-determinar-rigorosa-apuracao-sobre-caso-master",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|treze-ministros-aposentados-pedem-sessao-publica-stf|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "STF cancela sessão plenária de quarta-feira (9/9) em meio à escalada da crise",
-          "data": "2026-09-09",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota-migalhas|stf-cancela-sessao-plenaria-9-set|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "Número 2 da PF e 11 diretores divulgam nota de apoio a Andrei Rodrigues",
-          "data": "2026-09-10",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|pf-diretores-apoiam-andrei-rodrigues|2026|2026-09-10"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "Mídia",
-          "titulo": "Defensoria Pública terá fundo próprio para promoção do acesso à Justiça gratuita",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/defensoria-publica-tera-fundo-para-promover-acesso-a-justica-gratuita/",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|conjur|defensoria-publica-fundo-acesso-justica-gratuita|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Mídia",
-          "titulo": "Fazenda vai reforçar combate a bets ilegais, regulamentando art. 21-A da Lei 14.790/23",
-          "data": "2026-09-10",
-          "status": "MÍDIA ESPECIALIZADA",
-          "chave": "midia|jota|fazenda-combate-bets-ilegais-art-21a|2026|2026-09-10"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "Opinião",
-          "titulo": "O que é um inquérito? Resposta é decisiva para o debate atual",
-          "data": "2026-09-10",
-          "url": "https://conjur.com.br/2026-set-10/o-que-e-um-inquerito-resposta-e-decisiva-para-o-debate-atual/",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|conjur|o-que-e-um-inquerito-debate-atual|2026|2026-09-10"
-        },
-        {
-          "fonte": "migalhas",
-          "categoria": "Opinião",
-          "titulo": "Entre Mendonça e Moraes: o que dizem as palavras de Fachin",
-          "data": "2026-09-09",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|migalhas|entre-mendonca-moraes-palavras-fachin|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Opinião",
-          "titulo": "A reforma do STF: uma pauta para todos os candidatos e partidos políticos",
-          "data": "2026-09-09",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|jota|reforma-stf-pauta-candidatos-partidos|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Opinião",
-          "titulo": "A integridade adiada: o Código de Ética do STF entre o calendário e a crise",
-          "data": "2026-09-09",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|jota|integridade-adiada-codigo-etica-stf|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Opinião",
-          "titulo": "Guerra de facções transborda STF e expõe ameaças à soberania",
-          "data": "2026-09-09",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|jota|guerra-faccoes-transborda-stf-soberania|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "Opinião",
-          "titulo": "Coautoria não cria patrimônio coletivo: limites da solidariedade nas medidas assecuratórias",
-          "data": "2026-09-10",
-          "url": "https://conjur.com.br/2026-set-10/coautoria-nao-cria-patrimonio-coletivo-os-limites-da-solidariedade-nas-medidas-assecuratorias-no-processo-penal/",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|conjur|coautoria-nao-cria-patrimonio-coletivo-medidas-assecuratorias|2026|2026-09-10"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "Opinião",
-          "titulo": "LC 236: veto dos parágrafos do artigo 205 do CTN precisa ser revisto",
-          "data": "2026-09-10",
-          "url": "https://conjur.com.br/2026-set-10/lc-236-veto-dos-paragrafos-do-artigo-205-do-ctn-precisa-ser-revisto/",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|conjur|lc236-veto-paragrafos-artigo-205-ctn|2026|2026-09-10"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "Opinião",
-          "titulo": "Inclusão de IBS/CBS na base do ICMS e limites da interpretação fiscal",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/inclusao-de-ibs-cbs-na-base-do-icms-e-limites-da-interpretacao-fiscal/",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|conjur|inclusao-ibs-cbs-base-icms-limites-interpretacao-fiscal|2026|2026-09-09"
-        },
-        {
-          "fonte": "conjur",
-          "categoria": "Opinião",
-          "titulo": "Prova indiciária e lavagem de dinheiro",
-          "data": "2026-09-09",
-          "url": "https://conjur.com.br/2026-set-09/prova-indiciaria-e-lavagem-de-dinheiro/",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|conjur|prova-indiciaria-lavagem-dinheiro|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Opinião",
-          "titulo": "Atuação das partes e de terceiros nos recursos repetitivos julgados pelo STJ",
-          "data": "2026-09-09",
-          "status": "OPINIÃO/ANÁLISE",
-          "chave": "opiniao|jota|atuacao-partes-terceiros-repetitivos-stj|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Fofoquinha",
-          "titulo": "Marco Aurélio Mello diz que \"o melhor desinfetante é a luz do dia\" e explica por que não assinou o manifesto a Fachin",
-          "data": "2026-09-09",
-          "status": "CONFIRMADO",
-          "chave": "fofoquinha|jota|marco-aurelio-melhor-desinfetante-luz-do-dia|2026|2026-09-09"
-        },
-        {
-          "fonte": "jota",
-          "categoria": "Fofoquinha",
-          "titulo": "Gilmar Mendes questiona se liminar de Mendonça pode gerar desequilíbrio eleitoral",
-          "data": "2026-09-09",
-          "status": "CONFIRMADO",
-          "chave": "fofoquinha|jota|gilmar-mendes-desequilibrio-eleitoral-liminar-mendonca|2026|2026-09-09"
-        },
-        {
-          "fonte": "dailyverses",
-          "categoria": "Versículo",
-          "titulo": "Efésios 6:17 (ARC)",
-          "data": "2026-09-10",
-          "url": "https://dailyverses.net/pt/2026/9/10",
-          "status": "VERSÍCULO DO DIA",
-          "chave": "versiculo|dailyverses|efesios-6-17|2026|2026-09-10"
-        },
-        {
-          "fonte": "munger-quotes",
-          "categoria": "Munger",
-          "titulo": "Deixe sempre margem de segurança; um pequeno vazamento afunda um grande navio",
-          "data": "2026-09-10",
-          "status": "SABEDORIA DO DIA",
-          "chave": "munger|citacao|margem-de-seguranca-vazamento-afunda-navio|indice-53|2026-09-10"
-        }
-      ],
-      "source_status": {
-        "gmail_push_stf": "saudavel",
-        "gmail_push_stf_informativos": "saudavel_sem_novidade",
-        "gmail_stj_codju": "saudavel",
-        "gmail_push_planalto": "mudo",
-        "congresso_ultimas_leis": "saudavel_sem_novidade",
-        "congresso_mpvs": "saudavel",
-        "conjur": "saudavel",
-        "migalhas": "saudavel",
-        "gmail_jota": "saudavel",
-        "youversion": "instavel",
-        "dailyverses": "saudavel"
-      },
-      "errors": [],
-      "pendencias": [
-        {
-          "id": "planalto_push_mudo",
-          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (70 dias) - sonda de 10/09 também vazia",
-          "faixa": "cronica"
-        },
-        {
-          "id": "tjdft_edital",
-          "texto": "TJDFT Juiz Substituto - 19ª execução sem edital oficial; reverificado em 10/09 sem novidade, fontes seguem em 20-24 vagas / ~R$37.765,55; armadilha banca_edital_antigo reproduzida de novo (Cebraspe topo devolveu edital 2022/23)",
-          "faixa": "ativa"
-        },
-        {
-          "id": "agu_pfn_edital",
-          "texto": "AGU/PFN - 170 vagas autorizadas, GT com 30 dias para propor modelagem, edital em até 6 meses (~jan/2027). Não reverificado em 10/09 (faixa longo_prazo)",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "concursos_cronogramas",
-          "texto": "Não reverificado em 10/09 (faixa longo_prazo). Prazos a observar: MP-SP 13/09, TJ-RS inscrições até 15/09, TRF5 inscrições até 28/09, PGE-AL resultado ~20/10, TRF2 orais 14-25/09",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "crise_institucional_stf_pgr_acompanhar",
-          "texto": "Grande desenvolvimento em 09-10/09: Fachin suspendeu decisões conflitantes de Mendonça e Dino sobre a direção-geral da PF, retomou a relatoria do Inquérito das Fake News (antes com Moraes) e marcou sessão plenária para 15/09/2026. OAB nacional criou grupo para estudar eventual impeachment no STF; 13 ex-ministros pediram sessão pública (manifesto efetivamente publicado, promovido de fofoquinha para notícia); Marco Aurélio Mello dissentiu publicamente do manifesto. Mendonça homologou delação de operador financeiro de Vorcaro.",
-          "faixa": "ativa"
-        }
-      ],
-      "verification_notes": "STF Jurisprudência (nao_responda@stf.jus.br): os 3 threads localizados na janela eram apenas andamento processual individual (ARE 1594146, ADI 4917) - corretamente excluídos, sem informativo/RG novo. Nenhuma lei nova via Rota 13 na janela (mais recente: Lei 15.500/LC 236 de 04/09, fora do período). Armadilha congresso_mpv: MPV 1389/2026 e MPV 1390/2026 passaram por checagem cruzada com 2+ fontes convergentes (Senado Notícias oficial + mídia) e foram confirmadas - a armadilha não se reproduziu desta vez. STF Notícias e-mail de 09/09 trazia 5 itens já publicados na edição de 09/09 (duplicatas por chave: tse-partidos-nao-prestam-contas, cestf-grupo-estudos, pv-questiona-fiscalizacao-ibs, e a nota de 'andamento de processos' foi descartada por ser boilerplate) - corretamente não republicados. STJ Jurisprudência teve volume alto (8 itens) por convergência de ConJur+Migalhas+JOTA no mesmo dia. Reconciliação: edição de 09/09 confirmada em in:sent (thread 1a085b0c3573a39b, mensagem 1a085b663fb6e5ee, enviada às 10:28 UTC pelo Apps Script) - sem pendência de rascunho não enviado.",
-      "coletores": {
-        "gmail": {
-          "modelo": "haiku",
-          "tokens": 50748,
-          "chamadas": 11,
-          "duracao_ms": 60208
-        },
-        "jota": {
-          "modelo": "sonnet",
-          "tokens": 158913,
-          "chamadas": 15,
-          "duracao_ms": 207662
-        },
-        "web": {
-          "modelo": "sonnet",
-          "tokens": 89502,
-          "chamadas": 28,
-          "duracao_ms": 261065
-        }
-      },
-      "gmail_message_id": "1a08addd28eada95",
-      "delivery_reconciled_at": "2026-09-11T07:22:02-03:00"
-    },
-    {
       "execution_id": "2026-09-11-7h",
       "type": "diaria",
       "run_started_at": "2026-09-11T07:08:56-03:00",
@@ -3310,7 +2853,7 @@
         "luizaxbarreto@gmail.com"
       ],
       "email_subject": "Robozinho dos Momozis até Passar - 23/09/2026 - 7h",
-      "delivery": "draft",
+      "delivery": "sent",
       "draft_id": "r5736228775529341918",
       "items": [
         {
@@ -3755,6 +3298,430 @@
           "tokens": 97042,
           "chamadas": 29,
           "duracao_ms": 228726
+        }
+      },
+      "gmail_message_id": "1a0cddd2834e8781",
+      "delivery_reconciled_at": "2026-09-24T07:31:30-03:00"
+    },
+    {
+      "execution_id": "2026-09-24-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-24T07:17:21-03:00",
+      "run_finished_at": "2026-09-24T07:35:00-03:00",
+      "date": "2026-09-24",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-23T07:17:20-03:00",
+      "window_end": "2026-09-24T07:17:21-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 24/09/2026 - 7h",
+      "delivery": "draft",
+      "draft_id": "r-4642922835240268237",
+      "items": [
+        {
+          "chave": "planalto|lei|15519|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.519/2026 — psicopedagogia",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.519/2026",
+          "url": "https://legis.senado.leg.br/norma/43999260",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15518|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.518/2026 — institui o Pibid",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.518/2026",
+          "url": "https://legis.senado.leg.br/norma/43999477",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15517|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.517/2026 — altera o Código Penal",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.517/2026",
+          "url": "https://legis.senado.leg.br/norma/43999411",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15516|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.516/2026 — Protocolo Intersetorial de Atendimento e Resposta Integrada",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.516/2026",
+          "url": "https://legis.senado.leg.br/norma/43998646",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15515|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.515/2026 — título Capital Nacional do Pé de Moleque",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.515/2026",
+          "url": "https://legis.senado.leg.br/norma/43998574",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15514|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.514/2026 — título Capital Nacional do Basquete",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.514/2026",
+          "url": "https://legis.senado.leg.br/norma/43998965",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15513|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.513/2026 — altera a Lei 12.715/2012",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.513/2026",
+          "url": "https://legis.senado.leg.br/norma/43998507",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15512|2026|2026-09-22",
+          "fonte": "congresso_ultimas_leis",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.512/2026 — princípios e diretrizes",
+          "data": "2026-09-22",
+          "identificador": "Lei 15.512/2026",
+          "url": "https://legis.senado.leg.br/norma/43998435",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stf|noticia|unifica-criterios-prazos-licenca-maternidade|2026|2026-09-24",
+          "fonte": "gmail_push_stf",
+          "categoria": "STF Notícias",
+          "titulo": "STF unifica critérios e prazos da licença-maternidade para todas as mães",
+          "data": "2026-09-24",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "Desfecho da análise iniciada em 16/09 (stf|noticia|comeca-analisar-unificacao-licenca-maternidade). Corroborado por JOTA e ConJur."
+        },
+        {
+          "chave": "stf|decisao|mantem-autorizacao-sao-luis-transporte-app-greve-onibus|2026|2026-09-23",
+          "fonte": "gmail_push_stf",
+          "categoria": "STF Notícias",
+          "titulo": "STF mantém autorização para Município de São Luís (MA) contratar transporte por aplicativo em greve de ônibus",
+          "data": "2026-09-23",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|decisao|valida-aumento-custas-judiciais-espirito-santo|2026|2026-09-23",
+          "fonte": "gmail_push_stf",
+          "categoria": "STF Notícias",
+          "titulo": "Supremo valida novas regras e novos valores de custas judiciais do Espírito Santo",
+          "data": "2026-09-23",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "Corroborado por ConJur."
+        },
+        {
+          "chave": "stf|noticia|questionamento-norma-mt-equipara-assistentes-policiais-penais|2026|2026-09-23",
+          "fonte": "gmail_push_stf",
+          "categoria": "STF Notícias",
+          "titulo": "Associação questiona norma de Mato Grosso que equipara assistentes a policiais penais",
+          "data": "2026-09-23",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|presidente-lancamento-livro-representacao-feminina|2026|2026-09-23",
+          "fonte": "gmail_push_stf",
+          "categoria": "STF Notícias",
+          "titulo": "Presidente do STF participa de lançamento de livro sobre representação feminina nos espaços de poder",
+          "data": "2026-09-23",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|informativo|repercussao-geral-390|2026|2026-09-24",
+          "fonte": "gmail_push_stf_informativos",
+          "categoria": "STF Jurisprudência",
+          "titulo": "Boletim Repercussão Geral em Pauta n. 390",
+          "data": "2026-09-24",
+          "identificador": "RG 390/2026",
+          "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio390.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "Conteúdo temático específico não extraído nesta coleta (armadilha stf_informativo_link_generico)."
+        },
+        {
+          "chave": "stj|informativo|902|2026|2026-09-22",
+          "fonte": "gmail_stj_codju",
+          "categoria": "Informativos",
+          "titulo": "STJ — Informativo de Jurisprudência n. 902",
+          "data": "2026-09-22",
+          "identificador": "Informativo 902",
+          "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0902.cod.",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "midia|jota|cnj-corregedor-devolucao-473bi-precatorios-usinas-master|2026|2026-09-24",
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Corregedor Nacional de Justiça determina devolução ao Tesouro de R$4,73 bi de precatórios de usinas vendidas ao Banco Master",
+          "data": "2026-09-24",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|jota-migalhas-conjur|gilmar-plenario-disputa-precatorios-usinas|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Gilmar Mendes tenta levar ao plenário do STF a disputa sobre precatórios de usinas",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/stf/do-supremo/apos-suspeitas-sobre-voto-de-nunes-marques-gilmar-tenta-levar-ao-plenario-caso-de-usinas",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO",
+          "observacao": "Convergência JOTA+Migalhas+ConJur(22/09)."
+        },
+        {
+          "chave": "midia|jota|zanin-rejeita-cpi-banco-master|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Cristiano Zanin rejeita pedido para instalar CPI do Banco Master",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/stf/do-supremo/cristiano-zanin-do-stf-rejeita-pedido-para-instalar-cpi-do-banco-master",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|jota|mendonca-pede-arquivamento-investigacao-propria|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Mendonça pede arquivamento de investigação aberta por Moraes contra ele mesmo",
+          "data": "2026-09-23",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|jota|stf-valida-limitacao-compensacao-creditos-tributarios-10-milhoes|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "STF valida limitação para compensar créditos tributários acima de R$10 milhões",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/tributos/stf-valida-limitacao-para-compensar-creditos-tributarios-acima-de-r-10-milhoes",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|jota|stj-schietti-nega-liminar-milton-leite-pcc|2026|2026-09-24",
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Ministro Schietti (STJ) nega liminar para soltar ex-vereador Milton Leite, investigado por infiltração do PCC no transporte público de SP",
+          "data": "2026-09-24",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|conjur-migalhas|stj-musicoterapia-plano-saude-tea|2026|2026-09-23",
+          "fonte": "conjur_migalhas",
+          "categoria": "Mídia",
+          "titulo": "STJ discute se plano de saúde deve ser obrigado a custear musicoterapia para TEA",
+          "data": "2026-09-23",
+          "url": "https://conjur.com.br/2026-set-23/stj-discute-se-plano-deve-custear-musicoterapia-para-tea/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "(herdada) — convergência ConJur+Migalhas."
+        },
+        {
+          "chave": "midia|conjur|morre-sergio-resende-barros-constitucionalista-usp|2026|2026-09-23",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "Morre Sergio Resende de Barros, referência do Direito Constitucional na FDUSP, aos 85 anos",
+          "data": "2026-09-23",
+          "url": "https://conjur.com.br/2026-set-23/morre-sergio-resende-de-barros-referencia-de-direito-constitucional-da-usp-aos-85-anos/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "(herdada)"
+        },
+        {
+          "chave": "midia|conjur|tse-julgar-homem-transgenero-registro-mulher|2026|2026-09-23",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "TSE vai julgar caso de homem transgênero que se registrou como mulher",
+          "data": "2026-09-23",
+          "url": "https://conjur.com.br/2026-set-23/tse-vai-julgar-fraude-por-homem-transgenero-que-se-registrou-como-mulher/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "(herdada)"
+        },
+        {
+          "chave": "midia|conjur|lei-cargos-conselho-federal-oab|2026|2026-09-23",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "Lei cria novos cargos no Conselho Federal da OAB e permite diretorias temporárias",
+          "data": "2026-09-23",
+          "url": "https://conjur.com.br/2026-set-23/lei-cria-novos-cargos-no-conselho-federal-da-oab-e-permite-diretorias-temporarias/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "(herdada)"
+        },
+        {
+          "chave": "opiniao|jota|supremo-crise-protege-igualdade-racial|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Quando o Supremo entra em crise, quem protege a igualdade racial?",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/quando-o-supremo-entra-em-crise-quem-protege-a-igualdade-racial",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|anderson-schreiber-supremo-luz-sol-sigilo-master|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "O Supremo e a luz do Sol",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/coluna-do-anderson-schreiber/o-supremo-e-a-luz-do-sol",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|bolsa-familia-orcamento-eleicoes-alerta-ifi|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Bolsa Família, orçamento e eleições: alerta da IFI não pode ser ignorado",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/bolsa-familia-orcamento-e-eleicoes-alerta-da-ifi-nao-pode-ser-ignorado",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|tcu-restringe-conversao-multas-ambientais|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "TCU restringe conversão de multas ambientais",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/controle-publico/tcu-restringe-conversao-de-multas-ambientais",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|combater-corrupcao-instituicoes-publicas-fortes|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Combater a corrupção exige instituições públicas fortes",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/combater-a-corrupcao-exige-instituicoes-publicas-fortes",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|filtro-relevancia-stj-jurisdicionados|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Filtro de relevância no STJ: o que muda para os jurisdicionados",
+          "data": "2026-09-23",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/filtro-de-relevancia-no-stj-o-que-muda-para-os-jurisdicionados",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "fofoquinha|jota-folha|mendonca-negociou-venda-iter-cezinha-madureira|2026|2026-09-24",
+          "fonte": "gmail_jota",
+          "categoria": "Fofoquinha",
+          "titulo": "Mendonça negociou venda de parte do Iter para Cezinha de Madureira",
+          "data": "2026-09-24",
+          "status": "FORTE INDÍCIO"
+        },
+        {
+          "chave": "fofoquinha|jota-estadao-folha|camilla-ramos-contrato-master-voto-marido-desembargador-kassio|2026|2026-09-24",
+          "fonte": "gmail_jota",
+          "categoria": "Fofoquinha",
+          "titulo": "Advogada Camilla Ramos fechou contrato com Master após voto favorável do marido desembargador (TRF-1); reportagens associam a Kassio Nunes Marques",
+          "data": "2026-09-24",
+          "status": "FORTE INDÍCIO",
+          "observacao": "Atualização de fofoquinha|jota-estadao|vazamento-celular-vorcaro-contrato-turma-kn-desembargador-trf1 (22/09). Grau de parentesco ainda não confirmado em fonte primária."
+        },
+        {
+          "chave": "fofoquinha|jota-estadao|carmen-lucia-codigo-etica-stf-pos-eleicoes|2026|2026-09-23",
+          "fonte": "gmail_jota",
+          "categoria": "Fofoquinha",
+          "titulo": "Cármen Lúcia prepararia código de ética para ministros do STF, para depois das eleições",
+          "data": "2026-09-23",
+          "status": "FORTE INDÍCIO"
+        },
+        {
+          "chave": "versiculo|dailyverses|proverbios-14-12|2026|2026-09-24",
+          "fonte": "dailyverses",
+          "categoria": "Versículo",
+          "titulo": "Provérbios 14:12 (ARC)",
+          "data": "2026-09-24",
+          "url": "https://dailyverses.net/pt/2026/9/24",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "munger|citacao|superotimismo-matematica-fria-probabilidades|indice-67|2026-09-24",
+          "fonte": "munger-quotes.json",
+          "categoria": "Munger",
+          "titulo": "O otimismo excessivo é o padrão humano; combata-o com a matemática fria das probabilidades.",
+          "data": "2026-09-24",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "concurso|trf5|juiz-federal-substituto-inscricoes-encerram-28-09|2026|2026-09-24",
+          "fonte": "web_concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF5 Juiz Federal Substituto — inscrições encerram em 28/09 (16h)",
+          "data": "2026-09-24",
+          "url": "https://conhecimento.fgv.br/concursos/trf5juiz26",
+          "status": "ENCERRA EM BREVE",
+          "observacao": "Divergência de data nas provas escritas entre o ledger (04-05/04/2027) e a fonte consultada hoje (21-22/02/2027) — não cravada, pendência de verificação."
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel",
+        "gmail_push_stf_informativos": "saudavel",
+        "gmail_stj_codju": "intermitente_respondeu",
+        "gmail_push_planalto": "mudo_sonda_vazia",
+        "gmail_jota": "saudavel",
+        "congresso_ultimas_leis": "saudavel",
+        "congresso_mpvs": "saudavel_sem_novidade_na_janela",
+        "conjur": "saudavel",
+        "migalhas": "saudavel",
+        "dailyverses": "saudavel",
+        "youversion": "instavel_desafio_anti_bot"
+      },
+      "errors": [],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (84 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; 8 leis novas confirmadas por ela hoje (15.512-15.519).",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto — Cebraspe e subsídio ~R$37.765,55 seguem sem edital publicado; não reverificado a fundo hoje (faixa longo prazo, não é 1ª execução da semana).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Não reverificado a fundo hoje (faixa longo prazo).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TRF5 inscrições encerram 28/09 (16h) — divergência de data nas provas escritas entre o ledger (04-05/04/2027) e a fonte de hoje (21-22/02/2027), checar na FGV/TRF5. TJRS inscrições até 14/10 (prova 13/12). PGE-AL resultado ~20/10. PGM Juazeiro/BA edital previsto fim de set/2026. TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO não reverificados hoje (faixa longo prazo).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Crise Banco Master/STF/PGR segue evoluindo: negociação Iter/Cezinha de Madureira (Mendonça), devolução de R$4,73 bi ao Tesouro (corregedor Benedito Gonçalves), disputa de precatórios de usinas (Gilmar tenta plenário), CPI rejeitada por Zanin, pedido de arquivamento por Mendonça, atualização do caso Camilla Ramos/desembargador TRF-1 (convergência das fontes de hoje em 'marido', mas sem confirmação primária do grau de parentesco), plano de código de ética de Cármen Lúcia. Nenhum item com confirmação oficial localizada nesta execução.",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": "MPV 1392/2026: página oficial do Congresso (detalhe /mpv/175829) informa DOU 22/09/2026; única fonte de mídia encontrada (bra1.com.br) indica 21/09/2026 — divergência de 1 dia, sem 2ª fonte de mídia convergente, mas irrelevante para esta edição pois ambas as datas ficam fora da janela (antes de 23/09 07h17). STF Jurisprudência e STJ Notícias ficaram sem conteúdo distinto do informativo periódico/clipping de mídia nesta janela — compactadas no e-mail com nota explicativa, não tratadas como falha. Item stf|noticia|audiencia-emendas-parlamentares-responsabilidade (23/09) e midia|jota|dino-emendas-parlamentares-pos-eleicao (22/09) e fofoquinha|jota|fux-relator-acao-esposa-moraes-vorcaro-senado (22/09) reapareceram nas buscas de hoje mas já estavam em chaves_publicadas — não republicados. ConJur 'Lei de Arbitragem 30 anos', 'Alcântara conflito fundiário' e 'Direito Internacional Privado' também já publicados ontem — descartados por duplicata. Coletor Gmail entregou relatório inicial incompleto (citou 3+6 e-mails, detalhou só 1+1); foi reconvocado via SendMessage e completou a evidência sem repetir buscas.",
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 61096,
+          "chamadas": 17,
+          "duracao_ms": 145221
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 169920,
+          "chamadas": 26,
+          "duracao_ms": 216590
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 110166,
+          "chamadas": 39,
+          "duracao_ms": 255272
         }
       }
     }
