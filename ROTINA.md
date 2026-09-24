@@ -56,7 +56,7 @@ Depois, **encerre o turno**. Enquanto isso:
 **Checklist antes de chamar `create_draft` — o e-mail nasce completo:**
 1. Preheader oculto com 2–3 destaques do dia.
 2. Cabeçalho e rodapé exatamente como o passo 1 imprimiu; resumo executivo com 3–5 cards; janela de cobertura descrita.
-3. As 13 entradas do índice têm seção, na ordem do template — inclusive o bloco Opinião/Análise dentro da Mídia e a seção Munger.
+3. As 13 entradas do índice têm seção, na ordem do template — inclusive o bloco Opinião/Análise dentro da Mídia e a seção Munger; quadro "Prazos no radar" no topo de Concursos quando o coletor trouxer `PRAZO`; bloco de errata no quadro de pendências quando o ledger tiver `errata_*`.
 4. Nenhum `{{` sobrando; nenhum wrapper (`t.rdsv2.net`, `google.com/url`, `utm_`); selos só da lista fechada do prompt mestre §2 (ex.: "SEM NOVIDADE" não existe — usar `EM ANDAMENTO` ou `PENDÊNCIA`).
 5. Carimbo "Gerado em DD/MM/AAAA HH:MM · execução <execution_id>" no "Suporte usado".
 6. Corpo < ~100 KB; estilos inline.
