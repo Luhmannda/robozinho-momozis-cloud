@@ -1,42 +1,50 @@
 <!-- =====================================================================
-TEMPLATE DE REFERÊNCIA v2 — Robozinho dos Momozis até Passar
-Origem: edição de 01/07/2026 - 18h (padrão visual aprovado pelo usuário).
-v2 aprovada pelo usuário em 11/07/2026, com as seguintes mudanças:
-  (1) PREHEADER oculto no topo (aparece como preview na caixa de entrada);
-  (2) selos "oficiais" (CONFIRMADO POR FONTE OFICIAL e VERSÍCULO DO DIA)
-      ganharam fundo #e8eef7 para legibilidade;
-  (3) 🙏 no título da seção do versículo (antes ✋️);
-  (4) zebra #f9fafc nas linhas alternadas das tabelas de concursos;
-  (5) carimbo de geração (data/hora + execution_id) no bloco "Suporte usado";
-  (6) rodapé com próxima edição variável: "amanhã" (seg–qui) ou
-      "segunda-feira" (sexta).
+TEMPLATE DE REFERÊNCIA v3 — Robozinho dos Momozis até Passar
+v2 aprovada em 11/07/2026; v3 (24/09/2026) mantém paleta e estrutura e
+acrescenta: largura fluida (max-width 600px, cabe no celular sem zoom),
+títulos canônicos das 13 seções, mapa completo selo→estilo, quadro
+"Prazos no radar", fonte real do versículo e errata padronizada.
 REGRA: reproduzir esta estrutura e estes estilos EXATAMENTE; trocar apenas o
-conteúdo. Placeholders entre {{ }}. Usar URLs diretas (nunca wrappers
-google.com/url nem links de tracking — resolver antes de publicar).
-Largura 600px, tabelas aninhadas, estilos inline. Em edição Extra,
-substituir "Edição das 7h" por "Edição extra" no cabeçalho.
+conteúdo dos {{ }}. URLs diretas (nunca wrappers/rastreio). Estilos inline.
+Em edição Extra, trocar "Edição das 7h" por "Edição extra" no cabeçalho.
 
-PALETA: navy #0b2545 · navy médio #13315c · dourado #c5a253 · fundo externo
-#eef1f4 · card cinza #f4f6fa · card creme #fdf6e9 · divisória #e4e9ef ·
-linhas de tabela #e8edf2 · zebra #f9fafc · fundo selo oficial #e8eef7 ·
-texto corpo #2f3a45 · texto apoio #5a6773 · link #0b4f92.
+PALETA: navy #0b2545 · dourado #c5a253 · fundo externo #eef1f4 · card cinza
+#f4f6fa · card creme #fdf6e9 · divisória #e4e9ef · linhas #e8edf2 · zebra
+#f9fafc · texto #2f3a45 · apoio #5a6773 · link #0b4f92.
 
-SELOS (span inline-block, font-size:10px, bold, padding:2px 7px, border-radius:3px):
-- Oficial ......... background:#e8eef7; color:#0b2545 (sem borda)
-- Oficial altern .. color:#1e6b3a; border:1px solid #bfe3cc
-- Neutro/andamento  color:#5a6773; border:1px solid #c9ced6
-- Pendência/rumor . color:#8a6d1d; border:1px solid #e6d3a3
+SELO = <span style="display:inline-block;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px;ESTILO">TEXTO</span>
+(nas tabelas de concursos: font-size:9px;padding:2px 6px). ESTILO por selo:
+- OFICIAL  background:#e8eef7;color:#0b2545
+    CONFIRMADO POR FONTE OFICIAL · CONFIRMADO · VERSÍCULO DO DIA
+- VERDE    color:#1e6b3a;border:1px solid #bfe3cc
+    CONFIRMADO POR FONTE OFICIAL ALTERNATIVA · INSCRIÇÕES ABERTAS · EDITAL PUBLICADO · NOVO
+- URGENTE  background:#fdf0f0;color:#a61b1b;border:1px solid #f0c2c2
+    ENCERRA HOJE · ENCERRA EM BREVE · URGENTE · PROVA EM BREVE
+- NEUTRO   color:#5a6773;border:1px solid #c9ced6
+    MÍDIA ESPECIALIZADA · OPINIÃO/ANÁLISE · EM ANDAMENTO · EM PLANEJAMENTO · PROVA REALIZADA · INSCRIÇÕES ENCERRADAS
+- ALERTA   color:#8a6d1d;border:1px solid #e6d3a3
+    PENDÊNCIA · PENDÊNCIA DE VERIFICAÇÃO · FORTE INDÍCIO · RUMOR · SEM CONFIRMAÇÃO OFICIAL
+- NAVY     background:#0b2545;color:#ffffff
+    SABEDORIA DO DIA
+
+TÍTULOS DAS SEÇÕES (bloco "TÍTULO DE SEÇÃO" abaixo), nesta ordem:
+🏛️ Planalto — Resenha Diária e legislação federal (+ frase fixa) · ⚖️ STF — Notícias ·
+⚖️ STF — Jurisprudência · ⚖️ STJ — Notícias · ⚖️ STJ — Jurisprudência · 📚 Informativos ·
+💼 Concursos jurídicos — Carreira jurídica · 🗂️ Concursos jurídicos — Quadro de apoio ·
+📰 Se saiu na mídia não é fofoca! · 🤫 FOFOQUINHA JURÍDICA · 🙏 Porque sem Deus, nada é possível ·
+💡 Conhecimento nunca é demais · 📋 Observações de verificação, lacunas e pendências.
+Seção sem conteúdo próprio: uma linha de apoio (bloco "LINHA DE APOIO"), nunca omitir.
 ===================================================================== -->
 
-<!-- PREHEADER (invisível no corpo; vira o texto de preview na inbox) -->
-<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">{{2–3 destaques do dia separados por " · "}}</div>
+<!-- PREHEADER (invisível; vira o preview da inbox; o enchimento impede o Gmail de emendar texto do corpo) -->
+<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">{{2–3 destaques do dia separados por " · "}}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
 
-<table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#eef1f4" style="border-collapse:collapse">
-<tr><td align="center" style="padding:20px 10px">
-<table border="0" cellpadding="0" cellspacing="0" width="600" bgcolor="#ffffff" style="width:600px;max-width:600px;border-collapse:collapse">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#eef1f4" style="border-collapse:collapse">
+<tr><td align="center" style="padding:20px 8px">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff" style="width:100%;max-width:600px;border-collapse:collapse">
 
 <!-- CABEÇALHO -->
-<tr><td bgcolor="#0b2545" style="padding:26px 24px;font-family:Arial,Helvetica,sans-serif" align="center">
+<tr><td bgcolor="#0b2545" style="padding:26px 20px;font-family:Arial,Helvetica,sans-serif" align="center">
 <div style="font-size:34px;line-height:38px;margin:0 0 6px 0">🤖📜</div>
 <div style="font-size:22px;line-height:28px;color:#ffffff;font-weight:bold;margin:0">Robozinho dos Momozis até Passar</div>
 <div style="font-size:13px;line-height:19px;color:#c5a253;font-weight:bold;margin:8px 0 0 0">Legislação, jurisprudência e concursos jurídicos sem drama. Ou quase.</div>
@@ -44,16 +52,16 @@ SELOS (span inline-block, font-size:10px, bold, padding:2px 7px, border-radius:3
 </td></tr>
 
 <!-- ÍNDICE -->
-<tr><td bgcolor="#f4f6fa" style="padding:16px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;color:#0b2545">
+<tr><td bgcolor="#f4f6fa" style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;color:#0b2545">
 <b>Nesta edição:</b> Planalto/Legislação · STF Notícias · STF Jurisprudência · STJ Notícias · STJ Jurisprudência · Informativos · Concursos – Carreira · Concursos – Apoio · Se saiu na mídia não é fofoca! · FOFOQUINHA JURÍDICA · Porque sem Deus, nada é possível · Conhecimento nunca é demais · Pendências.
 </td></tr>
 
-<!-- RESUMO EXECUTIVO (repetir o card por destaque; 3 a 5 cards) -->
-<tr><td style="padding:20px 24px 4px 24px;font-family:Arial,Helvetica,sans-serif">
+<!-- RESUMO EXECUTIVO (3 a 5 cards) -->
+<tr><td style="padding:20px 20px 4px 20px;font-family:Arial,Helvetica,sans-serif">
 <div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545;margin-bottom:12px">Resumo executivo</div>
 </td></tr>
-<tr><td style="padding:0 24px 6px 24px">
-<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
+<tr><td style="padding:0 20px 6px 20px">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
 <tr><td bgcolor="#f4f6fa" style="border-left:4px solid #0b2545;padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
 <b>{{emoji}} {{Título curto do destaque}}:</b> {{uma frase de resumo}}.
 </td></tr>
@@ -63,101 +71,116 @@ SELOS (span inline-block, font-size:10px, bold, padding:2px 7px, border-radius:3
 </td></tr>
 
 <!-- JANELA DE COBERTURA -->
-<tr><td style="padding:18px 24px 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773">
-<i>Janela de cobertura: {{descrever a janela efetiva — ex.: "das 7h de ontem (DD/MM) às 7h de hoje (DD/MM/AAAA)"; às segundas: "das 7h de sexta (DD/MM) às 7h de hoje (DD/MM/AAAA), cobrindo o fim de semana"}}, fuso América/São Paulo. {{nota de catch-up/gap, se houver}}. {{limitações, se houver}}.</i>
+<tr><td style="padding:18px 20px 0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773">
+<i>Janela de cobertura: {{ex.: "das 7h17 de ontem (DD/MM) às 7h17 de hoje (DD/MM/AAAA)"; às segundas: "de sexta (DD/MM) até hoje, cobrindo o fim de semana"}}, fuso América/São Paulo. {{nota de gap, se houver}}. {{limitações, se houver}}.</i>
 </td></tr>
 
-<!-- DIVISÓRIA (usar entre grandes blocos) -->
-<tr><td style="padding:16px 24px 0 24px"><table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#e4e9ef" style="height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr></table></td></tr>
+<!-- DIVISÓRIA (entre grandes blocos) -->
+<tr><td style="padding:16px 20px 0 20px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#e4e9ef" style="height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr></table></td></tr>
 
-<!-- SEÇÃO PLANALTO (título de seção padrão + frase fixa) -->
-<tr><td style="padding:22px 24px 0 24px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px">
-<span style="font-size:16px;font-weight:bold;color:#0b2545">🏛️ Planalto — Resenha Diária e legislação federal</span>
-</div>
+<!-- TÍTULO DE SEÇÃO (usar para todas as seções da lista do comentário) -->
+<tr><td style="padding:22px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
+<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">{{emoji e título canônico}}</div>
+</td></tr>
+
+<!-- SEÇÃO PLANALTO (título + frase fixa + lista de atos) -->
+<tr><td style="padding:22px 20px 0 20px;font-family:Arial,Helvetica,sans-serif">
+<div style="border-left:4px solid #c5a253;padding-left:10px"><span style="font-size:16px;font-weight:bold;color:#0b2545">🏛️ Planalto — Resenha Diária e legislação federal</span></div>
 <div style="font-size:12px;color:#8a8f5c;font-style:italic;margin:6px 0 12px 10px">isso aqui só existe porque eles não param de inventar moda...</div>
 </td></tr>
-<tr><td style="padding:0 24px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
-<span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL</span>
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
+<span style="display:inline-block;color:#1e6b3a;border:1px solid #bfe3cc;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL ALTERNATIVA</span>
 <span style="font-size:12px;color:#5a6773"> — {{origem e horário da fonte}}.</span>
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
-<tr><td style="padding:6px 0;border-bottom:1px solid #e8edf2"><a href="{{url-direta}}" style="color:#0b4f92;font-weight:bold;text-decoration:underline">{{Lei nº X.XXX/AAAA}}</a><br>{{ementa em uma linha}}.</td></tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
+<tr><td style="padding:6px 0;border-bottom:1px solid #e8edf2"><a href="{{url-direta}}" style="color:#0b4f92;font-weight:bold;text-decoration:underline">{{Lei nº X.XXX/AAAA}}</a> <span style="font-size:11px;color:#5a6773">({{DD/MM}}, DOU {{DD/MM}}{{; com veto — VET NN/AAAA}})</span><br>{{ementa, copiada da fonte}}.</td></tr>
 <!-- ...demais atos iguais; último sem border-bottom... -->
 </table>
 </td></tr>
 
-<!-- SEÇÕES STF/STJ (título padrão; itens como parágrafos com selo) -->
-<tr><td style="padding:22px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">⚖️ STF — Notícias</div>
+<!-- ITEM PADRÃO (STF/STJ/Informativos/Mídia/FOFOQUINHA): parágrafo com selo + fonte -->
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
+<p style="margin:0 0 12px 0"><span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL</span> {{texto do item com <b>negrito</b> no núcleo}}. <i>Fonte: <a href="{{url}}" style="color:#0b4f92">{{fonte}}</a>, {{DD/MM HH:MM}}.</i></p>
 </td></tr>
-<tr><td style="padding:0 24px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
-<p style="margin:0 0 12px 0"><span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL</span> {{texto do item com <b>negrito</b> no núcleo}}. <i>Fonte: {{fonte}}.</i></p>
-<p style="margin:0 0 12px 0"><span style="display:inline-block;color:#1e6b3a;border:1px solid #bfe3cc;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL ALTERNATIVA</span> {{texto}}. <i>Fonte: <a href="{{url}}" style="color:#0b4f92">{{veículo}}</a>.</i></p>
-</td></tr>
-<!-- Repetir o mesmo padrão para: STF Jurisprudência · STJ Notícias · STJ Jurisprudência · Informativos · Mídia · FOFOQUINHA -->
 
-<!-- OPINIÃO/ANÁLISE — bloco OBRIGATÓRIO dentro da seção "Se saiu na mídia não é fofoca!",
-     logo após o último item de notícia (máx. 6 itens; sem link quando não resolvido).
-     Fica na mesma célula <td> da seção Mídia: -->
-<p style="margin:12px 0 6px 0;font-size:12px;font-weight:bold;color:#0b2545">Opinião/Análise</p>
-<p style="margin:0 0 6px 0;font-size:12px;line-height:18px"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px">OPINIÃO/ANÁLISE</span> <a href="{{url-resolvida}}" style="color:#0b4f92">{{Título do artigo}}</a> — {{autor, se houver}} ({{DD/MM}}{{, herdada}}).</p>
-<p style="margin:0;font-size:12px;line-height:18px"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px">OPINIÃO/ANÁLISE</span> "{{Título sem link resolvido}}" — {{autor}} ({{DD/MM}}; link não resolvido, publicado sem URL própria).</p>
+<!-- LINHA DE APOIO (seção sem conteúdo próprio nesta janela) -->
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773">{{uma frase dizendo onde está o conteúdo, ex.: "O STJ da janela chegou só pela mídia — ver Se saiu na mídia não é fofoca!"}}</td></tr>
 
-<!-- CONCURSOS — CARREIRA (subgrupos com barra navy; badge à direita; ZEBRA:
-     alternar branco / #f9fafc nas linhas de dados dentro de cada bloco) -->
-<tr><td style="padding:18px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">💼 Concursos jurídicos — Carreira jurídica</div>
-</td></tr>
-<tr><td style="padding:6px 24px 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#2f3a45">
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-<tr bgcolor="#0b2545"><td colspan="2" style="color:#ffffff;font-weight:bold;padding:6px 8px;font-size:11px">{{Bloco de carreira, ex.: Magistratura Estadual}}</td></tr>
-<tr><td style="padding:6px 8px;border-bottom:1px solid #e8edf2" width="70%">{{Órgão — cargo: vagas, remuneração, prazos; marcar <b>novidades</b> e <i>(herdada)</i>}}.</td><td style="padding:6px 8px;border-bottom:1px solid #e8edf2;text-align:right;vertical-align:top"><span style="display:inline-block;color:#0b2545;font-size:9px;font-weight:bold;padding:2px 6px;border-radius:3px">INSCRIÇÕES ABERTAS</span></td></tr>
-<tr bgcolor="#f9fafc"><td style="padding:6px 8px;border-bottom:1px solid #e8edf2" width="70%">{{segunda linha do bloco — fundo zebra #f9fafc}}.</td><td style="padding:6px 8px;border-bottom:1px solid #e8edf2;text-align:right;vertical-align:top"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:2px 6px;border-radius:3px">EM ANDAMENTO</span></td></tr>
-<!-- ...zebra: continuar alternando branco/#f9fafc a cada linha; ordem dos blocos:
+<!-- OPINIÃO/ANÁLISE — bloco OBRIGATÓRIO dentro da célula da seção Mídia, após o último item
+     e após a linha "ver mais" (máx. 6 itens; sem link quando não resolvido) -->
+<p style="margin:12px 0 0 0;font-size:12px"><a href="{{listagem}}" style="color:#0b4f92">Ver mais no {{veículo}}</a> — {{n}} outras matérias da janela.</p>
+<p style="margin:14px 0 6px 0;font-size:12px;font-weight:bold;color:#0b2545">Opinião/Análise</p>
+<p style="margin:0 0 6px 0;font-size:12px;line-height:18px"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px">OPINIÃO/ANÁLISE</span> <a href="{{url-resolvida}}" style="color:#0b4f92">{{Título do artigo}}</a> — {{autor, se houver}} ({{veículo}}, {{DD/MM}}).</p>
+<p style="margin:0;font-size:12px;line-height:18px"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px">OPINIÃO/ANÁLISE</span> "{{Título sem link resolvido}}" — {{autor}} ({{veículo}}, {{DD/MM}}; sem link próprio).</p>
+
+<!-- CONCURSOS — CARREIRA. Primeiro, se houver prazo confirmado nos próximos 30 dias, o quadro
+     PRAZOS NO RADAR (ordem cronológica; "hoje"/"amanhã"/"em N dias"; prazo ≤ 7 dias em vermelho #a61b1b).
+     Depois os blocos de carreira: barra navy, badge à direita, ZEBRA branco/#f9fafc; ordem:
      Magistratura Estadual · Magistratura Federal · Promotor de Justiça (Estadual) ·
      MPF/MPU — Procurador da República · PFN · AGU · Procurador do Estado (PGE) ·
-     Procurador do Município (PGM) · Defensor Público Estadual (DPE) ·
-     Defensor Público Federal (DPU)... -->
+     Procurador do Município (PGM) · Defensor Público Estadual (DPE) · Defensor Público Federal (DPU) -->
+<tr><td style="padding:18px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
+<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">💼 Concursos jurídicos — Carreira jurídica</div>
+</td></tr>
+<tr><td style="padding:4px 20px 10px 20px;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+<tr><td bgcolor="#fdf6e9" style="border-left:4px solid #c5a253;padding:10px 12px">
+<div style="font-size:12px;font-weight:bold;color:#0b2545;margin-bottom:6px">⏰ Prazos no radar</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;line-height:17px;color:#2f3a45">
+<tr><td width="92" style="padding:3px 0;vertical-align:top;font-weight:bold;color:#a61b1b">{{DD/MM}} · {{em N dias}}</td><td style="padding:3px 0">{{Órgão — o que vence}}</td></tr>
+<tr><td width="92" style="padding:3px 0;vertical-align:top;font-weight:bold;color:#0b2545">{{DD/MM}} · {{em N dias}}</td><td style="padding:3px 0">{{Órgão — o que vence}}</td></tr>
+</table>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#2f3a45">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+<tr bgcolor="#0b2545"><td colspan="2" style="color:#ffffff;font-weight:bold;padding:6px 8px;font-size:11px">{{Bloco de carreira}}</td></tr>
+<tr><td style="padding:6px 8px;border-bottom:1px solid #e8edf2" width="72%">{{Órgão — cargo: vagas, remuneração, prazos; <b>novidades</b> em negrito, <i>(herdada)</i> em itálico}}.</td><td style="padding:6px 8px;border-bottom:1px solid #e8edf2;text-align:right;vertical-align:top"><span style="display:inline-block;color:#1e6b3a;border:1px solid #bfe3cc;font-size:9px;font-weight:bold;padding:2px 6px;border-radius:3px">INSCRIÇÕES ABERTAS</span></td></tr>
+<tr bgcolor="#f9fafc"><td style="padding:6px 8px;border-bottom:1px solid #e8edf2" width="72%">{{segunda linha do bloco — zebra}}.</td><td style="padding:6px 8px;border-bottom:1px solid #e8edf2;text-align:right;vertical-align:top"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:2px 6px;border-radius:3px">EM ANDAMENTO</span></td></tr>
+<!-- entre blocos: <tr><td colspan="2" style="height:6px;line-height:6px;font-size:1px">&nbsp;</td></tr> -->
 </table>
 </td></tr>
 
-<!-- VERSÍCULO (caixa creme) -->
-<tr><td style="padding:22px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif">
+<!-- VERSÍCULO (caixa creme) — fonte = a que o versiculo.py reportou -->
+<tr><td style="padding:22px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
 <div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">🙏 Porque sem Deus, nada é possível</div>
 </td></tr>
-<tr><td style="padding:0 24px">
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+<tr><td style="padding:0 20px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
 <tr><td bgcolor="#fdf6e9" style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif">
-<span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px;margin-bottom:8px">VERSÍCULO DO DIA</span>
+<span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">VERSÍCULO DO DIA</span>
 <p style="margin:8px 0 6px 0;font-size:14px;line-height:21px;color:#3d3113;font-style:italic">“{{texto do versículo}}”</p>
-<p style="margin:0 0 10px 0;font-size:12px;color:#8a6d1d;font-weight:bold">{{Referência (versão)}} — YouVersion, confirmado para {{DD/MM/AAAA}}</p>
+<p style="margin:0 0 10px 0;font-size:12px;color:#8a6d1d;font-weight:bold">{{Referência}} ({{versão}}) — <a href="{{url}}" style="color:#8a6d1d">{{fonte real}}</a>, confirmado para {{DD/MM/AAAA}}</p>
 <p style="margin:0;font-size:12px;line-height:18px;color:#5a6773">{{reflexão própria de 2–3 linhas conectada ao dia}}</p>
 </td></tr>
 </table>
 </td></tr>
 
 <!-- MUNGER (caixa cinza) -->
-<tr><td style="padding:18px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif">
+<tr><td style="padding:18px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
 <div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">💡 Conhecimento nunca é demais</div>
 </td></tr>
-<tr><td style="padding:0 24px 4px 24px">
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+<tr><td style="padding:0 20px 4px 20px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
 <tr><td bgcolor="#f4f6fa" style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif">
 <span style="display:inline-block;background:#0b2545;color:#ffffff;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">SABEDORIA DO DIA</span>
 <p style="margin:8px 0 6px 0;font-size:14px;line-height:21px;color:#2f3a45;font-style:italic">“{{citação}}”</p>
-<p style="margin:0;font-size:12px;color:#5a6773">— Charlie Munger{{ (obs de atribuição, se houver)}}</p>
+<p style="margin:0;font-size:12px;color:#5a6773">— Charlie Munger · <i>{{título da fonte}}</i>{{ · obs de atribuição, se houver}}</p>
 </td></tr>
 </table>
 </td></tr>
 
 <!-- FONTES + PENDÊNCIAS -->
-<tr><td style="padding:18px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Fontes oficiais consultadas</div></td></tr>
-<tr><td style="padding:0 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">{{lista separada por " · "}}</td></tr>
-<tr><td style="padding:14px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Fontes secundárias consultadas</div></td></tr>
-<tr><td style="padding:0 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">{{lista com a função de cada uma}}</td></tr>
-<tr><td style="padding:14px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Observações de verificação, lacunas e pendências</div></td></tr>
-<tr><td style="padding:0 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+<tr><td style="padding:18px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Fontes oficiais consultadas</div></td></tr>
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">{{lista separada por " · "}}</td></tr>
+<tr><td style="padding:14px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Fontes secundárias consultadas</div></td></tr>
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">{{lista com a função de cada uma}}</td></tr>
+<tr><td style="padding:14px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">📋 Observações de verificação, lacunas e pendências</div></td></tr>
+<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+<!-- ERRATA (só quando o ledger tiver pendência errata_*; publicar uma vez) -->
+<tr><td bgcolor="#fdf0f0" style="padding:10px 12px;border:1px solid #f0c2c2;color:#5c1a1a"><b>Errata da edição de {{DD/MM}}:</b> {{correção objetiva: onde se leu X, leia-se Y}}</td></tr>
+<tr><td style="height:8px;line-height:8px;font-size:1px">&nbsp;</td></tr>
 <tr><td bgcolor="#fdf6e9" style="padding:10px 12px;border:1px solid #e6d3a3">
 • {{pendência 1}}<br>
 • {{pendência 2}}
@@ -166,15 +189,15 @@ SELOS (span inline-block, font-size:10px, bold, padding:2px 7px, border-radius:3
 </td></tr>
 
 <!-- RODAPÉ -->
-<tr><td bgcolor="#0b2545" style="padding:20px 24px;font-family:Arial,Helvetica,sans-serif;text-align:center">
+<tr><td bgcolor="#0b2545" style="padding:20px;font-family:Arial,Helvetica,sans-serif;text-align:center">
 <div style="font-size:13px;color:#ffffff;font-weight:bold">🤖 Robozinho dos Momozis até Passar</div>
 <div style="font-size:11px;color:#a9b7cc;margin-top:6px;line-height:16px">Newsletter jurídica automatizada · conteúdo informativo, não substitui a consulta às fontes oficiais nem assessoria jurídica.<br>Próxima edição: {{amanhã | segunda-feira}}, às 7h.</div>
 </td></tr>
 
 <!-- SUPORTE USADO (com carimbo de geração) -->
-<tr><td style="padding:16px 24px 22px 24px;font-family:Arial,Helvetica,sans-serif">
+<tr><td style="padding:16px 20px 22px 20px;font-family:Arial,Helvetica,sans-serif">
 <div style="font-size:13px;font-weight:bold;color:#0b2545;margin-bottom:6px">Suporte usado na execução</div>
-<div style="font-size:11px;line-height:17px;color:#5a6773">{{ferramentas usadas, o que funcionou e o que falhou}}</div>
+<div style="font-size:11px;line-height:17px;color:#5a6773">{{ferramentas e scripts usados, o que funcionou e o que falhou}}</div>
 <div style="font-size:10px;line-height:15px;color:#8b95a1;margin-top:8px">Gerado em {{DD/MM/AAAA HH:MM}} (América/São Paulo) · execução {{execution_id}}</div>
 </td></tr>
 
