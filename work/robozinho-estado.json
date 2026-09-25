@@ -1,40 +1,40 @@
 {
-  "gerado_em": "2026-09-24T07:31:30-03:00",
-  "gerado_por": "2026-09-24-7h",
+  "gerado_em": "2026-09-25T07:32:52-03:00",
+  "gerado_por": "2026-09-25-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-09-24-7h",
-    "date": "2026-09-24",
-    "email_subject": "Robozinho dos Momozis até Passar - 24/09/2026 - 7h",
+    "execution_id": "2026-09-25-7h",
+    "date": "2026-09-25",
+    "email_subject": "Robozinho dos Momozis até Passar - 25/09/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-4642922835240268237",
-    "window_end": "2026-09-24T07:17:21-03:00"
+    "draft_id": "r1435393257933616101",
+    "window_end": "2026-09-25T07:19:14-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (84 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; 8 leis novas confirmadas por ela hoje (15.512-15.519).",
+      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (85 dias); a Rota 13 (Portal do Congresso) segue sustentando a seção Planalto.",
       "faixa": "cronica"
     },
     {
       "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto — Cebraspe e subsídio ~R$37.765,55 seguem sem edital publicado; não reverificado a fundo hoje (faixa longo prazo, não é 1ª execução da semana).",
+      "texto": "TJDFT Juiz Substituto — Cebraspe e subsídio ~R$37.765,55 confirmados, ~20 vagas convergem; edital sem data oficial. Fonte secundária não oficial estima edital em 05/10 e prova em 24/01/2027.",
       "faixa": "longo_prazo"
     },
     {
       "id": "agu_pfn_edital",
-      "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Não reverificado a fundo hoje (faixa longo prazo).",
+      "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Sem movimento nesta execução.",
       "faixa": "longo_prazo"
     },
     {
       "id": "concursos_cronogramas",
-      "texto": "TRF5 inscrições encerram 28/09 (16h) — divergência de data nas provas escritas entre o ledger (04-05/04/2027) e a fonte de hoje (21-22/02/2027), checar na FGV/TRF5. TJRS inscrições até 14/10 (prova 13/12). PGE-AL resultado ~20/10. PGM Juazeiro/BA edital previsto fim de set/2026. TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO não reverificados hoje (faixa longo prazo).",
+      "texto": "TRF5 inscrições encerram 28/09; divergência das provas escritas RESOLVIDA — confirmado 04-05/04/2027. TJRS inscrições até 14/10. PGE-AL objetiva já aplicada, resultado ~20/10. PGM Juazeiro/BA edital previsto fim de set/2026. TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO não reverificados hoje.",
       "faixa": "longo_prazo"
     },
     {
       "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Crise Banco Master/STF/PGR segue evoluindo: negociação Iter/Cezinha de Madureira (Mendonça), devolução de R$4,73 bi ao Tesouro (corregedor Benedito Gonçalves), disputa de precatórios de usinas (Gilmar tenta plenário), CPI rejeitada por Zanin, pedido de arquivamento por Mendonça, atualização do caso Camilla Ramos/desembargador TRF-1 (convergência das fontes de hoje em 'marido', mas sem confirmação primária do grau de parentesco), plano de código de ética de Cármen Lúcia. Nenhum item com confirmação oficial localizada nesta execução.",
+      "texto": "Crise Banco Master/STF/PGR: primeira confirmação oficial de um desdobramento (Gilmar leva precatórios de usinas ao Plenário, via STF push). CNJ fez correição no gabinete do desembargador do TRF-1 Newton Pereira Ramos Neto (marido de Camilla Ramos, ligado à 'Turma do KN'); Dino mandou a PF investigar a CVM no caso Master. Vínculo específico com Vorcaro segue sem confirmação oficial.",
       "faixa": "ativa"
     }
   ],
@@ -166,13 +166,39 @@
     "fofoquinha|jota-estadao|carmen-lucia-codigo-etica-stf-pos-eleicoes|2026|2026-09-23",
     "versiculo|dailyverses|proverbios-14-12|2026|2026-09-24",
     "munger|citacao|superotimismo-matematica-fria-probabilidades|indice-67|2026-09-24",
-    "concurso|trf5|juiz-federal-substituto-inscricoes-encerram-28-09|2026|2026-09-24"
+    "concurso|trf5|juiz-federal-substituto-inscricoes-encerram-28-09|2026|2026-09-24",
+    "stf|noticia|icms-confaz-livre-comercio-vedacao-encerramento-unilateral|2026|2026-09-24",
+    "stf|noticia|60-dias-uniao-rj-divida-estado|2026|2026-09-24",
+    "stf|noticia|prorroga-suspensao-sancoes-riscos-psicossociais|2026|2026-09-24",
+    "stf|noticia|plenario-precatorios-usinas-sucroalcooleiras|2026|2026-09-24",
+    "midia|migalhas|dino-pf-investigar-cvm-caso-master|2026|2026-09-24",
+    "midia|conjur|nunes-marques-relator-perda-cargo-buzzi|2026|2026-09-24",
+    "midia|jota-jornais|toffoli-rejeita-candidatura-furlan-amapa|2026|2026-09-25",
+    "midia|jota-jornais|tst-greve-correios-nao-abusiva|2026|2026-09-25",
+    "midia|jota-conjur|lula-tse-flavio-interferencia-abusos|2026|2026-09-24",
+    "midia|jota|tcu-enel-sp-caducidade-contrato|2026|2026-09-24",
+    "midia|jota|polymarket-instagram-sai-do-ar|2026|2026-09-24",
+    "midia|conjur|trf1-competencia-federal-agrotoxicos-mpf|2026|2026-09-24",
+    "midia|conjur|apoio-eleitoral-faccao-inelegibilidade|2026|2026-09-24",
+    "midia|conjur|estupro-desclassificado-tentativa-sem-contato-fisico|2026|2026-09-24",
+    "opiniao|conjur|redata-pis-cofins-ipi-natimorto|2026|2026-09-25",
+    "opiniao|conjur|ia-vai-nos-destruir-supervisao-humana|2026|2026-09-25",
+    "opiniao|conjur|cnj-avanca-campo-legislativo|2026|2026-09-25",
+    "opiniao|conjur|lc236-revogou-multa-simulacao-ibs-cbs|2026|2026-09-24",
+    "opiniao|conjur|gafi-7a-atualizacao-ativos-virtuais|2026|2026-09-24",
+    "opiniao|conjur|recuperacao-judicial-2026-dados-efetividade|2026|2026-09-24",
+    "fofoquinha|jota-migalhas|cnj-inspeciona-gabinete-desembargador-trf1-newton-ramos|2026|2026-09-25",
+    "fofoquinha|migalhas|carmen-lucia-nao-muda-voto-procurador-roupa|2026|2026-09-24",
+    "concurso|trf5|juiz-federal-substituto-inscricoes-encerram-28-09-provas-04-05-04-2027|2026|2026-09-25",
+    "concurso|tjdft|juiz-substituto-estimativa-edital-05-10-nao-oficial|2026|2026-09-25",
+    "concurso|pge-al|procurador-resultado-objetiva-gabaritos-preliminares|2026|2026-09-25",
+    "versiculo|dailyverses|mateus-4-19|2026|2026-09-25",
+    "munger|citacao|perder-o-que-se-tem-dor-decisoes-sob-pressao|indice-68|2026-09-25"
   ],
-  "total_chaves": 128,
+  "total_chaves": 155,
   "metricas": {
-    "execucoes_registradas": 28,
+    "execucoes_registradas": 29,
     "itens_ultimas_10": [
-      32,
       29,
       34,
       23,
@@ -181,51 +207,59 @@
       25,
       29,
       37,
-      37
+      37,
+      27
     ],
-    "media_itens": 30.0,
-    "itens_ultima": 37,
+    "media_itens": 29.5,
+    "itens_ultima": 27,
     "coletores_ultima": {
       "gmail": {
         "modelo": "haiku",
-        "tokens": 61096,
-        "chamadas": 17,
-        "duracao_ms": 145221
+        "tokens": 48354,
+        "chamadas": 9,
+        "duracao_ms": 93045
       },
       "jota": {
         "modelo": "sonnet",
-        "tokens": 169920,
-        "chamadas": 26,
-        "duracao_ms": 216590
+        "tokens": 134714,
+        "chamadas": 18,
+        "duracao_ms": 298208
       },
-      "web": {
+      "concursos": {
         "modelo": "sonnet",
-        "tokens": 110166,
-        "chamadas": 39,
-        "duracao_ms": 255272
+        "tokens": 67388,
+        "chamadas": 9,
+        "duracao_ms": 90476
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
         "execucoes": 10,
-        "tokens_total": 477385,
-        "chamadas_total": 101,
-        "tokens_media": 47738,
-        "chamadas_media": 10.1
+        "tokens_total": 478734,
+        "chamadas_total": 102,
+        "tokens_media": 47873,
+        "chamadas_media": 10.2
       },
       "jota": {
         "execucoes": 10,
-        "tokens_total": 1644358,
-        "chamadas_total": 196,
-        "tokens_media": 164436,
-        "chamadas_media": 19.6
+        "tokens_total": 1652851,
+        "chamadas_total": 200,
+        "tokens_media": 165285,
+        "chamadas_media": 20.0
       },
       "web": {
-        "execucoes": 10,
-        "tokens_total": 1001752,
-        "chamadas_total": 337,
-        "tokens_media": 100175,
-        "chamadas_media": 33.7
+        "execucoes": 9,
+        "tokens_total": 914532,
+        "chamadas_total": 310,
+        "tokens_media": 101615,
+        "chamadas_media": 34.4
+      },
+      "concursos": {
+        "execucoes": 1,
+        "tokens_total": 67388,
+        "chamadas_total": 9,
+        "tokens_media": 67388,
+        "chamadas_media": 9.0
       }
     }
   }
