@@ -14,351 +14,6 @@
   ],
   "executions": [
     {
-      "execution_id": "2026-09-14-7h",
-      "type": "diaria",
-      "run_started_at": "2026-09-14T07:08:44-03:00",
-      "run_finished_at": "2026-09-14T07:22:17-03:00",
-      "date": "2026-09-14",
-      "timezone": "America/Sao_Paulo",
-      "window_start": "2026-09-11T07:18:37-03:00",
-      "window_end": "2026-09-14T07:08:44-03:00",
-      "recipients": [
-        "pereirafranciscofilho@gmail.com",
-        "luizaxbarreto@gmail.com"
-      ],
-      "email_subject": "Robozinho dos Momozis até Passar - 14/09/2026 - 7h",
-      "delivery": "sent",
-      "draft_id": "r-7247627698847000219",
-      "items": [
-        {
-          "fonte": "stf",
-          "tipo": "noticia",
-          "titulo": "Fachin assume relatoria da Pet 16.662 (casos Master e Dark Horse), vai a Plenário terça 15/09",
-          "data": "2026-09-14",
-          "chave": "stf|noticia|fachin-assume-relatoria-pet16662-master-darkhorse|2026|2026-09-14",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "fonte_oficial": "Push STF Notícias (Gmail)"
-        },
-        {
-          "fonte": "stj",
-          "tipo": "jurisprudencia",
-          "titulo": "STJ mantém criança com família acolhedora que saiu do programa institucional",
-          "data": "2026-09-13",
-          "chave": "stj|jurisprudencia|crianca-familia-acolhedora-mantida|2026|2026-09-13",
-          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
-          "fonte_secundaria": "ConJur",
-          "url": "https://conjur.com.br/2026-set-13/stj-mantem-crianca-com-familia-acolhedora-que-saiu-do-programa/"
-        },
-        {
-          "fonte": "stj",
-          "tipo": "jurisprudencia",
-          "titulo": "STJ mantém multa aplicada com base em MP não convertida em lei",
-          "data": "2026-09-13",
-          "chave": "stj|jurisprudencia|multa-mp-nao-convertida-lei|2026|2026-09-13",
-          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
-          "fonte_secundaria": "ConJur",
-          "url": "https://conjur.com.br/2026-set-13/stj-mantem-multa-com-base-em-mp-nao-convertida-em-lei/"
-        },
-        {
-          "fonte": "stj",
-          "tipo": "jurisprudencia",
-          "titulo": "STJ discute prazo para MP e Defensoria recorrerem de decisão do júri",
-          "data": "2026-09-13",
-          "chave": "stj|jurisprudencia|prazo-mp-defensoria-recurso-juri|2026|2026-09-13",
-          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
-          "fonte_secundaria": "ConJur",
-          "url": "https://conjur.com.br/2026-set-13/stj-avalia-prazo-para-mp-e-defensoria-recorrerem-de-decisao-do-juri/"
-        },
-        {
-          "fonte": "stj",
-          "tipo": "jurisprudencia",
-          "titulo": "STJ discute se falta de assembleia geral impede empresa de processar diretor (paradoxo do quitus)",
-          "data": "2026-09-13",
-          "chave": "stj|jurisprudencia|paradoxo-do-quitus-assembleia-geral|2026|2026-09-13",
-          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
-          "fonte_secundaria": "ConJur",
-          "url": "https://conjur.com.br/2026-set-13/paradoxo-do-quitus/"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "Zanin e Gilmar Mendes oficiam PF por acesso integral ao celular de Vorcaro",
-          "data": "2026-09-14",
-          "chave": "midia|jota-migalhas|zanin-gilmar-oficiam-pf-celular-vorcaro|2026|2026-09-14",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/464414/zanin-da-ate-23h-para-pf-entregar-dados-de-celular-de-vorcaro"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "Mendonça diz que abrir dados de Vorcaro pode tumultuar julgamento",
-          "data": "2026-09-13",
-          "chave": "midia|migalhas|mendonca-tumultuar-julgamento-dados-vorcaro|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/464413/mendonca-diz-que-abrir-dados-de-vorcaro-pode-tumultuar-julgamento"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "Moraes pede acesso a petição sigilosa; Fachin manda PGR se manifestar",
-          "data": "2026-09-13",
-          "chave": "midia|migalhas|moraes-peticao-sigilosa-fachin-pgr|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/464415/moraes-pede-acesso-a-peticao-sigilosa-fachin-manda-pgr-se-manifestar"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "Explicativo: o que o STF vai julgar nesta terça",
-          "data": "2026-09-12",
-          "chave": "midia|migalhas|explicativo-o-que-stf-julgara-terca|2026|2026-09-12",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://www.migalhas.com.br/quentes/464371/moraes-mendonca-pf-master-entenda-o-que-stf-julgara-nesta-terca"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "CNJ nega ao MP livre acesso a dados de tornozeleiras eletrônicas em tempo real",
-          "data": "2026-09-13",
-          "chave": "midia|conjur|cnj-nega-mp-acesso-tornozeleiras|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://conjur.com.br/2026-set-13/cnj-nega-ao-mp-livre-acesso-a-dados-de-tornozeleiras-em-tempo-real/"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "TRE-RJ nega candidaturas por associá-las a organizações criminosas",
-          "data": "2026-09-13",
-          "chave": "midia|conjur|tre-rj-nega-candidaturas-organizacoes-criminosas|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://conjur.com.br/2026-set-13/tre-rj-nega-candidaturas-por-associa-las-a-organizacoes-criminosas/"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "TSE afasta flagrante preparado em gravação ambiental autorizada judicialmente",
-          "data": "2026-09-13",
-          "chave": "midia|conjur|tse-afasta-flagrante-preparado|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://conjur.com.br/2026-set-13/tse-afasta-flagrante-preparado-em-gravacao-ambiental-autorizada-judicialmente/"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "TJ-SP: construtora não pode reter chaves de imóvel por dívida após financiamento",
-          "data": "2026-09-13",
-          "chave": "midia|conjur|tjsp-construtora-nao-pode-reter-chaves|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://conjur.com.br/2026-set-13/tj-sp-proibe-construtora-de-reter-chaves-por-divida-apos-financiamento/"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "Testemunho do ouvi dizer não sustenta decisão de pronúncia",
-          "data": "2026-09-13",
-          "chave": "midia|conjur|testemunho-ouvi-dizer-nao-sustenta-pronuncia|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://conjur.com.br/2026-set-13/testemunho-do-ouvi-dizer-por-si-so-nao-sustenta-decisao-de-pronuncia/"
-        },
-        {
-          "fonte": "midia",
-          "tipo": "noticia",
-          "titulo": "Tratamento de TDAH não pode ser interrompido com fim de contrato de plano de saúde",
-          "data": "2026-09-13",
-          "chave": "midia|conjur|tdah-tratamento-nao-interrompido-plano-saude|2026|2026-09-13",
-          "status": "MÍDIA ESPECIALIZADA",
-          "url": "https://conjur.com.br/2026-set-13/tratamento-de-tdah-nao-deve-ser-interrompido-depois-de-resilicao-de-contrato/"
-        },
-        {
-          "fonte": "opiniao",
-          "tipo": "opiniao",
-          "titulo": "Fim do sigilo do Master mantém Mendonça como senhor da República",
-          "data": "2026-09-11",
-          "chave": "opiniao|jota|fim-sigilo-master-mendonca-senhor-republica|2026|2026-09-11",
-          "status": "OPINIÃO/ANÁLISE",
-          "url": "https://www.jota.info/opiniao-e-analise/colunas/democracia-em-transe/fim-do-sigilo-do-master-mantem-mendonca-como-senhor-da-republica"
-        },
-        {
-          "fonte": "opiniao",
-          "tipo": "opiniao",
-          "titulo": "O tempo do STF não é o tempo da mídia: a sessão do dia 15",
-          "data": "2026-09-12",
-          "chave": "opiniao|conjur|tempo-stf-nao-e-tempo-da-midia-sessao-dia-15|2026|2026-09-12",
-          "status": "OPINIÃO/ANÁLISE",
-          "url": "https://conjur.com.br/2026-set-12/o-tempo-do-stf-nao-e-o-tempo-da-midia-a-sessao-do-dia-15/"
-        },
-        {
-          "fonte": "opiniao",
-          "tipo": "opiniao",
-          "titulo": "Dos impactos do judiciarismo de coalizão nas eleições de 2026",
-          "data": "2026-09-13",
-          "chave": "opiniao|conjur|judiciarismo-coalizao-eleicoes-2026|2026|2026-09-13",
-          "status": "OPINIÃO/ANÁLISE",
-          "url": "https://conjur.com.br/2026-set-13/eleicoes-2026-impactos-do-judiciarismo-de-coalizao-e-da-desintegridade-judiciaria-do-stf/"
-        },
-        {
-          "fonte": "opiniao",
-          "tipo": "opiniao",
-          "titulo": "Inaplicabilidade do artigo 66 da LREF ao arrendamento rural",
-          "data": "2026-09-14",
-          "chave": "opiniao|conjur|inaplicabilidade-artigo-66-lref-arrendamento-rural|2026|2026-09-14",
-          "status": "OPINIÃO/ANÁLISE",
-          "url": "https://conjur.com.br/2026-set-14/inaplicabilidade-do-artigo-66-da-lref-ao-arrendamento-rural/"
-        },
-        {
-          "fonte": "opiniao",
-          "tipo": "opiniao",
-          "titulo": "José Eduardo Faria — a crise de legitimidade do STF",
-          "data": "2026-09-11",
-          "chave": "opiniao|jota|jose-eduardo-faria-crise-legitimidade-stf|2026|2026-09-11",
-          "status": "OPINIÃO/ANÁLISE",
-          "url": null
-        },
-        {
-          "fonte": "fofoquinha",
-          "tipo": "fofoquinha",
-          "titulo": "No escurinho dos gabinetes — reuniões fechadas de Fachin antes da sessão",
-          "data": "2026-09-11",
-          "chave": "fofoquinha|jota|escurinho-gabinetes-reunioes-fachin|2026|2026-09-11",
-          "status": "CONFIRMADO"
-        },
-        {
-          "fonte": "fofoquinha",
-          "tipo": "fofoquinha",
-          "titulo": "Aliados de Moraes preparariam sete questões preliminares para a sessão de terça",
-          "data": "2026-09-14",
-          "chave": "fofoquinha|jota-oglobo|sete-preliminares-sessao-terca|2026|2026-09-14",
-          "status": "FORTE INDÍCIO"
-        },
-        {
-          "fonte": "fofoquinha",
-          "tipo": "fofoquinha",
-          "titulo": "Ala próxima a Moraes cogitaria pedido de vista para adiar decisão",
-          "data": "2026-09-14",
-          "chave": "fofoquinha|jota-estadao|pedido-vista-adiar-decisao|2026|2026-09-14",
-          "status": "RUMOR"
-        },
-        {
-          "fonte": "fofoquinha",
-          "tipo": "fofoquinha",
-          "titulo": "Cogita-se suspeição de Fux e Nunes Marques; TV Justiça em alerta",
-          "data": "2026-09-14",
-          "chave": "fofoquinha|jota|suspeicao-fux-nunes-marques-tv-justica|2026|2026-09-14",
-          "status": "FORTE INDÍCIO"
-        },
-        {
-          "fonte": "concurso",
-          "tipo": "concurso",
-          "titulo": "TJRS Juiz Substituto — inscrições abrem 15/09 e vão até 14/10 (correção de dado)",
-          "data": "2026-09-14",
-          "chave": "concurso|tjrs|juiz-substituto-inscricoes-15-09-a-14-10|2026|2026-09-14",
-          "status": "EDITAL PUBLICADO",
-          "url": "https://conhecimento.fgv.br/concursos/tjrsjuiz26"
-        },
-        {
-          "fonte": "concurso",
-          "tipo": "concurso",
-          "titulo": "TRF2 Juiz Federal — orais em andamento (14-25/09)",
-          "data": "2026-09-14",
-          "chave": "concurso|trf2|juiz-federal-orais-14-25-09|2026|2026-09-14",
-          "status": "EM ANDAMENTO"
-        },
-        {
-          "fonte": "concurso",
-          "tipo": "concurso",
-          "titulo": "MP-SP Promotor — prova discursiva realizada em 13/09, resultado pendente",
-          "data": "2026-09-13",
-          "chave": "concurso|mpsp|promotor-prova-discursiva-realizada|2026|2026-09-13",
-          "status": "PROVA REALIZADA"
-        },
-        {
-          "fonte": "versiculo",
-          "tipo": "versiculo",
-          "titulo": "Efésios 4:26-27 (ARC)",
-          "data": "2026-09-14",
-          "chave": "versiculo|dailyverses|efesios-4-26-27|2026|2026-09-14",
-          "status": "VERSÍCULO DO DIA"
-        },
-        {
-          "fonte": "munger",
-          "tipo": "citacao",
-          "titulo": "Talvez a regra mais importante na gestão seja acertar os incentivos das pessoas certas",
-          "data": "2026-09-14",
-          "chave": "munger|citacao|acerte-incentivos-pessoas-certas|indice-57|2026-09-14",
-          "status": "SABEDORIA DO DIA"
-        }
-      ],
-      "source_status": {
-        "gmail_push_stf": "saudavel - 1 item novo confirmado (Fachin/Pet 16662)",
-        "gmail_push_stf_informativos": "saudavel - sem edição nova (388 já publicado)",
-        "gmail_stj_codju": "intermitente - silêncio normal (cadência semanal)",
-        "gmail_push_planalto": "mudo - sonda vazia, 74 dias sem e-mail",
-        "gmail_jota": "saudavel - 10 threads, teto de 16 buscas WebSearch atingido",
-        "congresso_ultimas_leis": "saudavel - sem lei nova na janela",
-        "congresso_mpvs": "saudavel - checagem cruzada CONFIRMADA, sem MPV nova na janela",
-        "conjur": "saudavel - apex sem www, 200 em todas as rotas",
-        "migalhas": "saudavel - curl 200, datas confirmadas por WebSearch (4 de 10 itens)"
-      },
-      "errors": [],
-      "pendencias": [
-        {
-          "id": "crise_institucional_stf_pgr_acompanhar",
-          "texto": "Sessão plenária extraordinária de terça (15/09) decide sobre investigar Moraes; Fachin assumiu relatoria da Pet 16.662; escalada Zanin/Gilmar Mendes vs PF por dados de Vorcaro; bastidores de estratégia processual (preliminares, possível pedido de vista, questionamentos de suspeição de Fux e Nunes Marques).",
-          "faixa": "ativa"
-        },
-        {
-          "id": "planalto_push_mudo",
-          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (74 dias) - sonda de 14/09 também vazia",
-          "faixa": "cronica"
-        },
-        {
-          "id": "tjdft_edital",
-          "texto": "TJDFT Juiz Substituto - reverificado em 14/09 sem novidade oficial; fontes seguem em 20-24 vagas / ~R$37.765,55; armadilha banca_edital_antigo checada e descartada novamente",
-          "faixa": "ativa"
-        },
-        {
-          "id": "agu_pfn_edital",
-          "texto": "AGU/PFN - 170 vagas autorizadas, edital em até 6 meses (~jan/2027). Não reverificado em 14/09 (faixa longo_prazo)",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "concursos_cronogramas",
-          "texto": "Reverificado em 14/09 (1ª execução da semana). TJRS: correção de dado - inscrições abrem 15/09 até 14/10 (não encerram em 15/09). MP-SP: discursiva realizada 13/09, resultado pendente. TRF2: orais 14-25/09 confirmado em andamento. PGE-AL: sem novidade sobre resultado (~20/10). PGM Juazeiro/BA, DPDF, ENAM não reverificados por limite de buscas.",
-          "faixa": "longo_prazo"
-        }
-      ],
-      "verification_notes": [
-        "Rota 13 (Congresso) não registrou lei ou MPV nova dentro da janela 11-14/09; a lei mais recente (15.502/2026) é de 10/09, um dia antes do início da janela, e não aparece nas chaves já publicadas da execução anterior (que cobriu até 11/09 07:18) - possível item perdido na execução de 11/09; não reintroduzido nesta edição por estar fora da janela atual, mas sinalizado aqui para checagem futura se relevante.",
-        "STF Notícias: item herdado sobre audiência pública de emendas parlamentares (timestamp 11/09 no push) e informativo RG 388 (timestamp 11/09 no push) são reiterações de conteúdo já publicado na edição de 11/09 sob chaves diferentes - excluídos desta edição por duplicidade de conteúdo, não de chave.",
-        "JOTA: itens sobre Fachin solicitar a Mendonça retirada de sigilo em 24h e Mendonça atender ao pedido (ambos e-mail de 11/09 17:48, conteúdo de 09-10/09-11) são cobertura já absorvida pela chave midia|jota|sigilo-caso-master-levantado-linha-flavio-segue-secreta|2026|2026-09-11 da edição anterior - excluídos por duplicidade.",
-        "Migalhas: 6 itens do dia descartados por falta de confirmação de data cruzada (regra da fonte) - CBMA arbitragem tributária, dívidas de professora, remoção de servidor por saúde mental, prova de delegado revista, e um item de TJSP sobre mineradora com data indireta e pouco confiável (~10/09, possivelmente fora da janela).",
-        "Mídia (ConJur): 4 itens adicionais de 13/09 não couberam no teto de ~10 itens da seção (execução trabalhista, depósito judicial tributário, cota dupla auxílio emergencial, escala 9x1) - mencionados com link de listagem geral, não como itens individuais.",
-        "Opinião/Análise: teto de 6 respeitado; 2 itens adicionais do ConJur/JOTA (Robert Alexy tributo, Novo marco da mobilidade, Responsabilidade civil empresarial) ficaram de fora por menor centralidade na semana."
-      ],
-      "coletores": {
-        "gmail": {
-          "modelo": "haiku",
-          "tokens": 47370,
-          "chamadas": 8,
-          "duracao_ms": 36430
-        },
-        "jota": {
-          "modelo": "sonnet",
-          "tokens": 169768,
-          "chamadas": 24,
-          "duracao_ms": 217309
-        },
-        "web": {
-          "modelo": "sonnet",
-          "tokens": 120326,
-          "chamadas": 52,
-          "duracao_ms": 293972
-        }
-      },
-      "gmail_message_id": "1a09f762bed85e26",
-      "delivery_reconciled_at": "2026-09-15T07:24:35-03:00"
-    },
-    {
       "execution_id": "2026-09-15-7h",
       "type": "diaria",
       "run_started_at": "2026-09-15T07:07:28-03:00",
@@ -3359,7 +3014,7 @@
         "luizaxbarreto@gmail.com"
       ],
       "email_subject": "Robozinho dos Momozis até Passar - 25/09/2026 - 7h",
-      "delivery": "draft",
+      "delivery": "sent",
       "draft_id": "r1435393257933616101",
       "verification_notes": [
         "Itens do JOTA já publicados em 24/09 (STF licença-maternidade 120 dias; CNJ devolução R$4,73bi precatórios usinas) foram descartados nesta edição por já estarem em chaves_publicadas.",
@@ -3684,6 +3339,470 @@
           "tokens": 67388,
           "chamadas": 9,
           "duracao_ms": 90476
+        }
+      },
+      "gmail_message_id": "1a0d829d0f7a0c69",
+      "delivery_reconciled_at": "2026-09-28T07:40:06-03:00"
+    },
+    {
+      "execution_id": "2026-09-28-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-28T07:19:06-03:00",
+      "run_finished_at": "2026-09-28T07:38:46-03:00",
+      "date": "2026-09-28",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-25T07:19:14-03:00",
+      "window_end": "2026-09-28T07:19:06-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 28/09/2026 - 7h",
+      "delivery": "draft",
+      "draft_id": "r1469694170737182862",
+      "verification_notes": "Coletor JOTA trouxe inicialmente um item de 28/09 condensando varios fatos distintos numa linha so, com fonte vaga ('sintetiza Folha/Globo/Estadao/Valor'); via SendMessage ao mesmo agente, confirmou-se thread_id 1a0e775acecba3ce (contato@jota.info, 28/09 07:00:43 -03:00, dentro da janela) e o item foi separado em 7 entradas individuais — ver armadilha nova jota_texto_corrido_multiplos_fatos. O item 'TSE adia decisao sobre candidatura de Furlan ao Amapa' atualiza o estado do item anterior midia|jota-jornais|toffoli-rejeita-candidatura-furlan-amapa|2026|2026-09-25 (publicado como decisao fechada de Toffoli em 25/09; hoje soube-se que Mendonca pediu vista, adiando o julgamento) — chave nova conforme regra de item que muda de estado. ENAM 6a edicao (edital publicado) e PGE-RS (regulamento do 16o concurso publicado) sao novidades confirmadas de concursos; PGE-RS passou a ser acompanhado dentro da pendencia concursos_cronogramas. Erro de fidelidade corrigido antes do envio: uma redacao inicial ligava indevidamente a decisao de Toffoli sobre a coligacao PSDB-Cidadania (PE) a crise do Banco Master/Vorcaro sem essa relacao ser sustentada pela evidencia; corrigido via update_draft antes de qualquer sinal de envio pelo Apps Script.",
+      "errors": [
+        "youversion: WebVerse of the Day retornou http 200 porem com desafio anti-bot/pagina vazia (falha tecnica, nao falta de versiculo) — fallback DailyVerses.net funcionou normalmente.",
+        "work/resolver_jota.py: bloqueado pelo classificador de sandbox do ambiente como 'Data Exfiltration' antes de executar (curl ao wrapper t.rdsv2.net) — fallback via WebSearch site:jota.info funcionou para o unico item que precisava de link individual (sem match exato, publicado sem link)."
+      ],
+      "items": [
+        {
+          "chave": "planalto|lei|15521|2026|2026-09-24",
+          "fonte": "Portal do Congresso Nacional",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.521/2026 — Cria a Universidade Federal de Ciência e Inovação de MG e do RJ (UFCI/MG e UFCI/RJ)",
+          "data": "2026-09-24",
+          "url": "https://legis.senado.leg.br/norma/44044960",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|lei|15520|2026|2026-09-24",
+          "fonte": "Portal do Congresso Nacional",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Lei nº 15.520/2026 — Cria a Universidade Federal da Fronteira Norte",
+          "data": "2026-09-24",
+          "url": "https://legis.senado.leg.br/norma/44044964",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "planalto|mpv|1394|2026|2026-09-25",
+          "fonte": "Portal do Congresso Nacional",
+          "categoria": "Planalto/Legislação",
+          "titulo": "MPV 1.394/2026 — Proíbe apostas de quota fixa e institui Comitê Interinstitucional",
+          "data": "2026-09-25",
+          "url": "https://www.congressonacional.leg.br/materias/medidas-provisorias/-/mpv/175871",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "herdada"
+        },
+        {
+          "chave": "planalto|mpv|1393|2026|2026-09-25",
+          "fonte": "Portal do Congresso Nacional",
+          "categoria": "Planalto/Legislação",
+          "titulo": "MPV 1.393/2026 — Institui a Modalidade Emergencial de Renegociação de Dívidas (Desenrola)",
+          "data": "2026-09-25",
+          "url": "https://www.congressonacional.leg.br/materias/medidas-provisorias/-/mpv/175870",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "herdada"
+        },
+        {
+          "chave": "planalto|mpv|1392|2026|2026-09-22",
+          "fonte": "Portal do Congresso Nacional",
+          "categoria": "Planalto/Legislação",
+          "titulo": "MPV 1.392/2026 — Abre crédito extraordinário de R$ 64.289.400,00 (Desenvolvimento e Assistência Social/Família/Combate à Fome e Povos Indígenas)",
+          "data": "2026-09-22",
+          "url": "https://www.congressonacional.leg.br/materias/medidas-provisorias/-/mpv/175829",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "herdada; publicada como parte da errata da edição de 25/09"
+        },
+        {
+          "chave": "stf|noticia|condicoes-retomada-obras-territorio-quilombola-bahia|2026|2026-09-25",
+          "fonte": "STF Notícias",
+          "categoria": "STF Notícias",
+          "titulo": "STF impõe condições para retomada de obras em área urbana reivindicada como território quilombola na Bahia",
+          "data": "2026-09-25",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-impoe-condicoes-para-retomada-de-obras-em-area-urbana-reivindicada-como-territorio-quilombola-na-bahia/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|limites-sigilo-telematico-fiscalizacao-tributaria|2026|2026-09-25",
+          "fonte": "STF Notícias",
+          "categoria": "STF Notícias",
+          "titulo": "STF vai definir limites para quebra de sigilo telemático em fiscalização tributária",
+          "data": "2026-09-25",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-vai-definir-limites-para-quebra-de-sigilo-telematico-em-fiscalizacao-tributaria/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|toffoli-retira-psdb-cidadania-coligacao-pe|2026|2026-09-27",
+          "fonte": "STF Notícias",
+          "categoria": "STF Notícias",
+          "titulo": "STF determina retirada da Federação PSDB-Cidadania de coligação em Pernambuco (Toffoli)",
+          "data": "2026-09-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-determina-retirada-da-federacao-psdb-cidadania-de-coligacao-em-pernambuco/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "detalhe adicional (Aécio Neves, TRE-PE) via JOTA 28/09"
+        },
+        {
+          "chave": "midia|jota|dino-anula-mendonca-posts-flavio-bolsonaro-aparecida|2026|2026-09-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Dino anula decisão de Mendonça sobre posts de Flávio Bolsonaro e Nossa Senhora Aparecida",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|tse-suspende-jingle-lula-flavio-bolsonaro|2026|2026-09-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE suspende jingle da campanha de Lula contra Flávio Bolsonaro",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|lula-defende-mudar-criterio-escolha-ministros-stf|2026|2026-09-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Lula defende mudar o critério de escolha dos ministros do STF",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|bets-articulam-adi-mandado-seguranca-mp|2026|2026-09-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Bets articulam ação judicial conjunta contra a MP de Lula",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|cnj-padroniza-prova-digital-penal-mp-teme-autonomia|2026|2026-09-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "CNJ discute padronizar prova digital penal; MP teme perda de autonomia",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota-estadao|quatro-episodios-stf-interfere-disputas-eleitorais|2026|2026-09-28",
+          "fonte": "JOTA (clipping O Estado de S. Paulo)",
+          "categoria": "Mídia",
+          "titulo": "Estadão aponta quatro episódios de STF intervindo em disputas eleitorais antes do TSE",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|lula-pacote-bets-proibicao-penas-8-anos|2026|2026-09-25",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Lula oficializa proibição das bets; pacote prevê penas de até 8 anos",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada"
+        },
+        {
+          "chave": "midia|jota|tse-adia-furlan-amapa-vista-mendonca|2026|2026-09-25",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE adia decisão sobre candidatura de Dr. Furlan ao governo do Amapá (vista de Mendonça)",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; atualiza o estado de midia|jota-jornais|toffoli-rejeita-candidatura-furlan-amapa|2026|2026-09-25 — Mendonça pediu vista após voto de Toffoli pela rejeição"
+        },
+        {
+          "chave": "midia|jota|tse-nega-registro-arruda-df|2026|2026-09-24",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE nega registro de candidatura de José Roberto Arruda ao governo do DF",
+          "data": "2026-09-24",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada"
+        },
+        {
+          "chave": "midia|conjur|stj-afasta-cobertura-canabidiol-uso-domiciliar|2026|2026-09-27",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ afasta cobertura de canabidiol de uso domiciliar por plano de saúde",
+          "data": "2026-09-27",
+          "url": "https://conjur.com.br/2026-set-27/stj-afasta-cobertura-de-canabidiol-de-uso-domiciliar-por-plano-de-saude/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "opiniao|conjur|iptu-imunidade-reciproca-imoveis-concessao-stf-futuro|2026|2026-09-27",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "IPTU e imunidade recíproca sobre imóveis objeto de concessão: o que o STF indica para o futuro",
+          "data": "2026-09-27",
+          "url": "https://conjur.com.br/2026-set-27/iptu-e-imunidade-reciproca-sobre-imoveis-objeto-de-concessao-o-que-o-stf-indica-para-o-futuro/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|coisa-julgada-beneficio-incapacidade-limite-revisao-inss|2026|2026-09-27",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Coisa julgada e benefício por incapacidade: o limite da revisão do INSS",
+          "data": "2026-09-27",
+          "url": "https://conjur.com.br/2026-set-27/coisa-julgada-e-beneficio-por-incapacidade-os-limites-da-revisao-administrativa-do-inss/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|mp-credito-produtor-rural-nao-atua-recuperacao-judicial|2026|2026-09-28",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "MP de crédito a produtor rural não atua como recuperação judicial",
+          "data": "2026-09-28",
+          "url": "https://conjur.com.br/2026-set-28/mp-de-credito-a-produtor-rural-nao-atua-como-recuperacao-judicial/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|denuncia-compliance-dispensa-posterior-retaliacao|2026|2026-09-28",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Denúncia ao compliance e dispensa posterior: quando se caracteriza a retaliação?",
+          "data": "2026-09-28",
+          "url": "https://conjur.com.br/2026-set-28/denuncia-ao-compliance-e-dispensa-posterior-quando-se-caracteriza-a-retaliacao/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|ameaca-proibicao-bets-risco-regulatorio-investir-brasil|2026|2026-09-25",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Ameaça de proibição das bets comprova: o risco regulatório de investir no Brasil",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "sem link próprio (boletim)"
+        },
+        {
+          "chave": "opiniao|jota|direito-autoral-insumo-ia-generativa-remunerado|2026|2026-09-25",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Direito autoral é insumo para a IA generativa e deve ser remunerado",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "sem link próprio (boletim)"
+        },
+        {
+          "chave": "versiculo|dailyverses|joao-15-5|2026|2026-09-28",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "João 15:5 (ARC)",
+          "data": "2026-09-28",
+          "url": "https://dailyverses.net/pt/2026/9/28",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|estresse-agudo-juizo-mente-serena|indice-71|2026-09-28",
+          "fonte": "A Psicologia dos Erros de Julgamento Humano",
+          "categoria": "Munger",
+          "titulo": "Sob estresse agudo, o juízo desanda; decisões importantes pedem mente serena.",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        },
+        {
+          "chave": "concurso|trf5|juiz-federal-substituto-inscricoes-encerram-28-09-16h|2026|2026-09-28",
+          "fonte": "mixvale.com.br / blog.mege.com.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF5 — Juiz Federal Substituto: inscrições encerram hoje, 16h",
+          "data": "2026-09-28",
+          "url": "https://www.mixvale.com.br/2026/09/27/concurso-do-trf-5-fecha-inscricoes-para-juiz-federal-com-ganho-de-r-377-mil/",
+          "status": "ENCERRA HOJE"
+        },
+        {
+          "chave": "concurso|mp-sp|promotor-97-concurso-discursiva-aplicada-aguardando-resultado|2026|2026-09-13",
+          "fonte": "ceisc.com.br / cj.estrategia.com",
+          "categoria": "Concursos - Carreira",
+          "titulo": "MP-SP — 97º concurso de Promotor: discursiva aplicada em 13/09, resultado ainda não divulgado",
+          "data": "2026-09-13",
+          "url": "https://ceisc.com.br/blog/post/concurso-mp-sp-definida-data-de-prova-preambular-para-carreira-de-promotor",
+          "status": "EM ANDAMENTO"
+        },
+        {
+          "chave": "concurso|enam|6-edicao-edital-publicado|2026|2026-09-24",
+          "fonte": "Enfam/FGV",
+          "categoria": "Concursos - Carreira",
+          "titulo": "ENAM 6ª edição — edital publicado pela Enfam/FGV, prova objetiva em 29/11",
+          "data": "2026-09-24",
+          "url": "https://www.enfam.jus.br/publicado-o-edital-da-sexta-edicao-do-exame-nacional-da-magistratura/",
+          "status": "EDITAL PUBLICADO"
+        },
+        {
+          "chave": "concurso|pge-rs|16-concurso-regulamento-publicado|2026|2026-09-21",
+          "fonte": "acheconcursos.com.br / jcconcursos.com.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-RS — 16º concurso: regulamento publicado (Resolução PGE nº 315/2026), edital de abertura ainda sem data",
+          "data": "2026-09-21",
+          "url": "https://www.acheconcursos.com.br/noticias/concurso-pge-rs-tem-novidades-veja-regulamento-do-edital-93441",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|tjdft|juiz-substituto-edital-sem-data-oficial-reverificado-28-09|2026|2026-09-28",
+          "fonte": "tjdft.jus.br / cebraspe.org.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJDFT — Juiz Substituto (XLV concurso): confirmado que o edital segue sem data oficial",
+          "data": "2026-09-28",
+          "url": "https://www.tjdft.jus.br/informacoes/concursos",
+          "status": "PENDÊNCIA"
+        },
+        {
+          "chave": "concurso|trf2|xix-concurso-orais-aguardando-resultado|2026|2026-09-28",
+          "fonte": "trf2.jus.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF2 — XIX concurso: orais previstas para 14-25/09, resultado ainda não localizado",
+          "data": "2026-09-28",
+          "url": "https://www.trf2.jus.br/jf2/noticia-jf2/2026/trf2-realiza-segunda-etapa-do-xix-concurso-para-juiz-federal-substituto-com",
+          "status": "EM ANDAMENTO"
+        },
+        {
+          "chave": "concurso|tjrs|juiz-substituto-inscricoes-ate-14-10|2026|2026-09-28",
+          "fonte": "conhecimento.fgv.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJRS — Juiz Substituto: inscrições até 14/10, prova objetiva 13/12",
+          "data": "2026-09-28",
+          "url": "https://conhecimento.fgv.br/concursos/tjrsjuiz26",
+          "status": "INSCRIÇÕES ABERTAS"
+        },
+        {
+          "chave": "concurso|pge-al|resultado-final-objetiva-previsto-20-10|2026|2026-09-28",
+          "fonte": "ceisc.com.br / cebraspe.org.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-AL — Procurador: gabaritos preliminares publicados, resultado final previsto para 20/10",
+          "data": "2026-09-28",
+          "url": "https://ceisc.com.br/blog/post/concurso-pge-al-publicados-os-gabaritos-preliminares-da-prova-para-procurador",
+          "status": "PROVA REALIZADA"
+        },
+        {
+          "chave": "concurso|pgm-juazeiro-ba|edital-previsto-fim-setembro|2026|2026-09-28",
+          "fonte": "magistrarcursos.com.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGM Juazeiro/BA — nova seleção: edital previsto para o fim de setembro/2026",
+          "data": "2026-09-28",
+          "url": "https://magistrarcursos.com.br/blog/concurso-pgm-juazeiro-ba-edital-previsto-ate-setembro-de-2026/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|pge-ba|comissao-formada-banca-fcc-edital-pendente|2026|2026-09-28",
+          "fonte": "blog.grancursosonline.com.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-BA — comissão formada, banca FCC, edital de julho/2026 segue sem publicação",
+          "data": "2026-09-28",
+          "url": "https://blog.grancursosonline.com.br/concurso-pge-ba/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|pge-ma|comissao-formada-banca-indefinida|2026|2026-09-28",
+          "fonte": "blog.grancursosonline.com.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-MA — comissão formada, banca ainda indefinida",
+          "data": "2026-09-28",
+          "url": "https://blog.grancursosonline.com.br/concurso-pge-ma/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|dpu|vii-concurso-resolucao-255-banca-indefinida|2026|2026-09-28",
+          "fonte": "cj.estrategia.com",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPU — VII concurso: Resolução CSDPU nº 255/2026 rege o certame, banca e vagas ainda não definidas",
+          "data": "2026-09-28",
+          "url": "https://cj.estrategia.com/portal/concurso-dpu-defensor-resolucao-255-2026/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|dpe-ro|comissao-formada-recursos-loa-2026|2026|2026-09-28",
+          "fonte": "reverificação do coletor concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-RO — comissão formada em maio/2026, recursos previstos na LOA 2026",
+          "data": "2026-09-28",
+          "url": "",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|agu-pfn|170-vagas-fase-escolha-banca|2026|2026-09-28",
+          "fonte": "jcconcursos.com.br / folha.qconcursos.com",
+          "categoria": "Concursos - Carreira",
+          "titulo": "AGU/PFN — 170 vagas: processo segue em fase de escolha da banca organizadora",
+          "data": "2026-09-28",
+          "url": "https://jcconcursos.com.br/noticia/concursos/concurso-agu-banca-em-breve-para-170-vagas-de-nivel-superior-144613",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|trt8|tecnico-analista-banca-fcc-contrato-pendente|2026|2026-09-28",
+          "fonte": "wilsontavares.com.br",
+          "categoria": "Concursos - Apoio",
+          "titulo": "TRT8 — Técnico/Analista: banca FCC definida, 92 cargos vagos, aguardando assinatura de contrato",
+          "data": "2026-09-28",
+          "url": "https://wilsontavares.com.br/blog/artigos/trt82026/",
+          "status": "EM PLANEJAMENTO"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026; a seção Planalto se apoia no Portal do Congresso Nacional.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT XLV concurso: confirmado hoje que o edital segue sem data oficial; estimativas não oficiais de 05/10 e 13/10 circulam sem confirmação.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas seguem em fase de escolha da banca; prazo entre fim de 2026 e jan/2027.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TJRS inscrições até 14/10; PGE-AL resultado previsto 20/10; PGM Juazeiro/BA, TRF2, TRT8, PGE-BA/MA, DPU VII, DPE-RO, PGE-RS reverificados sem movimento crítico; DPDF não reverificado.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Caso Vorcaro/Banco Master: nenhum desdobramento oficial novo localizado nesta janela; acompanhamento segue ativo.",
+          "faixa": "ativa"
+        }
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 44999,
+          "chamadas": 8,
+          "duracao_ms": 57137
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 165322,
+          "chamadas": 1,
+          "duracao_ms": 81821
+        },
+        "concursos": {
+          "modelo": "sonnet",
+          "tokens": 93381,
+          "chamadas": 24,
+          "duracao_ms": 169069
         }
       }
     }
