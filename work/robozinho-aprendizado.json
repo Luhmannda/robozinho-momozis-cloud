@@ -1,294 +1,58 @@
 {
   "schema_version": 2,
+
   "descricao": "Memoria operacional da newsletter. Lida no inicio e atualizada no fim de cada execucao. REGRA DE ADMISSAO: um registro so entra se mudar uma decisao concreta da proxima execucao; o resto vai para verification_notes do historico. CONTADORES SAO MECANICOS: ultimo_sucesso, sem_sucesso, dias_sem_email, execucoes das pendencias e atualizado_em sao aplicados por work/Update-Historico.py --ledger a partir de source_status/pendencias da execucao — nunca editar numeros a mao. O orquestrador edita so julgamento (notas, armadilhas, pendencias) e, ao atualizar a nota de uma fonte, REESCREVE de forma compacta (status + politica + no maximo 1 padrao recente) — nunca prependar 'Nota anterior:'. Pendencia de concurso leva \"coletor\": \"concursos\" (e passada ao coletor pelo inicio.py). Armadilhas: detectado_em_qtd + detectado_em_primeira + detectado_em_ultimas (max 3 datas).",
-  "atualizado_em": "2026-09-30T07:23:12-03:00",
-  "atualizado_por_execucao": "2026-09-30-7h",
-  "niveis_de_esforco": {
-    "saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.",
-    "intermitente": "Publica episodicamente (ex.: informativos semanais). 1 query. AUSENCIA NAO E FALHA nem pendencia.",
-    "mudo": "Ja funcionou, sem retorno ha 5+ execucoes. NO MAXIMO 1 sonda, depois fallback imediato. Se voltar: reclassificar para saudavel e registrar a data.",
-    "instavel": "Responde, mas erra com frequencia (erro tecnico ou conteudo errado). Sempre ter rota alternativa; silencio nunca e ausencia de novidade.",
-    "bloqueado": "Bloqueio anti-bot/403/TCP reproduzido. NAO TENTAR.",
-    "descontinuado": "Servico encerrado pelo orgao. NAO TENTAR."
-  },
+
+  "atualizado_em": "2026-10-01T07:24:18-03:00",
+
+  "atualizado_por_execucao": "2026-10-01-7h",
+
+  "niveis_de_esforco": {"saudavel": "Sucesso em 1 das ultimas 3 execucoes. Consultar normalmente.", "intermitente": "Publica episodicamente (ex.: informativos semanais). 1 query. AUSENCIA NAO E FALHA nem pendencia.", "mudo": "Ja funcionou, sem retorno ha 5+ execucoes. NO MAXIMO 1 sonda, depois fallback imediato. Se voltar: reclassificar para saudavel e registrar a data.", "instavel": "Responde, mas erra com frequencia (erro tecnico ou conteudo errado). Sempre ter rota alternativa; silencio nunca e ausencia de novidade.", "bloqueado": "Bloqueio anti-bot/403/TCP reproduzido. NAO TENTAR.", "descontinuado": "Servico encerrado pelo orgao. NAO TENTAR."},
+
   "fontes": [
-    {
-      "id": "gmail_push_stf",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "sem_sucesso": 0,
-      "nota": "Fonte mais confiavel. O push repete itens de ate varios dias antes — decidir (herdada)/novidade pelo horario interno de cada noticia, nunca pela data do e-mail; cruzar com chaves_publicadas. Publicar a URL canonica que o push traz. Em 24/09 o coletor haiku respondeu com totais sem itens e sem URL (exigiu SendMessage); o prompt fixo em work/prompts/coletor-gmail.md passou a exigir item a item — se recorrer, promover para sonnet."
-    },
-    {
-      "id": "gmail_jota",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "sem_sucesso": 0,
-      "nota": "Ruido alto — filtrar eleitoral/comercial/institucional/patrocinado. Wrapper t.rdsv2.net: WebSearch site:jota.info e o unico metodo viavel em nuvem (resolver_jota.py e as vezes bloqueado pelo classificador de sandbox como 'Data Exfiltration' antes mesmo de rodar), 1 tentativa por item em lotes de 5 (teto 16 buscas), titulo tem que bater; quando o item e clipping citando outro veiculo (Valor, Folha) sem materia propria do JOTA, a busca nao acha nada — pode publicar sem link direto sem gastar a tentativa. Boletins-resumo nao tem link por item. Teto de 6 opinioes. Thread que chega ANTES do window_start (mesmo por poucos minutos) fica fora da janela — descartar. Thread individual grande pode estourar o limite de tokens do get_thread — se o assunto ja permite classificar, descartar ou reprocessar via arquivo salvo sem insistir em ler por inteiro. Em 28/09 chegou thread as 07h00 (fora do padrao 10h-20h) com texto corrido sob um so titulo reunindo varios fatos distintos — ver armadilha jota_texto_corrido_multiplos_fatos."
-    },
-    {
-      "id": "congresso_ultimas_leis",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "nota": "Sustenta a secao Planalto durante o apagao do PUSH. Lido por work/coleta_web.py (blocos div.sf-lista-resumos__resumo: norma, DOU, ementa completa, materia, veto aposto); dedupe pelo numero contra o historico. Sempre www.congressonacional.leg.br (sem www da ENOTFOUND).",
-      "sem_sucesso": 0
-    },
-    {
-      "id": "gmail_stj_codju",
-      "status": "intermitente",
-      "ultimo_sucesso": "2026-09-30",
-      "nota": "Cadencia semanal (Informativo 901 em 15/09; 902 em 22/09, recebido 23/09). Numero e data sempre do ASSUNTO; o link de 'documento completo' do corpo ja veio malformado. Silencio entre edicoes semanais nao e falha nem pendencia (source_status ok)."
-    },
-    {
-      "id": "gmail_push_stf_informativos",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "nota": "Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta sao produtos distintos — conferir nome completo no assunto E o numero no slug do PDF. Andamento processual de caso individual NAO e informativo/RG. Produto periodico: semana sem edicao nova e normal. Ver armadilha stf_informativo_link_generico: o link do e-mail nao aponta ao PDF especifico do Informativo numerado, mas a RG em Pauta (ex.: edicao 390 em 24/09) traz PDF individual valido — mesmo assim o conteudo tematico (quais processos) nao vem no corpo, so o link do PDF."
-    },
-    {
-      "id": "gmail_push_planalto",
-      "status": "mudo",
-      "ultimo_email": "2026-07-02",
-      "sem_sucesso": 43,
-      "dias_sem_email": 90,
-      "nota": "Sondas vazias desde 02/07; o legado nunca retornou nada. 1 sonda (coletor Gmail) e ir para a Rota 13. Escalado ao usuario em 31/07 — nao repetir a escalada, so manter a pendencia visivel. Sonda vazia = source_status vazio."
-    },
-    {
-      "id": "congresso_mpvs",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "nota": "Lido por work/coleta_web.py: MPVs com ate 10 dias de tramitacao (qualquer fase), data oficial pela pagina de detalhe /mpv/ID. Ver armadilha congresso_mpv."
-    },
-    {
-      "id": "conjur",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "sem_sucesso": 0,
-      "nota": "Lido por work/coleta_web.py (apex conjur.com.br — o www so redireciona; /noticias/, /artigos/, /colunas/). Data do slug; quando ela nao decide a janela, hora exata por article:published_time da materia (confirmado em 24/09) — acabou o (herdada) por precaucao. /ultimas-da-conjur/ extinta (404); /boletim-juridico/ tem outra estrutura (nao usado)."
-    },
-    {
-      "id": "migalhas",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "nota": "Lido por work/coleta_web.py (www.migalhas.com.br/quentes): titulo, subtitulo e badge da listagem + hora exata por article:published_time da pagina da materia (confirmado em 24/09 — a crenca anterior de que o Migalhas nao se data por curl estava errada; nao usar WebSearch para datar). Dedupe pelo ID numerico (/quentes/NNNNNN/): o slug muda depois de publicado."
-    },
-    {
-      "id": "youversion",
-      "status": "instavel",
-      "ultimo_sucesso": "2026-09-04",
-      "sem_sucesso": 11,
-      "nota": "Fonte PRIMARIA do versiculo, mas com anti-bot: mesmo com o dominio liberado no allowlist (07/09), curl recebe 'Client Challenge' em vez do HTML. O script work/versiculo.py tenta o YouVersion 1x e cai no DailyVerses.net, que serve a pagina datada /pt/AAAA/M/D com referencia e texto em og:title/description e permite conferir a data no <title>. Isso implementa a decisao do usuario de 07/09/2026 (primeira fonte paralela que responder vence, sem cruzar nem desempatar) sem gastar WebSearch. Se algum dia o YouVersion parar de desafiar o curl, ele volta a ser a fonte publicada sozinho, sem editar nada."
-    },
-    {
-      "id": "dailyverses",
-      "status": "saudavel",
-      "ultimo_sucesso": "2026-09-30",
-      "nota": "Fallback efetivo do versiculo desde 07/09. URL datada https://dailyverses.net/pt/AAAA/M/D; referencia e versao em og:title ('Tiago 4:10 - ARC'), texto em meta description, data por extenso no <title> (o script exige que ela bata com a ancora — pagina inexistente cai em 'Arquivo' e e recusada). Lido por work/versiculo.py, nao por WebSearch."
-    },
-    {
-      "id": "noticias_stf_direto",
-      "status": "bloqueado",
-      "nota": "403 reproduzido. O conteudo chega pelo Push STF com as URLs canonicas — publicar essas URLs normalmente."
-    },
-    {
-      "id": "stj_jus_br_direto",
-      "status": "instavel",
-      "nota": "Cache desatualizado, 429, 404 na pagina de Noticias. Preferir WebSearch + cruzamento com ConJur/Migalhas. Falha aqui nunca autoriza concluir 'STJ sem novidade'."
-    },
-    {
-      "id": "legislacao_presidencia",
-      "status": "instavel",
-      "nota": "Rota 14, ultimo recurso: ECONNRESET recorrente. Tentar 1 vez e seguir. O fallback que funciona e a Rota 13."
-    },
-    {
-      "id": "planalto_dou_rotas_1_a_6",
-      "status": "bloqueado",
-      "nota": "Bloqueio TCP/CAPTCHA/403 reconfirmado em toda execucao testada. Links ccivil_03 podem ser PUBLICADOS como referencia sem fetch."
-    },
-    {
-      "id": "dou_informe_cjf",
-      "status": "descontinuado",
-      "desde": "2026-07-01",
-      "nota": "O proprio CJF confirmou o encerramento. O sucessor nominal (Clipping STJ/Enfam) devolve conteudo estatico — tambem nao usar."
-    },
-    {
-      "id": "inlabs",
-      "status": "indisponivel",
-      "nota": "Sem credenciais. Seria a solucao definitiva para o apagao do Planalto se o usuario as fornecer."
-    }
+    {"id": "gmail_push_stf", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "sem_sucesso": 0, "nota": "Fonte mais confiavel. O push repete itens de ate varios dias antes — decidir (herdada)/novidade pelo horario interno de cada noticia, nunca pela data do e-mail; cruzar com chaves_publicadas. Publicar a URL canonica que o push traz. Em 24/09 o coletor haiku respondeu com totais sem itens e sem URL (exigiu SendMessage); o prompt fixo em work/prompts/coletor-gmail.md passou a exigir item a item — se recorrer, promover para sonnet."},
+    {"id": "gmail_jota", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "sem_sucesso": 0, "nota": "Ruido alto — filtrar eleitoral/comercial/institucional/patrocinado. Wrapper t.rdsv2.net: WebSearch site:jota.info e o unico metodo viavel em nuvem (resolver_jota.py e as vezes bloqueado pelo classificador de sandbox como 'Data Exfiltration' antes mesmo de rodar), 1 tentativa por item em lotes de 5 (teto 16 buscas), titulo tem que bater; quando o item e clipping citando outro veiculo (Valor, Folha) sem materia propria do JOTA, a busca nao acha nada — pode publicar sem link direto sem gastar a tentativa. Boletins-resumo nao tem link por item. Teto de 6 opinioes. Thread que chega ANTES do window_start (mesmo por poucos minutos) fica fora da janela — descartar. Thread individual grande pode estourar o limite de tokens do get_thread — se o assunto ja permite classificar, descartar ou reprocessar via arquivo salvo sem insistir em ler por inteiro. Em 28/09 chegou thread as 07h00 (fora do padrao 10h-20h) com texto corrido sob um so titulo reunindo varios fatos distintos — ver armadilha jota_texto_corrido_multiplos_fatos."},
+    {"id": "congresso_ultimas_leis", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "nota": "Sustenta a secao Planalto durante o apagao do PUSH. Lido por work/coleta_web.py (blocos div.sf-lista-resumos__resumo: norma, DOU, ementa completa, materia, veto aposto); dedupe pelo numero contra o historico. Sempre www.congressonacional.leg.br (sem www da ENOTFOUND).", "sem_sucesso": 0},
+    {"id": "gmail_stj_codju", "status": "intermitente", "ultimo_sucesso": "2026-10-01", "nota": "Cadencia semanal (Informativo 901 em 15/09; 902 em 22/09, recebido 23/09). Numero e data sempre do ASSUNTO; o link de 'documento completo' do corpo ja veio malformado. Silencio entre edicoes semanais nao e falha nem pendencia (source_status ok)."},
+    {"id": "gmail_push_stf_informativos", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "nota": "Informativo de jurisprudencia e Boletim Repercussao Geral em Pauta sao produtos distintos — conferir nome completo no assunto E o numero no slug do PDF. Andamento processual de caso individual NAO e informativo/RG. Produto periodico: semana sem edicao nova e normal. Ver armadilha stf_informativo_link_generico: o link do e-mail nao aponta ao PDF especifico do Informativo numerado, mas a RG em Pauta (ex.: edicao 390 em 24/09) traz PDF individual valido — mesmo assim o conteudo tematico (quais processos) nao vem no corpo, so o link do PDF."},
+    {"id": "gmail_push_planalto", "status": "mudo", "ultimo_email": "2026-07-02", "sem_sucesso": 44, "dias_sem_email": 91, "nota": "Sondas vazias desde 02/07; o legado nunca retornou nada. 1 sonda (coletor Gmail) e ir para a Rota 13. Escalado ao usuario em 31/07 — nao repetir a escalada, so manter a pendencia visivel. Sonda vazia = source_status vazio."},
+    {"id": "congresso_mpvs", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "nota": "Lido por work/coleta_web.py: MPVs com ate 10 dias de tramitacao (qualquer fase), data oficial pela pagina de detalhe /mpv/ID. Ver armadilha congresso_mpv."},
+    {"id": "conjur", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "sem_sucesso": 0, "nota": "Lido por work/coleta_web.py (apex conjur.com.br — o www so redireciona; /noticias/, /artigos/, /colunas/). Data do slug; quando ela nao decide a janela, hora exata por article:published_time da materia (confirmado em 24/09) — acabou o (herdada) por precaucao. /ultimas-da-conjur/ extinta (404); /boletim-juridico/ tem outra estrutura (nao usado)."},
+    {"id": "migalhas", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "nota": "Lido por work/coleta_web.py (www.migalhas.com.br/quentes): titulo, subtitulo e badge da listagem + hora exata por article:published_time da pagina da materia (confirmado em 24/09 — a crenca anterior de que o Migalhas nao se data por curl estava errada; nao usar WebSearch para datar). Dedupe pelo ID numerico (/quentes/NNNNNN/): o slug muda depois de publicado."},
+    {"id": "youversion", "status": "instavel", "ultimo_sucesso": "2026-09-04", "sem_sucesso": 12, "nota": "Fonte PRIMARIA do versiculo, mas com anti-bot: mesmo com o dominio liberado no allowlist (07/09), curl recebe 'Client Challenge' em vez do HTML. O script work/versiculo.py tenta o YouVersion 1x e cai no DailyVerses.net, que serve a pagina datada /pt/AAAA/M/D com referencia e texto em og:title/description e permite conferir a data no <title>. Isso implementa a decisao do usuario de 07/09/2026 (primeira fonte paralela que responder vence, sem cruzar nem desempatar) sem gastar WebSearch. Se algum dia o YouVersion parar de desafiar o curl, ele volta a ser a fonte publicada sozinho, sem editar nada."},
+    {"id": "dailyverses", "status": "saudavel", "ultimo_sucesso": "2026-10-01", "nota": "Fallback efetivo do versiculo desde 07/09. URL datada https://dailyverses.net/pt/AAAA/M/D; referencia e versao em og:title ('Tiago 4:10 - ARC'), texto em meta description, data por extenso no <title> (o script exige que ela bata com a ancora — pagina inexistente cai em 'Arquivo' e e recusada). Lido por work/versiculo.py, nao por WebSearch."},
+    {"id": "noticias_stf_direto", "status": "bloqueado", "nota": "403 reproduzido. O conteudo chega pelo Push STF com as URLs canonicas — publicar essas URLs normalmente."},
+    {"id": "stj_jus_br_direto", "status": "instavel", "nota": "Cache desatualizado, 429, 404 na pagina de Noticias. Preferir WebSearch + cruzamento com ConJur/Migalhas. Falha aqui nunca autoriza concluir 'STJ sem novidade'."},
+    {"id": "legislacao_presidencia", "status": "instavel", "nota": "Rota 14, ultimo recurso: ECONNRESET recorrente. Tentar 1 vez e seguir. O fallback que funciona e a Rota 13."},
+    {"id": "planalto_dou_rotas_1_a_6", "status": "bloqueado", "nota": "Bloqueio TCP/CAPTCHA/403 reconfirmado em toda execucao testada. Links ccivil_03 podem ser PUBLICADOS como referencia sem fetch."},
+    {"id": "dou_informe_cjf", "status": "descontinuado", "desde": "2026-07-01", "nota": "O proprio CJF confirmou o encerramento. O sucessor nominal (Clipping STJ/Enfam) devolve conteudo estatico — tambem nao usar."},
+    {"id": "inlabs", "status": "indisponivel", "nota": "Sem credenciais. Seria a solucao definitiva para o apagao do Planalto se o usuario as fornecer."}
   ],
+
   "armadilhas": [
-    {
-      "id": "congresso_mpv",
-      "fonte": "congressonacional.leg.br/materias/medidas-provisorias",
-      "sintoma": "Numeros de MPV fora da sequencia real e datas incoerentes na listagem (desvio de dias ou de dezenas de dias).",
-      "detectado_em_qtd": 11,
-      "detectado_em_primeira": "2026-07-13",
-      "detectado_em_ultimas": [
-        "2026-09-11",
-        "2026-09-18",
-        "2026-09-23"
-      ],
-      "regra": "A listagem nao e fonte de data. work/coleta_web.py abre a pagina de detalhe oficial e so aceita 'Publicada no DOU de ...'; sem ela (SEM_DATA_OFICIAL) → PENDENCIA DE VERIFICACAO, nunca CONFIRMADO. Busca por numero em WebSearch pode achar MPV homonima de outro ano."
-    },
-    {
-      "id": "websearch_data",
-      "fonte": "WebSearch (resumo do buscador)",
-      "sintoma": "Atribui a data de hoje a noticia antiga.",
-      "detectado_em": [
-        "2026-07-07"
-      ],
-      "regra": "Noticia de WebSearch que va ao e-mail precisa ter a data confirmada na fonte primaria (slug, cabecalho ou pagina oficial). Nunca confiar na data implicita do resumo."
-    },
-    {
-      "id": "banca_edital_antigo",
-      "fonte": "cebraspe.org.br e paginas de bancas",
-      "sintoma": "Consulta sobre concurso do ano corrente devolve edital antigo de estrutura identica (ex.: TJDFT 2022/23, 30 vagas, R$32.004,65, quando o ciclo 2026 tem 20-24 vagas e ~R$37.765,55).",
-      "detectado_em_qtd": 13,
-      "detectado_em_primeira": "2026-07-24",
-      "detectado_em_ultimas": [
-        "2026-09-17",
-        "2026-09-18",
-        "2026-09-23"
-      ],
-      "regra": "Conferir o ano no conteudo (inscricoes, data de prova, subsidio). Edital antigo NAO e confirmacao de edital novo — manter o status anterior, sem upgrade para EDITAL PUBLICADO."
-    },
-    {
-      "id": "scon_stj_edicao_errada",
-      "fonte": "scon.stj.jus.br / processo.stj.jus.br",
-      "sintoma": "Busca por uma edicao devolve outra (numero e ano diferentes).",
-      "detectado_em": [
-        "2026-07-01"
-      ],
-      "regra": "Conferir numero E ano da edicao retornada. Preferir o e-mail do STJ CodJu, que traz numero e data confiaveis no assunto."
-    },
-    {
-      "id": "jota_link_wrapper_mismatch",
-      "fonte": "e-mails do JOTA (contato@jota.info), wrapper t.rdsv2.net",
-      "sintoma": "O link 'Leia mais' pode resolver para um artigo com titulo completamente diferente do anunciado.",
-      "detectado_em": [
-        "2026-08-05",
-        "2026-08-17"
-      ],
-      "regra": "Publicar o link so se o TITULO da pagina de destino bater com o anunciado. Em nuvem o WebFetch do wrapper e bloqueado — usar so WebSearch site:jota.info; 1 tentativa por item, senao publicar sem link."
-    },
-    {
-      "id": "cloud_egress_bloqueado",
-      "fonte": "WebFetch e curl direto, ambiente de nuvem (proxy de egress da sessao)",
-      "sintoma": "Dominio fora do allowlist do ambiente: curl devolve 000 (CONNECT recusado) e WebFetch devolve EGRESS_BLOCKED. E politica de rede da sessao, nao falha da fonte. O WebFetch fica bloqueado MESMO nos dominios liberados (o allowlist governa so o curl/Bash).",
-      "detectado_em": [
-        "2026-09-01",
-        "2026-09-07"
-      ],
-      "regra": "Leitura direta e sempre curl (scripts work/*.py); nunca WebFetch em dominio externo. Cada script informa o http por fonte: 000/403 → WebSearch para aquela fonte e aviso no quadro de pendencias. Allowlist atual (ambiente 'ANALISE DE EMAIL', Custom, desde 07/09): bible.com, dailyverses.net, conjur.com.br (apex; www redireciona), migalhas.com.br, congressonacional.leg.br + padrao. www.jota.info e t.rdsv2.net NAO liberados (000 em 24/09): libera-los ativa work/resolver_jota.py e elimina ate 16 WebSearch/dia do coletor JOTA."
-    },
-    {
-      "id": "websearch_youversion_dia_instavel",
-      "fonte": "WebSearch para bible.com/verse-of-the-day (com ou sem ?day=N)",
-      "sintoma": "A mesma URL parametrizada devolve titulos de versiculo diferentes entre buscas na mesma execucao (07/09: 1 Timothy 5:1 numa, John 8:32 noutra, para day=250). A pagina SEM parametro tende a mostrar o snapshot de ONTEM (day=N-1) — 'Psalms 121:2' correspondia a day=249.",
-      "detectado_em": [
-        "2026-09-07"
-      ],
-      "regra": "So se aplica ao caminho antigo (WebSearch), hoje reduzido a fallback: o normal e work/versiculo.py, que le a pagina datada e confere a data. Se cair no WebSearch, nao insistir para varias buscas convergirem e nunca usar a pagina sem parametro como confirmacao sozinha."
-    },
-    {
-      "id": "stf_informativo_link_generico",
-      "fonte": "e-mails nao_responda@stf.jus.br (Push STF Informativo)",
-      "sintoma": "O corpo do e-mail so traz 'A edicao N/2026 do Informativo STF ja esta disponivel' com link generico para http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF — o mesmo link em toda edicao, sem parametro que aponte ao PDF/conteudo especifico do numero N.",
-      "detectado_em_qtd": 2,
-      "detectado_em_primeira": "2026-09-22",
-      "detectado_em_ultimas": [
-        "2026-09-22",
-        "2026-09-29"
-      ],
-      "regra": "Numero e data continuam confiaveis (vem do assunto do e-mail). Para resumir o CONTEUDO juridico de cada edicao e preciso buscar no portal.stf.jus.br (nao testado ainda no probe de egress) ou por midia convergente — nao assumir que o link do e-mail resolve o conteudo especifico."
-    },
-    {
-      "id": "jota_texto_corrido_multiplos_fatos",
-      "fonte": "e-mails do JOTA (contato@jota.info) do tipo texto corrido (nao boletim itemizado)",
-      "sintoma": "Um e-mail sob um unico titulo/thread pode trazer varios fatos juridicos distintos em prosa continua; o coletor condensou tudo numa linha so, perdendo granularidade e citando fonte generica ('sintetiza Folha/Globo/Estadao/Valor') em vez do thread real. So foi corrigido apos SendMessage pedindo o thread_id e a separacao por fato.",
-      "detectado_em_qtd": 1,
-      "detectado_em_primeira": "2026-09-28",
-      "detectado_em_ultimas": [
-        "2026-09-28"
-      ],
-      "regra": "Mesmo quando o e-mail do JOTA e prosa continua sem topicos, separar cada fato juridico distinto em um item NOTICIA proprio, todos citando o mesmo thread_id/remetente/horario do e-mail original. Se a granularidade do coletor parecer baixa (fatos multiplos numa linha, fonte vaga), pedir via SendMessage o thread_id exato antes de aceitar o item."
-    }
+    {"id": "congresso_mpv", "fonte": "congressonacional.leg.br/materias/medidas-provisorias", "sintoma": "Numeros de MPV fora da sequencia real e datas incoerentes na listagem (desvio de dias ou de dezenas de dias).", "detectado_em_qtd": 11, "detectado_em_primeira": "2026-07-13", "detectado_em_ultimas": ["2026-09-11", "2026-09-18", "2026-09-23"], "regra": "A listagem nao e fonte de data. work/coleta_web.py abre a pagina de detalhe oficial e so aceita 'Publicada no DOU de ...'; sem ela (SEM_DATA_OFICIAL) → PENDENCIA DE VERIFICACAO, nunca CONFIRMADO. Busca por numero em WebSearch pode achar MPV homonima de outro ano."},
+    {"id": "websearch_data", "fonte": "WebSearch (resumo do buscador)", "sintoma": "Atribui a data de hoje a noticia antiga.", "detectado_em": ["2026-07-07"], "regra": "Noticia de WebSearch que va ao e-mail precisa ter a data confirmada na fonte primaria (slug, cabecalho ou pagina oficial). Nunca confiar na data implicita do resumo."},
+    {"id": "banca_edital_antigo", "fonte": "cebraspe.org.br e paginas de bancas", "sintoma": "Consulta sobre concurso do ano corrente devolve edital antigo de estrutura identica (ex.: TJDFT 2022/23, 30 vagas, R$32.004,65, quando o ciclo 2026 tem 20-24 vagas e ~R$37.765,55).", "detectado_em_qtd": 13, "detectado_em_primeira": "2026-07-24", "detectado_em_ultimas": ["2026-09-17", "2026-09-18", "2026-09-23"], "regra": "Conferir o ano no conteudo (inscricoes, data de prova, subsidio). Edital antigo NAO e confirmacao de edital novo — manter o status anterior, sem upgrade para EDITAL PUBLICADO."},
+    {"id": "scon_stj_edicao_errada", "fonte": "scon.stj.jus.br / processo.stj.jus.br", "sintoma": "Busca por uma edicao devolve outra (numero e ano diferentes).", "detectado_em": ["2026-07-01"], "regra": "Conferir numero E ano da edicao retornada. Preferir o e-mail do STJ CodJu, que traz numero e data confiaveis no assunto."},
+    {"id": "jota_link_wrapper_mismatch", "fonte": "e-mails do JOTA (contato@jota.info), wrapper t.rdsv2.net", "sintoma": "O link 'Leia mais' pode resolver para um artigo com titulo completamente diferente do anunciado.", "detectado_em": ["2026-08-05", "2026-08-17"], "regra": "Publicar o link so se o TITULO da pagina de destino bater com o anunciado. Em nuvem o WebFetch do wrapper e bloqueado — usar so WebSearch site:jota.info; 1 tentativa por item, senao publicar sem link."},
+    {"id": "cloud_egress_bloqueado", "fonte": "WebFetch e curl direto, ambiente de nuvem (proxy de egress da sessao)", "sintoma": "Dominio fora do allowlist do ambiente: curl devolve 000 (CONNECT recusado) e WebFetch devolve EGRESS_BLOCKED. E politica de rede da sessao, nao falha da fonte. O WebFetch fica bloqueado MESMO nos dominios liberados (o allowlist governa so o curl/Bash).", "detectado_em": ["2026-09-01", "2026-09-07"], "regra": "Leitura direta e sempre curl (scripts work/*.py); nunca WebFetch em dominio externo. Cada script informa o http por fonte: 000/403 → WebSearch para aquela fonte e aviso no quadro de pendencias. Allowlist atual (ambiente 'ANALISE DE EMAIL', Custom, desde 07/09): bible.com, dailyverses.net, conjur.com.br (apex; www redireciona), migalhas.com.br, congressonacional.leg.br + padrao. www.jota.info e t.rdsv2.net NAO liberados (000 em 24/09): libera-los ativa work/resolver_jota.py e elimina ate 16 WebSearch/dia do coletor JOTA."},
+    {"id": "websearch_youversion_dia_instavel", "fonte": "WebSearch para bible.com/verse-of-the-day (com ou sem ?day=N)", "sintoma": "A mesma URL parametrizada devolve titulos de versiculo diferentes entre buscas na mesma execucao (07/09: 1 Timothy 5:1 numa, John 8:32 noutra, para day=250). A pagina SEM parametro tende a mostrar o snapshot de ONTEM (day=N-1) — 'Psalms 121:2' correspondia a day=249.", "detectado_em": ["2026-09-07"], "regra": "So se aplica ao caminho antigo (WebSearch), hoje reduzido a fallback: o normal e work/versiculo.py, que le a pagina datada e confere a data. Se cair no WebSearch, nao insistir para varias buscas convergirem e nunca usar a pagina sem parametro como confirmacao sozinha."},
+    {"id": "stf_informativo_link_generico", "fonte": "e-mails nao_responda@stf.jus.br (Push STF Informativo)", "sintoma": "O corpo do e-mail so traz 'A edicao N/2026 do Informativo STF ja esta disponivel' com link generico para http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF — o mesmo link em toda edicao, sem parametro que aponte ao PDF/conteudo especifico do numero N.", "detectado_em_qtd": 2, "detectado_em_primeira": "2026-09-22", "detectado_em_ultimas": ["2026-09-22", "2026-09-29"], "regra": "Numero e data continuam confiaveis (vem do assunto do e-mail). Para resumir o CONTEUDO juridico de cada edicao e preciso buscar no portal.stf.jus.br (nao testado ainda no probe de egress) ou por midia convergente — nao assumir que o link do e-mail resolve o conteudo especifico."},
+    {"id": "jota_texto_corrido_multiplos_fatos", "fonte": "e-mails do JOTA (contato@jota.info) do tipo texto corrido (nao boletim itemizado)", "sintoma": "Um e-mail sob um unico titulo/thread pode trazer varios fatos juridicos distintos em prosa continua; o coletor condensou tudo numa linha so, perdendo granularidade e citando fonte generica ('sintetiza Folha/Globo/Estadao/Valor') em vez do thread real. So foi corrigido apos SendMessage pedindo o thread_id e a separacao por fato.", "detectado_em_qtd": 1, "detectado_em_primeira": "2026-09-28", "detectado_em_ultimas": ["2026-09-28"], "regra": "Mesmo quando o e-mail do JOTA e prosa continua sem topicos, separar cada fato juridico distinto em um item NOTICIA proprio, todos citando o mesmo thread_id/remetente/horario do e-mail original. Se a granularidade do coletor parecer baixa (fatos multiplos numa linha, fonte vaga), pedir via SendMessage o thread_id exato antes de aceitar o item."}
   ],
+
   "pendencias_vivas": [
-    {
-      "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (dias em fontes.gmail_push_planalto.dias_sem_email)",
-      "desde": "2026-07-06",
-      "execucoes": 40,
-      "faixa": "cronica",
-      "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto; a Rota 13 (curl direto) sustenta a secao. Ja escalado em 31/07; nao repetir a escalada."
-    },
-    {
-      "id": "tjdft_edital",
-      "texto": "TJDFT Juiz Substituto (XLV concurso) — banca Cebraspe e subsidio ~R$37.765,55 confirmados; fontes de 2026 convergem em ~20 vagas imediatas. Reverificado em 29/09: edital segue sem data oficial; as mesmas duas estimativas nao oficiais (05/10 e 13/10/2026) continuam sem confirmacao — sem upgrade de selo.",
-      "desde": "2026-07-21",
-      "execucoes": 35,
-      "faixa": "longo_prazo",
-      "politica": "Verificar so na 1a execucao da semana; linha compacta em Concursos. Cuidado com a armadilha banca_edital_antigo (o proprio Cebraspe expõe pagina com titulo de 30 vagas, do ciclo antigo — nao fazer upgrade por isso) quando reverificar.",
-      "coletor": "concursos"
-    },
-    {
-      "id": "agu_pfn_edital",
-      "texto": "AGU/PFN — 170 vagas autorizadas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), GT da Portaria Normativa AGU 228 (Jorge Messias) segue trabalhando a modelagem; fontes divergem levemente entre 'ate fim de 2026' e '~jan/2027' (mesma ordem de grandeza), banca nao confirmada. Reverificado em 29/09: sem movimento.",
-      "desde": "2026-07-07",
-      "execucoes": 37,
-      "faixa": "longo_prazo",
-      "politica": "Prazo so vence entre fim de 2026 e jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos.",
-      "coletor": "concursos"
-    },
-    {
-      "id": "concursos_cronogramas",
-      "texto": "TRF5 Juiz Federal Substituto: RESOLVIDO em 29/09 — inscricoes encerraram 28/09 16h, 11 vagas imediatas + CR confirmadas (banca FGV, subsidio R$37.765,55), prova objetiva mantida para 20/12/2026; publicado como noticia, sai desta pendencia. TJRS Juiz Substituto: inscricoes ate 14/10 16h (FGV, 30 vagas, subsidio R$30.505,36, prova 13/12) — sem mudanca. PGE-AL: gabaritos preliminares publicados, resultado final objetiva e provisorio discursiva previstos ~20/10 (20 vagas: 10 imediatas + 10 CR) — sem novidade em 29/09. TRF2 (XIX concurso): orais ocorreram 14-25/09, resultado ainda nao localizado em fonte oficial. PGM Juazeiro/BA: edital previsto fim de set/2026, ainda sem vagas/banca/datas. TRT8 (apoio): banca FCC definida 13/07, 92 cargos vagos, proximo passo e assinatura de contrato — sem movimento. PGE-BA: comissao formada (Resolucao CS 024), 135 vagas totais, banca FCC, edital ainda sem publicacao. PGE-MA: comissao formada (Portaria 269/2025), 10 vagas + CR, banca ainda indefinida. DPU VII: Resolucao CSDPU 255/2026 rege o certame, banca e vagas nao definidas. DPE-RO: comissao formada mai/2026, recursos previstos na LOA 2026. PGE-RS 16o concurso: regulamento publicado 21/09 (Resolucao PGE 315/2026), comissao formada; edital de abertura ainda sem data. DPDF nao reverificado em 29/09.",
-      "desde": "2026-07-07",
-      "execucoes": 38,
-      "faixa": "longo_prazo",
-      "politica": "Reverificar na 1a execucao da semana (o coletor Web recebe esta lista e a faixa no prompt — ROTINA passo 5); nos demais dias so vigiar movimento novo (edital/inscricao/banca/resultado). Promover a linha propria so com movimento confirmado. Proximo prazo critico: TJRS inscricoes encerram 14/10; depois PGE-AL resultado em 20/10.",
-      "coletor": "concursos"
-    },
-    {
-      "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Caso Vorcaro/Banco Master: nenhum desdobramento OFICIAL novo (STF/CNJ/PF) localizado em 29/09. A midia (Folha, via JOTA) noticiou que o gabinete do ministro Andre Mendonca afirma que o compartilhamento integral dos dados do celular de Vorcaro com outros ministros (Moraes, Zanin, Gilmar Mendes obtiveram os arquivos direto da PF em 14/09, apos Mendonca retirar o sigilo em 10-11/09) comprometeu diligencias antes do julgamento sobre o impedimento de Moraes — fonte e uma declaracao de gabinete relatada pela midia, nao confirmacao oficial independente do CNJ/PF. Continua sem confirmacao oficial o vinculo/motivo especifico de Newton Pereira Ramos Neto (TRF-1) com Vorcaro (registrado em 25/09).",
-      "desde": "2026-09-02",
-      "execucoes": 22,
-      "faixa": "longo_prazo",
-      "politica": "PRIORIDADE maxima: acompanhar qualquer desdobramento OFICIAL (STF, STJ/CNJ, PF, gabinetes). Checar sempre contra chaves_publicadas antes de republicar. Declaracoes de gabinete relatadas so pela midia valem no maximo FORTE INDICIO, nunca CONFIRMADO."
-    },
-    {
-      "id": "stf_pauta_30_09_pos_eleicao",
-      "texto": "STF tem pauta critica marcada para 30/09 (quarta) e possivelmente 01/10: (1) caso das ~1,1 mil postagens sobre Nossa Senhora Aparecida vai ao plenario fisico apos Fux suspender provisoriamente a decisao de Dino que as havia restabelecido (Fachin decidiu levar a controversia ao colegiado); (2) creditos presumidos de ICMS na base do PIS/Cofins (placar zerado por destaque de Gilmar em 2023, risco de R$16,5 bi em 5 anos previsto na LDO 2026 em caso de derrota da Uniao); (3) ADI 5.161 sobre distribuicao de lucros de empresas com debito tributario (proposta de Zanin com apoio de Toffoli, Fachin, Mendonca e Gilmar). Fonte de todos os 3: JOTA (boletim de 28-29/09), sem confirmacao oficial do STF ainda sobre o julgamento efetivo.",
-      "desde": "2026-09-29",
-      "execucoes": 3,
-      "faixa": "ativa",
-      "politica": "Verificar via push/site do STF se os 3 temas foram efetivamente julgados em 30/09-01/10 e qual o desfecho; aposentar apos confirmacao oficial (convertida em noticia) ou apos 2-3 execucoes sem julgamento efetivo (reclassificar para longo_prazo)."
-    },
-    {
-      "id": "pge_rj_edital_verificar",
-      "texto": "PGE-RJ 19o concurso Procurador: edital noticiado por portais (5 vagas + CR, ~04/09/2026), sem conferencia na pagina oficial pge.rj.gov.br; publicado em 30/09 como PENDENCIA DE VERIFICACAO.",
-      "desde": "2026-09-30",
-      "execucoes": 2,
-      "faixa": "ativa",
-      "politica": "Abrir a pagina oficial do concurso, confirmar data/vagas/banca e, se confirmado, promover para EDITAL PUBLICADO e aposentar a pendencia.",
-      "coletor": "concursos"
-    },
-    {
-      "id": "trf2_oral_divergencia",
-      "texto": "TRF2 XIX concurso: ledger registrava orais em 14-25/09; pagina do TRF2 (via busca de 30/09) indica orais em 9-20/11/2026 e 599 candidatos. Divergencia nao resolvida na fonte oficial.",
-      "desde": "2026-09-30",
-      "execucoes": 2,
-      "faixa": "ativa",
-      "politica": "Abrir a noticia oficial do TRF2, conferir datas e corrigir o registro; aposentar apos resolvida.",
-      "coletor": "concursos"
-    }
+    {"id": "planalto_push_mudo", "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (dias em fontes.gmail_push_planalto.dias_sem_email)", "desde": "2026-07-06", "execucoes": 41, "faixa": "cronica", "politica": "1 sonda por execucao. Manter visivel porque afeta a confiabilidade declarada da secao Planalto; a Rota 13 (curl direto) sustenta a secao. Ja escalado em 31/07; nao repetir a escalada."},
+    {"id": "tjdft_edital", "texto": "TJDFT Juiz Substituto (XLV concurso) — banca Cebraspe e subsidio ~R$37.765,55 confirmados; fontes de 2026 convergem em ~20 vagas imediatas. Reverificado em 29/09: edital segue sem data oficial; as mesmas duas estimativas nao oficiais (05/10 e 13/10/2026) continuam sem confirmacao — sem upgrade de selo.", "desde": "2026-07-21", "execucoes": 36, "faixa": "longo_prazo", "politica": "Verificar so na 1a execucao da semana; linha compacta em Concursos. Cuidado com a armadilha banca_edital_antigo (o proprio Cebraspe expõe pagina com titulo de 30 vagas, do ciclo antigo — nao fazer upgrade por isso) quando reverificar.", "coletor": "concursos"},
+    {"id": "agu_pfn_edital", "texto": "AGU/PFN — 170 vagas autorizadas (50 AGU/50 PFN/50 Proc.Federal/20 Proc.Bacen), GT da Portaria Normativa AGU 228 (Jorge Messias) segue trabalhando a modelagem; fontes divergem levemente entre 'ate fim de 2026' e '~jan/2027' (mesma ordem de grandeza), banca nao confirmada. Reverificado em 29/09: sem movimento.", "desde": "2026-07-07", "execucoes": 38, "faixa": "longo_prazo", "politica": "Prazo so vence entre fim de 2026 e jan/2027. Verificar na 1a execucao da semana; linha compacta em Concursos.", "coletor": "concursos"},
+    {"id": "concursos_cronogramas", "texto": "TRF5 Juiz Federal Substituto: RESOLVIDO em 29/09 — inscricoes encerraram 28/09 16h, 11 vagas imediatas + CR confirmadas (banca FGV, subsidio R$37.765,55), prova objetiva mantida para 20/12/2026; publicado como noticia, sai desta pendencia. TJRS Juiz Substituto: inscricoes ate 14/10 16h (FGV, 30 vagas, subsidio R$30.505,36, prova 13/12) — sem mudanca. PGE-AL: gabaritos preliminares publicados, resultado final objetiva e provisorio discursiva previstos ~20/10 (20 vagas: 10 imediatas + 10 CR) — sem novidade em 29/09. TRF2 (XIX concurso): orais ocorreram 14-25/09, resultado ainda nao localizado em fonte oficial. PGM Juazeiro/BA: edital previsto fim de set/2026, ainda sem vagas/banca/datas. TRT8 (apoio): banca FCC definida 13/07, 92 cargos vagos, proximo passo e assinatura de contrato — sem movimento. PGE-BA: comissao formada (Resolucao CS 024), 135 vagas totais, banca FCC, edital ainda sem publicacao. PGE-MA: comissao formada (Portaria 269/2025), 10 vagas + CR, banca ainda indefinida. DPU VII: Resolucao CSDPU 255/2026 rege o certame, banca e vagas nao definidas. DPE-RO: comissao formada mai/2026, recursos previstos na LOA 2026. PGE-RS 16o concurso: regulamento publicado 21/09 (Resolucao PGE 315/2026), comissao formada; edital de abertura ainda sem data. DPDF nao reverificado em 29/09.", "desde": "2026-07-07", "execucoes": 39, "faixa": "longo_prazo", "politica": "Reverificar na 1a execucao da semana (o coletor Web recebe esta lista e a faixa no prompt — ROTINA passo 5); nos demais dias so vigiar movimento novo (edital/inscricao/banca/resultado). Promover a linha propria so com movimento confirmado. Proximo prazo critico: TJRS inscricoes encerram 14/10; depois PGE-AL resultado em 20/10.", "coletor": "concursos"},
+    {"id": "crise_institucional_stf_pgr_acompanhar", "texto": "Caso Vorcaro/Banco Master: nenhum desdobramento OFICIAL novo (STF/CNJ/PF) localizado em 29/09. A midia (Folha, via JOTA) noticiou que o gabinete do ministro Andre Mendonca afirma que o compartilhamento integral dos dados do celular de Vorcaro com outros ministros (Moraes, Zanin, Gilmar Mendes obtiveram os arquivos direto da PF em 14/09, apos Mendonca retirar o sigilo em 10-11/09) comprometeu diligencias antes do julgamento sobre o impedimento de Moraes — fonte e uma declaracao de gabinete relatada pela midia, nao confirmacao oficial independente do CNJ/PF. Continua sem confirmacao oficial o vinculo/motivo especifico de Newton Pereira Ramos Neto (TRF-1) com Vorcaro (registrado em 25/09).", "desde": "2026-09-02", "execucoes": 23, "faixa": "longo_prazo", "politica": "PRIORIDADE maxima: acompanhar qualquer desdobramento OFICIAL (STF, STJ/CNJ, PF, gabinetes). Checar sempre contra chaves_publicadas antes de republicar. Declaracoes de gabinete relatadas so pela midia valem no maximo FORTE INDICIO, nunca CONFIRMADO."},
+    {"id": "stf_pauta_30_09_pos_eleicao", "texto": "Pauta STF 30/09-01/10, atualizada em 01/10: (3) multa a empresa devedora que distribui lucros: STF noticiou decisao em 30/09 (criterios fixados; numero da ADI nao conferido contra a ADI 5.161) — publicado como noticia; (1) Aparecida: pela midia (JOTA/Folha de 01/10) Fachin desistiu de pautar no plenario fisico e Dino analisa pedido de afastar Nunes Marques e Mendonça no TSE — sem confirmacao oficial; (2) creditos presumidos de ICMS na base do PIS/Cofins: desfecho nao localizado.", "desde": "2026-09-29", "execucoes": 4, "faixa": "ativa", "politica": "Verificar via push/site do STF se os 3 temas foram efetivamente julgados em 30/09-01/10 e qual o desfecho; aposentar apos confirmacao oficial (convertida em noticia) ou apos 2-3 execucoes sem julgamento efetivo (reclassificar para longo_prazo)."},
+    {"id": "pge_rj_edital_verificar", "texto": "PGE-RJ 19o concurso Procurador (5 vagas + CR): em 01/10 resumos de busca trazem inscricoes 18/05-17/06 e prova geral 23/08/2026, contradizendo o edital ~04/09 registrado antes; pagina oficial pge.rj.gov.br/concurso/19o-concurso-para-ingresso-na-carreira-de-procurador-do-estado nao aberta (WebFetch bloqueado). Publicado como PENDENCIA DE VERIFICACAO.", "desde": "2026-09-30", "execucoes": 3, "faixa": "ativa", "politica": "Abrir a pagina oficial do concurso, confirmar data/vagas/banca e, se confirmado, promover para EDITAL PUBLICADO e aposentar a pendencia.", "coletor": "concursos"},
+    {"id": "trf2_oral_divergencia", "texto": "TRF2 XIX concurso: registro antigo dizia orais em 14-25/09; resumos de busca de paginas do TRF2 (30/09 e 01/10) indicam orais 9-20/11/2026, inscricao definitiva 16/10-06/11 e 523 (nao 599) candidatos na 2a etapa. Datas nao vistas diretamente na pagina oficial.", "desde": "2026-09-30", "execucoes": 3, "faixa": "ativa", "politica": "Abrir a noticia oficial do TRF2, conferir datas e corrigir o registro; aposentar apos resolvida.", "coletor": "concursos"}
   ],
+
   "licoes_de_processo": [],
-  "metricas": {
-    "onde": "Os numeros (itens das ultimas 10, media, execucoes registradas, uso dos coletores) sao calculados pelo helper e vivem em work/robozinho-estado.json → metricas. Nao editar numeros aqui.",
-    "alerta": "Queda abaixo de 10 itens numa janela normal de 24h fora do recesso forense e sinal de falha de fonte. Dia dominado por poucas historias densas (ex.: crise STF-PGR) pode ficar abaixo da media por escolha editorial — nao e falha se os coletores documentaram tentativas."
-  }
+
+  "metricas": {"onde": "Os numeros (itens das ultimas 10, media, execucoes registradas, uso dos coletores) sao calculados pelo helper e vivem em work/robozinho-estado.json → metricas. Nao editar numeros aqui.", "alerta": "Queda abaixo de 10 itens numa janela normal de 24h fora do recesso forense e sinal de falha de fonte. Dia dominado por poucas historias densas (ex.: crise STF-PGR) pode ficar abaixo da media por escolha editorial — nao e falha se os coletores documentaram tentativas."}
 }
