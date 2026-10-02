@@ -4434,6 +4434,301 @@
         }
       },
       "delivery_reconciled_at": "2026-09-18T07:24:45-03:00"
+    },
+    {
+      "execution_id": "2026-09-18-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-18T07:08:23-03:00",
+      "run_finished_at": "2026-09-18T07:21:00-03:00",
+      "date": "2026-09-18",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-17T07:07:27-03:00",
+      "window_end": "2026-09-18T07:08:23-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 18/09/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r492221731640997350",
+      "gmail_message_id_edicao_anterior": "1a0aee934b620c10",
+      "items": [
+        {
+          "key": "stf|noticia|regra-delegados-policiamento-ostensivo-rj-valida|2026|2026-09-17",
+          "fonte": "STF (push oficial)",
+          "categoria": "STF Notícias",
+          "titulo": "Regra que impede delegados de chefiar o policiamento ostensivo no Rio de Janeiro é válida, decide STF",
+          "data": "2026-09-17",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "url": "https://noticias.stf.jus.br"
+        },
+        {
+          "key": "stf|noticia|ouvidoria-stf-reune-defensoria-bahia|2026|2026-09-17",
+          "fonte": "STF (push oficial)",
+          "categoria": "STF Notícias",
+          "titulo": "Ouvidoria do STF se reúne com Defensoria Pública da Bahia",
+          "data": "2026-09-17",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "url": "https://noticias.stf.jus.br"
+        },
+        {
+          "key": "stf|noticia|escuta-territorializada-liderancas-estudantes-indigenas-bahia|2026|2026-09-17",
+          "fonte": "STF (push oficial)",
+          "categoria": "STF Notícias",
+          "titulo": "STF Escuta Territorializada ouve lideranças e estudantes indígenas na Bahia",
+          "data": "2026-09-17",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "url": "https://noticias.stf.jus.br"
+        },
+        {
+          "key": "midia|jota|fachin-adia-sem-nova-data-sessao-mendonca|2026|2026-09-17",
+          "fonte": "JOTA",
+          "categoria": "Mídia — Crise STF-PGR",
+          "titulo": "Fachin adia sem nova data sessão para analisar conduta de Mendonça",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.jota.info/stf/do-supremo/fachin-cancela-sessao-desta-quinta-e-retira-de-pauta-julgamento-de-andre-mendonca"
+        },
+        {
+          "key": "midia|jota|dino-determina-investigacao-pf-cvm-master-cemiterios-veta-investigar-moraes|2026|2026-09-17",
+          "fonte": "JOTA",
+          "categoria": "Mídia — Crise STF-PGR",
+          "titulo": "Dino determina à PF/CVM investigação sobre Master-cemitérios em SP e veta investigação de Moraes",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": null
+        },
+        {
+          "key": "midia|jota|explicacao-questao-ordem-moraes-vota-reuniao-processos|2026|2026-09-17",
+          "fonte": "JOTA",
+          "categoria": "Mídia — Crise STF-PGR",
+          "titulo": "Por que Moraes votou pela reunião dos processos que discutem se ele próprio será investigado",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://www.jota.info/stf/do-supremo/por-que-moraes-votou-no-processo-que-discute-se-ele-proprio-sera-investigado"
+        },
+        {
+          "key": "midia|conjur|stf-afasta-icms-telecomunicacoes-mt|2026|2026-09-17",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STF afasta cobrança de adicional de ICMS sobre telecomunicações em MT",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://conjur.com.br/2026-set-17/stf-afasta-cobranca-de-adicional-de-icms-sobre-telecomunicacoes-em-mt/"
+        },
+        {
+          "key": "midia|conjur|stj-embargos-tempestivos-nao-conhecidos-interrompem-prazo|2026|2026-09-17",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Embargos tempestivos, mas não conhecidos, interrompem prazo recursal, decide STJ",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://conjur.com.br/2026-set-17/embargos-tempestivos-mas-nao-conhecidos-interrompem-prazo-recursal/"
+        },
+        {
+          "key": "midia|conjur|stj-cooperativa-medica-titulo-especialista|2026|2026-09-17",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ debate se cooperativa médica pode restringir título de especialista",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://conjur.com.br/2026-set-17/stj-debate-se-cooperativa-medica-pode-restringir-titulo-de-especialista/"
+        },
+        {
+          "key": "midia|conjur|stj-queixa-crime-vice-presidente-trt17|2026|2026-09-17",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ recebe queixa-crime contra vice-presidente do TRT da 17ª Região",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://conjur.com.br/2026-set-17/stj-recebe-queixa-crime-contra-vice-presidente-do-trt-17/"
+        },
+        {
+          "key": "midia|jota|stj-repetitivo-locacao-curta-temporada-condominios|2026|2026-09-18",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "STJ afeta como repetitivo tema sobre condomínios que proíbem locação de curta temporada",
+          "data": "2026-09-18",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": null
+        },
+        {
+          "key": "midia|jota|carf-hospital-terceirizacao-medicos|2026|2026-09-17",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Carf derruba cobrança contra hospital por terceirização de médicos",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": null
+        },
+        {
+          "key": "midia|conjur|tjsp-eleva-indenizacao-aluna-queimada-acido-escola|2026|2026-09-17",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "TJ-SP eleva em 15 vezes indenização de aluna queimada por ácido em escola",
+          "data": "2026-09-17",
+          "status": "MÍDIA ESPECIALIZADA",
+          "url": "https://conjur.com.br/2026-set-17/tj-sp-eleva-em-15-vezes-indenizacao-de-aluna-queimada-por-acido-em-escola/"
+        },
+        {
+          "key": "fofoquinha|jota|vorcaro-kevin-marques-nunesmarques-rodrigofux-pagamentos|2026|2026-09-16",
+          "fonte": "JOTA",
+          "categoria": "Fofoquinha",
+          "titulo": "Mensagens de Vorcaro citam pagamentos a filho de Nunes Marques e tentativa de aproximação com filho de Fux",
+          "data": "2026-09-16",
+          "status": "FORTE INDÍCIO",
+          "url": null
+        },
+        {
+          "key": "fofoquinha|jota|especulacao-anistia-bolsonaro-crise-stf|2026|2026-09-17",
+          "fonte": "JOTA",
+          "categoria": "Fofoquinha",
+          "titulo": "Bastidores especulam que crise do STF reabriria caminho para anistia/indulto de Bolsonaro",
+          "data": "2026-09-17",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "url": null
+        },
+        {
+          "key": "opiniao|jota|rebordosa-ministros-articulam-adiamento-sessao-mendonca|2026|2026-09-17",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Rebordosa: ministros do STF articulam adiamento da sessão sobre Mendonça",
+          "data": "2026-09-17",
+          "status": "OPINIÃO/ANÁLISE",
+          "url": "https://www.jota.info/newsletters/jota-principal/ministros-articulam-adiamento-sessao-sobre-mendonca"
+        },
+        {
+          "key": "opiniao|jota|julgamento-de-moraes-escancara-guerra-no-stf-sem-sinais-de-tregua|2026|2026-09-16",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Julgamento de Moraes escancara guerra no STF, sem sinais de trégua",
+          "data": "2026-09-16",
+          "status": "OPINIÃO/ANÁLISE",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/coluna-flavia-maia/julgamento-de-moraes-escancara-guerra-no-stf-sem-sinais-de-tregua"
+        },
+        {
+          "key": "opiniao|conjur|uma-publicacao-dois-regimes-dever-remocao-plataformas|2026|2026-09-18",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Uma publicação, dois regimes: o dever de remoção das plataformas",
+          "data": "2026-09-18",
+          "status": "OPINIÃO/ANÁLISE",
+          "url": "https://conjur.com.br/2026-set-18/uma-publicacao-dois-regimes-o-dever-de-remocao-das-plataformas/"
+        },
+        {
+          "key": "opiniao|conjur|falso-coletivo-ninguem-beneficiar-propria-torpeza|2026|2026-09-18",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Falso coletivo: a ninguém é dado beneficiar-se da própria torpeza",
+          "data": "2026-09-18",
+          "status": "OPINIÃO/ANÁLISE",
+          "url": "https://conjur.com.br/2026-set-18/falso-coletivo-e-o-brocardo-esquecido-a-ninguem-e-dado-beneficiar-se-da-propria-torpeza/"
+        },
+        {
+          "key": "opiniao|conjur|conversao-julgamento-registro-candidatura-diligencia|2026|2026-09-18",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Conversão de julgamento de registro de candidatura em diligência",
+          "data": "2026-09-18",
+          "status": "OPINIÃO/ANÁLISE",
+          "url": "https://conjur.com.br/2026-set-18/conversao-de-julgamento-de-registro-de-candidatura-em-diligencia/"
+        },
+        {
+          "key": "versiculo|dailyverses|proverbios-23-4|2026|2026-09-18",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Provérbios 23:4 (ARC)",
+          "data": "2026-09-18",
+          "status": "VERSÍCULO DO DIA",
+          "url": "https://dailyverses.net/pt/2026/9/18"
+        },
+        {
+          "key": "munger|citacao|aversao-inconsistencia-mudar-de-ideia-doi|indice-61|2026-09-18",
+          "fonte": "work/munger-quotes.json",
+          "categoria": "Munger",
+          "titulo": "Mudar de ideia dói; por isso uma boa conclusão inicial vale ouro e uma má se petrifica.",
+          "data": "2026-09-18",
+          "status": "SABEDORIA DO DIA",
+          "url": null
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel",
+        "gmail_jota": "saudavel",
+        "congresso_ultimas_leis": "saudavel, sem novidade na janela",
+        "gmail_stj_codju": "intermitente, sem novidade na janela (901 já publicado)",
+        "gmail_push_stf_informativos": "saudavel, sem novidade na janela (389 já publicado)",
+        "gmail_push_planalto": "mudo, 35ª sonda vazia consecutiva",
+        "congresso_mpvs": "saudavel, sem novidade na janela (MPV 1391 no 8º dia de tramitação)",
+        "conjur": "saudavel, apex sem www funcionou em todas as rotas exceto /boletim-juridico/ (extração vazia)",
+        "migalhas": "instavel nesta execução — SPA sem timestamp, WebSearch não confirmou nenhuma data dentro da janela",
+        "youversion": "instavel, desafio anti-bot mantido",
+        "dailyverses": "saudavel"
+      },
+      "errors": [
+        {
+          "fonte": "conjur_boletim_juridico",
+          "erro": "HTTP 200 mas extração por classe conjur-posts-tipo-titulo retornou 0 itens; estrutura da página parece diferente das demais seções do ConJur",
+          "impacto": "seção não coberta nesta execução",
+          "acao_proxima_execucao": "inspecionar estrutura HTML de /boletim-juridico/ e ajustar regex"
+        },
+        {
+          "fonte": "migalhas",
+          "erro": "SPA Angular sem timestamp no HTML estático; 3 WebSearches de checagem não confirmaram data de nenhum item dentro da janela de 24h",
+          "impacto": "nenhum item do Migalhas publicado nesta edição",
+          "acao_proxima_execucao": "nenhuma — comportamento já esperado e documentado no ledger"
+        }
+      ],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (78 dias) — 35ª sonda vazia consecutiva. Rota 13 sustenta a seção; sem novidade legislativa na janela de hoje.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto — reverificado em 18/09 sem novidade oficial; armadilha banca_edital_antigo reconfirmada (edital antigo 2022/23, 30 vagas, ainda aparece em buscas).",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas autorizadas, edital em até ~jan/2027. Não reverificado em 18/09 (faixa longo_prazo).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TJRS, TRF2, TRF5, MP-SP, PGE-AL, PGM Juazeiro/BA, ENAM, TRT8, DPDF não reverificados em 18/09 (faixa longo_prazo, sem achado incidental).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Crise STF-PGR: Fachin adiou sem nova data a sessão que julgaria a conduta de Mendonça (marcada para 23/09), em meio ao impasse sobre reunir/separar os casos Moraes/Mendonça; vista de Dino segue em aberto (até 90 dias). Dino determinou à PF/CVM investigar Master-cemitérios em SP e vetou investigação sobre Moraes. Mensagens de Vorcaro citam pagamentos a Kevin Marques (filho de Nunes Marques) e tentativa de aproximação com Rodrigo Fux (filho de Fux) — ambos negados. PGR Gonet nega proximidade com Vorcaro. Acompanhar retomada do julgamento e desdobramentos oficiais sobre os familiares citados.",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": "Cruzamento com chaves_publicadas confirmou que o Informativo STF de Repercussão Geral nº389 e o Informativo STJ CodJu nº901 já haviam sido publicados na edição de 16-17/09 — não republicados. Vários itens do push STF de 17/09 (licença-maternidade, ITBI, emendas Teresina, liderança feminina) já estavam publicados na edição anterior (chaves com data 2026-09-16) — descartados como duplicata. Item do push STF 'Informe da Secretaria de Comunicação' (17/09) não trouxe conteúdo substantivo reportado pelo coletor e não foi publicado. Armadilha congresso_mpv verificada: nenhuma MPV dentro da janela de 24h, então checagem cruzada não foi necessária (regra só se aplica a candidata a publicar). Armadilha banca_edital_antigo verificada e descartada novamente para TJDFT.",
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 47846,
+          "chamadas": 11,
+          "duracao_ms": 69772
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 200289,
+          "chamadas": 26,
+          "duracao_ms": 416159
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 94427,
+          "chamadas": 26,
+          "duracao_ms": 288064
+        }
+      },
+      "gmail_message_id": "1a0b40fa3082f3d0",
+      "delivery_reconciled_at": "2026-09-21T07:20:06-03:00"
     }
   ]
 }
