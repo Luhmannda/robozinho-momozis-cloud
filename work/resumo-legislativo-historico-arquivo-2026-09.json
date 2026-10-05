@@ -4729,6 +4729,349 @@
       },
       "gmail_message_id": "1a0b40fa3082f3d0",
       "delivery_reconciled_at": "2026-09-21T07:20:06-03:00"
+    },
+    {
+      "execution_id": "2026-09-21-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-21T07:07:50-03:00",
+      "run_finished_at": "2026-09-21T07:19:07-03:00",
+      "date": "2026-09-21",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-18T07:08:23-03:00",
+      "window_end": "2026-09-21T07:07:50-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 21/09/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r-8014218545864186090",
+      "gmail_message_id": "1a0c382b083f26e4",
+      "source_status": {
+        "gmail_push_stf": "saudavel",
+        "gmail_push_stf_informativos": "saudavel_sem_novidade",
+        "gmail_stj_codju": "intermitente_sem_novidade",
+        "gmail_push_planalto": "mudo_sonda_vazia",
+        "congresso_ultimas_leis": "saudavel_sem_novidade_na_janela",
+        "congresso_mpvs": "saudavel_armadilha_checada_sem_novidade",
+        "conjur": "saudavel",
+        "migalhas": "saudavel_parcial_7_de_10_nao_confirmados",
+        "gmail_jota": "saudavel",
+        "youversion": "bloqueado_anti_bot",
+        "dailyverses": "saudavel"
+      },
+      "errors": [],
+      "items": [
+        {
+          "fonte": "stf_push_noticias",
+          "categoria": "STF Notícias",
+          "titulo": "Início do julgamento sobre petição ligada ao caso Master é destaque no Supremo na Semana",
+          "data": "2026-09-19",
+          "identificador": null,
+          "url_oficial": "https://noticias.stf.jus.br/postsnoticias/inicio-do-julgamento-sobre-peticao-ligada-ao-caso-master-e-destaque-no-supremo-na-semana/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|inicio-julgamento-peticao-master-supremo-semana|2026|2026-09-19"
+        },
+        {
+          "fonte": "stf_push_noticias",
+          "categoria": "STF Notícias",
+          "titulo": "Regra que impede delegados de chefiar policiamento ostensivo no RJ é válida, decide STF",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": "https://noticias.stf.jus.br/postsnoticias/regra-que-impede-delegados-de-chefiar-policiamento-ostensivo-no-rj-e-valida-decide-stf/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|regra-delegados-policiamento-rj-valida|2026|2026-09-18"
+        },
+        {
+          "fonte": "stf_push_noticias",
+          "categoria": "STF Notícias",
+          "titulo": "STF reconhece que reajuste do Bolsa Família cumpre decisão da Corte sobre renda básica",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": "https://noticias.stf.jus.br/postsnoticias/stf-reconhece-que-reajuste-do-bolsa-familia-cumpre-decisao-da-corte-sobre-renda-basica/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|bolsa-familia-reajuste-cumpre-decisao-renda-basica|2026|2026-09-18"
+        },
+        {
+          "fonte": "stf_push_noticias",
+          "categoria": "STF Notícias",
+          "titulo": "Confira os destaques do Plenário Virtual (sessão 18 a 25/09)",
+          "data": "2026-09-21",
+          "identificador": null,
+          "url_oficial": "https://noticias.stf.jus.br/postsnoticias/confira-os-destaques-do-plenario-virtual-26/",
+          "status": "EM ANDAMENTO",
+          "chave": "stf|agenda|plenario-virtual-18-a-25-09|2026|2026-09-21"
+        },
+        {
+          "fonte": "midia_conjur_migalhas",
+          "categoria": "STJ Jurisprudência",
+          "titulo": "STJ afasta modulação na tese de devolução em dobro de cobrança indevida",
+          "data": "2026-09-19",
+          "identificador": null,
+          "url_oficial": "https://conjur.com.br/2026-set-20/stj-afasta-modulacao-na-tese-de-devolucao-em-dobro-de-cobranca-indevida/",
+          "status": "MÍDIA ESPECIALIZADA (dupla fonte: ConJur e JOTA)",
+          "chave": "midia|conjur-jota|stj-devolucao-dobro-sem-modulacao|2026|2026-09-19"
+        },
+        {
+          "fonte": "conjur",
+          "categoria": "STJ Jurisprudência",
+          "titulo": "STJ define intervenção da Caixa em casos sobre seguro habitacional no SFH",
+          "data": "2026-09-20",
+          "identificador": null,
+          "url_oficial": "https://conjur.com.br/2026-set-20/stj-define-intervencao-da-caixa-em-casos-sobre-seguro-habitacional-no-sfh/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|stj-caixa-seguro-habitacional-sfh|2026|2026-09-20"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "STJ Jurisprudência",
+          "titulo": "Julgamento sobre regras para ingresso de médico em cooperativa está empatado",
+          "data": "2026-09-18",
+          "identificador": "REsp 2.212.301/SP",
+          "url_oficial": "https://www.jota.info/saude/julgamento-sobre-regras-para-ingresso-de-medico-em-cooperativa-esta-empatado",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|stj-empate-medico-cooperativa|2026|2026-09-18"
+        },
+        {
+          "fonte": "conjur_migalhas",
+          "categoria": "Mídia",
+          "titulo": "Dino dá 90 dias para que União reavalie as normas da CVM",
+          "data": "2026-09-20",
+          "identificador": null,
+          "url_oficial": "https://conjur.com.br/2026-set-20/dino-da-90-dias-para-uniao-avaliar-regras-da-comissao-de-valores-mobiliarios/",
+          "status": "MÍDIA ESPECIALIZADA (dupla fonte: ConJur e Migalhas)",
+          "chave": "midia|conjur-migalhas|dino-90-dias-uniao-cvm|2026|2026-09-20"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Novo aciona STF para que Moraes seja impedido de votar no caso Master",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": "https://www.jota.info/stf/do-supremo/novo-aciona-stf-para-que-moraes-seja-impedido-de-votar-no-caso-master",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|novo-aciona-stf-moraes-impedido-votar-master|2026|2026-09-18"
+        },
+        {
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "TSE suspende campanha de Deltan Dallagnol ao Senado",
+          "data": "2026-09-20",
+          "identificador": null,
+          "url_oficial": "https://conjur.com.br/2026-set-20/tse-suspende-campanha-de-deltan-dallagnol-ao-senado/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|tse-suspende-campanha-deltan-dallagnol|2026|2026-09-20"
+        },
+        {
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "TSE reconhece admissibilidade de ação de Flávio Bolsonaro contra Lula",
+          "data": "2026-09-20",
+          "identificador": null,
+          "url_oficial": "https://conjur.com.br/2026-set-20/tse-reconhece-admissibilidade-de-acao-de-flavio-bolsonaro-contra-lula/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|tse-admissibilidade-acao-flavio-bolsonaro-lula|2026|2026-09-20"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Mendonça extingue ação de Zé Trovão no TSE contra aumento no Bolsa Família",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "MÍDIA ESPECIALIZADA (boletim-resumo, sem link individual)",
+          "chave": "midia|jota|mendonca-extingue-acao-ze-trovao-bolsa-familia|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "STF suspende julgamento sobre estatuto do idoso e planos de saúde; nova data não foi definida",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "MÍDIA ESPECIALIZADA (nota editorial, sem link próprio)",
+          "chave": "midia|jota|stf-suspende-julgamento-estatuto-idoso-planos-saude|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Mídia",
+          "titulo": "Carf derruba cobranças previdenciárias do Hospital Anchieta por contratação de médicos via PJ",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "MÍDIA ESPECIALIZADA (sem link próprio)",
+          "chave": "midia|jota|carf-hospital-anchieta-contratacao-pj|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Crise no Supremo",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "OPINIÃO/ANÁLISE (sem link)",
+          "chave": "opiniao|jota|crise-no-supremo-palma-zaidan|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Não houve solução, mas houve mudança",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "OPINIÃO/ANÁLISE (sem link)",
+          "chave": "opiniao|jota|fachin-falta-de-pulso-rodriguez|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Previsibilidade em xeque (rigor técnico e Revisão da Vida Toda)",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "OPINIÃO/ANÁLISE (sem link)",
+          "chave": "opiniao|jota|revisao-vida-toda-rigor-tecnico-badari|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "A indústria da reclamação trabalhista",
+          "data": "2026-09-19",
+          "identificador": null,
+          "url_oficial": "https://www.jota.info/opiniao-e-analise/artigos/a-industria-da-reclamacao-trabalhista",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|industria-reclamacao-trabalhista|2026|2026-09-19"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "A crise do STF pela lente de quem cuida de reputações",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": "https://www.jota.info/opiniao-e-analise/artigos/a-crise-do-stf-pela-lente-de-quem-cuida-de-reputacoes",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|crise-stf-lente-reputacoes|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "A porta certa: geolocalização e busca domiciliar nas favelas",
+          "data": "2026-09-18",
+          "identificador": null,
+          "url_oficial": "https://www.jota.info/opiniao-e-analise/artigos/geolocalizacao-e-busca-domiciliar-nas-favelas",
+          "status": "OPINIÃO/ANÁLISE (título da página sem o prefixo do e-mail)",
+          "chave": "opiniao|jota|porta-certa-geolocalizacao-busca-domiciliar-favelas|2026|2026-09-18"
+        },
+        {
+          "fonte": "gmail_jota",
+          "categoria": "Fofoquinha",
+          "titulo": "Moraes desembarcando de jato de empresa ligada a Vorcaro, contradizendo versão pública (revelação de Lauro Jardim/O Globo)",
+          "data": "2026-09-21",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "FORTE INDÍCIO",
+          "chave": "fofoquinha|jota-oglobo|moraes-voo-jato-vorcaro-contradiz-versao-publica|2026|2026-09-21"
+        },
+        {
+          "fonte": "versiculo_py",
+          "categoria": "Versículo",
+          "titulo": "Salmo 9:9 (ARC)",
+          "data": "2026-09-21",
+          "identificador": null,
+          "url_oficial": "https://dailyverses.net/pt/2026/9/21",
+          "status": "VERSÍCULO DO DIA",
+          "chave": "versiculo|dailyverses|salmo-9-9|2026|2026-09-21"
+        },
+        {
+          "fonte": "munger_quotes_json",
+          "categoria": "Munger",
+          "titulo": "Não puna o portador da má notícia; matar o mensageiro só cega você para a realidade.",
+          "data": "2026-09-21",
+          "identificador": "indice-64",
+          "url_oficial": null,
+          "status": "SABEDORIA DO DIA",
+          "chave": "munger|citacao|matar-o-mensageiro|indice-64|2026-09-21"
+        },
+        {
+          "fonte": "web_concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF5 Juiz Federal Substituto — cronograma retificado, prova objetiva adiada de 29/11 para 20/12/2026",
+          "data": "2026-09-20",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "INSCRIÇÕES ABERTAS",
+          "chave": "concurso|trf5|juiz-federal-substituto-prova-adiada-20-12|2026|2026-09-20"
+        },
+        {
+          "fonte": "web_concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJRS Juiz Substituto — isenção de taxa de inscrição encerra 21/09 às 16h",
+          "data": "2026-09-21",
+          "identificador": null,
+          "url_oficial": null,
+          "status": "ENCERRA HOJE",
+          "chave": "concurso|tjrs|juiz-substituto-isencao-taxa-encerra-21-09|2026|2026-09-21"
+        }
+      ],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (81 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; sem novidade legislativa confirmada na janela de hoje.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto — reverificado em 21/09: banca Cebraspe e subsídio ~R$37.765,55 confirmados; fontes de 2026 convergem em ~20 vagas, mas edital ainda sem data oficial. Armadilha banca_edital_antigo reconfirmada (edital 2022/23 com 30 vagas segue aparecendo em buscas).",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 segue trabalhando; uma fonte cita edital até o fim de 2026, outra até jan/2027 (mesma ordem de grandeza); banca ainda não confirmada. Reverificado em 21/09 por ser a 1ª execução da semana.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TJRS (isenção de taxa encerra hoje 21/09), TRF5 (inscrições até 28/09, prova adiada para 20/12), PGM Juazeiro/BA (edital previsto fim de setembro, nova seleção distinta de processo já cancelado) e PGE-AL (resultado ~20/10) reverificados em 21/09. TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII e DPE-RO não reverificados (orçamento de 6 buscas esgotado nos prazos mais próximos).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Fachin muda de estratégia (evita decisões colegiadas rápidas, retoma conversas individuais) após adiar sem nova data a sessão sobre a conduta de Mendonça; vista de Dino sobre reunir/separar os casos Moraes/Mendonça segue em aberto (até 90 dias). Revelação de Lauro Jardim/O Globo: imagens de 22/08/2025 mostram Moraes desembarcando de jato de empresa ligada a Vorcaro, contradizendo versão pública do ministro. PGR Gonet segue negando proximidade com Vorcaro. Acompanhar retomada do julgamento e desdobramentos oficiais.",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": [
+        "Item STF 'Regra que impede delegados...' e demais itens do push de 17/09 (Ouvidoria Bahia, reiteração) ficaram fora da janela (anteriores a 2026-09-18T07:08:23-03:00) e não foram publicados — presumivelmente já cobertos pela execução anterior.",
+        "Itens institucionais de baixo valor noticioso (visita da Ouvidoria do STF a terreiro em Salvador; audiência acadêmica em Curitiba) foram lidos pelo coletor Gmail mas descartados na composição por baixa relevância editorial.",
+        "JOTA: thread 'Fachin adia sem nova data sessão para analisar conduta de Mendonça' (e-mail 18/09 07:00:58 -03) ficou ~7min26s antes do início oficial da janela (07:08:23) — excluída por estar fora da janela; seu conteúdo já está resumido no item de hoje 'Fachin muda estratégia...'.",
+        "JOTA: item 'Dino oficia PF para investigar relação entre Master e cemitérios de SP' (18/09) não foi publicado como item novo — o mesmo fato já constava na nota da pendência crise_institucional_stf_pgr_acompanhar de execuções anteriores; risco de redundância, tratado apenas como contexto na pendência, não como notícia nova.",
+        "Opinião/análise 'A porta certa: geolocalização e busca domiciliar nas favelas': o link resolvido via WebSearch tem título de página 'Geolocalização e busca domiciliar nas favelas', sem o prefixo 'A porta certa:' usado no e-mail do JOTA. Tema bate exatamente; julgado como o mesmo artigo (não é a armadilha jota_link_wrapper_mismatch, que envolve tema completamente diferente) — publicado com o link.",
+        "Migalhas: 10 itens extraídos de /quentes, todos com badge de data no HTML (achado novo — ledger registra a fonte como não datável por curl). Apenas 3 confirmados (1 por cruzamento com ConJur — Dino/CVM, já publicado; 2 por WebSearch — 'Promotor cai em Júri' e 'Estudante de Direito encontrada morta', ambos avaliados como baixa relevância jurídica e não publicados). Os 7 itens restantes ficaram sem confirmação e não entraram na edição — protocolo de confirmação por WebSearch mantido apesar do achado do badge, até validação em execuções futuras.",
+        "MPV: nenhum número acima de 1391 confirmado. Cross-check por 2 buscas WebSearch (armadilha congresso_mpv) não achou candidato — ausência de evidência de novidade, não pendência.",
+        "Congresso Rota 13: lei mais recente na listagem é a Lei nº 15.506/2026 (16/09), anterior ao início da janela (18/09 07:08) — não publicada por estar fora da janela.",
+        "STF Jurisprudência/Informativos e STJ CodJu (Gmail): sem e-mail na janela — cadência periódica normal, não é falha nem pendência."
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 45083,
+          "chamadas": 8,
+          "duracao_ms": 61957
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 219942,
+          "chamadas": 20,
+          "duracao_ms": 259573
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 106858,
+          "chamadas": 41,
+          "duracao_ms": 287718
+        }
+      },
+      "delivery_reconciled_at": "2026-09-22T07:32:03-03:00"
     }
   ]
 }
