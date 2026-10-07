@@ -5432,6 +5432,470 @@
       },
       "gmail_message_id": "1a0c8b6bf3663227",
       "delivery_reconciled_at": "2026-09-23T07:30:30-03:00"
+    },
+    {
+      "execution_id": "2026-09-23-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-23T07:17:20-03:00",
+      "run_finished_at": "2026-09-23T07:29:27-03:00",
+      "date": "2026-09-23",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-22T07:19:05-03:00",
+      "window_end": "2026-09-23T07:17:20-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 23/09/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r5736228775529341918",
+      "items": [
+        {
+          "fonte": "congressonacional.leg.br (Rota 13)",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.511/2026 — altera o Estatuto da Advocacia (Lei 8.906/1994)",
+          "data": "2026-09-21",
+          "identificador": "15511/2026",
+          "url": "https://legis.senado.leg.br/norma/43971364",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "planalto|lei|15511|2026|2026-09-21"
+        },
+        {
+          "fonte": "congressonacional.leg.br (Rota 13)",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.509/2026 — prescrição de 5 anos para infrações de notários e registradores",
+          "data": "2026-09-21",
+          "identificador": "15509/2026",
+          "url": "",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "planalto|lei|15509|2026|2026-09-21"
+        },
+        {
+          "fonte": "congressonacional.leg.br (Rota 13)",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.510/2026 — institui a Semana Nacional da Empresa Júnior",
+          "data": "2026-09-21",
+          "identificador": "15510/2026",
+          "url": "",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "planalto|lei|15510|2026|2026-09-21"
+        },
+        {
+          "fonte": "congressonacional.leg.br (Rota 13)",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.508/2026 — extingue a Floresta Nacional de Cristópolis (BA)",
+          "data": "2026-09-21",
+          "identificador": "15508/2026",
+          "url": "",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "planalto|lei|15508|2026|2026-09-21"
+        },
+        {
+          "fonte": "congressonacional.leg.br (Rota 13)",
+          "categoria": "planalto",
+          "titulo": "Lei nº 15.507/2026 — denomina ponte sobre o Rio Paraguai na fronteira BR/PY",
+          "data": "2026-09-21",
+          "identificador": "15507/2026",
+          "url": "",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "chave": "planalto|lei|15507|2026|2026-09-21"
+        },
+        {
+          "fonte": "Push STF Notícias",
+          "categoria": "stf_noticia",
+          "titulo": "STF ouve especialistas e instituições sobre responsabilidade na destinação de emendas parlamentares",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-ouve-especialistas-e-instituicoes-sobre-responsabilidade-na-destinacao-de-emendas-parlamentares/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "chave": "stf|noticia|audiencia-emendas-parlamentares-responsabilidade|2026|2026-09-23"
+        },
+        {
+          "fonte": "ConJur + Migalhas",
+          "categoria": "midia",
+          "titulo": "Lei de Arbitragem (Lei 9.307/1996) completa 30 anos",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "https://conjur.com.br/2026-set-23/trinta-anos-da-lei-de-arbitragem-e-dez-anos-da-cames-evolucao-normativa-e-experiencia-institucional/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur-migalhas|lei-arbitragem-30-anos|2026|2026-09-23"
+        },
+        {
+          "fonte": "ConJur",
+          "categoria": "midia",
+          "titulo": "Infrações de notários e registradores prescreverão em 5 anos, define nova lei",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "https://conjur.com.br/2026-set-22/infracoes-de-notarios-e-registradores-prescreverao-em-5-anos-define-nova-lei/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|notarios-registradores-prescricao-5-anos|2026|2026-09-22"
+        },
+        {
+          "fonte": "ConJur",
+          "categoria": "midia",
+          "titulo": "STJ altera modelo de juízes convocados para dedicação exclusiva aos gabinetes",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "https://conjur.com.br/2026-set-22/stj-altera-modelo-de-juizes-convocados-para-dedicacao-exclusiva-aos-gabinetes/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|stj-altera-modelo-juizes-convocados-dedicacao-exclusiva|2026|2026-09-22"
+        },
+        {
+          "fonte": "ConJur",
+          "categoria": "midia",
+          "titulo": "Rito da relevância do STJ absorve repetitivos para formação de precedentes",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "https://conjur.com.br/2026-set-22/rito-da-relevancia-do-stj-absorve-repetitivos-para-formacao-de-precedentes/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|rito-relevancia-stj-absorve-repetitivos|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "TSE mantém, por maioria, suspensão da campanha de Deltan Dallagnol ao Senado",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|tse-mantem-suspensao-campanha-dallagnol-maioria|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "\"Torniquete\": Lei 15.327/2026 traz novas regras para consignado do INSS após fraudes",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|torniquete-consignado-inss-lei-15327|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "AGU ajuíza ação para que Marco Buzzi perca cargo de ministro do STJ",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|agu-acao-buzzi-perda-cargo-stj|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA/Estadão",
+          "categoria": "midia",
+          "titulo": "STJ (2ª Seção): banco que só financia obra não responde solidariamente por atraso na entrega",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "chave": "midia|jota-estadao|stj-banco-financia-obra-nao-responde-solidariamente|2026|2026-09-23"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "Carf afasta prescrição intercorrente em caso de interposição fraudulenta",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|carf-afasta-prescricao-intercorrente-interposicao-fraudulenta|2026|2026-09-22"
+        },
+        {
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "OAB/ES propõe compromisso público a candidatos ao Governo e Senado",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "https://www.migalhas.com.br/quentes/465065/oab-es-propoe-compromisso-publico-a-candidatos-ao-governo-e-senado",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|migalhas|oab-es-compromisso-publico-candidatos|2026|2026-09-23"
+        },
+        {
+          "fonte": "ConJur",
+          "categoria": "midia",
+          "titulo": "Alcântara: conflito fundiário, comunidades quilombolas e Praça de Justiça e Cidadania",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "https://conjur.com.br/2026-set-23/alcantara-conflito-fundiario-comunidades-quilombolas-e-praca-de-justica-e-cidadania/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|alcantara-conflito-fundiario-quilombola|2026|2026-09-23"
+        },
+        {
+          "fonte": "ConJur",
+          "categoria": "midia",
+          "titulo": "O Direito Internacional Privado brasileiro em via de transformação",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "https://conjur.com.br/2026-set-23/o-direito-internacional-privado-brasileiro-em-via-de-transformacao/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|direito-internacional-privado-transformacao|2026|2026-09-23"
+        },
+        {
+          "fonte": "ConJur",
+          "categoria": "midia",
+          "titulo": "TSE tem beco sem saída para quem perde mandato por retotalização de votos",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|conjur|tse-beco-sem-saida-retotalizacao-votos|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "AGU propõe rastrear beneficiário final e deságio na venda de precatórios",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|agu-precatorios-rastrear-beneficiario-final|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "Dino diz ser mais \"adequado\" julgar regras de emendas depois das eleições",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|dino-emendas-parlamentares-pos-eleicao|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "Dino mantém proibição de propaganda de bets em espaços públicos de MG",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|dino-mantem-proibicao-bets-mg|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "Incidentes cibernéticos batem recorde no sistema financeiro, e BC prepara medidas",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|bc-incidentes-ciberneticos-recorde|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "Nicarágua vai ter que indenizar americano preso e deportado ilegalmente",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|nicaragua-indenizar-americano-deportado|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "midia",
+          "titulo": "União pede à Justiça regras mais duras ao Discord para proteção de crianças e adolescentes",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "chave": "midia|jota|uniao-discord-regras-mais-duras|2026|2026-09-22"
+        },
+        {
+          "fonte": "Migalhas",
+          "categoria": "midia",
+          "titulo": "Conselheira Federal da OAB/SP presidirá comissão do CFOAB para Reforma do Judiciário",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "chave": "midia|migalhas|oabsp-conselheira-comissao-cfoab-reforma-judiciario|2026|2026-09-23"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "opiniao",
+          "titulo": "O problema do Supremo como um problema de agência",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|supremo-problema-agencia|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "opiniao",
+          "titulo": "Entre o ECA Digital e uma reclamação da BRF, STF tem um teste a enfrentar",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|eca-digital-reclamacao-brf-stf-teste|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "opiniao",
+          "titulo": "A inconstitucionalidade da inclusão da CBS e do IBS na base de cálculo do ISS",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|inconstitucionalidade-cbs-ibs-base-iss|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "opiniao",
+          "titulo": "A gratuidade de justiça e a falta de coordenação dos critérios de hipossuficiência",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|gratuidade-justica-hipossuficiencia-trabalhista|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "opiniao",
+          "titulo": "Um indigenismo para o Judiciário brasileiro?",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|indigenismo-judiciario-brasileiro|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "opiniao",
+          "titulo": "Bets no Brasil: da legalização às novas restrições regulatórias",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "chave": "opiniao|jota|bets-brasil-legalizacao-restricoes|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA (Estadão/Folha)",
+          "categoria": "fofoquinha",
+          "titulo": "Vazamento do celular de Vorcaro revela contrato de honorários (>R$400mi) ligado a familiar de desembargador do TRF-1",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "FORTE INDÍCIO",
+          "chave": "fofoquinha|jota-estadao|vazamento-celular-vorcaro-contrato-turma-kn-desembargador-trf1|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "fofoquinha",
+          "titulo": "Mendonça sinaliza investigar Moraes por denunciação caluniosa e pede acesso ao inquérito das fake news",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "FORTE INDÍCIO",
+          "chave": "fofoquinha|jota|mendonca-investigar-moraes-denunciacao-caluniosa|2026|2026-09-22"
+        },
+        {
+          "fonte": "JOTA",
+          "categoria": "fofoquinha",
+          "titulo": "Fux sorteado relator de ação sobre entrada de esposa de Moraes e de Vorcaro no Senado",
+          "data": "2026-09-22",
+          "identificador": "",
+          "url": "",
+          "status": "FORTE INDÍCIO",
+          "chave": "fofoquinha|jota|fux-relator-acao-esposa-moraes-vorcaro-senado|2026|2026-09-22"
+        },
+        {
+          "fonte": "DailyVerses.net",
+          "categoria": "versiculo",
+          "titulo": "1 João 4:1 (ARC)",
+          "data": "2026-09-23",
+          "identificador": "",
+          "url": "https://dailyverses.net/pt/2026/9/23",
+          "status": "VERSÍCULO DO DIA",
+          "chave": "versiculo|dailyverses|1joao-4-1|2026|2026-09-23"
+        },
+        {
+          "fonte": "work/munger-quotes.json",
+          "categoria": "munger",
+          "titulo": "Quase todos se julgam acima da média; desconfie da sua própria avaliação inflada.",
+          "data": "2026-09-23",
+          "identificador": "indice-66",
+          "url": "",
+          "status": "SABEDORIA DO DIA",
+          "chave": "munger|citacao|excesso-autoestima|indice-66|2026-09-23"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "saudavel — 1 notícia nova",
+        "gmail_push_stf_jurisprudencia_informativos": "saudavel — silêncio normal (periódico), sem edição nova",
+        "gmail_stj_codju": "intermitente — silêncio normal desde Informativo 901 (15/09)",
+        "gmail_push_planalto": "mudo — sonda vazia novamente, 82+ dias sem e-mail",
+        "gmail_jota": "saudavel — 14 notícias + 6 opiniões",
+        "congresso_ultimas_leis": "saudavel — 5 leis novas confirmadas",
+        "congresso_mpvs": "saudavel — nenhuma MPV nova confirmada; armadilha checada novamente",
+        "conjur": "saudavel — notícias, artigos e colunas extraídos normalmente",
+        "migalhas": "saudavel — 1 item não confirmado por 2ª fonte, 1 item descartado por discrepância de data (badge)",
+        "youversion": "instavel — Client Challenge (anti-bot), fallback DailyVerses.net usado",
+        "dailyverses": "saudavel"
+      },
+      "errors": [
+        "Migalhas: badge de data do item sobre a cartilha do IAB (23/09) diverge da data real do evento segundo o próprio IAB (21/09) — item não publicado.",
+        "Migalhas: item sobre conselheira da OAB/SP presidir comissão do CFOAB não confirmado por 2ª fonte — publicado com cautela, fonte única.",
+        "Relação de parentesco exata entre a advogada Camilla Ramos e o desembargador Newton Pereira Ramos Neto (TRF-1), no caso do contrato com o Banco Master, veio divergente entre as fontes agregadas pelo coletor (título indicava 'marido', resumo do corpo indicava 'filho') — publicado de forma genérica ('familiar'), sem afirmar o grau exato."
+      ],
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (83 dias) — sonda desta execução também vazia. Rota 13 sustenta a seção; 5 leis novas confirmadas por ela hoje.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto — reverificado em 23/09: banca Cebraspe e subsídio ~R$37.765,55 confirmados novamente, ~20 vagas; edital ainda sem data oficial de publicação. Armadilha banca_edital_antigo checada e descartada de novo.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Não reverificado em 23/09 (faixa longo prazo).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TRF5 (inscrições até 28/09, prova 20/12), TJRS (inscrições até 14/10, prova 13/12), PGE-AL (resultado ~20/10), PGM Juazeiro/BA (edital previsto fim de set/2026) não reverificados em 23/09 (faixa longo prazo). TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO seguem sem reverificação.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Vazamento do celular de Vorcaro revela contrato de honorários (>R$400 milhões) com o Banco Master envolvendo a advogada Camilla Ramos e um familiar do desembargador Newton Pereira Ramos Neto (TRF-1) — grau de parentesco divergente entre fontes agregadas, checar em fonte primária. Mendonça sinaliza investigar Moraes por denunciação caluniosa e pede acesso ao inquérito das fake news. Fux sorteado relator de ação sobre entrada de esposa de Moraes e de Vorcaro no Senado. Gilmar Mendes cogita levar ao plenário do STF a exigência de perícia individual nos créditos do setor sucroalcooleiro (mencionado incidentalmente, sem confirmação — não publicado como item próprio).",
+          "faixa": "ativa"
+        }
+      ],
+      "verification_notes": [
+        "Janela sem gap (dia útil normal), 5 leis do Congresso (Rota 13) datadas de 21/09/DOU 22/09 tratadas como novidade por não constarem da edição anterior (não é possível confirmar hora exata de disponibilização).",
+        "ConJur: itens de notícias/colunas com slug 22/09 sem horário — tratados como novidade desta janela por não constarem da edição anterior; 3 artigos com slug 23/09 são inequivocamente da janela.",
+        "Efeméride: Lei de Arbitragem (Lei 9.307/1996) sancionada em 23/09/1996 — hoje faz 30 anos, explica a convergência de 3 matérias no ConJur e 2 no Migalhas sobre o tema no mesmo dia.",
+        "STJ (banco que só financia obra) só circulou via clipping do JOTA/Estadão — não localizado em canal oficial do STJ nesta execução; publicado como SEM CONFIRMAÇÃO OFICIAL.",
+        "Coletor Web reescreveu a extração da Rota 13 e da página de MPVs (regex genérica só capturava menu de navegação; usou blocos dt/dd e busca de string 'Lei nº'/'MPV').",
+        "Coletor Web reescreveu a extração de data do Migalhas (badge não seguia o padrão simples sugerido; classe real é 'badge badge--vermelho/cinza' + h2.topico__header)."
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 42226,
+          "chamadas": 7,
+          "duracao_ms": 41289
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 118270,
+          "chamadas": 10,
+          "duracao_ms": 185933
+        },
+        "web": {
+          "modelo": "sonnet",
+          "tokens": 97042,
+          "chamadas": 29,
+          "duracao_ms": 228726
+        }
+      },
+      "gmail_message_id": "1a0cddd2834e8781",
+      "delivery_reconciled_at": "2026-09-24T07:31:30-03:00"
     }
   ]
 }
