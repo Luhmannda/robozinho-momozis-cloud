@@ -6320,6 +6320,350 @@
       },
       "gmail_message_id": "1a0d303809e5ca17",
       "delivery_reconciled_at": "2026-09-25T07:32:52-03:00"
+    },
+    {
+      "execution_id": "2026-09-25-7h",
+      "type": "diaria",
+      "run_started_at": "2026-09-25T07:19:14-03:00",
+      "run_finished_at": "2026-09-25T07:31:53-03:00",
+      "date": "2026-09-25",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-09-24T07:17:21-03:00",
+      "window_end": "2026-09-25T07:19:14-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 25/09/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r1435393257933616101",
+      "verification_notes": [
+        "Itens do JOTA já publicados em 24/09 (STF licença-maternidade 120 dias; CNJ devolução R$4,73bi precatórios usinas) foram descartados nesta edição por já estarem em chaves_publicadas.",
+        "gmail_push_stf_informativos e gmail_stj_codju silenciosos nesta janela — cadência periódica normal (informativos e CodJu semanais), não é falha nem pendência.",
+        "Teto de ~10 itens na seção Mídia: TJ-PA acolhimento LGBTQIA+, indenização de eletricista, folgas quinzenais de mulheres, restabelecimento de conta de promotor pelo Google, fragmentação da reforma tributária, regulamentação de apostas online (UFRJ), novas regras do BC para ativos virtuais e liberdade provisória no TJ/MG ficaram em 'ver mais' sem entrada própria.",
+        "Teto de 6 no bloco Opinião/Análise: outras 10 colunas/artigos do ConJur da janela não foram listados individualmente.",
+        "Toffoli/Furlan (TSE) e TST/greve dos Correios chegaram só por clipping de jornais repassado pelo JOTA, sem matéria própria do veículo — WebSearch site:jota.info não achou página com esses títulos, publicados sem link.",
+        "Errata da edição de 24/09 (troca Mendonça/Fachin, Iter, norma MT, corregedor, vetos das Leis 15.516-15.519) publicada no quadro de pendências desta edição e removida do ledger.",
+        "Crise institucional: em 25/09 o desdobramento 'Gilmar leva ao Plenário disputa de precatórios de usinas' teve a primeira confirmação oficial (STF push), antes só media (23/09); o desembargador do TRF-1 alvo de correição do CNJ foi nomeado (Newton Pereira Ramos Neto) e identificado como marido de Camilla Ramos por convergência entre JOTA e Migalhas, mas o vínculo específico com Vorcaro segue sem confirmação oficial do CNJ."
+      ],
+      "errors": [
+        "YouVersion: http 200 mas página sem conteúdo utilizável (desafio anti-bot) — fallback DailyVerses.net usado normalmente, versículo publicado sem prejuízo.",
+        "t.rdsv2.net (wrapper de links do JOTA): bloqueado no proxy de egress (connect_rejected, política da organização) — fallback integral por WebSearch site:jota.info; 3 itens (Toffoli/Furlan, TST/Correios, parte da nota de contexto sobre a pesquisa eleitoral descartada) publicados sem link próprio por título não localizado."
+      ],
+      "items": [
+        {
+          "chave": "stf|noticia|icms-confaz-livre-comercio-vedacao-encerramento-unilateral|2026|2026-09-24",
+          "fonte": "STF Notícias / ConJur",
+          "categoria": "STF Notícias",
+          "titulo": "Estados não podem encerrar unilateralmente benefício de ICMS firmado em convênio do Confaz, decide STF",
+          "data": "2026-09-24",
+          "url": "https://noticias.stf.jus.br/postsnoticias/estados-nao-podem-encerrar-unilateralmente-beneficio-de-icms-firmado-em-convenio-do-confaz-decide-stf/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "também coberto pelo ConJur (24/09 21:02)"
+        },
+        {
+          "chave": "stf|noticia|60-dias-uniao-rj-divida-estado|2026|2026-09-24",
+          "fonte": "STF Notícias",
+          "categoria": "STF Notícias",
+          "titulo": "STF dá 60 dias para União e Rio de Janeiro negociarem garantias e reestruturação da dívida do estado",
+          "data": "2026-09-24",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-da-60-dias-para-uniao-e-rio-de-janeiro-negociarem-garantias-e-reestruturacao-da-divida-do-estado/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|prorroga-suspensao-sancoes-riscos-psicossociais|2026|2026-09-24",
+          "fonte": "STF Notícias",
+          "categoria": "STF Notícias",
+          "titulo": "Relator prorroga suspensão de sanções sobre riscos psicossociais no trabalho",
+          "data": "2026-09-24",
+          "url": "https://noticias.stf.jus.br/postsnoticias/relator-prorroga-suspensao-de-sancoes-sobre-riscos-psicossociais-no-trabalho/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|plenario-precatorios-usinas-sucroalcooleiras|2026|2026-09-24",
+          "fonte": "STF Notícias / ConJur",
+          "categoria": "STF Notícias",
+          "titulo": "Decano remete ao Plenário processo para unificar entendimento sobre pagamento de precatórios a usinas sucroalcooleiras",
+          "data": "2026-09-24",
+          "url": "https://noticias.stf.jus.br/postsnoticias/decano-remete-ao-plenario-processo-para-unificar-entendimento-sobre-pagamento-de-precatorios-a-usinas-sucroalcooleiras/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "também ConJur 19:39; desfecho oficial do rumor midia|jota-migalhas-conjur|gilmar-plenario-disputa-precatorios-usinas de 23/09"
+        },
+        {
+          "chave": "midia|migalhas|dino-pf-investigar-cvm-caso-master|2026|2026-09-24",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Dino manda PF investigar possíveis irregularidades da CVM no caso Master",
+          "data": "2026-09-24",
+          "url": "https://www.migalhas.com.br/quentes/465241/dino-manda-pf-investigar-atuacao-da-cvm-no-caso-master",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|nunes-marques-relator-perda-cargo-buzzi|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques vai relatar pedido de perda do cargo de Marco Buzzi",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/nunes-marques-vai-relatar-pedido-de-perda-do-cargo-de-buzzi/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota-jornais|toffoli-rejeita-candidatura-furlan-amapa|2026|2026-09-25",
+          "fonte": "clipping de jornais via JOTA",
+          "categoria": "Mídia",
+          "titulo": "Toffoli vota pela rejeição da candidatura de Furlan ao governo do Amapá no TSE",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link próprio localizado"
+        },
+        {
+          "chave": "midia|jota-jornais|tst-greve-correios-nao-abusiva|2026|2026-09-25",
+          "fonte": "clipping de jornais via JOTA",
+          "categoria": "Mídia",
+          "titulo": "TST decide que greve dos Correios não é abusiva",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link próprio localizado"
+        },
+        {
+          "chave": "midia|jota-conjur|lula-tse-flavio-interferencia-abusos|2026|2026-09-24",
+          "fonte": "JOTA / ConJur",
+          "categoria": "Mídia",
+          "titulo": "Campanha de Lula aciona o TSE contra Flávio por suposta interferência estrangeira e abusos",
+          "data": "2026-09-24",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/campanha-de-lula-vai-ao-tse-contra-flavio-por-suposta-interferencia-estrangeira-na-eleicao",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|tcu-enel-sp-caducidade-contrato|2026|2026-09-24",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TCU cobra plano e pede análise em caso de eventual caducidade de contrato da Enel SP",
+          "data": "2026-09-24",
+          "url": "https://www.jota.info/executivo/tcu-cobra-plano-e-pede-analise-em-caso-de-eventual-caducidade-de-contrato-da-enel-sp",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|polymarket-instagram-sai-do-ar|2026|2026-09-24",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Perfil da Polymarket no Instagram sai do ar após atuação do governo Lula",
+          "data": "2026-09-24",
+          "url": "https://www.jota.info/executivo/perfil-da-polymarket-no-instagram-sai-do-ar-apos-atuacao-do-governo-lula",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|trf1-competencia-federal-agrotoxicos-mpf|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "TRF-1 mantém na Justiça Federal ação do MPF sobre danos por agrotóxicos",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/trf-1-confirma-competencia-federal-em-acao-sobre-pulverizacao-de-agrotoxicos/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|apoio-eleitoral-faccao-inelegibilidade|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Negociação de apoio eleitoral pago com membro de facção gera inelegibilidade",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/negociar-apoio-politico-pago-com-membro-de-faccao-gera-abuso-de-poder/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|estupro-desclassificado-tentativa-sem-contato-fisico|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Sem prova de contato físico, estupro é desclassificado para tentativa",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/sem-prova-de-contato-fisico-estupro-e-desclassificado-para-tentativa/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "opiniao|conjur|redata-pis-cofins-ipi-natimorto|2026|2026-09-25",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Redata: benefício de PIS/Cofins, IPI natimorto e outros pontos de atenção",
+          "data": "2026-09-25",
+          "url": "https://conjur.com.br/2026-set-25/redata-beneficio-de-pis-cofins-ipi-natimorto-e-outros-pontos-de-atencao/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|ia-vai-nos-destruir-supervisao-humana|2026|2026-09-25",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "A IA vai nos destruir? Novo dilema da supervisão humana diante do autoaperfeiçoamento recursivo",
+          "data": "2026-09-25",
+          "url": "https://conjur.com.br/2026-set-25/a-ia-vai-nos-destruir-novo-dilema-da-supervisao-humana-diante-do-autoaperfeicoamento-recursivo/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|cnj-avanca-campo-legislativo|2026|2026-09-25",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Conselho Nacional de Justiça avança em campo legislativo",
+          "data": "2026-09-25",
+          "url": "https://conjur.com.br/2026-set-25/conselho-nacional-de-justica-avanca-em-campo-legislativo/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|lc236-revogou-multa-simulacao-ibs-cbs|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "LC 236/2026 revogou multa qualificada por simulação no IBS/CBS",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/multa-qualificada-por-simulacao-no-ambito-do-ibs-e-da-cbs-revogacao-pela-lc-236-2026/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|gafi-7a-atualizacao-ativos-virtuais|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "7ª atualização do Gafi: lacunas remanescentes do arcabouço brasileiro sobre ativos virtuais",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/7a-atualizacao-do-gafi-lacunas-remanescentes-do-arcabouco-brasileiro-sobre-ativos-virtuais/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|recuperacao-judicial-2026-dados-efetividade|2026|2026-09-24",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Recuperação judicial em 2026: o que os dados revelam sobre a efetividade do instituto",
+          "data": "2026-09-24",
+          "url": "https://conjur.com.br/2026-set-24/recuperacao-judicial-em-2026-o-que-os-dados-revelam-sobre-a-efetividade-do-instituto/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "fofoquinha|jota-migalhas|cnj-inspeciona-gabinete-desembargador-trf1-newton-ramos|2026|2026-09-25",
+          "fonte": "JOTA / Migalhas",
+          "categoria": "Fofoquinha",
+          "titulo": "CNJ faz inspeção em gabinete de desembargador do TRF-1 apontado como próximo a Nunes Marques",
+          "data": "2026-09-25",
+          "url": "https://www.jota.info/justica/cnj-faz-inspecao-em-gabinete-de-desembargador-apontado-como-proximo-a-nunes-marques",
+          "status": "FORTE INDÍCIO",
+          "observacao": "desembargador nomeado: Newton Pereira Ramos Neto, marido de Camilla Ramos; vínculo específico com Vorcaro sem confirmação oficial"
+        },
+        {
+          "chave": "fofoquinha|migalhas|carmen-lucia-nao-muda-voto-procurador-roupa|2026|2026-09-24",
+          "fonte": "Migalhas",
+          "categoria": "Fofoquinha",
+          "titulo": "\"Não muda o voto\", diz Cármen após procurador dizer que comprou roupa para sustentar",
+          "data": "2026-09-24",
+          "url": "https://www.migalhas.com.br/quentes/465235/nao-muda-o-voto--diz-carmen-apos-procurador-dizer-que-comprou-roupa",
+          "status": "CONFIRMADO"
+        },
+        {
+          "chave": "concurso|trf5|juiz-federal-substituto-inscricoes-encerram-28-09-provas-04-05-04-2027|2026|2026-09-25",
+          "fonte": "FGV Conhecimento / blog.mege.com.br / ceisc.com.br",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF5 — Juiz Federal Substituto: inscrições encerram 28/09, provas escritas confirmadas para 04-05/04/2027",
+          "data": "2026-09-25",
+          "url": "https://conhecimento.fgv.br/concursos/trf5juiz26",
+          "status": "ENCERRA EM BREVE",
+          "observacao": "resolve divergência de datas das provas escritas; objetiva 20/12/2026"
+        },
+        {
+          "chave": "concurso|tjdft|juiz-substituto-estimativa-edital-05-10-nao-oficial|2026|2026-09-25",
+          "fonte": "magistrarcursos.com.br (blog, não oficial)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJDFT — Juiz Substituto: estimativa não oficial de edital em 05/10 e prova em 24/01/2027",
+          "data": "2026-09-25",
+          "url": "https://magistrarcursos.com.br/blog/concurso-tjdft-juiz/",
+          "status": "EM PLANEJAMENTO",
+          "observacao": "fonte secundária, sem confirmação oficial"
+        },
+        {
+          "chave": "concurso|pge-al|procurador-resultado-objetiva-gabaritos-preliminares|2026|2026-09-25",
+          "fonte": "Cebraspe",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-AL — Procurador: objetiva aplicada em 05/09, gabaritos preliminares 08-22/09, resultado previsto ~20/10",
+          "data": "2026-09-25",
+          "url": "https://www.cebraspe.org.br/concursos/pge_al_26",
+          "status": "EM ANDAMENTO"
+        },
+        {
+          "chave": "versiculo|dailyverses|mateus-4-19|2026|2026-09-25",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Mateus 4:19 (ARC)",
+          "data": "2026-09-25",
+          "url": "https://dailyverses.net/pt/2026/9/25",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|perder-o-que-se-tem-dor-decisoes-sob-pressao|indice-68|2026-09-25",
+          "fonte": "A Psicologia dos Erros de Julgamento Humano",
+          "categoria": "Munger",
+          "titulo": "Perder o que se tem dói muito mais que deixar de ganhar; isso leva a decisões ruins sob pressão.",
+          "data": "2026-09-25",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026 (85 dias); a Rota 13 (Portal do Congresso) segue sustentando a seção Planalto.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT Juiz Substituto — Cebraspe e subsídio ~R$37.765,55 confirmados, ~20 vagas convergem; edital sem data oficial. Fonte secundária não oficial estima edital em 05/10 e prova em 24/01/2027.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN — 170 vagas autorizadas, GT da Portaria AGU 228 seguindo modelagem; prazo entre fim de 2026 e jan/2027; banca não confirmada. Sem movimento nesta execução.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TRF5 inscrições encerram 28/09; divergência das provas escritas RESOLVIDA — confirmado 04-05/04/2027. TJRS inscrições até 14/10. PGE-AL objetiva já aplicada, resultado ~20/10. PGM Juazeiro/BA edital previsto fim de set/2026. TRF2, MP-SP, ENAM, TRT8, DPDF, PGE-BA/MA/RS, DPU VII, DPE-RO não reverificados hoje.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Crise Banco Master/STF/PGR: primeira confirmação oficial de um desdobramento (Gilmar leva precatórios de usinas ao Plenário, via STF push). CNJ fez correição no gabinete do desembargador do TRF-1 Newton Pereira Ramos Neto (marido de Camilla Ramos, ligado à 'Turma do KN'); Dino mandou a PF investigar a CVM no caso Master. Vínculo específico com Vorcaro segue sem confirmação oficial.",
+          "faixa": "ativa"
+        }
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 48354,
+          "chamadas": 9,
+          "duracao_ms": 93045
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 134714,
+          "chamadas": 18,
+          "duracao_ms": 298208
+        },
+        "concursos": {
+          "modelo": "sonnet",
+          "tokens": 67388,
+          "chamadas": 9,
+          "duracao_ms": 90476
+        }
+      },
+      "gmail_message_id": "1a0d829d0f7a0c69",
+      "delivery_reconciled_at": "2026-09-28T07:40:06-03:00"
     }
   ]
 }
