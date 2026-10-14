@@ -1,25 +1,25 @@
 {
-  "gerado_em": "2026-10-13T07:23:40-03:00",
-  "gerado_por": "2026-10-13-7h",
+  "gerado_em": "2026-10-14T07:25:10-03:00",
+  "gerado_por": "2026-10-14-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-10-13-7h",
-    "date": "2026-10-13",
-    "email_subject": "Robozinho dos Momozis até Passar - 13/10/2026 - 7h",
+    "execution_id": "2026-10-14-7h",
+    "date": "2026-10-14",
+    "email_subject": "Robozinho dos Momozis até Passar - 14/10/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r3500539356673829652",
-    "window_end": "2026-10-13T07:19:34-03:00"
+    "draft_id": "r1274084132180107190",
+    "window_end": "2026-10-14T07:19:53-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
       "id": "planalto_push_mudo",
-      "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026; seção sustentada pelo Portal do Congresso.",
+      "texto": "PUSH Planalto sem e-mail desde 02/07/2026; seção sustentada pelo Portal do Congresso.",
       "faixa": "cronica"
     },
     {
       "id": "crise_institucional_stf_pgr_acompanhar",
-      "texto": "Caso Vorcaro/Master: sem desdobramento oficial novo; sem busca ativa.",
+      "texto": "Caso Vorcaro/Master: sem desdobramento oficial; fluxo Fachin–PF e parecer da PGR só pela mídia.",
       "faixa": "longo_prazo"
     },
     {
@@ -29,12 +29,12 @@
     },
     {
       "id": "trf2_oral_divergencia",
-      "texto": "TRF2: data da oral diverge; comunicado oficial não visto.",
+      "texto": "TRF2: datas divergem; comunicado oficial não visto.",
       "faixa": "ativa"
     },
     {
       "id": "dpe_sp_edital_verificar",
-      "texto": "DPE-SP: edital noticiado por blogs (inscrições 13/10–11/11); DOE/FCC não vistos.",
+      "texto": "DPE-SP: edital noticiado por sites (inscrições 13/10–11/11); DOE/FCC não vistos.",
       "faixa": "ativa"
     },
     {
@@ -59,43 +59,6 @@
     }
   ],
   "chaves_publicadas": [
-    "stf|noticia|confira-destaques-pauta-plenario-outubro|2026|2026-10-06",
-    "stf|noticia|liminar-exclui-receitas-proprias-dpu-teto-gastos|2026|2026-10-05",
-    "stf|noticia|presidente-destaca-constituicao-presente-vida-brasileiros|2026|2026-10-05",
-    "stf|noticia|oab-nacional-questiona-prazo-rpv-bahia|2026|2026-10-05",
-    "stf|noticia|processos-estruturais-decisoes-exigem-acompanhamento|2026|2026-10-05",
-    "stf|informativo|1231|2026|2026-10-05",
-    "concurso|tjrs|juiz-substituto-inscricoes-ate-14-10-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|tjdft|edital-sem-data-oficial-reverificado-06-10|2026|2026-10-06",
-    "concurso|trf2|xix-concurso-oral-9-20-11-fonte-secundaria-06-10|2026|2026-10-06",
-    "concurso|trf5|xvi-concurso-inscricoes-encerradas-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|promotor|mps-previstos-sem-edital-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|agu-pfn|170-vagas-enap-fonte-secundaria-06-10|2026|2026-10-06",
-    "concurso|pge-rj|19-concurso-orais-7-16-10-fonte-secundaria-06-10|2026|2026-10-06",
-    "concurso|pge-al|resultado-previsto-20-10-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|alepa|procurador-edital-noticiado-fonte-secundaria-06-10|2026|2026-10-06",
-    "concurso|pge-rs|16-concurso-edital-abertura-pendente-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|pge-ba|comissao-formada-edital-pendente-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|pge-ma|comissao-formada-banca-indefinida-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|pgm-juazeiro-ba|edital-previsto-fim-setembro-sem-publicacao-06-10|2026|2026-10-06",
-    "concurso|pgm-valinhos-sp|provas-previstas-18-10-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|dpe-sp|edital-70-vagas-fontes-divergentes-06-10|2026|2026-10-06",
-    "concurso|dpe-rj|fgv-35-vagas-em-andamento-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|dpe-ro|comissao-formada-recursos-loa-2026-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|dpu|vii-concurso-banca-indefinida-nao-reverificado-06-10|2026|2026-10-06",
-    "concurso|trt8|banca-fcc-92-cargos-contrato-pendente-nao-reverificado-06-10|2026|2026-10-06",
-    "midia|jota|fachin-tribunal-maior-do-que-todos-permanecera|2026|2026-10-05",
-    "midia|jota|lula-critica-stf-promiscuidade-reforma-judiciario|2026|2026-10-05",
-    "midia|jota-valor|moraes-arquiva-inquerito-do-val-eustaquio-allan|2026|2026-10-06",
-    "midia|jota|pec-fim-escala-6x1-chances-baixas-senado|2026|2026-10-05",
-    "midia|migalhas|stj-anula-juri-morte-bebe-parto-casa|2026|2026-10-05",
-    "midia|migalhas|stj-julga-prazo-indenizacao-vicios-imoveis-sfh|2026|2026-10-05",
-    "midia|migalhas|tst-reintegra-professor-demitido-tratamento-cancer|2026|2026-10-05",
-    "midia|migalhas|trt2-mantem-justa-causa-gerente-assedio-sexual|2026|2026-10-05",
-    "fofoquinha|folha-jota|nunes-marques-revisao-criminal-bolsonaro-apos-segundo-turno|2026|2026-10-06",
-    "fofoquinha|folha-valor-jota|ministros-stf-temem-impeachment-2027|2026|2026-10-06",
-    "versiculo|dailyverses|proverbios-13-12|2026|2026-10-06",
-    "munger|citacao|case-com-a-pessoa-certa-poucas-decisoes-pesam|indice-79|2026-10-06",
     "stf|noticia|parceria-cnj-banco-central-precatorios|2026|2026-10-06",
     "stf|noticia|arquiva-pedido-investigacao-alfredo-gaspar|2026|2026-10-06",
     "stf|noticia|prouni-migrantes-refugiados|2026|2026-10-06",
@@ -255,13 +218,58 @@
     "concurso|dpe-sp|13-10|2026|2026-10-13",
     "concurso|dpe-rj-ro|13-10|2026|2026-10-13",
     "concurso|dpu|13-10|2026|2026-10-13",
-    "concurso|trt8|13-10|2026|2026-10-13"
+    "concurso|trt8|13-10|2026|2026-10-13",
+    "planalto|mpv|1396|2026|2026-10-13",
+    "stf|noticia|stf-define-alcance-de-decisao-sobre-aliquotas-de-iptu|2026|2026-10-13",
+    "stf|noticia|stf-recebe-acao-contra-politica-de-preco-minimo-dos-cigarros-no-brasil|2026|2026-10-13",
+    "stf|noticia|informe-a-imprensa|2026|2026-10-13",
+    "stf|noticia|dialogos-institucionais-do-cestf-debate-constitucionalismo-digital-com-o-professor-ingo-sarlet|2026|2026-10-13",
+    "stf|informativo|1232|2026|2026-10-13",
+    "stj|informativo|905|2026|2026-10-13",
+    "midia|conjur-jota|nunes-marques-libera-exercito-lula-apos-registro-canal|2026|2026-10-13",
+    "midia|jota-valor|fachin-pf-fluxo-mencoes-ministros-inqueritos|2026|2026-10-14",
+    "midia|jota-valor|gonet-mantem-suspensao-fachin-plenario-pf|2026|2026-10-14",
+    "midia|jota|fachin-publicidade-inquerito-fake-news-apos-arquivamento|2026|2026-10-13",
+    "midia|jota|stf-adi-4395-funrural-fretamento-agenda-14-10|2026|2026-10-13",
+    "midia|conjur-jota|stj-uber-dados-passageiros|2026|2026-10-13",
+    "midia|migalhas|stj-isabel-gallotti-genero-nao-binario|2026|2026-10-13",
+    "midia|migalhas|stj-mantem-operacao-estafeta-stf|2026|2026-10-13",
+    "midia|migalhas|cellebrite-fura-tudo-ministro-stj-vorcaro|2026|2026-10-13",
+    "midia|migalhas|stj-nega-excluir-icms-pis-cofins-volume|2026|2026-10-13",
+    "midia|conjur|trf1-nova-lei-improbidade-extingue-condenacao-ex-governador|2026|2026-10-13",
+    "midia|conjur|stf-agentes-de-saude-efetivados|2026|2026-10-13",
+    "midia|migalhas|stj-condena-ex-reitora-simular-compra-livros|2026|2026-10-13",
+    "midia|jota-valor|stj-3turma-insolvencia-civil-credor-trabalhista|2026|2026-10-14",
+    "midia|jota-valor|oab-sp-sentenca-presuncao-irpj-csll|2026|2026-10-14",
+    "opiniao|conjur|a-cnica-pode-decidir-o-que-ninguem-discutiu|2026|2026-10-14",
+    "opiniao|conjur|interrupcao-nao-e-suspensao-sumula-383-stf|2026|2026-10-13",
+    "opiniao|conjur|o-medo-nao-e-fonte-de-legitimidade-constitucional|2026|2026-10-13",
+    "opiniao|conjur|custos-do-split-payment-devem-ser-remunerados|2026|2026-10-13",
+    "opiniao|jota|anpd-agencia-reguladora-amadurecimento-protecao-dados|2026|2026-10-13",
+    "opiniao|jota|hora-de-uma-advocacia-publica-autonoma|2026|2026-10-13",
+    "fofoquinha|jota-pro|pec-6x1-senado-vota-14-10-50-favoraveis|2026|2026-10-13",
+    "versiculo|dailyverses|levitico-20-26|2026|2026-10-14",
+    "munger|citacao|nao-trabalhe-por-muito-tempo-sob-alguem-que-voce-nao-admira|indice-87|2026-10-14",
+    "concurso|tjrs|14-10|2026|2026-10-14",
+    "concurso|tjdft|14-10|2026|2026-10-14",
+    "concurso|trf5|14-10|2026|2026-10-14",
+    "concurso|trf2|14-10|2026|2026-10-14",
+    "concurso|promotor-mpf|14-10|2026|2026-10-14",
+    "concurso|agu-pfn|14-10|2026|2026-10-14",
+    "concurso|alepa|14-10|2026|2026-10-14",
+    "concurso|pge-rj|14-10|2026|2026-10-14",
+    "concurso|pge-al|14-10|2026|2026-10-14",
+    "concurso|pge-rs-ba-ma|14-10|2026|2026-10-14",
+    "concurso|pgm-juazeiro-valinhos|14-10|2026|2026-10-14",
+    "concurso|dpe-sp|14-10|2026|2026-10-14",
+    "concurso|dpe-rj-ro|14-10|2026|2026-10-14",
+    "concurso|dpu|14-10|2026|2026-10-14",
+    "concurso|trt8|14-10|2026|2026-10-14"
   ],
-  "total_chaves": 197,
+  "total_chaves": 206,
   "metricas": {
-    "execucoes_registradas": 40,
+    "execucoes_registradas": 41,
     "itens_ultimas_10": [
-      37,
       33,
       31,
       33,
@@ -270,50 +278,51 @@
       41,
       39,
       47,
-      33
+      33,
+      46
     ],
-    "media_itens": 36.2,
-    "itens_ultima": 33,
+    "media_itens": 37.1,
+    "itens_ultima": 46,
     "coletores_ultima": {
       "gmail": {
         "modelo": "haiku",
-        "tokens": 56498,
-        "chamadas": 8,
-        "duracao_ms": 17650
+        "tokens": 59715,
+        "chamadas": 10,
+        "duracao_ms": 26082
       },
       "jota": {
         "modelo": "sonnet",
-        "tokens": 77353,
-        "chamadas": 5,
-        "duracao_ms": 37969
+        "tokens": 125510,
+        "chamadas": 16,
+        "duracao_ms": 107041
       },
       "concursos": {
         "modelo": "sonnet",
-        "tokens": 63202,
+        "tokens": 63268,
         "chamadas": 9,
-        "duracao_ms": 41282
+        "duracao_ms": 44212
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
         "execucoes": 10,
-        "tokens_total": 497328,
+        "tokens_total": 511468,
         "chamadas_total": 91,
-        "tokens_media": 49733,
+        "tokens_media": 51147,
         "chamadas_media": 9.1
       },
       "jota": {
         "execucoes": 10,
-        "tokens_total": 1211244,
-        "chamadas_total": 149,
-        "tokens_media": 121124,
-        "chamadas_media": 14.9
+        "tokens_total": 1180773,
+        "chamadas_total": 128,
+        "tokens_media": 118077,
+        "chamadas_media": 12.8
       },
       "concursos": {
         "execucoes": 10,
-        "tokens_total": 629886,
+        "tokens_total": 627494,
         "chamadas_total": 99,
-        "tokens_media": 62989,
+        "tokens_media": 62749,
         "chamadas_media": 9.9
       }
     }
