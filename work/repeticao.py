@@ -18,6 +18,16 @@ import re
 import unicodedata
 
 IGNORAR_PREFIXOS = ("concurso|", "versiculo|", "munger|")
+# Pela categoria, que nao depende do formato da chave (em 15/10 uma execucao
+# gravou concursos como "pge-rj|concurso|...", que o prefixo nao pegava).
+IGNORAR_CATEGORIAS = {"Concursos - Carreira", "Concursos - Apoio", "Versículo", "Munger"}
+
+
+def ignorar(it):
+    return ((it.get("chave") or "").lower().startswith(IGNORAR_PREFIXOS)
+            or it.get("categoria") in IGNORAR_CATEGORIAS)
+
+
 PARADAS = set("""
 a o as os um uma uns umas de da do das dos em no na nos nas ao aos e ou para por pelo
 pela pelos pelas com sem sobre contra entre que se sua seu suas seus apos ate como mais
@@ -57,7 +67,7 @@ def indice(execucoes, ignorar_exec_id=None):
             continue
         for it in e.get("items") or []:
             ch = (it.get("chave") or "").lower()
-            if not ch or ch.startswith(IGNORAR_PREFIXOS):
+            if not ch or ignorar(it):
                 continue
             idx.append((ch, tokens_item(ch, it.get("titulo"))))
     return idx

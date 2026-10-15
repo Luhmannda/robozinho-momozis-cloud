@@ -173,7 +173,7 @@ def checar_repeticao(ex, execucoes, chaves_anteriores):
     idx = repeticao.indice(execucoes, ignorar_exec_id=ex.get("execution_id"))
     for it in ex.get("items") or []:
         ch = (it.get("chave") or "").lower()
-        if not ch or ch.startswith(repeticao.IGNORAR_PREFIXOS):
+        if not ch or repeticao.ignorar(it):
             continue
         tok = repeticao.tokens_item(ch, it.get("titulo"))
         if ch not in chaves_anteriores:
@@ -780,7 +780,8 @@ def main():
     chaves = []
     for ex in recentes:
         for it in ex.get("items", []) or []:
-            if it.get("chave") and not it["chave"].startswith(("concurso|", "versiculo|", "munger|")):
+            if it.get("chave") and not it["chave"].startswith(("concurso|", "versiculo|", "munger|")) \
+                    and it.get("categoria") not in NAO_NOTICIA:
                 chaves.append(it["chave"])
 
     pend = [p for p in (ultima.get("pendencias") or []) if p]
