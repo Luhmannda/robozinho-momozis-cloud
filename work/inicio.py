@@ -9,6 +9,11 @@
 #   - citacao do Munger (indice = dia do ano mod total, contado agora);
 #   - prompts prontos dos coletores em /tmp/coletor-*.md, a partir de
 #     work/prompts/*.md + ledger (notas vivas, pendencias, armadilhas);
+#   - concursos: prazos do registro estruturado (ledger.concursos) em ordem,
+#     os de ate 7 dias como VERIFICAR PRIMEIRO, os vencidos para atualizar;
+#     e teste de rede (curl) das paginas oficiais: pendencia ativa cuja
+#     pagina oficial esta bloqueada so e reverificada na 1a execucao da
+#     semana (a busca secundaria diaria nao pode promover o selo);
 #   - /tmp/janela.json, lido por coleta_web.py.
 #
 # USO:  python3 work/inicio.py [--agora 2026-09-24T07:17:00-03:00]
@@ -19,7 +24,9 @@ import glob
 import json
 import os
 import re
-from datetime import datetime, timedelta
+import subprocess
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("America/Sao_Paulo")
@@ -48,6 +55,30 @@ def dias_uteis_entre(a, b):
 
 def em_recesso(d):
     return (d.month == 7 and d.day >= 2) or (d.month == 12 and d.day >= 20) or d.month == 1
+
+
+def alcancaveis(dominios):
+    """{dominio: bool}. False = a rede do ambiente bloqueia (curl devolve 000)."""
+    def teste(d):
+        try:
+            r = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "-m", "6",
+                                "https://%s/" % d], capture_output=True, timeout=10)
+            return r.stdout.decode().strip() not in ("", "000")
+        except Exception:
+            return False
+    ds = sorted({d for d in dominios if d})
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        return dict(zip(ds, ex.map(teste, ds)))
+
+
+def orgao(c):
+    """Rotulo curto: o trecho antes de ':' e de ' — ' (ex.: 'TRF2', 'PGE-RJ')."""
+    return (c.get("linha") or c.get("id") or "").split(":")[0].split(" — ")[0].strip()
+
+
+def quando(dias):
+    return {0: "hoje", 1: "amanhã", -1: "ontem"}.get(dias, ("em %d dias" % dias) if dias > 0
+                                                    else "há %d dias" % -dias)
 
 
 def main():
@@ -96,11 +127,44 @@ def main():
     pend_conc = [p for p in ledger.get("pendencias_vivas", [])
                  if p.get("coletor") == "concursos" or
                  (not p.get("coletor") and p.get("faixa") != "cronica" and PALAVRAS_CONCURSO.search(p.get("texto", "")))]
+    concursos = ledger.get("concursos", [])
+    rede = alcancaveis([p.get("dominio_oficial") for p in pend_conc] +
+                       [c.get("dominio_oficial") for c in concursos])
     linhas = []
     for p in pend_conc:
-        acao = ("REVERIFICAR" if p.get("faixa") == "ativa" or (primeira and p.get("faixa") == "longo_prazo")
-                else "SÓ VIGIAR MOVIMENTO NOVO")
+        dom = p.get("dominio_oficial")
+        bloqueado = bool(dom) and not rede.get(dom, False)
+        if p.get("faixa") == "ativa" and bloqueado and not primeira:
+            acao = ("SÓ VIGIAR MOVIMENTO NOVO — a página oficial (%s) está bloqueada pela rede; "
+                    "reverificar na 1ª execução da semana" % dom)
+        elif p.get("faixa") == "ativa" or (primeira and p.get("faixa") == "longo_prazo"):
+            acao = "REVERIFICAR" + ((" — página oficial %s acessível: leia por curl" % dom)
+                                    if dom and not bloqueado else "")
+        else:
+            acao = "SÓ VIGIAR MOVIMENTO NOVO"
         linhas.append("- [%s | %s] %s: %s" % (p.get("faixa"), acao, p["id"], p.get("texto", "")))
+
+    # prazos do registro: <= 7 dias e vencidos ha ate 3 dias vao primeiro na fila do coletor
+    proximos, vencidos = [], []
+    for c in concursos:
+        for pz in c.get("prazos") or []:
+            try:
+                d = date.fromisoformat(pz.get("data", ""))
+            except ValueError:
+                continue
+            dias = (d - hoje).days
+            if -3 <= dias < 0:
+                vencidos.append((dias, d, c, pz))
+            elif 0 <= dias <= 30:
+                proximos.append((dias, d, c, pz))
+    proximos.sort(key=lambda x: x[0])
+    fmt_pz = lambda dias, d, c, pz: "%s (%s) %s — %s [%s] (id %s)" % (
+        d.strftime("%d/%m"), quando(dias), orgao(c), pz.get("evento"),
+        "confirmado" if pz.get("confirmado") else "a confirmar", c.get("id"))
+    prioridade = (["- confirmar desfecho: " + fmt_pz(*x) for x in vencidos] +
+                  ["- " + fmt_pz(*x) for x in proximos if x[0] <= 7])
+    na_fila = {x[2].get("id") for x in vencidos} | {x[2].get("id") for x in proximos if x[0] <= 7}
+    demais = [orgao(c) for c in concursos if not c.get("pendencia") and c.get("id") not in na_fila]
     regra = ("1ª execução da semana (ou após gap): reverificar as pendências ativa E longo_prazo, "
              "1–2 buscas cada, + até 6 buscas de novidades gerais."
              if primeira else
@@ -116,6 +180,8 @@ def main():
         "RECESSO": "sim — fluxo reduzido de STF/STJ é normal" if recesso else "não",
         "REGRA_FAIXA": regra,
         "PENDENCIAS_CONCURSOS": "\n".join(linhas) or "- (nenhuma pendência de concurso no ledger)",
+        "CONCURSOS_PRIORIDADE": "\n".join(prioridade) or "- (nenhum prazo nos próximos 7 dias)",
+        "CONCURSOS_DEMAIS": "; ".join(demais) or "(nenhum)",
     }
 
     def sub(m):
@@ -161,11 +227,25 @@ def main():
                                                  " | obs: " + cit["obs"] if cit.get("obs") else ""))
     print("  \"%s\"" % cit["pt"])
     print("PENDENCIAS DE CONCURSO p/ coletor: %d | regra: %s" % (len(pend_conc), regra))
+    radar = [fmt_pz(*x) for x in proximos if x[3].get("confirmado")]
+    a_conf = [fmt_pz(*x) for x in proximos if not x[3].get("confirmado")]
+    print("CONCURSOS: %d no registro | RADAR (só confirmados vão ao quadro): %s" % (
+        len(concursos), "; ".join(radar) or "nenhum"))
+    if a_conf:
+        print("  a confirmar (só na linha do bloco, com o selo dela): " + "; ".join(a_conf))
+    for x in vencidos:
+        print("ALERTA: prazo vencido %s — confirmar desfecho e atualizar o registro (ledger_updates.concursos)"
+              % fmt_pz(*x))
+    bloq = [d for d, ok in rede.items() if not ok]
+    print("REDE: páginas oficiais bloqueadas: %s | acessíveis: %s" % (
+        ", ".join(bloq) or "nenhuma", ", ".join(d for d, ok in rede.items() if ok) or "nenhuma"))
     for al in alertas:
         print("ALERTA: " + al)
     print("PROMPTS: " + " ".join(gerados))
-    print("PASSO 5 (mesma mensagem dos 3 Agent): python3 work/coleta_web.py; "
-          "python3 work/versiculo.py --data %s --dia %d" % (hoje.isoformat(), doy))
+    print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, "
+          "coletor-jota e coletor-concursos (primeiro plano) + Bash: python3 work/coleta_web.py; "
+          "python3 work/versiculo.py --data %s --dia %d + Read work/template-newsletter-referencia.html"
+          % (hoje.isoformat(), doy))
 
 
 if __name__ == "__main__":

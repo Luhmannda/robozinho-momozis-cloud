@@ -1,24 +1,21 @@
 # Robozinho dos Momozis até Passar — Prompt da Newsletter Jurídica
 
-> **Versão 10.1 — 24/09/2026** (só referências de passo atualizadas: a ROTINA passou a usar scripts determinísticos — `inicio.py`, `coleta_web.py`, `versiculo.py`, `Update-Historico.py --ledger`). **Versão 10 — 07/09/2026.** Só o que **muda uma decisão em tempo de execução**: selos, protocolos de fonte, classificação de status e regras editoriais. O passo a passo operacional está em `ROTINA.md`; o estado corrente das fontes, no ledger; histórico de versões e narrativa de incidentes, em `resumo-legislativo-historico.json`. **Nesta versão:** removido tudo o que a ROTINA, o template ou o ledger já dizem (era lido todo dia sem decidir nada — de 34 KB para ~24 KB, sem contar o que a ROTINA absorveu); a numeração das seções foi preservada para não quebrar as referências do ledger. Regras de prova e conteúdo: nenhuma foi alterada.
+> **Versão 11 — 15/10/2026 (núcleo diário).** Só o que **decide algo em tempo de execução**: selos, classificação de status e regras editoriais. O detalhe operacional que raramente decide (rotas web do DOU, protocolo de busca no Gmail, fontes mínimas, contingência por fonte, campos do histórico, delegação) foi movido **sem alteração de regra** para `docs/referencia-operacional.md`, com a mesma numeração — consulte quando a situação pedir. O passo a passo está em `ROTINA.md`; o estado das fontes e dos concursos, no ledger. **Versão 10.1 — 24/09/2026** e anteriores: histórico em `resumo-legislativo-historico.json`.
 
 **Tarefa recorrente:** dias úteis (segunda a sexta), 7h (`America/Sao_Paulo`), newsletter em português **"Robozinho dos Momozis até Passar"**, salva como **RASCUNHO** no Gmail para **pereirafranciscofilho@gmail.com** e **luizaxbarreto@gmail.com**, sem pedir confirmação. **A rotina nunca envia** — o Apps Script `EnviarRobozinho.gs` (fora deste repositório) envia pelo assunto exato, às vezes minutos depois da criação e já enviou bem fora da janela nominal (14h15 em 10/07; 20h23 em 06/07): **criar sempre, a qualquer hora**, nunca presumir que rascunho atrasado fica sem envio.
 
 **Conteúdo:** novidades legislativas; leis e atos do DOU; Planalto; STF; STJ; informativos; concursos jurídicos; clipping jurídico; radar de bastidores; versículo do dia; reflexão curta de Charlie Munger.
 
----
-
 ## 0. Pré-requisitos
 
-- Ancoragem de data, leitura do ledger e do estado, reconciliação e anti-duplicata: ROTINA passos 1–4. **Em conflito entre este documento e o ledger, o ledger vence** — ele é a memória empírica; este é a doutrina (ver Seção 16).
+- **Em conflito entre este documento e o ledger, o ledger vence** — ele é a memória empírica; este é a doutrina (Seção 16).
 - Ao validar data por leitura web, perguntar de forma **neutra** ("qual data aparece na página?") — nunca sugerir a data esperada, para não induzir a confirmação.
-- **PDF/OCR:** skill `pdf` para editais e anexos. Gerar PDF da newsletter e usar Canva **não fazem parte da rotina** — só sob pedido expresso.
-- **DOU:** rotas web diretas bloqueadas (Seção 6). INLABS só com credenciais; APP DOU é contingência humana, não executável.
-- **Autonomia total:** nunca pausar para pedir confirmação; diante de falha, fallback e seguir. **Sucesso = rascunho criado (ou duplicata legítima detectada) + histórico atualizado.** A execução agendada começa do zero: tudo o que a newsletter precisa está em arquivos do repositório.
+- **Autonomia total:** nunca pausar para pedir confirmação; diante de falha, fallback e seguir. **Sucesso = rascunho criado (ou duplicata legítima detectada) + histórico atualizado.**
+- PDF/OCR, DOU/INLABS e o que não faz parte da rotina: referência §0.
 
 ## 1. Habilidades e recursos
 
-Busca na web e leitura de páginas públicas; skill `pdf` sempre que houver PDF. Recurso que falhou ou não foi necessário: registrar em **"Suporte usado na execução"**. Texto acentuado que vai ao e-mail (citação do Munger, relatório do helper) confere-se por arquivo ou JSON, nunca por console "cru" — o console mente na acentuação nos dois sentidos. Coletor em background avisa sozinho ao terminar: não agendar wakeup nem sondar.
+Recurso que falhou ou não foi necessário: registrar em **"Suporte usado na execução"**. Texto acentuado que vai ao e-mail (citação do Munger, relatório do helper) confere-se por arquivo ou JSON, nunca por console "cru" — o console mente na acentuação nos dois sentidos.
 
 ## 2. Identidade visual
 
@@ -28,89 +25,47 @@ Busca na web e leitura de páginas públicas; skill `pdf` sempre que houver PDF.
 
 ## 3. Janela de cobertura
 
-Ver ROTINA passo 3 (elástica: `window_end` anterior → 7h de hoje, teto de 7 dias; segundas ~72h; *(herdada)* para o que é anterior às últimas 24h; nunca edição retroativa). Sempre informar no e-mail data, horário, janela coberta e limitações. *(Histórico: a edição das 18h foi descontinuada; nunca houve edição de fim de semana.)*
+Ver ROTINA passo 1 (elástica: `window_end` anterior → 7h de hoje, teto de 7 dias; segundas ~72h; *(herdada)* para o que é anterior às últimas 24h; nunca edição retroativa). Sempre informar no e-mail data, horário, janela coberta e limitações. *(Histórico: a edição das 18h foi descontinuada; nunca houve edição de fim de semana.)*
 
 ## 4. Histórico e não duplicidade
 
-- **Gravação: sempre pelo helper** (ROTINA passo 9), passando o **caminho do arquivo** da nova execução, nunca JSON inline. Em tempo de execução, ler apenas `work/robozinho-estado.json`; o histórico integral só em dúvida real — e nunca se conclui "não existe edição do dia X" a partir de leitura truncada.
-- **Campos por execução:** `execution_id`, `type`, `run_started_at`, `run_finished_at`, `date`, `timezone`, `window_start`, `window_end`, `recipients`, `email_subject`, `delivery` (`sent`/`draft`/`draft_ja_existente`), `gmail_message_id` ou `draft_id`, `items`, `source_status`, `errors`, `pendencias`, `verification_notes`. Campos extras são permitidos.
-- **Por item:** fonte, categoria, título, data, identificador, URL oficial, status e **chave única estável** `fonte|tipo|numero|ano|data`, minúsculas (ex.: `dou|decreto|11999|2026|2026-06-29`). Item que muda de estado (prova marcada → prova realizada; rumor → desfecho) recebe chave nova com o desfecho; nunca reutiliza a chave anterior.
-- **Arquivamento (automático):** o principal mantém as 10 execuções mais recentes; o excedente vai para `resumo-legislativo-historico-arquivo-AAAA-MM.json`. **Nunca apagar, apenas mover.**
+- **Gravação: sempre pelo helper** (ROTINA), passando o **caminho do arquivo**, nunca JSON inline. Não se lê o histórico nem o estado em execução normal: a repetição entre fontes chega marcada (`[REPETIDA?~chave]` no `coleta_web.py`; `REPUBLICADA`/`POSSIVEL_REPETIDA` na validação do passo 5 da ROTINA). Nunca se conclui "não existe edição do dia X" a partir de leitura truncada.
+- **Chave única estável** `fonte|tipo|numero|ano|data`, minúsculas (ex.: `dou|decreto|11999|2026|2026-06-29`). Item que muda de estado (prova marcada → prova realizada; rumor → desfecho) recebe chave nova com o desfecho; nunca reutiliza a chave anterior.
+- Campos por execução e por item, arquivamento: referência §4.
 
 ## 5. Fontes oficiais mínimas
 
-1. **Legislação federal e DOU:** Resenha PUSH do Planalto (Gmail); Portal do Congresso Nacional; Legislação Federal do Senado; Legislação Informatizada da Câmara; fichas de `legislacao.presidencia.gov.br`; Agência Câmara e Agência Senado. *(INLABS só com credenciais; APP DOU e Biblioteca Machado de Assis são contingência humana.)*
-2. **STF:** notícias, portal, jurisprudência, informativos, repercussão geral, súmulas e súmulas vinculantes.
-3. **STJ:** notícias, informativos, repetitivos, precedentes qualificados e súmulas.
-4. **CNJ, CNMP, TSE e TST**, quando houver relevância jurídica.
-5. **CJF, TRFs, TJs, TREs, TRTs, MPs, Defensorias, AGU, DPU, PGFN, Procuradorias e bancas oficiais**, quando o assunto envolver concurso, edital, remuneração, ato institucional ou jurisprudência setorial.
+Legislação federal e DOU; STF; STJ; CNJ, CNMP, TSE e TST quando houver relevância jurídica; CJF, TRFs, TJs, TREs, TRTs, MPs, Defensorias, AGU, DPU, PGFN, Procuradorias e bancas oficiais quando o assunto envolver concurso, edital, remuneração, ato institucional ou jurisprudência setorial. Lista detalhada: referência §5.
 
 ## 6. Protocolo obrigatório — DOU, Planalto e leis/atos federais
 
-**Ordem: Gmail primeiro, depois web.**
-
-**1) Gmail PUSH (fonte primária nominal).** Remetentes: `no-reply-push-legislacao@presidencia.gov.br` (atual, assunto `Resenha Diária PUSH Legislação - DD/MM/AAAA`) e `sistemapush.saj@presidencia.gov.br` (legado, `Resenha Diaria DD/MM/AAAA`). Datas reais a partir da âncora — nunca literais `AAAA/MM/DD`. Esforço conforme o ledger:
-- `saudavel`/`intermitente` → até 3 queries: (a) sonda ampla `presidencia.gov.br in:anywhere newer_than:Nd`; (b) `from:sistemapush.saj@presidencia.gov.br in:anywhere after:<D-2>`; (c) `subject:"Resenha Diaria" in:anywhere after:<D-2>`.
-- **`mudo` (situação atual)** → **só a sonda ampla**, e direto para a Rota 13.
-- Se a sonda **retornar** resenha: reclassificar `saudavel` no ledger, registrar a data da volta, restaurar o protocolo completo.
-
-Não buscar `no-reply-push-legislacao@…` por `from:` — os hífens quebram o termo. Encontrada a resenha: `get_thread`, extrair os atos, `CONFIRMADO POR FONTE OFICIAL`.
-
-**Regra de não-bloqueio:** sem resenha, **não interromper nem esperar intervenção humana** — Rota 13 → Rotas 7–11 e 15 → se nada confirmar, seção com o quadro de pendências e o aviso `PUSH Planalto não recuperado nesta execução`. **Nunca depender de colagem manual de EML.**
-
-**2) Rotas web.**
-
-| Rota | Fonte | Status |
-|---|---|---|
-| **1–6** | `planalto.gov.br`, `in.gov.br`, `pesquisa.in.gov.br`, `www4.planalto.gov.br`, `ccivil_03`, `jusbrasil/diarios` | **NÃO TENTAR** — bloqueio estrutural (TCP/403/CAPTCHA) |
-| **7** | Portal do Congresso Nacional | Leis, MPs, decretos legislativos, vetos, promulgações |
-| **8** | Legislação Federal do Senado | Leis com histórico; conferir "Ver Diário Oficial" |
-| **9** | Legislação Informatizada da Câmara | Texto atualizado **não** substitui o original do DOU |
-| **10** | Órgão emissor | Atos setoriais, com link ao DOU ou PDF oficial |
-| **11** | Agência Câmara / Agência Senado | Alerta oficial; não substitui o DOU |
-| **12** | DOUInforme (CJF) | **DESCONTINUADA** desde 01/07/2026 — não tentar |
-| **13** | `www.congressonacional.leg.br/materias/ultimas-leis-publicadas` | **Melhor fallback, comprovado.** MPVs em `/materias/medidas-provisorias` — números e datas **exigem checagem cruzada** (armadilha no ledger) |
-| **14** | `legislacao.presidencia.gov.br` | Último recurso — ECONNRESET reincidente. Tentar 1 vez e seguir |
-| **15** | `www2.camara.leg.br/legin` | Publicação original com a data do DOU |
-| — | INLABS | Só com credenciais; sem elas, registrar como não tentada |
-
-Links `planalto.gov.br/ccivil_03/...` podem ser **publicados** como referência mesmo sem fetch.
-
-**Para cada ato:** tipo, número, data, órgão, ementa, seção do DOU, edição, link oficial, rota de confirmação, impacto e status.
+**Ordem: Gmail primeiro (sonda do PUSH, feita pelo coletor Gmail), depois web (Rota 13, lida pelo `coleta_web.py`).** Sem resenha, **não interromper nem esperar intervenção humana**; nunca depender de colagem manual de EML. Se nada confirmar: seção com o quadro de pendências e o aviso `PUSH Planalto não recuperado nesta execução`. Se a sonda voltar a trazer resenha: reclassificar a fonte `saudavel` no ledger e restaurar o protocolo completo (referência §6).
 
 **Status:** Gmail PUSH → `CONFIRMADO POR FONTE OFICIAL`. Rotas 7–11 e 13–15 → `CONFIRMADO POR FONTE OFICIAL ALTERNATIVA`. Só notícia/snippet → `PENDÊNCIA DE VERIFICAÇÃO` ou `SEM CONFIRMAÇÃO OFICIAL`.
 
-**Nas pendências, registrar:** se o PUSH retornou e-mail no período e quais rotas foram tentadas (as desabilitadas como `NÃO TENTADA — bloqueio estrutural`).
+**Para cada ato:** tipo, número, data, órgão, ementa, seção do DOU, edição, link oficial, rota de confirmação, impacto e status. Links `planalto.gov.br/ccivil_03/...` podem ser **publicados** como referência mesmo sem fetch.
+
+**Nas pendências, registrar:** se o PUSH retornou e-mail no período e quais rotas foram tentadas (as desabilitadas como `NÃO TENTADA — bloqueio estrutural`). Queries do PUSH e tabela das rotas 1–15: referência §6.
 
 ## 7. Fontes complementares
 
-Dizer o Direito (apoio secundário, sempre conferindo a decisão original); ConJur, Migalhas e JOTA (mídia especializada); Qconcursos, Folha Dirigida, PCI, Gran/Gran Jurídico, Estratégia/Carreira Jurídica, Direção, CERS, Aprovação PGE, Mege, Magistrar (concursos e bastidores). **Regra de ouro:** fonte secundária nunca substitui fonte oficial.
+**Regra de ouro:** fonte secundária nunca substitui fonte oficial. Dizer o Direito é apoio secundário (sempre conferir a decisão original); ConJur, Migalhas e JOTA são mídia especializada; cursinhos e portais de concurso servem a concursos e bastidores. Lista completa: referência §7.
 
 ## 8. Protocolo geral de contingência
 
 1. Nunca tratar erro técnico, 403, 502, captcha, JavaScript, manutenção, timeout, DNS, bloqueio de ferramenta, página dinâmica, URL não aberta, resultado vazio, snippet isolado ou homepage defasada como ausência de novidade.
 2. Fonte principal falhou → `PENDÊNCIA DE VERIFICAÇÃO`, a falha objetiva, as rotas tentadas, o impacto na confiabilidade e a ação para a próxima execução.
-3. Antes de declarar falha final: busca restrita ao domínio oficial, página individual, resultado indexado, diário oficial, portal de transparência, órgão correlato ou banca oficial.
-4. **STF:** se `noticias.stf.jus.br` falhar, páginas individuais recentes em `noticias.stf.jus.br` e `portal.stf.jus.br`, informativo, repercussão geral, pauta, agenda, jurisprudência, súmulas, teses e portarias.
-5. **STJ:** últimas notícias quando abrir. Informativo/repetitivos/súmulas com captcha/JS → edições indexadas, `processo.stj.jus.br`, precedentes qualificados, PDF/HTML oficial. `stj.jus.br` às vezes devolve cache desatualizado — cruzar com mídia especializada antes de concluir "sem novidade".
-6. **ConJur/Migalhas/JOTA:** homepage com datas incompatíveis não é clipping do dia. Buscar por domínio, editoria, data, RSS/newsletter, "Migalhas Quentes", "JOTA STF/Judiciário/Tributário". Só itens com data confirmada.
-7. **Recesso forense (2 a 31/jul; 20/dez a 31/jan):** fluxo reduzido de STF/STJ, prazos suspensos e informativos sem edição nova são **normais** — registrar como "fluxo reduzido de recesso", **não** como pendência ou falha. Continuar consultando (monocráticas, plantão e atos administrativos continuam saindo).
+3. **Recesso forense (2 a 31/jul; 20/dez a 31/jan):** fluxo reduzido de STF/STJ, prazos suspensos e informativos sem edição nova são **normais** — registrar como "fluxo reduzido de recesso", **não** como pendência ou falha. Continuar consultando (monocráticas, plantão e atos administrativos continuam saindo).
+
+Rotas alternativas por fonte (STF, STJ, ConJur/Migalhas/JOTA) antes de declarar falha final: referência §8.
 
 ## 8-A. Gmail — canal primário e de contingência
 
-Papéis: **primário** (PUSH Planalto — antes de qualquer rota web, Seção 6); **contingência** (STF Push, STJ CodJu — em paralelo com as rotas web, sem esperar falha total); **editorial** (JOTA — sempre, `MÍDIA ESPECIALIZADA`). Caixa de `pereirafranciscofilho@gmail.com`, dentro da janela efetiva (`newer_than:`/`after:` ajustados; segundas e pós-gaps são > 24h).
+Papéis: **primário** (PUSH Planalto), **contingência** (STF Push, STJ CodJu — em paralelo com as rotas web), **editorial** (JOTA, sempre `MÍDIA ESPECIALIZADA`). Oficial STF/STJ/Planalto → `CONFIRMADO POR FONTE OFICIAL`. Informativo STJ: número e data do **assunto** do e-mail do CodJu.
 
 > **JOTA** envia boletins tipicamente entre 10h e 20h: numa execução às 7h não haverá JOTA do dia D (usar D-1); execução atrasada pode encontrar D — usar normalmente. Ausência de JOTA-D não é falha. Fim de semana sem JOTA é normal.
 
-| Remetente | Conteúdo | Seção |
-|---|---|---|
-| `no-reply-push-legislacao@presidencia.gov.br` (atual) e `sistemapush.saj@presidencia.gov.br` (legado) | Resenha Diária PUSH Legislação — sempre com `in:anywhere`. **FONTE PRIMÁRIA.** | Planalto |
-| `naoresponda@stf.jus.br` | Notícias do STF (boletim diário; consolida dias anteriores após fins de semana e reitera itens de D-1) | STF Notícias |
-| `nao_responda@stf.jus.br` | Informativos de jurisprudência e Boletim Repercussão Geral em Pauta (produtos distintos; número pelo slug do PDF; andamento processual não é informativo) | STF Jurisprudência / Informativos |
-| `stj.codju@stj.jus.br` | Novidades de jurisprudência do STJ (CodJu) — número e data do ASSUNTO | STJ Jurisprudência / Informativos |
-| `contato@jota.info` | Clipping jurídico e bastidores | Se saiu na mídia não é fofoca! |
-
-**Protocolo:** `search_threads` por remetente na janela → `get_thread` → classificar (oficial STF/STJ/Planalto → `CONFIRMADO POR FONTE OFICIAL`; JOTA → `MÍDIA ESPECIALIZADA`) → **links do JOTA** (wrapper `t.rdsv2.net`, nunca publicar): WebSearch `site:jota.info` pela manchete, publicar só se o **título da página bater** com o anunciado; não bateu ou não achou → item **sem link**, registrar no suporte → registrar no "Suporte usado" remetentes consultados, e-mails encontrados e aproveitados → nenhum e-mail → `SEM E-MAIL LOCALIZADO` e seguir.
+Links do JOTA vêm no wrapper `t.rdsv2.net` — **nunca publicar**: só a URL resolvida cujo título bate com o anunciado; senão, item sem link, registrado no "Suporte usado". Remetentes e protocolo de busca: referência §8-A e `work/prompts/`.
 
 ## 9. Conteúdo e ordem do e-mail
 
@@ -139,9 +94,9 @@ Logo após a mídia. Movimentações, rumores, bastidores e sinais de novas prov
 
 ## 13. Seção "Porque sem Deus, nada é possível"
 
-Fonte e fallback já resolvidos por `work/versiculo.py` (ROTINA passo 5, que tenta o YouVersion e cai no DailyVerses.net/outras se houver desafio anti-bot ou página não datada) — publique exatamente o que ele retornar (`fonte`, `referência`, `versão`, `texto`), **rotulando a fonte REAL informada** (nunca atribua ao YouVersion o que veio de outra fonte). Ignorar divergência entre apps no mesmo dia não é erro nem pendência. Traduções protegidas longas: referência, versão, link e trecho curto; sempre acrescentar reflexão própria de 2–3 linhas conectada ao dia.
+Fonte e fallback já resolvidos por `work/versiculo.py` (ROTINA passo 2, que tenta o YouVersion e cai no DailyVerses.net/outras se houver desafio anti-bot ou página não datada) — publique exatamente o que ele retornar (`fonte`, `referência`, `versão`, `texto`), **rotulando a fonte REAL informada** (nunca atribua ao YouVersion o que veio de outra fonte). Ignorar divergência entre apps no mesmo dia não é erro nem pendência. Traduções protegidas longas: referência, versão, link e trecho curto; sempre acrescentar reflexão própria de 2–3 linhas conectada ao dia.
 
-Saída `"ok": false`: fallback manual por WebSearch (até 2 buscas, ver ROTINA passo 5). Nada resolvendo, a seção fica **pendente** — nunca inventar versículo.
+Saída `"ok": false`: fallback manual por WebSearch (até 2 buscas, ver ROTINA passo 2). Nada resolvendo, a seção fica **pendente** — nunca inventar versículo.
 
 ## 14. Seção "Conhecimento nunca é demais"
 
@@ -161,7 +116,7 @@ O ledger `work/robozinho-aprendizado.json` é memória **operacional**, lida no 
 
 **No início:** `fontes[].status` dimensiona o esforço; `armadilhas[].regra` é checklist antes de publicar; `pendencias_vivas[].faixa` diz o que verificar hoje.
 
-**No fim**, conforme o gatilho:
+**No fim**, conforme o gatilho — todo registro de julgamento vai no campo `ledger_updates` da execução (ROTINA passo 5), validado e aplicado pelo helper; contadores são do helper:
 
 | Gatilho | Registro |
 |---|---|
@@ -180,16 +135,10 @@ O ledger `work/robozinho-aprendizado.json` é memória **operacional**, lida no 
 
 Se o ledger não existir, criar com `{"fontes":[],"armadilhas":[],"pendencias_vivas":[],"licoes_de_processo":[]}` — nunca bloquear o rascunho por causa disso.
 
----
-
 ## 17. Orquestração e delegação
 
-O modelo principal é **orquestrador e revisor**; o que é determinístico (datas, janela, listagens web, contadores) vai para scripts em `work/`; coleta volumosa vai para subagentes com modelos eficientes (escopo, modelos e prompts: ROTINA passo 5). **Critério: volume, não dificuldade** — subagente parte do zero e reconstrói contexto; delegar tarefa de 1 chamada custa mais do que executá-la.
+O modelo principal é **orquestrador e revisor**; o determinístico (datas, janela, listagens web, contadores, medição de uso) está em scripts de `work/`; a coleta volumosa vai para os coletores próprios de `.claude/agents/` (ferramentas mínimas; modelo no frontmatter). **Critério: volume, não dificuldade.**
 
 **Nunca delegar:** ancoragem de data; checagem cruzada de armadilhas; classificação de status e selos; versículo; composição do e-mail; decisões do ledger; e `create_draft` — o rascunho é criado uma única vez, pelo orquestrador, após revisão. Subagente jamais cria, edita ou envia e-mail.
 
-**Contrato de todo subagente** (uma linha, no prompt): *devolva evidência — título, data visível na fonte, URL —, relate o que tentou incluindo o que voltou vazio, e nunca conclua ausência de novidade; quem interpreta ausência é o orquestrador.* Existe para evitar o **falso negativo** — coletor diz "nada", orquestrador registra ausência, e a ferramenta é que falhou (Seção 8.1).
-
-**Revisão antes de compor:** ROTINA passo 6. Coletor que falhe: o orquestrador executa aquela fonte ele mesmo — delegação que falha nunca vira seção vazia.
-
-**Aprendizado sobre a delegação:** registrar no ledger o coletor que devolveu digest incompleto, afirmou ausência sem listar tentativas ou precisou ser refeito. Falha recorrente → promover de `haiku` para `sonnet`, ou reabsorver. Esta divisão de trabalho é hipótese sujeita à evidência, como qualquer outra.
+**Contrato de todo subagente:** *devolva evidência — título, data visível na fonte, URL —, relate o que tentou incluindo o que voltou vazio, e nunca conclua ausência de novidade; quem interpreta ausência é o orquestrador.* Coletor que falhe: o orquestrador executa aquela fonte ele mesmo — delegação que falha nunca vira seção vazia. Falha recorrente de um coletor → promover `haiku`→`sonnet` no frontmatter, ou reabsorver (registrar no ledger). Detalhe: referência §17.

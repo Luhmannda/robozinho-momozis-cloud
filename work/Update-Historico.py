@@ -26,6 +26,22 @@
 #   mestre; sufixo "(...)" vai para observacao), chave (5 partes,
 #   minusculas), URL sem wrapper/rastreio. Erro -> nada e gravado, exit 2.
 #   Chave ja publicada em execucao anterior -> aviso REPUBLICADA.
+#
+#   --validar      : so valida (itens, selos, chaves, URLs, ledger_updates)
+#                    e acusa POSSIVEL_REPETIDA (mesma materia de outra fonte
+#                    ja publicada) e POSSIVEL_DUPLICATA_NA_EDICAO. Nao grava
+#                    nada. Roda ANTES do create_draft (ROTINA passo 5).
+#   --draft-id ID  : grava o id do rascunho; run_finished_at vazio ou
+#                    "PENDENTE" vira agora.
+#   --medir-uso    : preenche `coletores` e `orquestrador` com o uso real
+#                    medido nas transcricoes locais (work/medir_uso.py).
+#   --janela       : (padrao /tmp/janela.json, do inicio.py) preenche os campos
+#                    de cabecalho que faltarem: execution_id, date, type,
+#                    timezone, window_start/end, run_started_at, email_subject,
+#                    recipients — o orquestrador so escreve o julgamento.
+#   ledger_updates : campo da nova execucao com as decisoes de julgamento do
+#                    ledger (notas, pendencias, concursos, armadilhas),
+#                    aplicadas aqui junto com os contadores — sem Edit manual.
 # =====================================================================
 
 import argparse
@@ -74,8 +90,9 @@ ALIAS_CAT.update({
 ALIAS_SELO = {norm(s): s for s in SELOS}
 
 
-def validar(ex, chaves_anteriores):
-    """Normaliza ex no lugar. Devolve (erros, avisos)."""
+def validar(ex, chaves_anteriores, pre_rascunho=False):
+    """Normaliza ex no lugar. Devolve (erros, avisos). pre_rascunho: o
+    draft_id ainda nao existe (modo --validar, antes do create_draft)."""
     erros, avisos = [], []
     for campo in ("execution_id", "date", "window_start", "window_end", "email_subject",
                   "delivery", "items"):
@@ -83,8 +100,9 @@ def validar(ex, chaves_anteriores):
             erros.append("campo obrigatorio ausente: " + campo)
     if ex.get("delivery") not in ("draft", "draft_ja_existente", "sent"):
         erros.append("delivery invalido: %r" % ex.get("delivery"))
-    if ex.get("delivery") == "draft" and not ex.get("draft_id"):
-        erros.append("delivery=draft sem draft_id")
+    if ex.get("delivery") == "draft" and ex.get("draft_id") in (None, "", "PENDENTE") \
+            and not pre_rascunho:
+        erros.append("delivery=draft sem draft_id (passe --draft-id)")
     vistas = set()
     for n, it in enumerate(ex.get("items") or []):
         ch = it.get("chave") or ""
@@ -124,6 +142,218 @@ def validar(ex, chaves_anteriores):
     return erros, avisos
 
 
+DESTINATARIOS = ["pereirafranciscofilho@gmail.com", "luizaxbarreto@gmail.com"]
+
+
+def completar_cabecalho(ex, caminho_janela):
+    """Campos deterministicos vem do inicio.py (/tmp/janela.json), nao do
+    orquestrador: menos saida e nenhum erro de digitacao em data ou janela."""
+    if not caminho_janela or not os.path.exists(caminho_janela):
+        return []
+    j = read_json(caminho_janela)
+    if ex.get("execution_id") and ex["execution_id"] != j.get("execution_id"):
+        return []          # execucao de outro dia (ex.: reprocessamento): nao mistura
+    mapa = {"execution_id": j.get("execution_id"), "date": j.get("data"), "type": "diaria",
+            "timezone": "America/Sao_Paulo", "window_start": j.get("inicio"),
+            "window_end": j.get("fim"), "run_started_at": j.get("fim"),
+            "email_subject": j.get("assunto"), "recipients": DESTINATARIOS}
+    preenchidos = []
+    for campo, valor in mapa.items():
+        if valor and ex.get(campo) in (None, "", []):
+            ex[campo] = valor
+            preenchidos.append(campo)
+    return preenchidos
+
+
+def checar_repeticao(ex, execucoes, chaves_anteriores):
+    """Avisos de materia ja publicada por outra fonte e de duplicata dentro
+    da propria edicao (work/repeticao.py). So no modo --validar."""
+    import repeticao
+    avisos, vistos = [], []
+    idx = repeticao.indice(execucoes, ignorar_exec_id=ex.get("execution_id"))
+    for it in ex.get("items") or []:
+        ch = (it.get("chave") or "").lower()
+        if not ch or ch.startswith(repeticao.IGNORAR_PREFIXOS):
+            continue
+        tok = repeticao.tokens_item(ch, it.get("titulo"))
+        if ch not in chaves_anteriores:
+            m = repeticao.procurar(tok, idx, excluir=ch)
+            if m:
+                avisos.append("POSSIVEL_REPETIDA: %s ~ %s (ja saiu; so entra se for "
+                              "desdobramento novo, dito como tal)" % (ch, m))
+        for ch2, t2 in vistos:
+            if repeticao.parecidas(tok, t2):
+                avisos.append("POSSIVEL_DUPLICATA_NA_EDICAO: %s ~ %s (mesma materia de "
+                              "duas fontes = 1 item citando as fontes)" % (ch, ch2))
+                break
+        vistos.append((ch, tok))
+    return avisos
+
+
+# ---------------------------------------------------------------- ledger_updates
+FAIXAS = ("ativa", "longo_prazo", "cronica")
+BLOCOS = ("Magistratura Estadual", "Magistratura Federal", "Promotor de Justiça (Estadual)",
+          "MPF/MPU — Procurador da República", "PFN", "AGU — Advogado da União",
+          "Procurador do Estado (PGE)", "Procurador do Município (PGM)",
+          "Defensor Público Estadual (DPE)", "Defensor Público Federal (DPU)", "Quadro de apoio")
+LIMITE = {"texto": 600, "nota": 700, "politica": 300, "linha": 450, "sintoma": 400,
+          "regra": 450, "desfecho": 300, "fonte": 300}
+CAMPOS_EDITAVEIS = {
+    "fontes": {"nota", "status"},
+    "pendencias": {"texto", "faixa", "politica", "coletor", "dominio_oficial", "remover", "desfecho"},
+    "concursos": {"bloco", "linha", "selo", "prazos", "fonte", "verificado_em",
+                  "dominio_oficial", "pendencia", "remover", "desfecho"},
+}
+OBRIGATORIOS_NOVO = {"pendencias": ("texto", "faixa"),
+                     "concursos": ("bloco", "linha", "selo", "verificado_em")}
+LISTA_DO_LEDGER = {"fontes": "fontes", "pendencias": "pendencias_vivas", "concursos": "concursos"}
+
+
+def _data_iso(v):
+    try:
+        date.fromisoformat(v)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def validar_ledger_updates(upd, led):
+    """Erros de forma do campo ledger_updates. Nada e aplicado aqui."""
+    if not upd:
+        return []
+    if not isinstance(upd, dict):
+        return ["ledger_updates deve ser um objeto"]
+    erros = []
+    secoes = set(LISTA_DO_LEDGER) | {"armadilhas_detectadas", "armadilhas_novas"}
+    for k in upd:
+        if k not in secoes:
+            erros.append("ledger_updates: secao desconhecida %r (use %s)" % (k, ", ".join(sorted(secoes))))
+    niveis = set((led.get("niveis_de_esforco") or {}).keys()) | {"indisponivel"}
+    for secao, nome_lista in LISTA_DO_LEDGER.items():
+        bloco = upd.get(secao) or {}
+        if not isinstance(bloco, dict):
+            erros.append("ledger_updates.%s deve ser {id: {campos}}" % secao)
+            continue
+        existentes = {x.get("id") for x in led.get(nome_lista) or []}
+        for ident, campos in bloco.items():
+            rot = "ledger_updates.%s.%s" % (secao, ident)
+            if not isinstance(campos, dict):
+                erros.append(rot + ": deve ser um objeto")
+                continue
+            extras = set(campos) - CAMPOS_EDITAVEIS[secao]
+            if extras:
+                erros.append("%s: campos nao editaveis %s (contadores sao mecanicos)" % (rot, sorted(extras)))
+            if ident not in existentes:
+                if secao == "fontes" or campos.get("remover"):
+                    erros.append(rot + ": id inexistente no ledger")
+                    continue
+                falta = [c for c in OBRIGATORIOS_NOVO[secao] if not campos.get(c)]
+                if falta:
+                    erros.append("%s: id novo exige %s" % (rot, ", ".join(falta)))
+            for c, lim in LIMITE.items():
+                v = campos.get(c)
+                if isinstance(v, str) and len(v) > lim:
+                    erros.append("%s.%s: %d caracteres (max %d) — reescreva compacto: estado "
+                                 "atual + no maximo 1 padrao recente" % (rot, c, len(v), lim))
+            if "faixa" in campos and campos["faixa"] not in FAIXAS:
+                erros.append("%s.faixa: %r fora de %s" % (rot, campos["faixa"], "/".join(FAIXAS)))
+            if "status" in campos and campos["status"] not in niveis:
+                erros.append("%s.status: %r fora de %s" % (rot, campos["status"], "/".join(sorted(niveis))))
+            if "selo" in campos and campos["selo"] not in SELOS:
+                erros.append("%s.selo: %r fora da lista fechada" % (rot, campos["selo"]))
+            if "bloco" in campos and campos["bloco"] not in BLOCOS:
+                erros.append("%s.bloco: %r fora de %s" % (rot, campos["bloco"], " | ".join(BLOCOS)))
+            if "verificado_em" in campos and not _data_iso(campos["verificado_em"]):
+                erros.append("%s.verificado_em: use AAAA-MM-DD" % rot)
+            for n, p in enumerate(campos.get("prazos") or []):
+                if not (isinstance(p, dict) and _data_iso(p.get("data")) and p.get("evento")
+                        and isinstance(p.get("confirmado"), bool)):
+                    erros.append("%s.prazos[%d]: use {data: AAAA-MM-DD, evento, confirmado: "
+                                 "true|false}" % (rot, n))
+    ativas = {x.get("id") for x in led.get("armadilhas") or []}
+    for ident in upd.get("armadilhas_detectadas") or []:
+        if ident not in ativas:
+            erros.append("ledger_updates.armadilhas_detectadas: %r nao e armadilha ativa" % ident)
+    for n, x in enumerate(upd.get("armadilhas_novas") or []):
+        if not isinstance(x, dict) or not all(x.get(c) for c in ("id", "fonte", "sintoma", "regra")):
+            erros.append("ledger_updates.armadilhas_novas[%d]: exige id, fonte, sintoma, regra" % n)
+        elif x["id"] in ativas:
+            erros.append("ledger_updates.armadilhas_novas: %r ja existe — use armadilhas_detectadas" % x["id"])
+        else:
+            for c in ("sintoma", "regra"):
+                if len(x[c]) > LIMITE[c]:
+                    erros.append("ledger_updates.armadilhas_novas[%d].%s: max %d caracteres" % (n, c, LIMITE[c]))
+    return erros
+
+
+def aplicar_updates(led, upd, hoje, add_log):
+    """Aplica ledger_updates (ja validado). Antes dos contadores, para que
+    pendencia criada hoje ja conte a execucao e removida nao gere aviso."""
+    if not upd:
+        return
+    for secao, nome_lista in LISTA_DO_LEDGER.items():
+        for ident, campos in (upd.get(secao) or {}).items():
+            lista = led.setdefault(nome_lista, [])
+            if campos.get("remover"):
+                led[nome_lista] = [x for x in lista if x.get("id") != ident]
+                add_log("Ledger: %s %s removida%s" % (secao, ident, (" — " + campos["desfecho"])
+                                                      if campos.get("desfecho") else ""))
+                continue
+            alvo = next((x for x in lista if x.get("id") == ident), None)
+            if alvo is None:
+                alvo = {"id": ident}
+                if secao == "pendencias":
+                    alvo.update({"desde": hoje, "execucoes": 0})
+                lista.append(alvo)
+                acao = "criada"
+            else:
+                acao = "atualizada"
+            alvo.update({c: v for c, v in campos.items() if c not in ("remover", "desfecho")})
+            add_log("Ledger: %s %s %s (%s)" % (secao, ident, acao, ", ".join(sorted(campos))))
+    ativas = {x.get("id"): x for x in led.get("armadilhas") or []}
+    for ident in upd.get("armadilhas_detectadas") or []:
+        x = ativas[ident]
+        if "detectado_em" in x:                    # formato antigo: lista de datas
+            datas = list(x.pop("detectado_em") or [])
+            x.update({"detectado_em_qtd": len(datas),
+                      "detectado_em_primeira": datas[0] if datas else hoje,
+                      "detectado_em_ultimas": datas[-3:]})
+        ult = x.get("detectado_em_ultimas") or []
+        if hoje not in ult:
+            x["detectado_em_qtd"] = int(x.get("detectado_em_qtd") or 0) + 1
+            x.setdefault("detectado_em_primeira", hoje)
+            x["detectado_em_ultimas"] = (ult + [hoje])[-3:]
+            add_log("Ledger: armadilha %s detectada de novo (%d)" % (ident, x["detectado_em_qtd"]))
+    for x in upd.get("armadilhas_novas") or []:
+        novo = dict(x)
+        novo.update({"detectado_em_qtd": 1, "detectado_em_primeira": hoje, "detectado_em_ultimas": [hoje]})
+        led.setdefault("armadilhas", []).append(novo)
+        add_log("Ledger: armadilha nova %s" % x["id"])
+
+
+def medir_e_preencher(ex, add_log):
+    """Uso real (tokens processados, chamadas, modelo servido) do orquestrador
+    e dos coletores, lido das transcricoes locais. Falha so gera aviso."""
+    try:
+        import medir_uso
+        m = medir_uso.medir(medir_uso._ts(ex.get("run_started_at") or ""))
+    except Exception as e:  # noqa: BLE001 — medicao e acessoria
+        add_log("AVISO: uso nao medido (%s) — coletores ficam como informados" % e)
+        return
+    if not m:
+        add_log("AVISO: transcricoes locais nao encontradas — uso nao medido")
+        return
+    col = ex.setdefault("coletores", {})
+    for nome, u in (m.get("coletores") or {}).items():
+        col.setdefault(nome, {}).update(u)
+    if m.get("orquestrador"):
+        ex["orquestrador"] = m["orquestrador"]
+    resumo = ["%s=%s/%dk" % (n, (u.get("modelo") or "?").replace("claude-", ""),
+                             (u.get("contexto_total") or 0) // 1000)
+              for n, u in [("orquestrador", m.get("orquestrador") or {})] + sorted(col.items())]
+    add_log("Uso medido (modelo/contexto processado): " + " ".join(resumo))
+
+
 def gravar_ledger(caminho, led):
     """Uma entrada de lista por linha: compacto para ler e estavel para diff."""
     partes = []
@@ -145,6 +375,7 @@ def aplicar_ledger(caminho, ex, add_log):
         add_log("Ledger: contadores ja aplicados para %s — nada a fazer." % ex["execution_id"])
         return
     hoje = ex["date"]
+    aplicar_updates(led, ex.get("ledger_updates"), hoje, add_log)
     fontes = {f.get("id"): f for f in led.get("fontes") or []}
     for fid, v in (ex.get("source_status") or {}).items():
         f = fontes.get(fid)
@@ -227,6 +458,10 @@ def metricas_derivadas(historico, execucoes_principal):
     ult10 = execucoes_principal[-10:]
     itens = [len(e.get("items") or []) for e in ult10]
     media = round(sum(itens) / len(itens), 1) if itens else 0
+    # Itens de noticia: sem as ~17 linhas fixas por dia (concursos, versiculo,
+    # Munger), que mascaravam o alarme de queda de fonte.
+    noticia = [sum(1 for i in (e.get("items") or []) if i.get("categoria") not in NAO_NOTICIA)
+               for e in ult10]
 
     coletores = {}
     for e in ult10:
@@ -237,10 +472,18 @@ def metricas_derivadas(historico, execucoes_principal):
             c["execucoes"] += 1
             c["tokens_total"] += int(uso.get("tokens") or 0)
             c["chamadas_total"] += int(uso.get("chamadas") or 0)
+            if uso.get("contexto_total"):
+                c["medidas"] = c.get("medidas", 0) + 1
+                c["contexto_total_soma"] = c.get("contexto_total_soma", 0) + int(uso["contexto_total"])
     for c in coletores.values():
         n = c["execucoes"] or 1
         c["tokens_media"] = round(c["tokens_total"] / n)
         c["chamadas_media"] = round(c["chamadas_total"] / n, 1)
+        if c.get("medidas"):
+            c["contexto_total_media"] = round(c.pop("contexto_total_soma") / c["medidas"])
+
+    orq = [int((e.get("orquestrador") or {}).get("contexto_total") or 0) for e in ult10
+           if (e.get("orquestrador") or {}).get("contexto_total")]
 
     ultima = ult10[-1] if ult10 else {}
     return {
@@ -248,9 +491,25 @@ def metricas_derivadas(historico, execucoes_principal):
         "itens_ultimas_10": itens,
         "media_itens": media,
         "itens_ultima": itens[-1] if itens else 0,
+        "itens_noticia_ultimas_10": noticia,
+        "media_itens_noticia": round(sum(noticia) / len(noticia), 1) if noticia else 0,
+        "itens_noticia_ultima": noticia[-1] if noticia else 0,
         "coletores_ultima": ultima.get("coletores") or {},
         "coletores_ultimas_10": coletores,
+        "orquestrador_ultima": ultima.get("orquestrador") or {},
+        "orquestrador_contexto_media": round(sum(orq) / len(orq)) if orq else None,
     }
+
+
+NAO_NOTICIA = {"Concursos - Carreira", "Concursos - Apoio", "Versículo", "Munger"}
+
+
+def em_recesso(iso):
+    try:
+        d = date.fromisoformat(iso)
+    except (TypeError, ValueError):
+        return False
+    return (d.month == 7 and d.day >= 2) or (d.month == 12 and d.day >= 20) or d.month == 1
 
 
 historico_path_global = ""
@@ -274,6 +533,11 @@ def main():
     parser.add_argument("--max-execucoes", dest="max_execucoes", type=int, default=10)
     parser.add_argument("--relatorio-path", dest="relatorio_path", default="")
     parser.add_argument("--ledger", dest="ledger_path", default="")
+    parser.add_argument("--validar", action="store_true",
+                        help="so valida (inclusive ledger_updates e repeticao); nao grava nada")
+    parser.add_argument("--draft-id", dest="draft_id", default="")
+    parser.add_argument("--medir-uso", dest="medir_uso", action="store_true")
+    parser.add_argument("--janela", default="/tmp/janela.json")
     args = parser.parse_args()
 
     log = []
@@ -313,10 +577,20 @@ def main():
             f"Arquivo da nova execucao nao encontrado: {args.nova_execucao_path}"
         )
     nova_exec = read_json(args.nova_execucao_path)
+    preenchidos = completar_cabecalho(nova_exec, args.janela)
 
     if not nova_exec.get("execution_id"):
         raise SystemExit("A nova execucao nao possui execution_id.")
-    add_log("Nova execucao: " + nova_exec["execution_id"])
+    add_log("Nova execucao: " + nova_exec["execution_id"] +
+            (" (do inicio.py: %s)" % ", ".join(preenchidos) if preenchidos else ""))
+
+    if args.draft_id:
+        nova_exec["draft_id"] = args.draft_id
+    if not args.validar:
+        if nova_exec.get("run_finished_at") in (None, "", "PENDENTE"):
+            nova_exec["run_finished_at"] = now_iso_with_offset()
+        if args.medir_uso:
+            medir_e_preencher(nova_exec, add_log)
 
     chaves_anteriores = {
         it.get("chave")
@@ -325,15 +599,33 @@ def main():
         for it in e.get("items") or []
         if it.get("chave")
     }
-    erros, avisos = validar(nova_exec, chaves_anteriores)
+    erros, avisos = validar(nova_exec, chaves_anteriores, pre_rascunho=args.validar)
+    if args.ledger_path and os.path.exists(args.ledger_path):
+        erros += validar_ledger_updates(nova_exec.get("ledger_updates"), read_json(args.ledger_path))
+    elif nova_exec.get("ledger_updates"):
+        avisos.append("ledger_updates presente, mas --ledger nao informado: nao sera aplicado")
+    if args.validar:
+        avisos += checar_repeticao(nova_exec, historico["executions"], chaves_anteriores)
     for a in avisos:
         add_log("AVISO: " + a)
     if erros:
         for e in erros:
             add_log("ERRO: " + e)
-        emitir("STATUS: ERRO DE VALIDACAO — nada foi gravado. Corrija o arquivo da "
-               "nova execucao e rode de novo.")
+        emitir("VALIDACAO: ERRO — corrija /tmp/execucao.json e valide de novo." if args.validar
+               else "STATUS: ERRO DE VALIDACAO — nada foi gravado. Corrija o arquivo da "
+                    "nova execucao e rode de novo.")
         sys.exit(2)
+    if args.validar:
+        try:
+            from zoneinfo import ZoneInfo
+            agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
+        except Exception:
+            agora = datetime.now()
+        add_log("CARIMBO: Gerado em %s (America/São Paulo) · execução %s"
+                % (agora.strftime("%d/%m/%Y %H:%M"), nova_exec["execution_id"]))
+        emitir("VALIDACAO: OK (%d itens, %d avisos) — nada foi gravado."
+               % (len(nova_exec.get("items") or []), len(avisos)))
+        return
     # grava a versao normalizada, para o historico ficar consistente
     write_json_no_bom(args.nova_execucao_path, nova_exec)
 
@@ -483,10 +775,12 @@ def main():
     corte = max(0, len(todas) - 5)
     recentes = todas[corte:]
 
+    # Concursos (chave datada), versiculo e Munger repetem-se por desenho e
+    # nunca coincidem com nada: ficam fora (eram 36% das chaves).
     chaves = []
     for ex in recentes:
         for it in ex.get("items", []) or []:
-            if it.get("chave"):
+            if it.get("chave") and not it["chave"].startswith(("concurso|", "versiculo|", "munger|")):
                 chaves.append(it["chave"])
 
     pend = [p for p in (ultima.get("pendencias") or []) if p]
@@ -524,14 +818,19 @@ def main():
         f"ultima execucao {ultima.get('execution_id')})"
     )
     add_log(
-        "Metricas: itens_ultima=%d media_itens_10=%s execucoes_registradas=%d coletores_ultima=%s"
+        "Metricas: itens_ultima=%d (noticia=%d) media_itens_10=%s (noticia=%s) execucoes_registradas=%d"
         % (
             metricas["itens_ultima"],
+            metricas["itens_noticia_ultima"],
             metricas["media_itens"],
+            metricas["media_itens_noticia"],
             metricas["execucoes_registradas"],
-            json.dumps(metricas["coletores_ultima"], ensure_ascii=False),
         )
     )
+    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")):
+        add_log("ALERTA: so %d itens de noticia (fora concursos/versiculo/Munger) numa janela "
+                "fora do recesso — sinal de falha de fonte; conferir os coletores."
+                % metricas["itens_noticia_ultima"])
 
     # -------------------------------------------------------------
     # 7. Contadores mecanicos do ledger (opcional)

@@ -17,7 +17,7 @@
 # SAIDA: JSON em stdout ({"ok": true, "fonte": ..., "referencia": ...,
 #        "versao": ..., "texto": ..., "data_pagina": ..., "url": ...})
 #        ou {"ok": false, "tentativas": [...]} — ai vale o fallback por
-#        WebSearch da ROTINA (passo 6). Exit 0 se ok, 1 se nao.
+#        WebSearch da ROTINA (passo 2). Exit 0 se ok, 1 se nao.
 # =====================================================================
 
 import argparse

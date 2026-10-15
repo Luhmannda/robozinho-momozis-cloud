@@ -10,7 +10,10 @@
 # - MPV: data oficial "Publicada no DOU de ..." da pagina de detalhe
 #   (resolve a armadilha congresso_mpv sem WebSearch).
 # - Dedupe: numero da lei/MPV contra as chaves do historico; URL das
-#   materias contra as URLs ja publicadas.
+#   materias contra as URLs ja publicadas; e, por semelhanca de titulo
+#   (work/repeticao.py), materia que ja saiu por OUTRA fonte ganha a marca
+#   [REPETIDA?~chave] — o orquestrador nao precisa ler as chaves publicadas.
+# - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados).
 #
 # USO:   python3 work/coleta_web.py [--janela /tmp/janela.json]
 #        (sem janela.json: inicio = window_end do estado, fim = agora)
@@ -40,6 +43,8 @@ URLS_CONJUR = {"noticia": "https://conjur.com.br/noticias/",
                "artigo": "https://conjur.com.br/artigos/",
                "coluna": "https://conjur.com.br/colunas/"}
 URL_MIGALHAS = "https://www.migalhas.com.br/quentes"
+PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
+                   r"webin[aá]rio|curso|encontro|jornada)\b|\blan[cç]amento d[eo] livro\b", re.I)
 
 
 def fetch(url, timeout=20):
@@ -253,6 +258,30 @@ def migalhas(inicio, fim, recorte, urls_pub):
     return out
 
 
+def marcar_promo_e_repetidas(res):
+    """PROMO: sorteio/evento promocional (nao e noticia). REPETIDA?: mesma
+    materia ja publicada por outra fonte nas ultimas edicoes."""
+    import repeticao
+    try:
+        h = json.load(open(os.path.join(AQUI, "resumo-legislativo-historico.json"),
+                           encoding="utf-8"))["executions"]
+    except Exception:
+        h = []
+    idx = repeticao.indice(h)
+    for r in res:
+        if r["fonte"] not in ("conjur", "migalhas"):
+            continue
+        for i in r["itens"]:
+            if i["situacao"] not in ("NOVA", "HERDADA", "SEM_DATA"):
+                continue
+            if PROMO.search(i["titulo"]):
+                i["situacao"] = "PROMO"
+                continue
+            m = repeticao.procurar(repeticao.tokens(i["titulo"]), idx)
+            if m:
+                i["repetida"] = m
+
+
 # ------------------------------------------------------------ saida
 def hm(it):
     q = it.get("quando")
@@ -283,6 +312,8 @@ def main():
         fg = ex.submit(migalhas, inicio, fim, recorte, urls_pub)
         res = [fl.result(), fm.result(), fc.result(), fg.result()]
 
+    marcar_promo_e_repetidas(res)
+
     print("JANELA %s -> %s (herdada = antes de %s)" % (
         inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M")))
     for r in res:
@@ -307,7 +338,8 @@ def main():
             elif s in ("NOVA", "HERDADA", "SEM_DATA"):
                 extra = (" — " + i["resumo"][:150]) if i.get("resumo") else ""
                 tag = i.get("tipo", "noticia")[:3].upper()
-                print("[%s|%s] %s | %s%s | %s" % (s, tag, hm(i), i["titulo"], extra, i["url"]))
+                rep = " [REPETIDA?~%s]" % i["repetida"] if i.get("repetida") else ""
+                print("[%s|%s] %s | %s%s | %s%s" % (s, tag, hm(i), i["titulo"], extra, i["url"], rep))
 
     def ser(o):
         return o.isoformat() if isinstance(o, (datetime, date)) else str(o)

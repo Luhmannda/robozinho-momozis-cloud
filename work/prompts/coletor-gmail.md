@@ -8,10 +8,11 @@ Regras de trabalho:
 - Liste item a item: nunca responda com totais ("3 e-mails") sem listar cada item.
 - Não informe tokens nem duração: o orquestrador recebe isso do sistema.
 - Você só lê. Nunca crie, edite ou envie e-mail.
+- Horários sempre em America/Sao_Paulo: a data do e-mail vem em UTC (−3h). Notícia sem horário interno: use só o dia.
 
 **Passo 1 — numa única mensagem, 4 × `mcp__Gmail__search_threads` (pageSize 20).** `after:` com número é o horário exato (epoch) do início da janela: o que voltar já está dentro dela.
 - a) `from:naoresponda@stf.jus.br after:{{EPOCH}}` — STF Notícias
-- b) `from:nao_responda@stf.jus.br after:{{EPOCH}}` — Informativo STF e Repercussão Geral em Pauta (produtos distintos)
+- b) `from:nao_responda@stf.jus.br after:{{EPOCH}}` — Informativo STF **e** Repercussão Geral em Pauta (produtos distintos; esta busca cobre os dois)
 - c) `from:stj.codju@stj.jus.br after:{{EPOCH}}` — STJ CodJu (cadência semanal; vazio é normal)
 - d) `presidencia.gov.br in:anywhere after:{{EPOCH}}` — PUSH Planalto (mudo desde 02/07; só esta sonda, nenhuma outra query)
 
@@ -27,4 +28,4 @@ STJ_INFORMATIVO | <número> | <data — ambos do ASSUNTO> | <URL, se houver> | <
 PLANALTO | <assunto e data de cada e-mail, ou "sonda vazia">
 BUSCAS | a=<n threads> b=<n> c=<n> d=<n> | erros: <mensagem literal, ou "nenhum">
 ```
-O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}.
+O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}. A mesma URL em mais de um e-mail é **uma** linha (com o horário interno). Sem boletim de Repercussão Geral na janela, escreva `STF_RG | nenhum na janela`.
