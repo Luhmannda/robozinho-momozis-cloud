@@ -19,20 +19,17 @@ Regras de trabalho:
 
 **Passo 2 — numa única mensagem, `mcp__Gmail__get_thread` (`messageFormat: PLAIN_TEXT`) de todas as threads devolvidas.**
 
-**Passo 3 — conteúdo dos informativos** (só se houver Informativo STF, Repercussão Geral em Pauta ou Informativo STJ). Os e-mails trazem só o link; o conteúdo está no site oficial. Rede hoje: {{REDE_INFORMATIVOS}}.
-- Domínio acessível → numa única chamada Bash, baixe cada documento com `curl -sL -m 30` — Informativo STF nº N: `https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_N.pdf`; Repercussão Geral em Pauta e Informativo STJ: o link do próprio e-mail — e extraia o texto (PDF: `pdftotext -layout arquivo.pdf -`; HTML: `python3` removendo as tags). Copie os destaques; nada de resumir de memória.
-- Domínio bloqueado → não tente; escreva `conteúdo indisponível (rede)`.
-
 **Resposta — uma linha por item, neste formato:**
 ```
 STF_NOTICIA | <DD/MM HH:MM interno da notícia> | <título exato> | <URL da notícia (noticias.stf.jus.br / portal.stf.jus.br) ou "sem URL"> | <1ª frase do texto, copiada>
-STF_RG | <número pelo slug do PDF> | <data do e-mail> | <URL do PDF> | <processos e temas em pauta, copiados do PDF; ou "conteúdo indisponível (rede)">
-STF_INFORMATIVO | <número, conferido com o assunto> | <data do e-mail> | <URL do PDF> | <até 8 destaques "órgão julgador — tema — resultado ou tese", copiados; ou "conteúdo indisponível (rede)">
+STF_RG | <número pelo slug do PDF> | <data do e-mail> | <URL do PDF>
+STF_INFORMATIVO | <número, conferido com o assunto> | <data do e-mail> | <URL do e-mail>
 STF_OUTRO | <assunto> | <data> | <por que não é informativo (ex.: andamento processual)>
-STJ_INFORMATIVO | <número> | <data — ambos do ASSUNTO> | <URL do documento> | <até 8 destaques "órgão — ramo — tema — destaque", copiados; ou "conteúdo indisponível (rede)">
+STJ_INFORMATIVO | <número> | <data — ambos do ASSUNTO> | <URL do documento>
 CAMARA | <DD/MM HH:MM do boletim> | <seção do boletim> | <título exato> | <URL camara.leg.br do item> — todos os itens; prefixe [LEI] os que tratam de lei nova, sanção, promulgação, veto ou medida provisória e [PLENARIO] as aprovações e rejeições em Plenário
 PLANALTO_ATO | <tipo e número/ano do ato> | <data do ato e do DOU> | <ementa copiada da resenha> | <link do ato na resenha, ou "sem link"> — um por ato de cada Resenha Diária PUSH Legislação
 PLANALTO | <assunto e data de cada e-mail que não for resenha (ex.: confirmação de inscrição — não abra links com token), ou "sonda vazia">
-BUSCAS | a=<n threads> b=<n> c=<n> d=<n> e=<n> | informativos baixados: <n ok / n bloqueados / não havia> | erros: <mensagem literal, ou "nenhum">
+BUSCAS | a=<n threads> b=<n> c=<n> d=<n> e=<n> | erros: <mensagem literal, ou "nenhum">
 ```
+O conteúdo dos informativos não é com você: `work/informativos.py` baixa o documento oficial e extrai os destaques.
 O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}. A mesma URL em mais de um e-mail é **uma** linha (com o horário interno). Thread na lixeira cujo `get_thread` for negado: use o resumo da busca e marque "lista incompleta (lixeira)". Sem boletim de Repercussão Geral na janela, escreva `STF_RG | nenhum na janela`.

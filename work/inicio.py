@@ -34,8 +34,6 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 DIAS = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
         "sexta-feira", "sábado", "domingo"]
 ASSUNTO = "Robozinho dos Momozis até Passar - %s - 7h"
-# Onde ficam os informativos (os e-mails do STF e do STJ trazem so o link).
-DOMINIOS_INFORMATIVOS = ("www.stf.jus.br", "ww2.stj.jus.br")
 PALAVRAS_CONCURSO = re.compile(
     r"concurso|edital|banca|inscri|juiz|promotor|procurador|defensor|agu|pfn|pge|pgm|dpe|dpu", re.I)
 
@@ -131,7 +129,7 @@ def main():
                  (not p.get("coletor") and p.get("faixa") != "cronica" and PALAVRAS_CONCURSO.search(p.get("texto", "")))]
     concursos = ledger.get("concursos", [])
     rede = alcancaveis([p.get("dominio_oficial") for p in pend_conc] +
-                       [c.get("dominio_oficial") for c in concursos] + list(DOMINIOS_INFORMATIVOS))
+                       [c.get("dominio_oficial") for c in concursos])
     linhas = []
     for p in pend_conc:
         dom = p.get("dominio_oficial")
@@ -184,8 +182,6 @@ def main():
         "PENDENCIAS_CONCURSOS": "\n".join(linhas) or "- (nenhuma pendência de concurso no ledger)",
         "CONCURSOS_PRIORIDADE": "\n".join(prioridade) or "- (nenhum prazo nos próximos 7 dias)",
         "CONCURSOS_DEMAIS": "; ".join(demais) or "(nenhum)",
-        "REDE_INFORMATIVOS": "; ".join("%s %s" % (d, "acessível" if rede.get(d) else "BLOQUEADO")
-                                       for d in DOMINIOS_INFORMATIVOS),
     }
 
     def sub(m):
@@ -248,7 +244,8 @@ def main():
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, "
           "coletor-jota e coletor-concursos (primeiro plano) + Bash: python3 work/coleta_web.py; "
-          "python3 work/versiculo.py --data %s --dia %d + Read work/template-newsletter-referencia.html"
+          "python3 work/informativos.py; python3 work/versiculo.py --data %s --dia %d + Read "
+          "work/template-newsletter-referencia.html"
           % (hoje.isoformat(), doy))
 
 

@@ -21,6 +21,7 @@ Repositório de suporte para rodar a newsletter "Robozinho dos Momozis até Pass
 - `work/repeticao.py` — detecção de matéria repetida entre fontes por semelhança de título (usada pelo `coleta_web.py` e pela validação).
 - `work/prompts/coletor-*.md` — modelos fixos dos prompts dos coletores Gmail, JOTA e Concursos (preenchidos pelo `inicio.py`).
 - `work/coleta_web.py` — coleta determinística de Congresso (leis e MPVs), ConJur e Migalhas, com hora exata por matéria, dedupe contra o histórico, marca `[REPETIDA?~chave]` e filtro de sorteios/eventos (`PROMO`).
+- `work/informativos.py` — conteúdo dos informativos (STF, Repercussão Geral em Pauta e STJ) direto do documento oficial: acha a edição nova pelo número, baixa e extrai os destaques, sem tokens.
 - `work/versiculo.py` — versículo do dia (YouVersion → DailyVerses.net), com conferência da data.
 - `work/resolver_jota.py` — resolve os links-wrapper do JOTA por curl; só funciona com `www.jota.info` e `t.rdsv2.net` no allowlist do ambiente (senão avisa `BLOQUEADO` e o coletor faz uma sondagem curta por WebSearch).
 
