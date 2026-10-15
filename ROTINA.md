@@ -33,7 +33,7 @@ Nas saídas dos scripts:
 
 | Seção | O que entra | Selo típico |
 |---|---|---|
-| Planalto/Legislação | leis e MPVs do `coleta_web` (Rota 13); itens `[LEI]` e `[PLENARIO]` do boletim da Câmara (`CAMARA` do coletor Gmail — lei nova, MPV, veto, aprovação em Plenário; projeto só apresentado não entra; até ~6, mesmo fato de duas fontes = 1 item); PUSH Planalto se voltar | `CONFIRMADO POR FONTE OFICIAL ALTERNATIVA` (PUSH: `…OFICIAL`) |
+| Planalto/Legislação | atos `PLANALTO_ATO` da Resenha PUSH (quando voltar: `CONFIRMADO POR FONTE OFICIAL`, e `source_status` `ok`); leis e MPVs do `coleta_web` (Rota 13); itens `[LEI]` e `[PLENARIO]` do boletim da Câmara (`CAMARA` do coletor Gmail — lei nova, MPV, veto, aprovação em Plenário; projeto só apresentado não entra; até ~6, mesmo fato de duas fontes = 1 item) | PUSH: `CONFIRMADO POR FONTE OFICIAL`; demais: `CONFIRMADO POR FONTE OFICIAL ALTERNATIVA` |
 | STF Notícias | `STF_NOTICIA` do coletor Gmail, com a URL do push | `CONFIRMADO POR FONTE OFICIAL` |
 | STF Jurisprudência | `STF_RG` (Repercussão Geral em Pauta) e teses/julgados publicados pelo próprio STF | `CONFIRMADO POR FONTE OFICIAL` |
 | STJ Notícias | só fonte oficial do STJ; sem ela, uma linha dizendo que o STJ da janela está na Mídia | — |

@@ -14,7 +14,7 @@ Regras de trabalho:
 - a) `from:naoresponda@stf.jus.br after:{{EPOCH}}` — STF Notícias
 - b) `from:nao_responda@stf.jus.br after:{{EPOCH}}` — Informativo STF **e** Repercussão Geral em Pauta (produtos distintos; esta busca cobre os dois)
 - c) `from:stj.codju@stj.jus.br after:{{EPOCH}}` — STJ CodJu (cadência semanal; vazio é normal)
-- d) `presidencia.gov.br in:anywhere after:{{EPOCH}}` — PUSH Planalto (mudo desde 02/07; só esta sonda, nenhuma outra query)
+- d) `presidencia.gov.br in:anywhere after:{{EPOCH}}` — PUSH Planalto (remetentes `sistemapush.saj@` e `no-reply-push-legislacao@`; mudo de 02/07 a 15/10, reinscrição pedida em 15/10). Só esta sonda.
 - e) `from:boletins@camara.gov.br in:anywhere after:{{EPOCH}} -subject:"Acompanhe seu Deputado"` — boletim da Agência Câmara de Notícias (legislativo: leis novas, medidas provisórias, votações). `in:anywhere` de propósito: o boletim às vezes vai para a lixeira.
 
 **Passo 2 — numa única mensagem, `mcp__Gmail__get_thread` (`messageFormat: PLAIN_TEXT`) de todas as threads devolvidas.**
@@ -31,7 +31,8 @@ STF_INFORMATIVO | <número, conferido com o assunto> | <data do e-mail> | <URL d
 STF_OUTRO | <assunto> | <data> | <por que não é informativo (ex.: andamento processual)>
 STJ_INFORMATIVO | <número> | <data — ambos do ASSUNTO> | <URL do documento> | <até 8 destaques "órgão — ramo — tema — destaque", copiados; ou "conteúdo indisponível (rede)">
 CAMARA | <DD/MM HH:MM do boletim> | <seção do boletim> | <título exato> | <URL camara.leg.br do item> — todos os itens; prefixe [LEI] os que tratam de lei nova, sanção, promulgação, veto ou medida provisória e [PLENARIO] as aprovações e rejeições em Plenário
-PLANALTO | <assunto e data de cada e-mail, ou "sonda vazia">
+PLANALTO_ATO | <tipo e número/ano do ato> | <data do ato e do DOU> | <ementa copiada da resenha> | <link do ato na resenha, ou "sem link"> — um por ato de cada Resenha Diária PUSH Legislação
+PLANALTO | <assunto e data de cada e-mail que não for resenha (ex.: confirmação de inscrição — não abra links com token), ou "sonda vazia">
 BUSCAS | a=<n threads> b=<n> c=<n> d=<n> e=<n> | informativos baixados: <n ok / n bloqueados / não havia> | erros: <mensagem literal, ou "nenhum">
 ```
-O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}. A mesma URL em mais de um e-mail é **uma** linha (com o horário interno). Sem boletim de Repercussão Geral na janela, escreva `STF_RG | nenhum na janela`.
+O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}. A mesma URL em mais de um e-mail é **uma** linha (com o horário interno). Thread na lixeira cujo `get_thread` for negado: use o resumo da busca e marque "lista incompleta (lixeira)". Sem boletim de Repercussão Geral na janela, escreva `STF_RG | nenhum na janela`.
