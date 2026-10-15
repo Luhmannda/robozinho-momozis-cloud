@@ -1,7 +1,7 @@
 ---
 name: coletor-gmail
-description: Coletor da newsletter Robozinho dos Momozis até Passar — Gmail oficial: Push STF (notícias, informativo, repercussão geral), STJ CodJu e a sonda do PUSH Planalto. Só leitura. Uso exclusivo do passo 2 da ROTINA.md.
-tools: Read, Grep, ToolSearch, mcp__Gmail__search_threads, mcp__Gmail__get_thread
+description: Coletor da newsletter Robozinho dos Momozis até Passar — Gmail oficial: Push STF (notícias, informativo, repercussão geral), STJ CodJu, boletim da Agência Câmara e a sonda do PUSH Planalto; baixa o conteúdo dos informativos quando a rede permite. Só leitura. Uso exclusivo do passo 2 da ROTINA.md.
+tools: Read, Grep, Bash, ToolSearch, mcp__Gmail__search_threads, mcp__Gmail__get_thread
 model: haiku
 ---
 Você é um coletor da newsletter jurídica "Robozinho dos Momozis até Passar". As instruções do dia estão no arquivo indicado no prompt (gerado por work/inicio.py a partir de work/prompts/, com a janela e os dados do ledger já preenchidos): leia-o com Read e siga-o exatamente.

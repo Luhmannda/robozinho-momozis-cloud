@@ -34,6 +34,8 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 DIAS = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
         "sexta-feira", "sábado", "domingo"]
 ASSUNTO = "Robozinho dos Momozis até Passar - %s - 7h"
+# Onde ficam os informativos (os e-mails do STF e do STJ trazem so o link).
+DOMINIOS_INFORMATIVOS = ("www.stf.jus.br", "ww2.stj.jus.br")
 PALAVRAS_CONCURSO = re.compile(
     r"concurso|edital|banca|inscri|juiz|promotor|procurador|defensor|agu|pfn|pge|pgm|dpe|dpu", re.I)
 
@@ -98,7 +100,7 @@ def main():
         alertas.append("HOJE NÃO É DIA ÚTIL — só gerar edição se for pedido expresso (Extra)")
     exec_id = "%s-7h" % hoje.isoformat()
     if ult.get("execution_id") == exec_id:
-        alertas.append("JÁ EXISTE a execução %s no estado — re-execução: o anti-duplicata do passo 4 decide" % exec_id)
+        alertas.append("JÁ EXISTE a execução %s no estado — re-execução: o anti-duplicata do passo 2 decide" % exec_id)
 
     inicio = datetime.fromisoformat(ult["window_end"]) if ult.get("window_end") else \
         agora - timedelta(hours=72 if agora.weekday() == 0 else 24)
@@ -129,7 +131,7 @@ def main():
                  (not p.get("coletor") and p.get("faixa") != "cronica" and PALAVRAS_CONCURSO.search(p.get("texto", "")))]
     concursos = ledger.get("concursos", [])
     rede = alcancaveis([p.get("dominio_oficial") for p in pend_conc] +
-                       [c.get("dominio_oficial") for c in concursos])
+                       [c.get("dominio_oficial") for c in concursos] + list(DOMINIOS_INFORMATIVOS))
     linhas = []
     for p in pend_conc:
         dom = p.get("dominio_oficial")
@@ -182,6 +184,8 @@ def main():
         "PENDENCIAS_CONCURSOS": "\n".join(linhas) or "- (nenhuma pendência de concurso no ledger)",
         "CONCURSOS_PRIORIDADE": "\n".join(prioridade) or "- (nenhum prazo nos próximos 7 dias)",
         "CONCURSOS_DEMAIS": "; ".join(demais) or "(nenhum)",
+        "REDE_INFORMATIVOS": "; ".join("%s %s" % (d, "acessível" if rede.get(d) else "BLOQUEADO")
+                                       for d in DOMINIOS_INFORMATIVOS),
     }
 
     def sub(m):
