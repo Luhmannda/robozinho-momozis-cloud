@@ -139,7 +139,10 @@ def classifica(quando, inicio, fim, recorte):
 # ------------------------------------------------------------ Congresso
 def leis(inicio, fim, recorte, atos_pub):
     cod, t = fetch(URL_LEIS)
-    out = {"fonte": "congresso_leis", "http": cod, "itens": []}
+    # listadas/mais_recente: pagina lida sem norma na janela (ex.: periodo
+    # eleitoral, out/2026) nao e erro da fonte; em 16/10 isso virou "ERRO",
+    # WebSearch inutil e status "falha".
+    out = {"fonte": "congresso_leis", "http": cod, "itens": [], "listadas": 0, "mais_recente": ""}
     for bloco in t.split('<div class="sf-lista-resumos__resumo">')[1:]:
         m = re.search(r'<dt>Norma:</dt>\s*<dd>\s*<a href="([^"]+)">([^<]+)</a>\s*'
                       r'\(<a[^>]*>DOU de (\d\d/\d\d/\d{4})</a>\)', bloco)
@@ -149,6 +152,9 @@ def leis(inicio, fim, recorte, atos_pub):
         n = re.match(r"(.+?) n[ºo°.]*\s*([\d.]+)\s+de\s+(\d\d/\d\d/\d{4})", norma)
         if not n:
             continue
+        out["listadas"] += 1
+        if not out["mais_recente"]:       # a pagina vem da mais nova para a mais antiga
+            out["mais_recente"] = "%s, DOU %s" % (norma, dou.strftime("%d/%m/%Y"))
         tipo, numero, data_ato = n.group(1).strip(), n.group(2).replace(".", ""), n.group(3)
         slug = re.sub(r"\s+", "-", tipo.lower())
         ementa = re.search(r"<dt>Ementa:</dt>\s*<dd>(.*?)</dd>", bloco, re.S)
@@ -323,7 +329,10 @@ def main():
             cont[i["situacao"]] = cont.get(i["situacao"], 0) + 1
         print("\n== %s http=%s %s" % (r["fonte"].upper(), r["http"],
                                       " ".join("%s=%d" % kv for kv in sorted(cont.items()))))
-        if not ok(r["http"]) or (not itens and r["fonte"] != "congresso_mpv"):
+        if ok(r["http"]) and not itens and r.get("listadas"):
+            print("SEM NORMA NOVA NA JANELA: pagina lida (%d normas listadas; a mais recente: %s)"
+                  " — fonte ok, sem WebSearch" % (r["listadas"], r["mais_recente"]))
+        elif not ok(r["http"]) or (not itens and r["fonte"] != "congresso_mpv"):
             print("ERRO: fonte indisponivel ou 0 itens extraidos — usar WebSearch (fallback)")
         for i in itens:
             s = i["situacao"]

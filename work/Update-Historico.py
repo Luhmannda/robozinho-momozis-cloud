@@ -578,6 +578,9 @@ def main():
         )
     nova_exec = read_json(args.nova_execucao_path)
     preenchidos = completar_cabecalho(nova_exec, args.janela)
+    for campo in ("verification_notes", "errors"):   # texto solto (16/10) vira lista
+        if isinstance(nova_exec.get(campo), str):
+            nova_exec[campo] = [nova_exec[campo]] if nova_exec[campo].strip() else []
 
     if not nova_exec.get("execution_id"):
         raise SystemExit("A nova execucao nao possui execution_id.")
