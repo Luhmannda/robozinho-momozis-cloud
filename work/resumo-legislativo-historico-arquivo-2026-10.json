@@ -788,6 +788,398 @@
       },
       "gmail_message_id": "1a0fc2895700830b",
       "delivery_reconciled_at": "2026-10-05T07:24:46-03:00"
+    },
+    {
+      "execution_id": "2026-10-05-7h",
+      "type": "diaria",
+      "run_started_at": "2026-10-05T07:19:08-03:00",
+      "run_finished_at": "2026-10-05T07:45:00-03:00",
+      "date": "2026-10-05",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-02T07:19:30-03:00",
+      "window_end": "2026-10-05T07:19:08-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 05/10/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r8846690036812294234",
+      "verification_notes": "Congresso: 20 leis ja publicadas, nenhuma NOVA; MPV sem itens. Rascunho criado com um texto residual na fonte do 1o item STF Noticias ('herdada: anterior a 04/10 7h19? nao...') — erro editorial nao corrigido para nao arriscar update_draft; item e de 04/10 13:12, dentro da janela. JOTA 02/10 itens AGU/Guardian, Dino perda de objeto, Globo debate e Moraes prompt injection omitidos por ja constarem em chaves_publicadas. Thread JOTA 1a0fe4bad18bb76a (236 KB) nao lida (get_thread estourou limite). Coletor concursos: so 8 buscas, WebFetch bloqueado, tudo de resumo de busca. Coletor Gmail haiku completo desta vez.",
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|presidente-reafirma-eleicoes-livres-transparentes-auditaveis|2026|2026-10-04",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "Presidente do STF reafirma importância de eleições livres, transparentes e auditáveis",
+          "data": "2026-10-04",
+          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-reafirma-importancia-de-eleicoes-livres-transparentes-e-auditaveis/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|ministros-presidente-lamentam-falecimento-marcio-chaer|2026|2026-10-03",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "Ministros e Presidente do STF lamentam o falecimento do jornalista Márcio Chaer",
+          "data": "2026-10-03",
+          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-lamenta-falecimento-do-jornalista-marcio-chaer/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|supremo-na-semana-estatuto-idoso-planos-saude|2026|2026-10-03",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "Julgamento sobre aplicação do estatuto do idoso a planos de saúde é destaque no Supremo na Semana",
+          "data": "2026-10-03",
+          "url": "https://noticias.stf.jus.br/postsnoticias/julgamento-sobre-aplicacao-do-estatuto-do-idoso-a-planos-de-saude-e-destaque-no-supremo-na-semana/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "concurso|tjrs|juiz-substituto-inscricoes-ate-14-10-reverificado-05-10|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJRS Juiz de Direito Substituto — inscrições até 14/10 16h",
+          "data": "2026-10-05",
+          "url": "https://conhecimento.fgv.br/concursos/tjrsjuiz26",
+          "status": "INSCRIÇÕES ABERTAS"
+        },
+        {
+          "chave": "concurso|tjdft|edital-sem-data-oficial-reverificado-05-10|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJDFT Juiz Substituto XLV — edital sem data oficial",
+          "data": "2026-10-05",
+          "url": "https://www.tjdft.jus.br/",
+          "status": "EM PLANEJAMENTO",
+          "observacao": "sem pagina oficial de edital; url do tribunal"
+        },
+        {
+          "chave": "concurso|trf2|xix-concurso-oral-divergencia-reverificado-05-10|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF2 XIX concurso — inscrição definitiva 16/10–06/11; data da oral divergente",
+          "data": "2026-10-05",
+          "url": "https://www.trf2.jus.br/jf2/noticia-jf2/2026/trf2-realiza-segunda-etapa-do-xix-concurso-para-juiz-federal-substituto-com",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|promotor|mps-previstos-sem-edital|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "Promotor de Justiça — sem edital publicado; MPs previstos",
+          "data": "2026-10-05",
+          "url": "https://blog.decorandoaleiseca.com.br/concursos-promotor/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|agu-pfn|170-vagas-sem-movimento-reverificado-05-10|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "AGU/PFN — 170 vagas, banca não definida",
+          "data": "2026-10-05",
+          "url": "https://blog.decorandoaleiseca.com.br/concurso-agu-banca-em-escolha/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|pge-al|resultado-previsto-20-10-reverificado-05-10|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-AL Procurador — resultado previsto 20/10",
+          "data": "2026-10-05",
+          "url": "https://cj.estrategia.com/portal/concurso-procurador-pge-al-2026-gabarito/",
+          "status": "EM ANDAMENTO"
+        },
+        {
+          "chave": "concurso|pge-rj|19-concurso-prova-23-08-divergencia-reverificado-05-10|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-RJ 19º concurso — prova escrita 23/08 segundo resumos; página oficial não aberta",
+          "data": "2026-10-05",
+          "url": "https://cj.estrategia.com/portal/concurso-pge-rj-procurador/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|alepa|procurador-edital-noticiado|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "ALEPA Procurador — edital noticiado, inscrições 01/10–04/11",
+          "data": "2026-10-05",
+          "url": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|dpe-sp|edital-conselho-superior-02-10-nao-confirmado|2026|2026-10-05",
+          "fonte": "Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-SP Defensor Público — edital esperado, fontes divergem",
+          "data": "2026-10-05",
+          "url": "https://cj.estrategia.com/portal/concurso-dpe-sp-defensor/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|conjur-migalhas|flavio-lula-segundo-turno-governadores-1o-turno|2026|2026-10-04",
+          "fonte": "ConJur/Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Flávio Bolsonaro e Lula vão ao segundo turno da eleição presidencial",
+          "data": "2026-10-04",
+          "url": "https://conjur.com.br/2026-out-04/flavio-bolsonaro-e-lula-vao-ao-segundo-turno-da-eleicao-presidencial/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|nunes-marques-suspende-decisao-dallagnol-senado-pr|2026|2026-10-05",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques (TSE) suspende decisão que barrou a candidatura de Deltan Dallagnol ao Senado-PR",
+          "data": "2026-10-05",
+          "url": "https://www.jota.info/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO",
+          "observacao": "boletim JOTA Principal 05/10 sem link proprio"
+        },
+        {
+          "chave": "midia|jota-conjur|garotinho-votos-calculo-segundo-turno-rj|2026|2026-10-05",
+          "fonte": "JOTA/ConJur",
+          "categoria": "Mídia",
+          "titulo": "Votos de Anthony Garotinho entram no cálculo enquanto registro está pendente",
+          "data": "2026-10-05",
+          "url": "https://conjur.com.br/2026-out-04/disputa-de-2o-turno-entre-ruas-e-paes-no-rj-depende-do-tse/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|jota|bancada-pro-impeachment-49-senadores|2026|2026-10-05",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Bancada pró-impeachment de ministros do STF chega a 49 senadores",
+          "data": "2026-10-05",
+          "url": "https://www.jota.info/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO",
+          "observacao": "boletim JOTA Principal 05/10 sem link proprio"
+        },
+        {
+          "chave": "midia|conjur-jota|nunes-marques-sem-indicios-interferencia-estrangeira|2026|2026-10-04",
+          "fonte": "ConJur/JOTA",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques diz que não há indícios de interferência estrangeira nas eleições",
+          "data": "2026-10-04",
+          "url": "https://conjur.com.br/2026-out-04/nunes-marques-diz-que-nao-ha-indicios-de-interferencia-estrangeira-nas-eleicoes/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota|fachin-nega-afastar-dino-acoes-flavio-lula|2026|2026-10-02",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Fachin rejeita pedido de Flávio Bolsonaro para afastar Flávio Dino de processos ligados ao senador e a Lula",
+          "data": "2026-10-02",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/fachin-nega-pedido-para-afastar-dino-de-acoes-ligadas-a-flavio-e-lula-nas-eleicoes",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "midia|conjur|empresa-sucessora-responde-execucao-mesma-atividade|2026|2026-10-04",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Empresa sucessora responde em execução se assume mesma atividade de devedora",
+          "data": "2026-10-04",
+          "url": "https://conjur.com.br/2026-out-04/empresa-que-explora-estabelecimento-no-lugar-de-devedora-e-incluida-execucao/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|confissao-informal-policiais-nao-permite-condenacao|2026|2026-10-04",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Confissão informal de crime a policiais não permite condenação",
+          "data": "2026-10-04",
+          "url": "https://conjur.com.br/2026-out-04/confissao-informal-de-crime-a-policiais-nao-permite-condenacao/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|justica-anula-exclusao-candidato-cotas-tjsp|2026|2026-10-04",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Justiça anula exclusão de candidato de cotas em concurso do TJ/SP",
+          "data": "2026-10-04",
+          "url": "https://www.migalhas.com.br/quentes/465582/justica-anula-exclusao-de-candidato-de-cotas-em-concurso-do-tj-sp",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|advogado-pagara-custas-litigancia-predatoria|2026|2026-10-04",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Advogado pagará custas após Justiça apontar litigância predatória",
+          "data": "2026-10-04",
+          "url": "https://www.migalhas.com.br/quentes/465662/advogado-pagara-custas-apos-justica-apontar-litigancia-predatoria",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "opiniao|conjur|desafios-precificacao-reforma-tributaria|2026|2026-10-05",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Desafios da precificação na reforma tributária",
+          "data": "2026-10-05",
+          "url": "https://conjur.com.br/2026-out-05/desafios-da-precificacao-na-reforma-tributaria/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|dolo-especifico-lei-improbidade|2026|2026-10-05",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "O dolo específico existe na Lei de Improbidade, ainda que escolham chamá-lo por outro nome",
+          "data": "2026-10-05",
+          "url": "https://conjur.com.br/2026-out-05/o-dolo-especifico-existe-na-lei-de-improbidade-ainda-que-escolham-chama-lo-por-outro-nome/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|unicidade-advocacia-publica-municipal|2026|2026-10-05",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "A unicidade na advocacia pública municipal: origem, conceito e limites",
+          "data": "2026-10-05",
+          "url": "https://conjur.com.br/2026-out-05/a-unicidade-na-advocacia-publica-municipal-origem-conceito-e-limites/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|medo-substituir-prova-tribunal-juri|2026|2026-10-04",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "O medo pode substituir a prova no Tribunal do Júri?",
+          "data": "2026-10-04",
+          "url": "https://conjur.com.br/2026-out-04/o-medo-pode-substituir-a-prova-no-tribunal-do-juri/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|jota|reforma-judiciario-proposta-lula-ribeiro-carvalho|2026|2026-10-02",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Reforma do Judiciário: proposta encaminhada a Lula",
+          "data": "2026-10-02",
+          "url": "https://www.jota.info/",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "sem link proprio"
+        },
+        {
+          "chave": "opiniao|jota|fim-bets-confianca-instituicoes|2026|2026-10-02",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Efeito do fim do mercado de bets na confiança nas instituições",
+          "data": "2026-10-02",
+          "url": "https://www.jota.info/",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "sem link proprio"
+        },
+        {
+          "chave": "fofoquinha|folha-jota|ala-tse-ve-exagero-apuracao-pf-interferencia|2026|2026-10-05",
+          "fonte": "Folha/JOTA",
+          "categoria": "Fofoquinha",
+          "titulo": "Ala de ministros do TSE vê exagero na apuração preliminar da PF sobre interferência estrangeira",
+          "data": "2026-10-05",
+          "url": "https://www.jota.info/",
+          "status": "SEM CONFIRMAÇÃO OFICIAL"
+        },
+        {
+          "chave": "versiculo|dailyverses|1-joao-3-24|2026|2026-10-05",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "1 João 3:24 (ARC)",
+          "data": "2026-10-05",
+          "url": "https://dailyverses.net/pt/2026/10/5",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|tres-pragas-inveja-ressentimento-autopiedade|indice-78|2026-10-05",
+          "fonte": "Aforismos públicos atribuídos a Charlie Munger",
+          "categoria": "Munger",
+          "titulo": "Fuja das três pragas que arruínam vidas: a inveja, o ressentimento e a autopiedade",
+          "data": "2026-10-05",
+          "url": "https://dailyverses.net/pt/2026/10/5",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026; seção sustentada pelo Portal do Congresso.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "stf_pauta_30_09_pos_eleicao",
+          "texto": "Pauta STF: créditos presumidos de ICMS sem desfecho localizado.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Caso Vorcaro/Master: nenhum desdobramento oficial novo.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ: prova 23/08 segundo resumos; página oficial não conferida.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2: data da oral divergente; página oficial não aberta.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: edital esperado, fontes divergem.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador: edital noticiado, sem fonte oficial.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT XLV: edital sem data oficial.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN 170 vagas, banca em definição.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TJRS inscrições até 14/10; PGE-AL resultado ~20/10; demais sem reverificação.",
+          "faixa": "longo_prazo"
+        }
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 45047,
+          "chamadas": 8,
+          "duracao_ms": 54041
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 109030,
+          "chamadas": 12,
+          "duracao_ms": 101233
+        },
+        "concursos": {
+          "modelo": "sonnet",
+          "tokens": 63932,
+          "chamadas": 11,
+          "duracao_ms": 44755
+        }
+      },
+      "gmail_message_id": "1a10b9bbf5998545",
+      "delivery_reconciled_at": "2026-10-06T10:42:02-03:00"
     }
   ]
 }
