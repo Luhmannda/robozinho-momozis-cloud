@@ -15,496 +15,6 @@
   ],
   "executions": [
     {
-      "execution_id": "2026-10-06-7h",
-      "type": "diaria",
-      "run_started_at": "2026-10-06T07:19:27-03:00",
-      "run_finished_at": "2026-10-06T10:42:02-03:00",
-      "date": "2026-10-06",
-      "timezone": "America/Sao_Paulo",
-      "window_start": "2026-10-05T07:19:08-03:00",
-      "window_end": "2026-10-06T07:19:27-03:00",
-      "recipients": [
-        "pereirafranciscofilho@gmail.com",
-        "luizaxbarreto@gmail.com"
-      ],
-      "email_subject": "Robozinho dos Momozis até Passar - 06/10/2026 - 7h",
-      "delivery": "draft",
-      "draft_id": "r5522350192658170758",
-      "verification_notes": [
-        "Coletor Gmail: 1º lançamento negado pelo classificador de permissões (Code from External) por executar /tmp/coletor-gmail.md sem leitura prévia; após leitura em primeira mão e conferência com work/prompts/coletor-gmail.md (só as datas diferem) o mesmo Agent foi relançado. ROTINA.md atualizada (commit baf48d6): passo 2 passa a ler os 3 prompts e o passo 5 documenta o relançamento.",
-        "Relatório Gmail (haiku) corrigido: marcou [ANTES] 4 notícias do STF de 05/10 (10h00–20h25) que estão dentro da janela (início 05/10 07h19) e usou a hora UTC do e-mail (05h07) como horário da notícia (eram 02h07 BRT); o item de 06/10 não tem horário interno.",
-        "JOTA 06/10 07h00 (thread 1a110a8ab76e5750) conferido no original: o receio de Moraes não assumir a presidência do STF em set/2027 é da Folha, não do Valor como constava do relatório do coletor. Os 5 fatos viraram 3 itens de mídia (Fachin, Lula, Moraes/arquivamento) e 2 fofoquinhas.",
-        "ConJur: HTTP 403 nas 3 listagens (0 itens). 1 WebSearch (allowed_domains conjur.com.br) trouxe só matérias já publicadas (dolo específico, 05/10) ou fora da janela (seguro garantia, 04/10): nenhum item de ConJur nesta edição.",
-        "Já publicados e ignorados: Garotinho/votos (05/10) e 49 senadores/impeachment (05/10; citado só como contexto na fofoquinha). Migalhas: pauta do STF e liminar da DPU fundidas aos itens de STF Notícias; 4 matérias institucionais/comerciais ficaram em 'ver mais'.",
-        "Concursos por resumos de busca (WebFetch bloqueado): PGE-RJ, DPE-SP, ALEPA, TRF2 e AGU/PFN sem página oficial; URL do TRF2 truncada nos resultados, não publicada. Itens de bloco não reverificado hoje marcados com a data do último registro.",
-        "Edição montada às ~10h40 BRT por atraso na coleta; janela mantida (fecha 07h19:27). JOTA Principal de 06/10 (09h43) e o webinar JOTA PRO (08h22) ficaram fora da janela e entram amanhã.",
-        "Informativo STF 1231/2026: e-mail de 05/10 22:09 BRT, corpo sem temas. Planalto: sonda vazia (PUSH mudo); Rota 13 sem lei nova (20 JA_PUBLICADA).",
-        "Em 07/10 a edição aparece como DRAFT (sem TRASH) e fora de in:sent; reconciliação automática para 'sent' revertida."
-      ],
-      "errors": [
-        "Agent coletor-gmail negado pelo classificador de permissões (Code from External) no 1º lançamento; relançado com sucesso após leitura em primeira mão",
-        "conjur: HTTP 403 nas 3 listagens (0 itens extraídos)",
-        "youversion: desafio anti-bot (versiculo.py usou o DailyVerses.net)"
-      ],
-      "items": [
-        {
-          "chave": "stf|noticia|confira-destaques-pauta-plenario-outubro|2026|2026-10-06",
-          "fonte": "STF (Push Notícias)",
-          "categoria": "STF Notícias",
-          "titulo": "Confira destaques da pauta do Plenário para outubro",
-          "data": "2026-10-06",
-          "url": "https://noticias.stf.jus.br/postsnoticias/confira-destaques-da-pauta-do-plenario-para-outubro/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "observacao": "push recebido 06/10 02h07 BRT, sem horário interno; Migalhas (05/10 17h30) noticiou a mesma pauta"
-        },
-        {
-          "chave": "stf|noticia|liminar-exclui-receitas-proprias-dpu-teto-gastos|2026|2026-10-05",
-          "fonte": "STF (Push Notícias)",
-          "categoria": "STF Notícias",
-          "titulo": "Liminar exclui receitas próprias da Defensoria Pública da União do teto de gastos do arcabouço fiscal",
-          "data": "2026-10-05",
-          "url": "https://noticias.stf.jus.br/postsnoticias/liminar-exclui-receitas-proprias-da-defensoria-publica-da-uniao-do-teto-de-gastos-do-arcabouco-fiscal/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "observacao": "05/10 17:50; Migalhas (18h34) atribui a decisão a Moraes; push só com título"
-        },
-        {
-          "chave": "stf|noticia|presidente-destaca-constituicao-presente-vida-brasileiros|2026|2026-10-05",
-          "fonte": "STF (Push Notícias)",
-          "categoria": "STF Notícias",
-          "titulo": "Presidente do STF destaca como a Constituição está presente na vida dos brasileiros",
-          "data": "2026-10-05",
-          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-destaca-como-a-constituicao-esta-presente-na-vida-dos-brasileiros/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "observacao": "05/10 20:25; push só com título"
-        },
-        {
-          "chave": "stf|noticia|oab-nacional-questiona-prazo-rpv-bahia|2026|2026-10-05",
-          "fonte": "STF (Push Notícias)",
-          "categoria": "STF Notícias",
-          "titulo": "OAB Nacional questiona prazo para pagamento de RPV na Bahia",
-          "data": "2026-10-05",
-          "url": "https://noticias.stf.jus.br/postsnoticias/oab-nacional-questiona-prazo-para-pagamento-de-rpv-na-bahia/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "observacao": "05/10 18:22; push só com título"
-        },
-        {
-          "chave": "stf|noticia|processos-estruturais-decisoes-exigem-acompanhamento|2026|2026-10-05",
-          "fonte": "STF (Push Notícias)",
-          "categoria": "STF Notícias",
-          "titulo": "Decisões que exigem acompanhamento: saiba o que são processos estruturais",
-          "data": "2026-10-05",
-          "url": "https://noticias.stf.jus.br/postsnoticias/decisoes-que-exigem-acompanhamento-saiba-o-que-sao-processos-estruturais/",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "observacao": "05/10 10:00; push só com título"
-        },
-        {
-          "chave": "stf|informativo|1231|2026|2026-10-05",
-          "fonte": "STF (Push Informativo)",
-          "categoria": "Informativos",
-          "titulo": "Informativo STF 1231/2026",
-          "data": "2026-10-05",
-          "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
-          "status": "CONFIRMADO POR FONTE OFICIAL",
-          "observacao": "e-mail de 05/10 22:09 BRT; corpo sem temas (link genérico)"
-        },
-        {
-          "chave": "concurso|tjrs|juiz-substituto-inscricoes-ate-14-10-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "TJRS (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "TJRS — Juiz de Direito Substituto: inscrições até 14/10, 16h",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "INSCRIÇÕES ABERTAS",
-          "observacao": "FGV, 30 vagas, subsídio R$ 30.505,36, prova 13/12; última verificação 05/10"
-        },
-        {
-          "chave": "concurso|tjdft|edital-sem-data-oficial-reverificado-06-10|2026|2026-10-06",
-          "fonte": "TJDFT / Cebraspe",
-          "categoria": "Concursos - Carreira",
-          "titulo": "TJDFT — Juiz de Direito Substituto (XLV): edital sem data oficial",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "Cebraspe, ~20 vagas, subsídio ~R$ 37.765,55; armadilha banca_edital_antigo respeitada"
-        },
-        {
-          "chave": "concurso|trf2|xix-concurso-oral-9-20-11-fonte-secundaria-06-10|2026|2026-10-06",
-          "fonte": "Estratégia Concursos (secundária)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "TRF2 — XIX concurso: oral em 9–20/11 e inscrição definitiva 16/10–06/11 (fonte secundária)",
-          "data": "2026-10-06",
-          "url": "https://cj.estrategia.com/portal/concurso-trf2-juiz-federal/",
-          "status": "PENDÊNCIA DE VERIFICAÇÃO",
-          "observacao": "página oficial não conferida; URL do TRF2 truncada nos resultados"
-        },
-        {
-          "chave": "concurso|trf5|xvi-concurso-inscricoes-encerradas-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "TRF5 (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "TRF5 — XVI concurso (Juiz Federal Substituto): inscrições encerradas, prova objetiva em 20/12",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "INSCRIÇÕES ENCERRADAS",
-          "observacao": "11 vagas imediatas + CR, FGV, subsídio R$ 37.765,55; registro de 29/09"
-        },
-        {
-          "chave": "concurso|promotor|mps-previstos-sem-edital-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "MPs estaduais (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "Promotor de Justiça (Estadual) — sem edital publicado; MPs previstos",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "bloco não reverificado hoje; último registro em 05/10"
-        },
-        {
-          "chave": "concurso|agu-pfn|170-vagas-enap-fonte-secundaria-06-10|2026|2026-10-06",
-          "fonte": "Magistrar / Estratégia (secundárias)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "AGU/PFN — 170 vagas, banca não definida; Enap como etapa prévia (fonte secundária)",
-          "data": "2026-10-06",
-          "url": "https://magistrarcursos.com.br/blog/concurso-procurador-federal/",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "Conselho Superior da AGU teria aprovado o Enap em 04/09; sem edital nem banca"
-        },
-        {
-          "chave": "concurso|pge-rj|19-concurso-orais-7-16-10-fonte-secundaria-06-10|2026|2026-10-06",
-          "fonte": "Estratégia / Magistrar (secundárias)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGE-RJ — 19º concurso: prova de 23/08 aplicada e orais em 7–16/10 (fonte secundária)",
-          "data": "2026-10-06",
-          "url": "https://cj.estrategia.com/portal/concurso-pge-rj-procurador/",
-          "status": "PENDÊNCIA DE VERIFICAÇÃO",
-          "observacao": "página oficial não conferida; supera a versão 'edital ~04/09'"
-        },
-        {
-          "chave": "concurso|pge-al|resultado-previsto-20-10-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "PGE-AL (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGE-AL — resultado final da objetiva e provisório da discursiva previstos para ~20/10",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM ANDAMENTO",
-          "observacao": "20 vagas (10 imediatas + 10 CR); reverificado em 05/10"
-        },
-        {
-          "chave": "concurso|alepa|procurador-edital-noticiado-fonte-secundaria-06-10|2026|2026-10-06",
-          "fonte": "Estratégia Concursos (secundária)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "ALEPA — Procurador Legislativo: edital noticiado, inscrições 01/10–04/11 (fonte secundária)",
-          "data": "2026-10-06",
-          "url": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
-          "status": "PENDÊNCIA DE VERIFICAÇÃO",
-          "observacao": "banca Fundação CETAP, taxa R$ 118, provas 13/12; página oficial não conferida"
-        },
-        {
-          "chave": "concurso|pge-rs|16-concurso-edital-abertura-pendente-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "PGE-RS (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGE-RS — 16º concurso: regulamento publicado em 21/09, edital sem data",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM ANDAMENTO",
-          "observacao": "registro de 29/09"
-        },
-        {
-          "chave": "concurso|pge-ba|comissao-formada-edital-pendente-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "PGE-BA (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGE-BA — Procurador: comissão formada, edital sem publicação",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "135 vagas totais, banca FCC; registro de 29/09"
-        },
-        {
-          "chave": "concurso|pge-ma|comissao-formada-banca-indefinida-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "PGE-MA (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGE-MA — Procurador: comissão formada, banca indefinida",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "10 vagas + CR; registro de 29/09"
-        },
-        {
-          "chave": "concurso|pgm-juazeiro-ba|edital-previsto-fim-setembro-sem-publicacao-06-10|2026|2026-10-06",
-          "fonte": "PGM Juazeiro/BA (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGM Juazeiro/BA — edital previsto para fim de setembro, sem publicação no último registro",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "registro de 29/09"
-        },
-        {
-          "chave": "concurso|pgm-valinhos-sp|provas-previstas-18-10-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "Magistrar (secundária, registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "PGM Valinhos/SP — provas previstas para 18/10",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM ANDAMENTO",
-          "observacao": "registro de 02/10; não reverificado"
-        },
-        {
-          "chave": "concurso|dpe-sp|edital-70-vagas-fontes-divergentes-06-10|2026|2026-10-06",
-          "fonte": "CEISC / Estratégia / Mege (secundárias)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "DPE-SP — Defensor Público (70 vagas): edital em disputa entre as fontes",
-          "data": "2026-10-06",
-          "url": "https://ceisc.com.br/blog/post/concurso-dpe-sp-com-70-vagas-novo-edital-para-defensor-e-publicado",
-          "status": "PENDÊNCIA DE VERIFICAÇÃO",
-          "observacao": "CEISC: inscrições 01–30/10, taxa R$ 250, prova 06/12, FCC; Estratégia e Mege ainda falam em edital em breve; DOE não visto"
-        },
-        {
-          "chave": "concurso|dpe-rj|fgv-35-vagas-em-andamento-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "DPE-RJ (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "DPE-RJ — FGV, 35 vagas, remuneração R$ 34.279,28",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM ANDAMENTO",
-          "observacao": "registro de 02/10"
-        },
-        {
-          "chave": "concurso|dpe-ro|comissao-formada-recursos-loa-2026-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "DPE-RO (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "DPE-RO — comissão formada, recursos previstos na LOA 2026",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "registro de 29/09"
-        },
-        {
-          "chave": "concurso|dpu|vii-concurso-banca-indefinida-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "DPU (registro anterior)",
-          "categoria": "Concursos - Carreira",
-          "titulo": "DPU — VII concurso: Resolução CSDPU 255/2026, banca e vagas indefinidas",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM PLANEJAMENTO",
-          "observacao": "registro de 29/09"
-        },
-        {
-          "chave": "concurso|trt8|banca-fcc-92-cargos-contrato-pendente-nao-reverificado-06-10|2026|2026-10-06",
-          "fonte": "TRT8 (registro anterior)",
-          "categoria": "Concursos - Apoio",
-          "titulo": "TRT8 — banca FCC definida, 92 cargos vagos, contrato pendente",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "EM ANDAMENTO",
-          "observacao": "registro de 29/09; não reverificado hoje"
-        },
-        {
-          "chave": "midia|jota|fachin-tribunal-maior-do-que-todos-permanecera|2026|2026-10-05",
-          "fonte": "JOTA (clipping dos principais jornais)",
-          "categoria": "Mídia",
-          "titulo": "Fachin: “o Tribunal permanecerá”",
-          "data": "2026-10-05",
-          "url": "",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "e-mail JOTA 06/10 07h00 (thread 1a110a8ab76e5750); sem link"
-        },
-        {
-          "chave": "midia|jota|lula-critica-stf-promiscuidade-reforma-judiciario|2026|2026-10-05",
-          "fonte": "JOTA (clipping dos principais jornais)",
-          "categoria": "Mídia",
-          "titulo": "Lula critica o STF e volta a defender reforma do Judiciário",
-          "data": "2026-10-05",
-          "url": "",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "e-mail JOTA 06/10 07h00; sem link"
-        },
-        {
-          "chave": "midia|jota-valor|moraes-arquiva-inquerito-do-val-eustaquio-allan|2026|2026-10-06",
-          "fonte": "Valor Econômico via JOTA",
-          "categoria": "Mídia",
-          "titulo": "Moraes arquiva inquérito contra Marcos do Val, Oswaldo Eustáquio e Allan dos Santos",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "PENDÊNCIA DE VERIFICAÇÃO",
-          "observacao": "decisão sigilosa de início de setembro; sem confirmação oficial; sem link"
-        },
-        {
-          "chave": "midia|jota|pec-fim-escala-6x1-chances-baixas-senado|2026|2026-10-05",
-          "fonte": "JOTA Principal (JOTA PRO Poder)",
-          "categoria": "Mídia",
-          "titulo": "PEC do fim da escala 6x1: chances baixas no Senado",
-          "data": "2026-10-05",
-          "url": "",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "boletim-resumo, sem link por item; relato do coletor, thread 1a10c2ed649bba85 não relida"
-        },
-        {
-          "chave": "midia|migalhas|stj-anula-juri-morte-bebe-parto-casa|2026|2026-10-05",
-          "fonte": "Migalhas",
-          "categoria": "Mídia",
-          "titulo": "STJ anula Júri por morte de bebê após parto em casa",
-          "data": "2026-10-05",
-          "url": "https://www.migalhas.com.br/quentes/465896/apos-peritos-nao-serem-ouvidos-stj-anula-juri-por-morte-de-bebe",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "05/10 17:01"
-        },
-        {
-          "chave": "midia|migalhas|stj-julga-prazo-indenizacao-vicios-imoveis-sfh|2026|2026-10-05",
-          "fonte": "Migalhas",
-          "categoria": "Mídia",
-          "titulo": "STJ volta a julgar o prazo para pedir indenização por vícios em imóveis do SFH",
-          "data": "2026-10-05",
-          "url": "https://www.migalhas.com.br/quentes/465911/stj-julgara-prazo-para-pedir-indenizacao-por-vicios-em-imoveis-do-sfh",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "05/10 17:21; julgamento previsto para 07/10"
-        },
-        {
-          "chave": "midia|migalhas|tst-reintegra-professor-demitido-tratamento-cancer|2026|2026-10-05",
-          "fonte": "Migalhas",
-          "categoria": "Mídia",
-          "titulo": "TST manda reintegrar professor demitido durante tratamento contra câncer",
-          "data": "2026-10-05",
-          "url": "https://www.migalhas.com.br/quentes/465898/tst-manda-reintegrar-professor-demitido-durante-tratamento-de-cancer",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "05/10 18:00"
-        },
-        {
-          "chave": "midia|migalhas|trt2-mantem-justa-causa-gerente-assedio-sexual|2026|2026-10-05",
-          "fonte": "Migalhas",
-          "categoria": "Mídia",
-          "titulo": "TRT-2 mantém justa causa de gerente por assédio sexual contra subordinada",
-          "data": "2026-10-05",
-          "url": "https://www.migalhas.com.br/quentes/465899/gerente-tem-justa-causa-mantida-por-assedio-sexual-contra-subordinada",
-          "status": "MÍDIA ESPECIALIZADA",
-          "observacao": "05/10 19:01"
-        },
-        {
-          "chave": "fofoquinha|folha-jota|nunes-marques-revisao-criminal-bolsonaro-apos-segundo-turno|2026|2026-10-06",
-          "fonte": "Folha de S.Paulo via JOTA",
-          "categoria": "Fofoquinha",
-          "titulo": "Nunes Marques quer julgar a soltura de Bolsonaro logo após o 2º turno",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "FORTE INDÍCIO",
-          "observacao": "e-mail JOTA 06/10 07h00; sem confirmação oficial; sem link"
-        },
-        {
-          "chave": "fofoquinha|folha-valor-jota|ministros-stf-temem-impeachment-2027|2026|2026-10-06",
-          "fonte": "Folha de S.Paulo e Valor Econômico via JOTA",
-          "categoria": "Fofoquinha",
-          "titulo": "Ministros do STF temem pedidos de impeachment em 2027",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "SEM CONFIRMAÇÃO OFICIAL",
-          "observacao": "e-mail JOTA 06/10 07h00; 49 senadores já noticiado em 05/10; sem link"
-        },
-        {
-          "chave": "versiculo|dailyverses|proverbios-13-12|2026|2026-10-06",
-          "fonte": "DailyVerses.net",
-          "categoria": "Versículo",
-          "titulo": "Provérbios 13:12 (ARC)",
-          "data": "2026-10-06",
-          "url": "https://dailyverses.net/pt/2026/10/6",
-          "status": "VERSÍCULO DO DIA",
-          "observacao": "YouVersion com desafio anti-bot; versiculo.py usou o DailyVerses.net"
-        },
-        {
-          "chave": "munger|citacao|case-com-a-pessoa-certa-poucas-decisoes-pesam|indice-79|2026-10-06",
-          "fonte": "Aforismos públicos amplamente atribuídos a Charlie Munger",
-          "categoria": "Munger",
-          "titulo": "Case com a pessoa certa: poucas decisões pesam tanto no resto da sua vida.",
-          "data": "2026-10-06",
-          "url": "",
-          "status": "SABEDORIA DO DIA",
-          "observacao": "índice 79 de 200 (doy 279)"
-        }
-      ],
-      "source_status": {
-        "gmail_push_stf": "ok",
-        "gmail_push_stf_informativos": "ok",
-        "gmail_stj_codju": "ok",
-        "gmail_push_planalto": "vazio",
-        "gmail_jota": "ok",
-        "congresso_ultimas_leis": "ok",
-        "congresso_mpvs": "ok",
-        "conjur": "falha",
-        "migalhas": "ok",
-        "youversion": "falha",
-        "dailyverses": "ok"
-      },
-      "pendencias": [
-        {
-          "id": "planalto_push_mudo",
-          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026; seção sustentada pelo Portal do Congresso (sem lei nova na janela).",
-          "faixa": "cronica"
-        },
-        {
-          "id": "stf_pauta_30_09_pos_eleicao",
-          "texto": "STF: créditos presumidos de ICMS na base do PIS/Cofins sem desfecho localizado; pauta de outubro divulgada.",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "crise_institucional_stf_pgr_acompanhar",
-          "texto": "Caso Vorcaro/Master: nenhum desdobramento oficial novo.",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "pge_rj_edital_verificar",
-          "texto": "PGE-RJ: prova de 23/08 e orais 7–16/10 por fontes secundárias; página oficial não conferida.",
-          "faixa": "ativa"
-        },
-        {
-          "id": "trf2_oral_divergencia",
-          "texto": "TRF2: oral 9–20/11 por fonte secundária; página oficial não conferida.",
-          "faixa": "ativa"
-        },
-        {
-          "id": "dpe_sp_edital_verificar",
-          "texto": "DPE-SP: edital noticiado como publicado por parte das fontes; DOE não visto.",
-          "faixa": "ativa"
-        },
-        {
-          "id": "alepa_procurador_verificar",
-          "texto": "ALEPA Procurador: edital noticiado, sem fonte oficial.",
-          "faixa": "ativa"
-        },
-        {
-          "id": "tjdft_edital",
-          "texto": "TJDFT XLV: edital sem data oficial.",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "agu_pfn_edital",
-          "texto": "AGU/PFN 170 vagas, banca em definição; Enap como etapa prévia (fonte secundária).",
-          "faixa": "longo_prazo"
-        },
-        {
-          "id": "concursos_cronogramas",
-          "texto": "TJRS inscrições até 14/10; PGE-AL resultado ~20/10; demais sem reverificação.",
-          "faixa": "longo_prazo"
-        }
-      ],
-      "coletores": {
-        "gmail": {
-          "modelo": "haiku",
-          "tokens": 45790,
-          "chamadas": 10,
-          "duracao_ms": 41210
-        },
-        "jota": {
-          "modelo": "sonnet",
-          "tokens": 99337,
-          "chamadas": 6,
-          "duracao_ms": 38452
-        },
-        "concursos": {
-          "modelo": "sonnet",
-          "tokens": 60644,
-          "chamadas": 9,
-          "duracao_ms": 34103
-        }
-      }
-    },
-    {
       "execution_id": "2026-10-07-7h",
       "type": "diaria",
       "run_started_at": "2026-10-07T07:19:34-03:00",
@@ -4386,7 +3896,7 @@
       "delivery_reconciled_at": "2026-10-20T07:14:08-03:00"
     },
     {
-      "delivery": "draft",
+      "delivery": "sent",
       "verification_notes": [
         "Sonda PUSH Planalto voltou: 1 resenha (19/10) com Decreto 13.139. Boletim da Camara de 17/10 traz promulgacao da emenda do fim da escala 6x1 e STF/Funrural: ja cobertos na edicao de 16/10, nao republicados. Informativo STF 1233: PDF bloqueado (403), publicado so numero/data/link. Coletor de concursos nao buscou PGE-RS, PGE-BA, PGE-MA, PGM Juazeiro, DPE-RJ, DPE-RO, TRT8 (limite de buscas): registros herdados. Prazo PGM Valinhos (18/10) e PGE-AL (20/10) sem confirmacao em fonte alguma. Gap de 4 dias (fim de semana) coberto com teto de 7 dias."
       ],
@@ -4819,6 +4329,487 @@
         "contexto_total": 784054,
         "cache_gravado": 123609,
         "saida": 36257
+      },
+      "gmail_message_id": "1a158db5a51846ac",
+      "delivery_reconciled_at": "2026-10-21T07:15:08-03:00"
+    },
+    {
+      "delivery": "draft",
+      "verification_notes": [
+        "Anti-duplicata limpo (sem rascunho nem envio de hoje; edicao de 20/10 enviada). Congresso/leis: sem norma nova (ultima Lei 15.526 de 29/09). congresso_mpvs: coleta_web deu ERRO (http 0); 1 WebSearch site congressonacional.leg.br mostrou como mais recentes as MPVs 1393 e 1394 (DOU 25/09); nenhuma MPV de outubro localizada, mas sem data oficial de detalhe - nao publicada. PUSH Planalto: sonda vazia. Camara: 17 itens, todos projetos em tramitacao, nenhum [LEI]/[PLENARIO]. informativos.py: STF 1234 e RG 393 com http 403 e sem e-mail do Push STF na janela (busca b vazia) - nao publicados; STJ 906 publicado com destaques do documento oficial. Coletor JOTA: itens do boletim de 20/10 com link resolvido pelo resolver (um SEM_MATCH sem link); clippings de Folha/Estadao sem link. PGE-AL: resultado previsto para 20/10 nao localizado em fonte confiavel (busca trouxe so cronograma secundario e resultado possivelmente de 2021). Coletor concursos fez 4 buscas e varios curls; TJDFT, AGU/PFN e demais acompanhados nao reverificados hoje."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|volta-grande-licenca-instalacao|2026|2026-10-20",
+          "fonte": "STF Push",
+          "categoria": "STF Notícias",
+          "titulo": "STF mantém suspensa licença de instalação do Projeto Volta Grande de Mineração no Pará",
+          "data": "2026-10-20",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-mantem-suspensa-licenca-de-instalacao-do-projeto-volta-grande-de-mineracao-no-para/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|icms-energia-comunicacao-maranhao|2026|2026-10-20",
+          "fonte": "STF Push",
+          "categoria": "STF Notícias",
+          "titulo": "STF afasta alíquota maior de ICMS sobre energia elétrica e serviços de comunicação no Maranhão",
+          "data": "2026-10-20",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-afasta-aliquota-maior-de-icms-sobre-energia-eletrica-e-servicos-de-comunicacao-no-maranhao/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|sus-hospitais-privados-revisao|2026|2026-10-20",
+          "fonte": "STF Push",
+          "categoria": "STF Notícias",
+          "titulo": "Supremo vai analisar revisão judicial dos valores pagos pelo SUS a hospitais privados",
+          "data": "2026-10-20",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-vai-analisar-revisao-judicial-dos-valores-pagos-pelo-sus-a-hospitais-privados/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|criancas-democracia-cidadania|2026|2026-10-20",
+          "fonte": "STF Push",
+          "categoria": "STF Notícias",
+          "titulo": "STF recebe crianças para conversar sobre democracia, cidadania e direitos",
+          "data": "2026-10-20",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-recebe-criancas-para-conversar-sobre-democracia-cidadania-e-direitos/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stj|informativo|906|2026|2026-10-20",
+          "fonte": "STJ CodJu",
+          "categoria": "Informativos",
+          "titulo": "Informativo STJ nº 906 (20 de outubro de 2026)",
+          "data": "2026-10-20",
+          "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0906.cod.",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "jota|noticia|stj-afasta-servidores-willer-tomaz|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "STJ afasta dois servidores por suspeita de vazar informações sigilosas ao advogado Willer Tomaz",
+          "data": "2026-10-20",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "JOTA PRO, sem link; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "jota|noticia|tse-meta-x-nikolas-marcal|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE proíbe Meta e X de dar tratamento privilegiado às contas de Nikolas Ferreira e Pablo Marçal até o fim do segundo turno",
+          "data": "2026-10-20",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "JOTA PRO, sem link; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "jota|noticia|campanhas-intensificam-judicializacao|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Campanhas intensificam judicialização apesar de tentativa de contenção de Nunes Marques",
+          "data": "2026-10-20",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/coluna-flavia-maia/campanhas-intensificam-judicializacao-apesar-de-tentativa-de-contencao-de-nunes-marques",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|pgr-abuso-autoridade-mendonca|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "PGR não vê crime de abuso de autoridade de Mendonça em investigação do Master e do INSS",
+          "data": "2026-10-20",
+          "url": "https://www.jota.info/stf/do-supremo/pgr-nao-ve-crime-de-abuso-de-autoridade-mendonca-em-investigacao-do-master-e-do-inss",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem confirmação oficial localizada"
+        },
+        {
+          "chave": "folha|noticia|mendonca-oficio-fachin-casos-master-inss|2026|2026-10-21",
+          "fonte": "JOTA (clipping Folha)",
+          "categoria": "Mídia",
+          "titulo": "André Mendonça enviou ofício a Fachin pedindo que decida se devolverá os casos Master e INSS ao seu gabinete",
+          "data": "2026-10-21",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping sem link; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "estadao|noticia|fachin-prazo-pf-lulinha|2026|2026-10-21",
+          "fonte": "JOTA (clipping Estadão)",
+          "categoria": "Mídia",
+          "titulo": "Fachin deverá decidir pedido da PF de mais prazo para concluir apuração sobre Fábio Luís Lula da Silva",
+          "data": "2026-10-21",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping sem link; decisão ainda não tomada segundo o e-mail"
+        },
+        {
+          "chave": "conjur|noticia|stj-multa-advogados-prompt-injection|2026|2026-10-20",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ multa advogados em R$ 20 mil por uso de prompt injection em petição",
+          "data": "2026-10-20",
+          "url": "https://conjur.com.br/2026-out-20/stj-multa-advogados-em-r-20-mil-por-uso-de-prompt-injection-em-peticao/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem confirmação oficial localizada"
+        },
+        {
+          "chave": "conjur|noticia|novo-decreto-sac-plataformas|2026|2026-10-20",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Novo decreto do SAC encerra 'autorregulação' de plataformas digitais",
+          "data": "2026-10-20",
+          "url": "https://conjur.com.br/2026-out-20/novo-decreto-do-sac-inclui-plataformas-digitais-em-reclamacoes/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem confirmação oficial localizada"
+        },
+        {
+          "chave": "jota|noticia|cjf-acordo-sentencas-coletivas-uniao|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "CJF aprova acordo que abre negociação no cumprimento de sentenças coletivas contra União",
+          "data": "2026-10-20",
+          "url": "https://www.jota.info/justica/cjf-aprova-acordo-que-abre-negociacao-no-cumprimento-de-sentencas-coletivas-contra-uniao",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "só manchete no e-mail"
+        },
+        {
+          "chave": "migalhas|noticia|stj-espolio-unip-quotas|2026|2026-10-20",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "STJ permite que espólio de fundador da Unip compre quotas sociais",
+          "data": "2026-10-20",
+          "url": "https://www.migalhas.com.br/quentes/466906/stj-permite-que-espolio-de-fundador-da-unip-compre-quotas-sociais",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem confirmação oficial localizada"
+        },
+        {
+          "chave": "jota|opiniao|transparencia-ia-generativa-judiciario|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "A transparência no uso de IA generativa pelo Judiciário",
+          "data": "2026-10-20",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/mulheres-na-regulacao/a-transparencia-no-uso-de-ia-generativa-pelo-judiciario",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|opiniao|lei-minerais-criticos|2026|2026-10-20",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Nova lei de minerais críticos coloca o Brasil no jogo global",
+          "data": "2026-10-20",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/nova-lei-de-minerais-criticos-coloca-o-brasil-no-jogo-global",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|estado-primeiro-devedor-contumaz|2026|2026-10-21",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "O Estado brasileiro é o primeiro devedor contumaz",
+          "data": "2026-10-21",
+          "url": "https://conjur.com.br/2026-out-21/o-estado-brasileiro-e-o-primeiro-devedor-contumaz/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|chip-sobrevive-celular-stj|2026|2026-10-20",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "O chip sobrevive ao celular: o STJ e a prova autônoma",
+          "data": "2026-10-20",
+          "url": "https://conjur.com.br/2026-out-20/o-chip-sobrevive-ao-celular-o-stj-e-a-prova-autonoma/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|prisao-preventiva-espiritismo-juridico|2026|2026-10-20",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Prisão preventiva não se fundamenta com 'espiritismo jurídico'",
+          "data": "2026-10-20",
+          "url": "https://conjur.com.br/2026-out-20/prisao-preventiva-nao-se-fundamenta-com-espiritismo-juridico/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|centro-inteligencia-litigancia-ilicita-agu|2026|2026-10-20",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Centro de Inteligência contra Litigância Ilícita: o acerto da AGU",
+          "data": "2026-10-20",
+          "url": "https://conjur.com.br/2026-out-20/centro-de-inteligencia-contra-litigancia-ilicita-o-acerto-da-agu/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "estadao|fofoca|fachin-prorrogacao-lulinha-apos-segundo-turno|2026|2026-10-21",
+          "fonte": "JOTA (clipping Estadão)",
+          "categoria": "Fofoquinha",
+          "titulo": "Tendência em torno de Fachin seria autorizar prorrogação do inquérito Lulinha após o segundo turno",
+          "data": "2026-10-21",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "observacao": "segundo pessoas próximas a Fachin ouvidas pelo Estadão; decisão não tomada"
+        },
+        {
+          "chave": "folha|fofoca|willer-tomaz-apoio-flavio-cnj-2023|2026|2026-10-20",
+          "fonte": "JOTA (clipping Folha)",
+          "categoria": "Fofoquinha",
+          "titulo": "Willer Tomaz teria tido apoio de Flávio Bolsonaro para vaga no CNJ em 2023",
+          "data": "2026-10-20",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "observacao": "coluna de Mônica Bergamo, dois magistrados ouvidos"
+        },
+        {
+          "chave": "youversion|versiculo|salmos-24-1|2026|2026-10-21",
+          "fonte": "YouVersion (bible.com)",
+          "categoria": "Versículo",
+          "titulo": "Salmos 24:1",
+          "data": "2026-10-21",
+          "url": "https://www.bible.com/pt/verse-of-the-day?day=294",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|repeticao-alma-aprendizado|2026|2026-10-21",
+          "fonte": "Aforismos públicos amplamente atribuídos a Charlie Munger",
+          "categoria": "Munger",
+          "titulo": "A repetição é a alma do aprendizado",
+          "data": "2026-10-21",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        },
+        {
+          "chave": "concurso|dpe_sp|inscricoes-abertas-ate-11-11|2026|2026-10-21",
+          "fonte": "Defensoria Pública SP",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-SP — X Concurso de Defensor: inscrições abertas até 11/11",
+          "data": "2026-10-14",
+          "url": "https://www.defensoria.sp.def.br/noticias/-/noticia/7558991/defensoria-publica-de-sp-abre-inscricoes-para-o-x-concurso-de-ingresso-na-carreira-em-13-de-outubro",
+          "status": "INSCRIÇÕES ABERTAS"
+        },
+        {
+          "chave": "concurso|pge_al|resultado-nao-localizado|2026|2026-10-21",
+          "fonte": "Estratégia (secundária)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-AL — resultado previsto para 20/10 não localizado",
+          "data": "2026-10-21",
+          "url": "https://cj.estrategia.com/portal/concurso-pge-AL-procurador/",
+          "status": "EM ANDAMENTO"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "falha",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "ok",
+        "dailyverses": "nao_tentada"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto: sonda vazia em 21/10 (única resenha recente: Decreto 13.139 em 19/10); ainda não é diário",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado final da objetiva e provisório da discursiva previstos para 20/10; publicação não localizada em 21/10 (fonte secundária)",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP X concurso: inscrições até 11/11 confirmadas na notícia oficial de 14/10; vagas (70) e prova (10/01/2027) seguem só em fonte secundária; edital não lido",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador: home oficial sem menção a concurso em 21/10, /concursos 404; dados só em fonte secundária",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: inscrição definitiva e orais seguem só em fontes secundárias; home e página de concursos sem essas datas em 21/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: página oficial lida em 21/10 sem convocação de orais; orais de 7-16/10 em fontes secundárias podem ser da PGM-RJ",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "fontes": {
+          "congresso_mpvs": {
+            "nota": "Em 21/10 coleta_web deu ERRO (http 0); WebSearch mostrou MPV 1393 e 1394 (DOU 25/09) como mais recentes. Uma falha, sem padrão ainda.",
+            "status": "saudavel"
+          }
+        },
+        "pendencias": {
+          "planalto_push_mudo": {
+            "texto": "PUSH Planalto voltou em 19/10 com 1 resenha (Decreto 13.139); sonda vazia em 21/10 — ainda não é diário",
+            "faixa": "longo_prazo",
+            "politica": "1 sonda por execução; se seguir diário, restaurar protocolo completo e remover."
+          },
+          "pge_al_resultado": {
+            "texto": "PGE-AL: resultado final da objetiva e provisório da discursiva previstos p/ 20/10; não localizado em 21/10",
+            "faixa": "ativa",
+            "politica": "Achar resultado em fonte confiável (banca/órgão) e atualizar o registro; depois remover."
+          },
+          "dpe_sp_edital_verificar": {
+            "texto": "DPE-SP X concurso: inscrições até 11/11 confirmadas na notícia oficial de 14/10; vagas e prova só em fonte secundária; edital não lido",
+            "faixa": "ativa",
+            "politica": "Edital lido no DOE/FCC: confirmar números e aposentar.",
+            "dominio_oficial": "www.defensoria.sp.def.br"
+          },
+          "alepa_procurador_verificar": {
+            "texto": "ALEPA Procurador (003/2026): só fontes secundárias (CETAP, 5 vagas, inscrições 01/10 a 04/11, prova 13/12); home oficial sem menção em 21/10, /concursos 404",
+            "faixa": "ativa",
+            "politica": "Confirmado em fonte oficial/CETAP: registro vira INSCRICOES ABERTAS e a pendência é aposentada.",
+            "dominio_oficial": "www.alepa.pa.gov.br"
+          },
+          "trf2_oral_divergencia": {
+            "texto": "TRF2 XIX (Edital 154/2025): inscrição definitiva 16/10 a 06/11 e oral 9-20/11 só em secundárias; home e página de concursos oficiais de 21/10 sem essas datas",
+            "faixa": "ativa",
+            "politica": "Abrir a notícia oficial do TRF2 sobre o concurso, corrigir o registro e aposentar.",
+            "dominio_oficial": "www.trf2.jus.br"
+          },
+          "pge_rj_edital_verificar": {
+            "texto": "PGE-RJ 19º: página oficial (21/10) sem convocação de orais; orais de 7-16/10 achadas em busca eram da PGM-RJ",
+            "faixa": "ativa",
+            "politica": "Só a página oficial promove o selo; convocação para orais publicada: atualizar o registro e aposentar.",
+            "dominio_oficial": "pge.rj.gov.br"
+          },
+          "crise_institucional_stf_pgr_acompanhar": {
+            "texto": "Caso Master/INSS: mídia de 20-21/10 (JOTA, Folha, Estadão) relata ofício de Mendonça a Fachin sobre devolução dos casos e parecer da PGR; sem ato oficial novo localizado.",
+            "faixa": "longo_prazo",
+            "politica": "Prioridade: qualquer desdobramento OFICIAL (STF, STJ/CNJ, PF, gabinetes). Declaração relatada só pela mídia vale no máximo FORTE INDICIO.",
+            "dominio_oficial": "noticias.stf.jus.br"
+          }
+        },
+        "concursos": {
+          "dpe_sp": {
+            "bloco": "Defensor Público Estadual (DPE)",
+            "linha": "DPE-SP — X concurso de Defensor: notícia oficial (atualizada em 14/10) confirma inscrições de 13/10 a 11/11 (23h59), taxa R$ 250 e banca FCC; vagas (70) e prova objetiva (10/01/2027) só em fonte secundária; edital não lido",
+            "selo": "INSCRIÇÕES ABERTAS",
+            "verificado_em": "2026-10-21",
+            "prazos": [
+              {
+                "data": "2026-11-11",
+                "evento": "fim das inscrições",
+                "confirmado": true
+              },
+              {
+                "data": "2027-01-10",
+                "evento": "prova objetiva (fonte secundária)",
+                "confirmado": false
+              }
+            ],
+            "fonte": "https://www.defensoria.sp.def.br/noticias/-/noticia/7558991/defensoria-publica-de-sp-abre-inscricoes-para-o-x-concurso-de-ingresso-na-carreira-em-13-de-outubro",
+            "dominio_oficial": "www.defensoria.sp.def.br",
+            "pendencia": "dpe_sp_edital_verificar"
+          },
+          "pge_al": {
+            "bloco": "Procurador do Estado (PGE)",
+            "linha": "PGE-AL — Procurador: gabaritos preliminares publicados; resultado final da objetiva e provisório da discursiva previstos para ~20/10, sem publicação localizada em 21/10; 20 vagas: 10 imediatas + 10 CR",
+            "selo": "EM ANDAMENTO",
+            "verificado_em": "2026-10-21",
+            "prazos": [],
+            "fonte": "https://cj.estrategia.com/portal/concurso-pge-AL-procurador/",
+            "pendencia": "pge_al_resultado"
+          },
+          "alepa_procurador": {
+            "bloco": "Procurador do Estado (PGE)",
+            "linha": "ALEPA (Assembleia Legislativa do Pará) — Procurador (Concurso nº 003/2026): edital só em fontes secundárias; 5 vagas imediatas, banca CETAP, taxa R$ 118,00, vencimento base R$ 3.697,73 + gratificações; inscrições de 01/10 a 04/11; prova em 13/12; home oficial da ALEPA sem menção a concurso em 21/10 e /concursos 404",
+            "selo": "PENDÊNCIA DE VERIFICAÇÃO",
+            "verificado_em": "2026-10-21",
+            "prazos": [
+              {
+                "data": "2026-11-04",
+                "evento": "fim das inscrições",
+                "confirmado": false
+              },
+              {
+                "data": "2026-12-13",
+                "evento": "prova",
+                "confirmado": false
+              }
+            ],
+            "fonte": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
+            "dominio_oficial": "www.alepa.pa.gov.br",
+            "pendencia": "alepa_procurador_verificar"
+          },
+          "pge_rj": {
+            "bloco": "Procurador do Estado (PGE)",
+            "linha": "PGE-RJ — 19º concurso de Procurador (5 vagas + CR, FGV): página oficial lida em 21/10 sem convocação de orais; último ato oficial visto em 15/10 foi o resultado preliminar da prova escrita geral (DO de 07/10/2026); orais de 7 a 16/10 citadas por fontes secundárias sem base oficial",
+            "selo": "EM ANDAMENTO",
+            "verificado_em": "2026-10-21",
+            "prazos": [],
+            "dominio_oficial": "pge.rj.gov.br",
+            "pendencia": "pge_rj_edital_verificar"
+          }
+        },
+        "armadilhas_detectadas": [],
+        "armadilhas_novas": []
+      },
+      "execution_id": "2026-10-21-7h",
+      "date": "2026-10-21",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-20T07:09:14-03:00",
+      "window_end": "2026-10-21T07:09:08-03:00",
+      "run_started_at": "2026-10-21T07:09:08-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 21/10/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r3604543964711550056",
+      "run_finished_at": "2026-10-21T07:15:08-03:00",
+      "coletores": {
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 20853,
+          "chamadas": 11,
+          "duracao_ms": 27605,
+          "chamadas_modelo": 5,
+          "contexto_total": 65050,
+          "cache_gravado": 20851,
+          "saida": 231
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 63146,
+          "chamadas": 9,
+          "duracao_ms": 79241,
+          "chamadas_modelo": 7,
+          "contexto_total": 222340,
+          "cache_gravado": 63144,
+          "saida": 213
+        },
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 23953,
+          "chamadas": 11,
+          "duracao_ms": 79775,
+          "chamadas_modelo": 7,
+          "contexto_total": 110054,
+          "cache_gravado": 23951,
+          "saida": 159
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 193185,
+        "chamadas": 20,
+        "duracao_ms": 354448,
+        "chamadas_modelo": 8,
+        "contexto_total": 1192012,
+        "cache_gravado": 114049,
+        "saida": 41995
       }
     }
   ]
