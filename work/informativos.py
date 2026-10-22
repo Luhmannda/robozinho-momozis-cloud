@@ -10,7 +10,8 @@
 #   Informativo STJ  https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0NNN.cod.
 #     (o link do e-mail, em ww2.stj.jus.br, redireciona para www.stj.jus.br,
 #      que esta fora do allowlist; processo.stj.jus.br serve o mesmo conteudo)
-#   O servidor do STF devolve 403 ao user-agent do curl: usa-se o de navegador.
+#   O servidor do STF devolve 403 ao user-agent do curl: usa-se o de navegador
+#   E um Referer de portal.stf.jus.br (sem o Referer o PDF da RG 394 deu 403 em 22/10/2026).
 #
 # USO:   python3 work/informativos.py                 (edicoes novas, pelo historico)
 #        python3 work/informativos.py stf:1232 rg:392 stj:905   (edicoes dadas)
@@ -57,7 +58,7 @@ def baixar(url):
     with tempfile.NamedTemporaryFile(delete=False) as f:
         caminho = f.name
     try:
-        r = subprocess.run(["curl", "-sL", "-m", "40", "-A", UA, "-H", "Accept-Language: pt-BR,pt;q=0.9",
+        r = subprocess.run(["curl", "-sL", "-m", "40", "-A", UA, "-e", "https://portal.stf.jus.br/", "-H", "Accept-Language: pt-BR,pt;q=0.9",
                             "-o", caminho, "-w", "%{http_code}", url], capture_output=True, timeout=50)
         codigo = int(r.stdout.decode().strip() or 0)
         return codigo, open(caminho, "rb").read()
