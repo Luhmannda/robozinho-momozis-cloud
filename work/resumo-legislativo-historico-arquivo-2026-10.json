@@ -3593,6 +3593,426 @@
       },
       "gmail_message_id": "1a12fa8399d6dd93",
       "delivery_reconciled_at": "2026-10-13T07:23:40-03:00"
+    },
+    {
+      "execution_id": "2026-10-13-7h",
+      "type": "diaria",
+      "run_started_at": "2026-10-13T07:19:34-03:00",
+      "run_finished_at": "2026-10-13T07:30:00-03:00",
+      "date": "2026-10-13",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-12T07:19:05-03:00",
+      "window_end": "2026-10-13T07:19:34-03:00",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "email_subject": "Robozinho dos Momozis até Passar - 13/10/2026 - 7h",
+      "delivery": "sent",
+      "draft_id": "r3500539356673829652",
+      "verification_notes": [
+        "Edição anterior (12/10) enviada pelo Apps Script (in:sent, 10:28Z).",
+        "Push STF de 13/10 só reiterou notícias já publicadas (armas 09/10, Zanin, Rede, PcD); nenhuma entrou. O item de 10/10 (Supremo na Semana) ficou de fora por ser anterior à janela e repetir tema já publicado.",
+        "Planalto: 7 leis e MPV 1395 JA_PUBLICADA; nenhum ato novo.",
+        "Boletim JOTA único (13/10 07:00); itens sem link, clipping de Folha/Estadão/Valor.",
+        "Rodapé do e-mail diz 28 itens na janela; o histórico registra 33 (contagem do e-mail desatualizada, sem impacto no conteúdo).",
+        "Concursos: 6 buscas; PGE-AL, PGM, TRT8, PGE-BA/MA/RS, DPU, DPE-RO, AGU/PFN, MPs não reverificados; só resumos de busca (WebFetch bloqueado). Prazo 15/10 Câmara de Rio Branco/AC e isenção DPE-SP 13-14/10 ficaram fora por falta de URL/fonte única.",
+        "YouVersion com desafio anti-bot; fallback DailyVerses ok."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "midia|conjur-jota|tse-canal-apoio-lula-nunes-marques-cueva|2026|2026-10-13",
+          "fonte": "ConJur/JOTA",
+          "categoria": "Mídia",
+          "titulo": "Canal pró-Lula no TSE",
+          "data": "2026-10-13",
+          "url": "https://conjur.com.br/2026-out-12/tecnicos-do-tse-nao-encontram-conteudo-falso-em-canal-de-apoio-a-lula/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "JOTA sem link; cita Estadão/Folha"
+        },
+        {
+          "chave": "midia|jota-folha|tse-bellizze-remove-videos-paulista|2026|2026-10-13",
+          "fonte": "JOTA/Folha",
+          "categoria": "Mídia",
+          "titulo": "TSE manda remover vídeos sobre ato na Paulista",
+          "data": "2026-10-12",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link próprio; clipping Folha"
+        },
+        {
+          "chave": "midia|migalhas-jota|moraes-autoriza-flavio-visitar-pai|2026|2026-10-12",
+          "fonte": "Migalhas/JOTA",
+          "categoria": "Mídia",
+          "titulo": "Moraes autoriza Flávio Bolsonaro a voltar a visitar o pai",
+          "data": "2026-10-12",
+          "url": "https://www.migalhas.com.br/quentes/466317/moraes-autoriza-flavio-bolsonaro-a-voltar-a-visitar-o-pai",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|stj-confirma-campo-ampliado-condenacao-autonoma-lavagem|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ confirma campo ampliado para condenação autônoma por lavagem de capitais",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/stj-confirma-campo-ampliado-para-condenacao-autonoma-por-lavagem-de-capitais/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|transacao-fiscal-nao-desobriga-banco-fiador-stj|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Transação fiscal não desobriga banco fiador da dívida, afirma STJ",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/transacao-fiscal-nao-desobriga-banco-fiador-da-divida-reafirma-stj/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|stj-vai-julgar-honorarios-contratuais-condominio|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ vai julgar inclusão de honorários contratuais no valor do condomínio",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/stj-vai-definir-inclusao-de-honorarios-contratuais-no-valor-do-condominio/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|migalhas|novo-filtro-honorarios-perder-espaco-stj|2026|2026-10-13",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Com novo filtro, discussões sobre honorários podem perder espaço no STJ",
+          "data": "2026-10-13",
+          "url": "https://www.migalhas.com.br/quentes/466269/com-novo-filtro-discussoes-de-honorarios-podem-perder-espaco-no-stj",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|conjur|protocolo-revogacao-sem-notificacao-prescricao-honorarios-tjsp|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Protocolo de revogação sem notificação não inicia prescrição de honorários, diz TJ-SP",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/protocolo-de-revogacao-sem-notificacao-nao-inicia-prescricao-de-honorarios-diz-tj-sp/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "midia|jota-valor|justa-causa-conversas-teams-osasco|2026|2026-10-13",
+          "fonte": "JOTA/Valor",
+          "categoria": "Mídia",
+          "titulo": "Justa causa por conversas pessoais e sexuais no Teams",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link; clipping Valor"
+        },
+        {
+          "chave": "opiniao|conjur|a-deterioracao-do-sistema-de-justica-brasileiro-cultura-do-c|2026|2026-10-13",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "A deterioração do sistema de justiça: cultura do concurso público, mérito e responsabilidade institucional",
+          "data": "2026-10-13",
+          "url": "https://conjur.com.br/2026-out-13/a-deterioracao-do-sistema-de-justica-brasileiro-cultura-do-concurso-publico-merito-e-responsabilidade-institucional/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|a-incomunicabilidade-como-garantia-instrumental-da-imparcial|2026|2026-10-13",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "A incomunicabilidade como garantia instrumental da imparcialidade do Conselho de Sentença",
+          "data": "2026-10-13",
+          "url": "https://conjur.com.br/2026-out-13/a-incomunicabilidade-como-garantia-instrumental-da-imparcialidade-do-conselho-de-sentenca/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|a-lei-geral-do-licenciamento-ambiental-e-o-fim-da-autorizaca|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "A Lei Geral do Licenciamento Ambiental e o fim da autorização dos órgãos gestores de unidades de conservação",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/a-lei-geral-do-licenciamento-ambiental-e-o-fim-da-autorizacao-dos-orgaos-gestores-de-unidades-de-conservacao/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|responsabilidade-tributaria-do-procurador-do-nao-residente-h|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Responsabilidade tributária do procurador do não residente: hipóteses e limites",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/responsabilidade-tributaria-do-procurador-do-nao-residente-hipoteses-e-limites/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|o-suicidio-voluntario-na-lei-no-15-040-2024-a-nova-redacao-p|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "O ‘suicídio voluntário’ na Lei nº 15.040/2024: a nova redação pode reabrir discussão superada pela Súmula 610/STJ?",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/o-suicidio-voluntario-na-lei-no-15-040-2024-a-nova-redacao-pode-reabrir-discussao-superada-pela-sumula-610-stj/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "opiniao|conjur|o-papel-do-administrador-judicial-na-recuperacao-extrajudici|2026|2026-10-12",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "O papel do administrador judicial na recuperação extrajudicial",
+          "data": "2026-10-12",
+          "url": "https://conjur.com.br/2026-out-12/o-papel-do-administrador-judicial-na-recuperacao-extrajudicial/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "fofoquinha|folha-jota|anderson-torres-revisao-criminal-apos-eleicoes|2026|2026-10-13",
+          "fonte": "Folha/JOTA",
+          "categoria": "Fofoquinha",
+          "titulo": "Revisão criminal de Anderson Torres",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "observacao": "expectativa da defesa (Painel); sem link"
+        },
+        {
+          "chave": "versiculo|dailyverses|joao-4-14|2026|2026-10-13",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "João 4:14 (ARC)",
+          "data": "2026-10-13",
+          "url": "https://dailyverses.net/pt/2026/10/13",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|poucas-tacadas-certeiras-valem-mais-que-muita-agitacao|indice-86|2026-10-13",
+          "fonte": "Aforismos atribuídos a Munger",
+          "categoria": "Munger",
+          "titulo": "Poucas tacadas certeiras valem mais que muita agitação; saiba ficar parado.",
+          "data": "2026-10-13",
+          "url": "https://dailyverses.net/pt/2026/10/13",
+          "status": "SABEDORIA DO DIA"
+        },
+        {
+          "chave": "concurso|tjrs|13-10|2026|2026-10-13",
+          "fonte": "FGV",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJRS Juiz Substituto: inscrições até 14/10",
+          "data": "2026-10-13",
+          "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-de-abertura-0031-2026-dmag.pdf",
+          "status": "ENCERRA EM BREVE"
+        },
+        {
+          "chave": "concurso|tjsc|13-10|2026|2026-10-13",
+          "fonte": "Magistrar (busca)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJSC Juiz Substituto: FGV, edital previsto para outubro",
+          "data": "2026-10-13",
+          "url": "https://magistrarcursos.com.br/blog/?p=48516",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|tjdft|13-10|2026|2026-10-13",
+          "fonte": "Correio Braziliense",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJDFT Juiz Substituto XLV: Cebraspe, edital sem data oficial",
+          "data": "2026-10-13",
+          "url": "https://blogs.correiobraziliense.com.br/papodeconcurseiro/concurso-tjdft-extrato-de-contrato-e-divulgado-edital-iminente/amp/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "concurso|trf5|13-10|2026|2026-10-13",
+          "fonte": "FGV",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF5 Juiz Federal Substituto: inscrições encerradas, prova 20/12",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "INSCRIÇÕES ENCERRADAS",
+          "observacao": "herdada, não reverificado"
+        },
+        {
+          "chave": "concurso|trf2|13-10|2026|2026-10-13",
+          "fonte": "TRF2",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF2 XIX concurso: datas da oral divergentes",
+          "data": "2026-10-13",
+          "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/19/SEI_1438979_Edital_154.pdf",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|promotor-mpf|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "Promotor e MPF/MPU: editais previstos, sem publicação",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM PLANEJAMENTO",
+          "observacao": "não reverificado"
+        },
+        {
+          "chave": "concurso|agu-pfn|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "AGU/PFN: 170 vagas autorizadas, sem edital nem banca",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM PLANEJAMENTO",
+          "observacao": "não reverificado"
+        },
+        {
+          "chave": "concurso|alepa|13-10|2026|2026-10-13",
+          "fonte": "Estratégia (busca)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "ALEPA Procurador: Edital 003/2026, inscrições até 04/11",
+          "data": "2026-10-13",
+          "url": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|pge-rj|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-RJ 19º concurso: orais sem data confirmada",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|pge-al-rs-ba-ma|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGE-AL resultado ~20/10; PGE-RS, BA e MA com editais pendentes",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM ANDAMENTO",
+          "observacao": "não reverificado"
+        },
+        {
+          "chave": "concurso|pgm-juazeiro-valinhos|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGM Juazeiro/BA e Valinhos/SP",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM ANDAMENTO",
+          "observacao": "não reverificado"
+        },
+        {
+          "chave": "concurso|dpe-sp|13-10|2026|2026-10-13",
+          "fonte": "Concursos no Brasil",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-SP X concurso: edital noticiado em 09/10, DOE e FCC não vistos",
+          "data": "2026-10-13",
+          "url": "https://concursosnobrasil.com/concursos/sp/2026/10/09/saiu-o-x-concurso-da-defensoria-publica-de-sao-paulo-dpe-sp-com-70-vagas/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|dpe-rj-ro|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-RJ e DPE-RO em andamento",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM ANDAMENTO",
+          "observacao": "não reverificado"
+        },
+        {
+          "chave": "concurso|dpu|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPU VII concurso: banca indefinida",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM PLANEJAMENTO",
+          "observacao": "não reverificado"
+        },
+        {
+          "chave": "concurso|trt8|13-10|2026|2026-10-13",
+          "fonte": "ledger",
+          "categoria": "Concursos - Apoio",
+          "titulo": "TRT8 apoio: FCC, contrato pendente",
+          "data": "2026-10-13",
+          "url": "",
+          "status": "EM ANDAMENTO",
+          "observacao": "não reverificado"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "Gmail PUSH Planalto sem e-mail desde 02/07/2026; seção sustentada pelo Portal do Congresso.",
+          "faixa": "cronica"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Caso Vorcaro/Master: sem desdobramento oficial novo; sem busca ativa.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ: orais sem data confirmada; página oficial não vista.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2: data da oral diverge; comunicado oficial não visto.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: edital noticiado por blogs (inscrições 13/10–11/11); DOE/FCC não vistos.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador: inscrições até 04/11 por fontes secundárias; página oficial não vista.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT XLV: edital sem data oficial.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN 170 vagas, sem edital nem banca.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "concursos_cronogramas",
+          "texto": "TJRS inscrições até 14/10; PGE-AL resultado ~20/10; demais não reverificados.",
+          "faixa": "longo_prazo"
+        }
+      ],
+      "coletores": {
+        "gmail": {
+          "modelo": "haiku",
+          "tokens": 56498,
+          "chamadas": 8,
+          "duracao_ms": 17650
+        },
+        "jota": {
+          "modelo": "sonnet",
+          "tokens": 77353,
+          "chamadas": 5,
+          "duracao_ms": 37969
+        },
+        "concursos": {
+          "modelo": "sonnet",
+          "tokens": 63202,
+          "chamadas": 9,
+          "duracao_ms": 41282
+        }
+      },
+      "gmail_message_id": "1a134cea0440a104",
+      "delivery_reconciled_at": "2026-10-14T07:25:10-03:00"
     }
   ]
 }
