@@ -217,10 +217,30 @@ def _data_iso(v):
         return False
 
 
+LIMITE_ATIVA = 21   # prompt mestre §16
+
+
+def pendencias_estouradas(upd, led):
+    """Pendencia 'ativa' com >= LIMITE_ATIVA execucoes precisa ser rebaixada ou removida
+    NESTA execucao. Antes so havia aviso pos-commit, ignorado por semanas (ex.: PGE-RJ, 24)."""
+    pend_upd = (upd or {}).get("pendencias") or {}
+    erros = []
+    for p in led.get("pendencias_vivas") or []:
+        if p.get("faixa") != "ativa" or int(p.get("execucoes") or 0) < LIMITE_ATIVA:
+            continue
+        u = pend_upd.get(p.get("id")) or {}
+        if u.get("remover") or (u.get("faixa") and u["faixa"] != "ativa"):
+            continue
+        erros.append("ledger_updates.pendencias.%s: ativa ha %s execucoes (limite %d) — rebaixe a "
+                     "faixa (longo_prazo ou cronica) ou remova com desfecho" % (
+                         p.get("id"), p.get("execucoes"), LIMITE_ATIVA))
+    return erros
+
+
 def validar_ledger_updates(upd, led):
     """Erros de forma do campo ledger_updates. Nada e aplicado aqui."""
     if not upd:
-        return []
+        return pendencias_estouradas({}, led)
     if not isinstance(upd, dict):
         return ["ledger_updates deve ser um objeto"]
     erros = []
@@ -271,6 +291,7 @@ def validar_ledger_updates(upd, led):
                     erros.append("%s.prazos[%d]: use {data: AAAA-MM-DD, evento, confirmado: "
                                  "true|false}" % (rot, n))
     ativas = {x.get("id") for x in led.get("armadilhas") or []}
+    erros += pendencias_estouradas(upd, led)
     for ident in upd.get("armadilhas_detectadas") or []:
         if ident not in ativas:
             erros.append("ledger_updates.armadilhas_detectadas: %r nao e armadilha ativa" % ident)
@@ -407,7 +428,7 @@ def aplicar_ledger(caminho, ex, add_log):
         no_ledger.add(p.get("id"))
         if p.get("id") in ids:
             p["execucoes"] = int(p.get("execucoes") or 0) + 1
-            if p.get("faixa") == "ativa" and p["execucoes"] > 21:
+            if p.get("faixa") == "ativa" and p["execucoes"] > LIMITE_ATIVA:
                 add_log("Ledger: pendencia %s ativa ha %d execucoes (>21) — rebaixar ou aposentar."
                         % (p["id"], p["execucoes"]))
         else:

@@ -208,6 +208,13 @@ def mpvs(inicio, fim, recorte, atos_pub):
 
 
 # ------------------------------------------------------------ Midia
+def descricao(pagina):
+    """Linha-fina da materia (og:description / description), copiada da propria pagina."""
+    m = (re.search(r'<meta\s+property="og:description"\s+content="([^"]*)"', pagina or "") or
+         re.search(r'<meta\s+name="description"\s+content="([^"]*)"', pagina or ""))
+    return limpa(m.group(1)) if m else ""
+
+
 def conjur(inicio, fim, recorte, urls_pub):
     pags = fetch_many(list(URLS_CONJUR.values()))
     out = {"fonte": "conjur", "http": {k: pags[u][0] for k, u in URLS_CONJUR.items()},
@@ -228,7 +235,8 @@ def conjur(inicio, fim, recorte, urls_pub):
                 abrir.append(url)          # so a hora decide
             else:
                 it["situacao"] = "NOVA"
-    for url, (c, p) in fetch_many(abrir).items():
+    abertas = fetch_many(abrir)
+    for url, (c, p) in abertas.items():
         quando = publicado_em(p)
         it = vistos[url]
         it["quando"] = quando
@@ -237,6 +245,12 @@ def conjur(inicio, fim, recorte, urls_pub):
         if chave_url(it["url"]) in urls_pub:
             it["situacao"] = "JA_PUBLICADA"
         out["itens"].append(it)
+    # linha-fina das materias publicaveis (antes so o titulo era conferido)
+    publicaveis = [it["url"] for it in out["itens"] if it.get("situacao") in ("NOVA", "HERDADA", "SEM_DATA")]
+    abertas.update(fetch_many([u for u in publicaveis if u not in abertas]))
+    for it in out["itens"]:
+        if it["url"] in publicaveis:
+            it["resumo"] = descricao(abertas[it["url"]][1])
     return out
 
 
@@ -345,7 +359,7 @@ def main():
                     s, i["numero"], i["ano"], i["dou"] or "?", i["http_detalhe"],
                     i["ementa"][:160], i["url"], " | chave=" + i["chave"] if i["dou"] else ""))
             elif s in ("NOVA", "HERDADA", "SEM_DATA"):
-                extra = (" — " + i["resumo"][:150]) if i.get("resumo") else ""
+                extra = (" — " + i["resumo"][:220]) if i.get("resumo") else ""
                 tag = i.get("tipo", "noticia")[:3].upper()
                 rep = " [REPETIDA?~%s]" % i["repetida"] if i.get("repetida") else ""
                 print("[%s|%s] %s | %s%s | %s%s" % (s, tag, hm(i), i["titulo"], extra, i["url"], rep))

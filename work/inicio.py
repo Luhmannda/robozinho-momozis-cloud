@@ -34,6 +34,36 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 DIAS = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
         "sexta-feira", "sábado", "domingo"]
 ASSUNTO = "Robozinho dos Momozis até Passar - %s - 7h"
+# Descoberta de concursos NOVOS (abertos ou que vao abrir), uma carreira por dia util.
+# O registro do ledger so cresce com o que esta varredura encontra.
+DESCOBERTA = {
+    0: ("Varredura geral (1ª do ciclo semanal)",
+        ["concursos carreiras jurídicas inscrições abertas {mes} {ano}",
+         "concursos jurídicos editais previstos autorizados {ano} juiz promotor procurador defensor",
+         "concurso edital publicado {mes} {ano} procurador OR defensor OR juiz OR promotor"]),
+    1: ("Magistratura Estadual e Federal",
+        ["concurso juiz substituto edital {ano} inscrições",
+         "concurso juiz federal TRF edital {ano} OR comissão formada OR banca definida",
+         "tribunal de justiça concurso magistratura {ano} comissão banca previsto"]),
+    2: ("Ministério Público (estadual, MPF/MPU) e Defensorias (DPE, DPU)",
+        ["concurso promotor de justiça edital {ano} inscrições OR comissão OR banca",
+         "concurso defensor público edital {ano} inscrições OR comissão OR banca",
+         "concurso MPU OR MPF procurador da república {ano} edital previsto"]),
+    3: ("Procuradorias (PGE, PGM, assembleias) e AGU/PFN",
+        ["concurso procurador do estado PGE edital {ano} inscrições OR comissão OR banca",
+         "concurso procurador do município PGM edital {ano} inscrições abertas",
+         "concurso AGU procurador da fazenda nacional {ano} banca edital"]),
+    4: ("Quadro de apoio (analista/técnico de TJ, MP, Defensoria, TRF/TRT)",
+        ["concurso analista judiciário técnico judiciário edital {ano} inscrições abertas",
+         "concurso analista ministério público defensoria edital {ano} inscrições",
+         "concurso TJ OR TRF OR TRT servidores edital previsto {ano} banca definida"]),
+}
+MESES_PT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto",
+            "setembro", "outubro", "novembro", "dezembro"]
+RODIZIO_N = 3          # registros mais antigos reverificados por dia
+RODIZIO_DIAS = 10      # so entra no rodizio quem esta sem verificacao ha >= N dias
+LIMITE_ATIVA = 21      # prompt mestre §16: pendencia ativa nao passa disso
+
 PALAVRAS_CONCURSO = re.compile(
     r"concurso|edital|banca|inscri|juiz|promotor|procurador|defensor|agu|pfn|pge|pgm|dpe|dpu", re.I)
 
@@ -79,6 +109,45 @@ def orgao(c):
 def quando(dias):
     return {0: "hoje", 1: "amanhã", -1: "ontem"}.get(dias, ("em %d dias" % dias) if dias > 0
                                                     else "há %d dias" % -dias)
+
+
+def resumo_ledger(led):
+    """O que o orquestrador precisa do ledger, sem descricao, niveis, dormentes e metricas.
+    Substitui o Read do JSON inteiro no passo 1 (~40% menor, reenviado a cada turno)."""
+    print("\n==== LEDGER (resumo; em conflito com o prompt mestre, o ledger vence) ====")
+    print("FONTES:")
+    for f in led.get("fontes", []):
+        extra = "".join(" %s=%s" % (k, f[k]) for k in ("ultimo_sucesso", "sem_sucesso", "dias_sem_email")
+                        if f.get(k) not in (None, "", 0))
+        print("- %s [%s%s]: %s" % (f["id"], f.get("status"), extra, f.get("nota", "")))
+    print("ARMADILHAS (checklist antes de publicar):")
+    for x in led.get("armadilhas", []):
+        print("- %s (%s): %s" % (x["id"], x.get("fonte", ""), x.get("regra", "")))
+    print("PENDENCIAS VIVAS:")
+    for p in led.get("pendencias_vivas", []):
+        print("- %s [%s, %s execuções, desde %s]: %s | política: %s" % (
+            p["id"], p.get("faixa"), p.get("execucoes"), p.get("desde"), p.get("texto", ""), p.get("politica", "")))
+    print("CONCURSOS (registro, na ordem dos blocos do e-mail):")
+    blocos = []
+    for c in led.get("concursos", []):
+        if c.get("bloco") not in blocos:
+            blocos.append(c.get("bloco"))
+    ordem = ["Magistratura Estadual", "Magistratura Federal", "Promotor de Justiça (Estadual)",
+             "MPF/MPU — Procurador da República", "PFN", "AGU — Advogado da União",
+             "Procurador do Estado (PGE)", "Procurador do Município (PGM)",
+             "Defensor Público Estadual (DPE)", "Defensor Público Federal (DPU)", "Quadro de apoio"]
+    for b in sorted(blocos, key=lambda b: ordem.index(b) if b in ordem else 99):
+        print("  [%s]" % b)
+        for c in led.get("concursos", []):
+            if c.get("bloco") != b:
+                continue
+            pz = "; ".join("%s %s%s" % (z.get("data"), z.get("evento"), "" if z.get("confirmado") else " (a confirmar)")
+                           for z in c.get("prazos") or [])
+            print("  - %s | %s | verificado %s%s | %s%s" % (
+                c["id"], c.get("selo"), c.get("verificado_em"),
+                " | pendência " + c["pendencia"] if c.get("pendencia") else "", c.get("linha", ""),
+                " | prazos: " + pz if pz else ""))
+    print("==== fim do LEDGER ====\n")
 
 
 def main():
@@ -165,23 +234,47 @@ def main():
                   ["- " + fmt_pz(*x) for x in proximos if x[0] <= 7])
     na_fila = {x[2].get("id") for x in vencidos} | {x[2].get("id") for x in proximos if x[0] <= 7}
     demais = [orgao(c) for c in concursos if not c.get("pendencia") and c.get("id") not in na_fila]
-    regra = ("1ª execução da semana (ou após gap): reverificar as pendências ativa E longo_prazo, "
-             "1–2 buscas cada, + até 6 buscas de novidades gerais."
+
+    # rodizio: os registros com verificacao mais antiga (fora da fila de prazos) ganham busca propria
+    def idade(c):
+        try:
+            return (hoje - date.fromisoformat(c.get("verificado_em", ""))).days
+        except ValueError:
+            return 999
+    velhos = sorted((c for c in concursos if c.get("id") not in na_fila and idade(c) >= RODIZIO_DIAS),
+                    key=idade, reverse=True)[:RODIZIO_N]
+    rodizio = ["- %s (id %s; verificado há %d dias; selo %s): %s" % (
+        orgao(c), c.get("id"), idade(c), c.get("selo"), c.get("linha", "")) +
+        (" | página oficial %s acessível: leia por curl antes de buscar" % c["dominio_oficial"]
+         if c.get("dominio_oficial") and rede.get(c["dominio_oficial"]) else "")
+        for c in velhos]
+    tema, consultas = DESCOBERTA.get(0 if primeira else agora.weekday(), DESCOBERTA[0])
+    consultas = [q.format(mes=MESES_PT[hoje.month - 1], ano=hoje.year) for q in consultas]
+    acompanhados = "; ".join("%s [%s]" % (orgao(c), c.get("bloco")) for c in concursos)
+    regra = ("1ª execução da semana (ou após gap): até 12 WebSearch — 4 em prazos/pendências "
+             "(ativa E longo_prazo), 3 no rodízio, 5 na descoberta (varredura geral)."
              if primeira else
-             "dia comum: reverificar só as pendências ativa; nas longo_prazo, só procurar "
-             "edital/inscrição/banca/resultado NOVO dos prazos próximos; até 6 buscas no total.")
+             "dia comum: até 9 WebSearch — 3 em prazos/pendências ativa, 3 no rodízio, 3 na descoberta "
+             "da carreira do dia; nas longo_prazo, só movimento NOVO.")
 
     vars_ = {
         "HOJE_BR": hoje_br, "DIA_SEMANA": DIAS[agora.weekday()],
         "INICIO": inicio.isoformat(), "FIM": agora.isoformat(),
         "INICIO_BR": inicio.strftime(fmt), "FIM_BR": agora.strftime(fmt),
         "EPOCH": str(int(inicio.timestamp())), "HORAS": "%.0f" % horas,
+        # after:<epoch> devolve {} no MCP do Gmail (armadilha gmail_after_epoch, 6 execucoes
+        # seguidas ate 04/11): busca pelo dia anterior ao inicio e filtro pelo horario interno.
+        "GMAIL_APOS": (inicio.date() - timedelta(days=1)).strftime("%Y/%m/%d"),
         "PRIMEIRA_SEMANA": "sim" if primeira else "não",
         "RECESSO": "sim — fluxo reduzido de STF/STJ é normal" if recesso else "não",
         "REGRA_FAIXA": regra,
         "PENDENCIAS_CONCURSOS": "\n".join(linhas) or "- (nenhuma pendência de concurso no ledger)",
         "CONCURSOS_PRIORIDADE": "\n".join(prioridade) or "- (nenhum prazo nos próximos 7 dias)",
         "CONCURSOS_DEMAIS": "; ".join(demais) or "(nenhum)",
+        "CONCURSOS_RODIZIO": "\n".join(rodizio) or "- (todos verificados nos últimos %d dias)" % RODIZIO_DIAS,
+        "DESCOBERTA_TEMA": tema,
+        "DESCOBERTA_CONSULTAS": "\n".join("- `%s`" % q for q in consultas),
+        "CONCURSOS_ACOMPANHADOS": acompanhados or "(nenhum)",
     }
 
     def sub(m):
@@ -203,7 +296,7 @@ def main():
         sobra = re.findall(r"\{\{[^}]+\}\}", texto)
         gerados.append(destino + (" (PLACEHOLDER SOBRANDO: %s)" % sobra if sobra else ""))
 
-    janela = {"data": hoje.isoformat(), "doy": doy, "execution_id": exec_id,
+    janela = {"data": hoje.isoformat(), "doy": doy, "execution_id": exec_id, "gmail_apos": vars_["GMAIL_APOS"],
               "inicio": inicio.isoformat(), "fim": agora.isoformat(), "epoch_inicio": int(inicio.timestamp()),
               "primeira_semana": primeira, "recesso": recesso,
               "assunto": ASSUNTO % hoje_br,
@@ -217,8 +310,8 @@ def main():
     print("ASSUNTO HOJE:     %s" % janela["assunto"])
     print("ASSUNTO ANTERIOR: %s | exec %s | delivery %s | draft_id %s" % (
         janela["assunto_anterior"], ult.get("execution_id"), ult.get("delivery"), ult.get("draft_id")))
-    print("JANELA: %s -> %s (%.1fh) | Gmail after:%s | 1a da semana: %s | gap: %s | recesso: %s" % (
-        janela["inicio"], janela["fim"], horas, janela["epoch_inicio"], vars_["PRIMEIRA_SEMANA"],
+    print("JANELA: %s -> %s (%.1fh) | Gmail after:%s + filtrar pelo horário interno >= %s | 1a da semana: %s | gap: %s | recesso: %s" % (
+        janela["inicio"], janela["fim"], horas, vars_["GMAIL_APOS"], inicio.strftime(fmt), vars_["PRIMEIRA_SEMANA"],
         "sim" if gap else "não", "sim" if recesso else "não"))
     print("  (herdada = anterior a %s)" % (agora - timedelta(hours=24)).strftime(fmt))
     print("CABECALHO: %s (%s) | RODAPE: \"Próxima edição: %s, às 7h.\"" % (hoje_br, DIAS[agora.weekday()], rodape))
@@ -239,8 +332,15 @@ def main():
     bloq = [d for d, ok in rede.items() if not ok]
     print("REDE: páginas oficiais bloqueadas: %s | acessíveis: %s" % (
         ", ".join(bloq) or "nenhuma", ", ".join(d for d, ok in rede.items() if ok) or "nenhuma"))
+    for p in ledger.get("pendencias_vivas", []):
+        if p.get("faixa") == "ativa" and int(p.get("execucoes") or 0) >= LIMITE_ATIVA:
+            alertas.append("pendência %s ativa há %s execuções (limite %d): no passo 5, em "
+                           "ledger_updates.pendencias, rebaixar a faixa (longo_prazo/cronica) ou remover "
+                           "— a validação recusa sem isso" % (p["id"], p.get("execucoes"), LIMITE_ATIVA))
+    print("CONCURSOS COLETOR: rodízio=%d registro(s) | descoberta do dia: %s" % (len(velhos), tema))
     for al in alertas:
         print("ALERTA: " + al)
+    resumo_ledger(ledger)
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, "
           "coletor-jota e coletor-concursos (primeiro plano) + Bash: python3 work/coleta_web.py; "

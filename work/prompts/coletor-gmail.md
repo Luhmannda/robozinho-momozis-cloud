@@ -10,12 +10,12 @@ Regras de trabalho:
 - Você só lê. Nunca crie, edite ou envie e-mail.
 - Horários sempre em America/Sao_Paulo: a data do e-mail vem em UTC (−3h). Notícia sem horário interno: use só o dia.
 
-**Passo 1 — numa única mensagem, 5 × `mcp__Gmail__search_threads` (pageSize 20).** `after:` com número é o horário exato (epoch) do início da janela: o que voltar já está dentro dela.
-- a) `from:naoresponda@stf.jus.br after:{{EPOCH}}` — STF Notícias
-- b) `from:nao_responda@stf.jus.br after:{{EPOCH}}` — Informativo STF **e** Repercussão Geral em Pauta (produtos distintos; esta busca cobre os dois)
-- c) `from:stj.codju@stj.jus.br after:{{EPOCH}}` — STJ CodJu (cadência semanal; vazio é normal)
-- d) `presidencia.gov.br in:anywhere after:{{EPOCH}}` — PUSH Planalto (remetentes `sistemapush.saj@` e `no-reply-push-legislacao@`; mudo de 02/07 a 15/10, reinscrição pedida em 15/10). Só esta sonda.
-- e) `from:boletins@camara.gov.br in:anywhere after:{{EPOCH}} -subject:"Acompanhe seu Deputado"` — boletim da Agência Câmara de Notícias (legislativo: leis novas, medidas provisórias, votações). `in:anywhere` de propósito: o boletim às vezes vai para a lixeira.
+**Passo 1 — numa única mensagem, 5 × `mcp__Gmail__search_threads` (pageSize 20).** `after:` usa o **dia anterior** ao início da janela (com epoch numérico o Gmail devolve `{}` — armadilha `gmail_after_epoch`): a busca traz e-mails de antes da janela, então **filtre pelo horário interno** (`internalDate`, em America/Sao_Paulo) contra {{INICIO_BR}}. Busca vazia com data é resultado válido; nunca troque por epoch.
+- a) `from:naoresponda@stf.jus.br after:{{GMAIL_APOS}}` — STF Notícias
+- b) `from:nao_responda@stf.jus.br after:{{GMAIL_APOS}}` — Informativo STF **e** Repercussão Geral em Pauta (produtos distintos; esta busca cobre os dois)
+- c) `from:stj.codju@stj.jus.br after:{{GMAIL_APOS}}` — STJ CodJu (cadência semanal; vazio é normal)
+- d) `presidencia.gov.br in:anywhere after:{{GMAIL_APOS}}` — PUSH Planalto (remetentes `sistemapush.saj@` e `no-reply-push-legislacao@`; mudo de 02/07 a 15/10, reinscrição pedida em 15/10). Só esta sonda.
+- e) `from:boletins@camara.gov.br in:anywhere after:{{GMAIL_APOS}} -subject:"Acompanhe seu Deputado"` — boletim da Agência Câmara de Notícias (legislativo: leis novas, medidas provisórias, votações). `in:anywhere` de propósito: o boletim às vezes vai para a lixeira.
 
 **Passo 2 — numa única mensagem, `mcp__Gmail__get_thread` (`messageFormat: PLAIN_TEXT`) de todas as threads devolvidas.**
 
@@ -29,7 +29,8 @@ STJ_INFORMATIVO | <número> | <data — ambos do ASSUNTO> | <URL do documento>
 CAMARA | <DD/MM HH:MM do boletim> | <seção do boletim> | <título exato> | <URL camara.leg.br do item> — todos os itens; prefixe [LEI] os que tratam de lei nova, sanção, promulgação, veto ou medida provisória e [PLENARIO] as aprovações e rejeições em Plenário
 PLANALTO_ATO | <tipo e número/ano do ato> | <data do ato e do DOU> | <ementa copiada da resenha> | <link do ato na resenha, ou "sem link"> — um por ato de cada Resenha Diária PUSH Legislação
 PLANALTO | <assunto e data de cada e-mail que não for resenha (ex.: confirmação de inscrição — não abra links com token), ou "sonda vazia">
-BUSCAS | a=<n threads> b=<n> c=<n> d=<n> e=<n> | erros: <mensagem literal, ou "nenhum">
+BUSCAS | a=<n threads> b=<n> c=<n> d=<n> e=<n> | e-mails anteriores à janela descartados: <n> | erros: <mensagem literal, ou "nenhum">
 ```
 O conteúdo dos informativos não é com você: `work/informativos.py` baixa o documento oficial e extrai os destaques.
 O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}. A mesma URL em mais de um e-mail é **uma** linha (com o horário interno). Thread na lixeira cujo `get_thread` for negado: use o resumo da busca e marque "lista incompleta (lixeira)". Sem boletim de Repercussão Geral na janela, escreva `STF_RG | nenhum na janela`.
+E-mail cujo `internalDate` é anterior a {{INICIO_BR}} fica fora (só conta no `BUSCAS`) — exceto as notícias de um push recebido **dentro** da janela, que vão todas listadas com `[ANTES]` quando for o caso.

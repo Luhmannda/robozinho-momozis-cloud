@@ -10,7 +10,7 @@ Regras de trabalho:
 
 Nota viva do ledger (prevalece sobre o resto): {{NOTA:gmail_jota}}
 
-1. `mcp__Gmail__search_threads` com `query: "from:contato@jota.info after:{{EPOCH}}"`, `pageSize: 50`. O `after:` numérico é o início exato da janela: tudo o que voltar está dentro dela.
+1. `mcp__Gmail__search_threads` com `query: "from:contato@jota.info after:{{GMAIL_APOS}}"`, `pageSize: 50`. O `after:` é o **dia anterior** ao início da janela (epoch numérico devolve `{}` — armadilha `gmail_after_epoch`): descarte, pelo `internalDate` (America/Sao_Paulo), toda thread anterior a {{INICIO_BR}}.
 2. Pelo assunto, descarte sem abrir o que é claramente eleitoral (pesquisas, candidaturas), comercial (JOTA PRO, cursos, eventos pagos) ou patrocinado. Abra o resto com `get_thread` (`PLAIN_TEXT`), todos numa mensagem. Thread grande demais para o `get_thread` é salva em arquivo pelo harness: extraia por script (`python3`/`grep`), não releia inteira.
 3. Só conteúdo jurídico. Notícias: todas as relevantes. Opinião/análise: no máximo 6.
 4. Links: os do e-mail vêm no wrapper `t.rdsv2.net` — **nunca publique o wrapper**.

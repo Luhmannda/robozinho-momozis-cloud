@@ -1,5 +1,7 @@
 # Robozinho dos Momozis até Passar — Prompt da Newsletter Jurídica
 
+> **Versão 11.1 — 04/11/2026:** este documento passou a ser lido **sob demanda** — as regras que decidem algo todo dia estão condensadas em `ROTINA.md` ("Regras editoriais") e o ledger chega resumido pelo `work/inicio.py`. Concursos (§10) ganharam rodízio de reverificação e descoberta diária de concursos novos; a seção é gerada por `work/concursos_html.py`.
+>
 > **Versão 11 — 15/10/2026 (núcleo diário).** Só o que **decide algo em tempo de execução**: selos, classificação de status e regras editoriais. O detalhe operacional que raramente decide (rotas web do DOU, protocolo de busca no Gmail, fontes mínimas, contingência por fonte, campos do histórico, delegação) foi movido **sem alteração de regra** para `docs/referencia-operacional.md`, com a mesma numeração — consulte quando a situação pedir. O passo a passo está em `ROTINA.md`; o estado das fontes e dos concursos, no ledger. **Versão 10.1 — 24/09/2026** e anteriores: histórico em `resumo-legislativo-historico.json`.
 
 **Tarefa recorrente:** dias úteis (segunda a sexta), 7h (`America/Sao_Paulo`), newsletter em português **"Robozinho dos Momozis até Passar"**, salva como **RASCUNHO** no Gmail para **pereirafranciscofilho@gmail.com** e **luizaxbarreto@gmail.com**, sem pedir confirmação. **A rotina nunca envia** — o Apps Script `EnviarRobozinho.gs` (fora deste repositório) envia pelo assunto exato, às vezes minutos depois da criação e já enviou bem fora da janela nominal (14h15 em 10/07; 20h23 em 06/07): **criar sempre, a qualquer hora**, nunca presumir que rascunho atrasado fica sem envio.
@@ -81,6 +83,8 @@ A ordem e os componentes são os do template (cabeçalho com dia da semana → �
 **Quadro de apoio:** analista e técnico de MP, Defensoria e TJ, e cargos equivalentes.
 
 **Formato:** cada bloco é uma tabela de **duas colunas** (texto: órgão — cargo: vagas, remuneração, prazos, banca, **novidades** em negrito, *(herdada)* em itálico; selo à direita), com zebra. **Não** montar tabelão multicoluna. **Dentro do bloco:** inscrições abertas/encerrando → edital publicado → banca definida → comissão formada → previsão relevante; remunerações oficiais confirmadas primeiro, em ordem decrescente. Bloco sem movimento: linha compacta com selo `EM ANDAMENTO`/`EM PLANEJAMENTO`/`PENDÊNCIA` — nunca selo fora da lista da Seção 2.
+
+**Cobertura (desde 04/11/2026):** o coletor de concursos trabalha em três frentes por dia — (A) prazos e pendências; (B) **rodízio** dos 3 registros sem verificação há mais tempo (≥ 10 dias), para nenhum ficar esquecido; (C) **descoberta** de concursos novos, abertos ou que vão abrir (inscrições, edital, banca, comissão, autorização), uma carreira por dia útil e varredura geral às segundas. O que a descoberta acha entra no registro do ledger (passo 5 da ROTINA) e passa a ser acompanhado. Registro sem verificação há mais de 14 dias sai em linha compacta até o rodízio alcançá-lo.
 
 **No histórico (`items`):** órgão, cargo, UF/abrangência, situação, banca, vagas, remuneração (e se confirmada oficialmente), prazos, data de prova, requisitos, fonte oficial e fonte secundária, quando disponíveis.
 

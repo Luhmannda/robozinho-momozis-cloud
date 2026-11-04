@@ -4,7 +4,8 @@
 # sem WebSearch nem WebFetch (custa ~zero tokens; 1 chamada de Bash).
 #
 # Ordem (decisao do usuario, 07/09/2026 — ver prompt mestre Secao 13):
-#   1. YouVersion (bible.com) — fonte primaria. Em 07/09 o site devolveu
+#   1. YouVersion (bible.com) — fonte primaria, sondada so as segundas desde
+#      04/11 (anti-bot persistente). Em 07/09 o site devolveu
 #      desafio anti-bot ("Client Challenge") ao curl mesmo com o dominio
 #      liberado; tentamos 1 vez e seguimos.
 #   2. DailyVerses.net — primeira fonte paralela; pagina datada
@@ -123,7 +124,15 @@ def main():
     a = p.parse_args()
 
     tentativas = []
-    r = youversion(a.dia, a.data, tentativas) or dailyverses(a.data, tentativas)
+    # YouVersion devolve desafio anti-bot desde 07/09 (13 falhas em 15 execucoes ate 04/11):
+    # vira sonda semanal (segundas). Se voltar a responder, volta a ser a fonte do dia.
+    from datetime import date
+    if date.fromisoformat(a.data).weekday() == 0:
+        r = youversion(a.dia, a.data, tentativas)
+    else:
+        r = None
+        tentativas.append({"fonte": "YouVersion", "motivo": "nao_tentada (sonda semanal, so as segundas)"})
+    r = r or dailyverses(a.data, tentativas)
     if r:
         r["tentativas"] = tentativas
         print(json.dumps(r, ensure_ascii=False, indent=1))
