@@ -66,13 +66,13 @@ Quadro "Prazos no radar" = **só** prazos confirmados em fonte oficial nos próx
 **6. Rascunho — uma mensagem:** `create_draft` (só você, **uma única vez**; `update_draft` custa o corpo inteiro de novo e o Apps Script pode já ter enviado), composto direto na chamada a partir do template e do conteúdo validado.
 - **to:** `["pereirafranciscofilho@gmail.com", "luizaxbarreto@gmail.com"]`
 - **subject EXATO:** o `ASSUNTO HOJE` do passo 1, caractere por caractere.
-- **htmlBody:** o template, preenchendo só os `{{ }}`. Não inventar layout; estilo de cada selo conforme o mapa do comentário do template. As seções de Concursos (Carreira com o radar, e Apoio) entram **exatamente** como o `concursos_html.py` as imprimiu no passo 5, no lugar dos blocos de concursos do template.
+- **htmlBody:** o template, preenchendo só os `{{ }}`. Não inventar layout; estilo de cada selo conforme o mapa do comentário do template. As seções de Concursos (Carreira com o radar, e Apoio) entram **exatamente** como o `concursos_html.py` as imprimiu no passo 5, no lugar dos blocos de concursos do template — **coladas por inteiro dentro da própria chamada `create_draft`**. A ferramenta não insere nada depois e o Apps Script envia em minutos: em 05/11 o rascunho nasceu com o marcador `CONCURSOS_PLACEHOLDER`, foi enviado assim e virou errata.
 
 Checklist antes de chamar — o e-mail nasce completo:
 1. Preheader oculto com 2–3 destaques do dia.
 2. Cabeçalho e rodapé exatamente como o passo 1 imprimiu; resumo executivo com 3–5 cards; janela de cobertura descrita.
 3. As 13 entradas do índice têm seção, na ordem do template — inclusive o bloco Opinião/Análise dentro da Mídia e a seção Munger; "Prazos no radar" no topo de Concursos quando houver RADAR; bloco de errata no quadro de pendências quando o ledger tiver `errata_*`.
-4. Nenhum `{{` sobrando; nenhum wrapper (`t.rdsv2.net`, `google.com/url`, `utm_`); selos só da lista fechada do prompt mestre §2 (ex.: "SEM NOVIDADE" não existe — usar `EM ANDAMENTO` ou `PENDÊNCIA`).
+4. Nenhum `{{` sobrando, nenhum marcador ou atalho (`PLACEHOLDER`, `<!-- inserir ... -->`, "...", "(mesmo bloco do passo 5)") — o corpo enviado é o corpo final; nenhum wrapper (`t.rdsv2.net`, `google.com/url`, `utm_`); selos só da lista fechada do prompt mestre §2 (ex.: "SEM NOVIDADE" não existe — usar `EM ANDAMENTO` ou `PENDÊNCIA`).
 5. O `CARIMBO:` do passo 5 no "Suporte usado".
 6. Corpo < ~100 KB; estilos inline.
 7. **Fidelidade:** cada nome próprio, cargo e número confere com a evidência (passo 3) e com o `/tmp/execucao.json` validado.

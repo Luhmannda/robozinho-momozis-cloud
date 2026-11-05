@@ -205,6 +205,8 @@ def main():
     out += ["</table>", "</td></tr>", "<!-- fim CONCURSOS -->"]
     texto = "\n".join(out)
     print(texto)
+    sys.stderr.write("COLE ESTE BLOCO INTEIRO NO htmlBody DO create_draft (nunca um marcador: "
+                     "o rascunho e enviado como nasce)\n")
     sys.stderr.write("concursos_html: %d registros (%d novos, %d atualizados hoje), %d bytes\n"
                      % (len(regs), len(novos), len(alterados), len(texto.encode("utf-8"))))
 
