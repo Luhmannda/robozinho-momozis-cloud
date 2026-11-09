@@ -1,64 +1,69 @@
 {
-  "gerado_em": "2026-11-06T07:13:29-03:00",
-  "gerado_por": "2026-11-06-7h",
+  "gerado_em": "2026-11-09T07:14:37-03:00",
+  "gerado_por": "2026-11-09-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-11-06-7h",
-    "date": "2026-11-06",
-    "email_subject": "Robozinho dos Momozis até Passar - 06/11/2026 - 7h",
+    "execution_id": "2026-11-09-7h",
+    "date": "2026-11-09",
+    "email_subject": "Robozinho dos Momozis até Passar - 09/11/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-6047041187581264250",
-    "window_end": "2026-11-06T07:07:26-03:00"
+    "draft_id": "r-2758019856562576905",
+    "window_end": "2026-11-09T07:07:27-03:00"
   },
   "total_execucoes_arquivo": 10,
   "pendencias_ultima": [
     {
-      "id": "errata_2026_11_05",
-      "texto": "Edição de 05/11: as seções Concursos (Carreira e Apoio) saíram com o marcador CONCURSOS_PLACEHOLDER no lugar do conteúdo. Correto: DPE-SP inscrições até 11/11; PGM Curitiba e TRT8 até 05/11 (secundárias); ALEPA encerrou 04/11 (secundária); demais registros sem mudança.",
+      "id": "planalto_push_mudo",
+      "texto": "PUSH Planalto: resenha de 06/11 recebida (Decretos 13.147 a 13.151); sem lei, MP ou veto na janela; manter 1 sonda por dia.",
+      "faixa": "longo_prazo"
+    },
+    {
+      "id": "trf2_oral_divergencia",
+      "texto": "TRF2 XIX: prazo de 06/11 (inscrição definitiva) sem desfecho confirmado; home oficial (09/11) sem concurso; secundárias divergem e citam suspensão pelo CNJ sem data.",
+      "faixa": "longo_prazo"
+    },
+    {
+      "id": "dpe_sp_edital_verificar",
+      "texto": "DPE-SP: notícia oficial confirma inscrições até 11/11 (23h59); edital e data da prova não lidos.",
+      "faixa": "longo_prazo"
+    },
+    {
+      "id": "tjpb_apoio_verificar",
+      "texto": "TJPB Analista (FGV): inscrições até 18/11 e provas em 24/01/2027 só em secundária; confirmar no site oficial/FGV.",
+      "faixa": "ativa"
+    },
+    {
+      "id": "pgm_suzano_verificar",
+      "texto": "PGM Suzano/SP Procurador: inscrições até 11/11 só em resumo de buscador; confirmar no edital oficial.",
       "faixa": "ativa"
     },
     {
       "id": "trt8_edital_verificar",
-      "texto": "TRT8 edital 1/2026 (FCC): inscrições até 05/11 só em secundárias; página oficial bloqueada pela rede.",
+      "texto": "TRT8 edital 1/2026 (FCC): inscrições até 05/11 e prova 17/01/2027 só em secundárias; oficial bloqueada pela rede.",
       "faixa": "ativa"
     },
     {
       "id": "trf3_apoio_verificar",
-      "texto": "TRF3 (Vunesp): inscrições de 04/11 a 23/11 só em secundária; confirmar no site oficial/Vunesp.",
+      "texto": "TRF3 Analista/Técnico (Vunesp): inscrições até 23/11 só em secundária; não reverificado hoje.",
       "faixa": "ativa"
     },
     {
       "id": "pge_al_resultado",
-      "texto": "PGE-AL: resultado sem publicação localizada; Edital nº 11 PGE/AL de 23/09 não lido (não verificado hoje).",
+      "texto": "PGE-AL: resultado da objetiva (previsto ~20/10) sem publicação localizada; Edital nº 11 não lido.",
       "faixa": "ativa"
     },
     {
-      "id": "planalto_push_mudo",
-      "texto": "PUSH Planalto: resenhas de 03/11 e 04/11 recebidas (decretos 13.142 a 13.146 e MPV 1399); manter 1 sonda/dia.",
+      "id": "alepa_procurador_verificar",
+      "texto": "ALEPA: inscrições encerradas em 04/11 só segundo secundárias; site oficial (09/11) sem menção a concurso.",
+      "faixa": "longo_prazo"
+    },
+    {
+      "id": "crise_institucional_stf_pgr_acompanhar",
+      "texto": "Caso Master: coluna de O Globo (09/11) diz que a PF concluiu 3 relatórios sobre Moraes, Nunes Marques e Toffoli; sem confirmação oficial. Antes: STF (29/10) manteve Compliance Zero até referendo.",
       "faixa": "longo_prazo"
     }
   ],
   "chaves_publicadas": [
-    "stf|noticia|supremo-na-semana-previdencia-complementar|2026|2026-10-31",
-    "stf|noticia|destaques-plenario-virtual-semana|2026|2026-10-30",
-    "jota|noticia|fachin-devolve-caso-inss-mendonca|2026|2026-10-30",
-    "valor|noticia|fachin-arquiva-cinco-procedimentos-fake-news|2026|2026-10-30",
-    "folha|noticia|tse-inelegibilidade-violencia-domestica|2026|2026-10-30",
-    "jota|noticia|meta-remover-posts-demissao-eleitor|2026|2026-10-30",
-    "estadao|noticia|trf1-precatorio-usina-capricho|2026|2026-10-30",
-    "jota|noticia|cbs-113-resistencia-senado|2026|2026-10-30",
-    "migalhas|noticia|467657|2026|2026-11-01",
-    "migalhas|noticia|467659|2026|2026-11-01",
-    "conjur|noticia|stj-banco-atraso-entrega-imovel|2026|2026-11-01",
-    "migalhas|noticia|467274|2026|2026-11-01",
-    "conjur|opiniao|cbs-113-neutra-fisco|2026|2026-11-02",
-    "conjur|opiniao|combustiveis-mao-federal-estadual|2026|2026-11-02",
-    "conjur|opiniao|stj-concorrencia-parasitaria|2026|2026-11-02",
-    "conjur|opiniao|temas-1442-1448-astreintes|2026|2026-11-01",
-    "jota|opiniao|estrutura-poder-sociedades-por-acoes|2026|2026-10-30",
-    "jota|opiniao|carbon-majors-dano-climatico|2026|2026-10-30",
-    "valor|fofoca|fachin-fim-inquerito-fake-news|2026|2026-10-30",
-    "folha|fofoca|nunes-marques-mendonca-distanciamento|2026|2026-10-30",
     "stf|noticia|audiencia-publica-bets|2026|2026-11-02",
     "informativos|stj|908|2026|2026-11-03",
     "conjur|noticia|stj-pensao-por-morte-prazo|2026|2026-11-02",
@@ -154,13 +159,39 @@
     "conjur|art|concorrencia-nao-pode-ser-proibida-por-contrato|2026|2026-11-06",
     "conjur|art|tres-decisoes-ampliam-poder-do-fisco|2026|2026-11-05",
     "jota|fofoca|lula-insistir-messias-stf|2026|2026-11-06",
-    "jota|fofoca|fux-decidir-quando-estiver-pronto-bets|2026|2026-11-05"
+    "jota|fofoca|fux-decidir-quando-estiver-pronto-bets|2026|2026-11-05",
+    "planalto|decreto|13151|2026|2026-11-05",
+    "planalto|decreto|13150|2026|2026-11-05",
+    "planalto|decreto|13149|2026|2026-11-05",
+    "planalto|decreto|13148|2026|2026-11-05",
+    "planalto|decreto|13147|2026|2026-11-05",
+    "stf|noticia|pauta-plenario-novembro|2026|2026-11-09",
+    "stf|noticia|curso-direito-constitucional-lusofono|2026|2026-11-08",
+    "stf|noticia|supremo-na-semana-bets|2026|2026-11-07",
+    "stf|noticia|carmen-lucia-representacao-feminina|2026|2026-11-06",
+    "stf|noticia|cestf-consulta-precedentes|2026|2026-11-06",
+    "migalhas|noticia|468082|2026|2026-11-09",
+    "conjur|noticia|prisao-desembargadora-venda-sentencas|2026|2026-11-07",
+    "jota|noticia|cni-acao-emenda-6x1|2026|2026-11-06",
+    "jota|noticia|dino-conciliacao-6x1|2026|2026-11-06",
+    "conjur|noticia|stj-busca-veicular|2026|2026-11-08",
+    "jota|noticia|gilmar-folga-dominical-mulheres|2026|2026-11-09",
+    "jota|noticia|og-fernandes-entrevista|2026|2026-11-09",
+    "jota|noticia|tse-chapa-lula-alckmin|2026|2026-11-06",
+    "conjur|art|iva-30-split-payment|2026|2026-11-09",
+    "conjur|art|mp-1399-imposto-seletivo|2026|2026-11-08",
+    "conjur|art|rabo-da-lagartixa|2026|2026-11-08",
+    "conjur|art|rpps-instituicao-financeira|2026|2026-11-08",
+    "jota|opiniao|caminhos-investigar-stf|2026|2026-11-06",
+    "jota|opiniao|reclamacao-relevancia-parte-i|2026|2026-11-06",
+    "jota|fofoca|fachin-inquerito-fake-news|2026|2026-11-09",
+    "jota|fofoca|pf-relatorios-ministros-master|2026|2026-11-09",
+    "jota|fofoca|nunes-marques-vaga-trf1|2026|2026-11-09"
   ],
-  "total_chaves": 116,
+  "total_chaves": 123,
   "metricas": {
-    "execucoes_registradas": 58,
+    "execucoes_registradas": 59,
     "itens_ultimas_10": [
-      20,
       21,
       28,
       31,
@@ -169,12 +200,12 @@
       22,
       25,
       35,
-      30
+      30,
+      41
     ],
-    "media_itens": 26.4,
-    "itens_ultima": 30,
+    "media_itens": 28.5,
+    "itens_ultima": 41,
     "itens_noticia_ultimas_10": [
-      17,
       19,
       25,
       25,
@@ -183,81 +214,82 @@
       20,
       23,
       29,
-      24
+      24,
+      27
     ],
-    "media_itens_noticia": 22.2,
-    "itens_noticia_ultima": 24,
+    "media_itens_noticia": 23.2,
+    "itens_noticia_ultima": 27,
     "coletores_ultima": {
       "gmail": {
         "modelo": "claude-haiku-5-5",
-        "tokens": 29021,
-        "chamadas": 12,
-        "duracao_ms": 48545,
+        "tokens": 38238,
+        "chamadas": 18,
+        "duracao_ms": 44894,
         "chamadas_modelo": 5,
-        "contexto_total": 81304,
-        "cache_gravado": 29019,
-        "saida": 11836
+        "contexto_total": 90501,
+        "cache_gravado": 38236,
+        "saida": 10244
       },
       "jota": {
         "modelo": "claude-sonnet-5-5",
-        "tokens": 65566,
+        "tokens": 126810,
         "chamadas": 10,
-        "duracao_ms": 74755,
-        "chamadas_modelo": 8,
-        "contexto_total": 301442,
-        "cache_gravado": 65564,
-        "saida": 8155
+        "duracao_ms": 104350,
+        "chamadas_modelo": 7,
+        "contexto_total": 508985,
+        "cache_gravado": 126806,
+        "saida": 16324
       },
       "concursos": {
         "modelo": "claude-sonnet-5-5",
-        "tokens": 32243,
-        "chamadas": 13,
-        "duracao_ms": 78348,
-        "chamadas_modelo": 5,
-        "contexto_total": 90202,
-        "cache_gravado": 32241,
-        "saida": 6315
+        "tokens": 51691,
+        "chamadas": 19,
+        "duracao_ms": 127663,
+        "chamadas_modelo": 9,
+        "contexto_total": 212909,
+        "cache_gravado": 51687,
+        "saida": 17318
       }
     },
     "coletores_ultimas_10": {
       "gmail": {
         "execucoes": 10,
-        "tokens_total": 342972,
-        "chamadas_total": 144,
+        "tokens_total": 360164,
+        "chamadas_total": 151,
         "medidas": 10,
-        "tokens_media": 34297,
-        "chamadas_media": 14.4,
-        "contexto_total_media": 90370
-      },
-      "jota": {
-        "execucoes": 10,
-        "tokens_total": 966725,
-        "chamadas_total": 138,
-        "medidas": 10,
-        "tokens_media": 96672,
-        "chamadas_media": 13.8,
-        "contexto_total_media": 426573
+        "tokens_media": 36016,
+        "chamadas_media": 15.1,
+        "contexto_total_media": 92760
       },
       "concursos": {
         "execucoes": 10,
-        "tokens_total": 324552,
-        "chamadas_total": 145,
+        "tokens_total": 327149,
+        "chamadas_total": 138,
         "medidas": 10,
-        "tokens_media": 32455,
-        "chamadas_media": 14.5,
-        "contexto_total_media": 144518
+        "tokens_media": 32715,
+        "chamadas_media": 13.8,
+        "contexto_total_media": 131176
+      },
+      "jota": {
+        "execucoes": 10,
+        "tokens_total": 986513,
+        "chamadas_total": 139,
+        "medidas": 10,
+        "tokens_media": 98651,
+        "chamadas_media": 13.9,
+        "contexto_total_media": 441363
       }
     },
     "orquestrador_ultima": {
       "modelo": "claude-sonnet-5-5",
-      "tokens": 214041,
-      "chamadas": 18,
-      "duracao_ms": 360585,
-      "chamadas_modelo": 7,
-      "contexto_total": 1070358,
-      "cache_gravado": 132312,
-      "saida": 47766
+      "tokens": 225182,
+      "chamadas": 16,
+      "duracao_ms": 423218,
+      "chamadas_modelo": 6,
+      "contexto_total": 987269,
+      "cache_gravado": 132776,
+      "saida": 53581
     },
-    "orquestrador_contexto_media": 1098498
+    "orquestrador_contexto_media": 1097385
   }
 }

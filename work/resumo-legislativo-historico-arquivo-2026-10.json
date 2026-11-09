@@ -7369,6 +7369,371 @@
       },
       "gmail_message_id": "1a1684e22a8f3b3a",
       "delivery_reconciled_at": "2026-10-26T07:15:10-03:00"
+    },
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Anti-duplicata ok: edicao 23/10 em in:sent (msg 1a1684e22a8f3b3a), nenhum rascunho/envio de 26/10. Planalto: PUSH vazio, sem lei nova (Congresso: ultima lei 15.526 de 29/09), MPVs 1397/1398 ja publicadas em 23/10; Camara sem [LEI]/[PLENARIO]. Informativos STF 1234, RG 395 e STJ 907 sem edicao nova. ConJur 403 nas tres rotas: fallback WebSearch allowed_domains (slugs datados, sem horario). YouVersion 403, versiculo via DailyVerses. JOTA 26/10 em texto corrido: um item por fato; detalhe de votos do caso ISS (JOTA) nao reproduzido por inconsistencia na lista de ministros. TRT8: edital 1/2026 so em listagem de terceiros (conflito sobre inicio das inscricoes). Editais TRF2 108/109 nao lidos (PDF indisponivel)."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|nota-da-presidencia-soberania-popular|2026|2026-10-25",
+          "fonte": "STF Notícias (Push STF)",
+          "categoria": "STF Notícias",
+          "titulo": "Nota da Presidência do Supremo Tribunal Federal",
+          "data": "2026-10-25",
+          "url": "https://noticias.stf.jus.br/postsnoticias/nota-da-presidencia-do-supremo-tribunal-federal-5/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "25/10 22:11; abre com a frase A República se fortalece quando reconhece e respeita a soberania popular"
+        },
+        {
+          "chave": "stf|noticia|stf-prorroga-votacao-ate-19h|2026|2026-10-25",
+          "fonte": "STF Notícias (Push STF)",
+          "categoria": "STF Notícias",
+          "titulo": "STF prorroga votação até as 19h em locais onde urnas permaneceram abertas após as 17h",
+          "data": "2026-10-25",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-prorroga-votacao-ate-as-19h-em-locais-onde-urnas-permaneceram-abertas-apos-as-17h/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "25/10 18:28; Migalhas (17:11 e 18:03) cobriu a decisao de Zanin"
+        },
+        {
+          "chave": "stf|noticia|presidente-defende-soberania-popular-paz|2026|2026-10-25",
+          "fonte": "STF Notícias (Push STF)",
+          "categoria": "STF Notícias",
+          "titulo": "Presidente do STF defende respeito à soberania popular e pede paz nas eleições",
+          "data": "2026-10-25",
+          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-defende-respeito-a-soberania-popular-e-pede-paz-nas-eleicoes/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "25/10 12:34"
+        },
+        {
+          "chave": "stf|noticia|supremo-na-semana-iss-pis-cofins|2026|2026-10-24",
+          "fonte": "STF Notícias (Push STF)",
+          "categoria": "STF Notícias",
+          "titulo": "Supremo na Semana comenta exclusão do ISS da base de cálculo do PIS e da Cofins",
+          "data": "2026-10-24",
+          "url": "https://noticias.stf.jus.br/postsnoticias/supremo-na-semana-comenta-exclusao-do-iss-da-base-de-calculo-do-pis-e-da-cofins/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "24/10 12:00; JOTA de 23/10 relata 6x5 com desempate de Fux"
+        },
+        {
+          "chave": "conjur|noticia|stf-imunidade-itbi-integralizacao|2026|2026-10-24",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STF reconhece imunidade de ITBI na integralização de imóveis",
+          "data": "2026-10-24",
+          "url": "https://conjur.com.br/2026-out-24/stf-reconhece-imunidade-de-itbi-na-integralizacao-de-imoveis",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "maioria 8x2, tese pendente; data pelo slug"
+        },
+        {
+          "chave": "conjur|noticia|stj-reclamacao-prevencao-acao-penal|2026|2026-10-24",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Decisão em reclamação gera prevenção para ação penal e recursos no STJ",
+          "data": "2026-10-24",
+          "url": "https://conjur.com.br/2026-out-24/decisao-em-reclamacao-gera-prevencao-para-acao-penal-e-recursos-no-stj/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "Corte Especial, por maioria; data pelo slug"
+        },
+        {
+          "chave": "conjur|noticia|stj-taxa-servico-portuario|2026|2026-10-23",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Taxa de serviço portuário não é ilícita por si só, diz ministro do STJ",
+          "data": "2026-10-23",
+          "url": "https://conjur.com.br/2026-out-23/taxa-de-servico-portuario-nao-e-ilicita-por-si-so-propoe-ministro-do-stj",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "2ª Turma, pedido de vista; data pelo slug"
+        },
+        {
+          "chave": "jota|noticia|ministros-apontam-falhas-prorrogacao|2026|2026-10-26",
+          "fonte": "JOTA (Folha; Valor)",
+          "categoria": "Mídia",
+          "titulo": "Ministros do TSE e do STF apontam falhas na prorrogação do horário de votação",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping sem link; sem confirmacao oficial"
+        },
+        {
+          "chave": "jota|noticia|nunes-marques-manter-proclamacao|2026|2026-10-26",
+          "fonte": "JOTA (Folha)",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques pretende manter a proclamação da vitória de Lula e alinhar resposta com Fachin",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping sem link; sem confirmacao oficial"
+        },
+        {
+          "chave": "jota|noticia|salvador-prisao-secretario-mobilidade|2026|2026-10-26",
+          "fonte": "JOTA (clipping)",
+          "categoria": "Mídia",
+          "titulo": "Denúncias sobre transporte em Salvador resultam em ordem de prisão do secretário municipal de Mobilidade",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "veiculo de origem nao nomeado no e-mail; sem confirmacao oficial"
+        },
+        {
+          "chave": "jota|noticia|sp-juiz-eleitoral-nega-prisao-secretario|2026|2026-10-26",
+          "fonte": "JOTA (clipping)",
+          "categoria": "Mídia",
+          "titulo": "Em São Paulo, juiz eleitoral nega prisão de secretário e do presidente da SPTrans",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "veiculo de origem nao nomeado no e-mail; sem confirmacao oficial"
+        },
+        {
+          "chave": "migalhas|noticia|lula-reeleito-quarto-mandato|2026|2026-10-25",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Lula é reeleito e conquista quarto mandato na presidência",
+          "data": "2026-10-25",
+          "url": "https://www.migalhas.com.br/quentes/467197/lula-e-reeleito-e-conquista-quarto-mandato-na-presidencia",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "25/10 21:11"
+        },
+        {
+          "chave": "migalhas|noticia|tjsp-indice-ans-plano-empresarial|2026|2026-10-25",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "TJ/SP aplica índice da ANS a plano empresarial com quatro vidas",
+          "data": "2026-10-25",
+          "url": "https://www.migalhas.com.br/quentes/466961/tj-sp-aplica-indice-da-ans-a-plano-empresarial-com-quatro-vidas",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "25/10 15:00"
+        },
+        {
+          "chave": "jota|noticia|ans-diretrizes-tea|2026|2026-10-23",
+          "fonte": "JOTA PRO Saúde",
+          "categoria": "Mídia",
+          "titulo": "ANS quer diretrizes para tratamento de TEA por planos de saúde",
+          "data": "2026-10-23",
+          "url": "https://www.jota.info/saude/ans-quer-diretrizes-para-tratamento-de-tea-por-planos-de-saude",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada"
+        },
+        {
+          "chave": "jota|opiniao|as-regras-da-eleicao-e-mais|2026|2026-10-23",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "As regras da eleição e mais",
+          "data": "2026-10-23",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "Oscar Vilhena Vieira, Fernando Neisser e outros; sem link"
+        },
+        {
+          "chave": "jota|opiniao|pgr-concentra-enorme-poder|2026|2026-10-23",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "O Procurador-Geral da República concentra enorme poder",
+          "data": "2026-10-23",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "Maria Tereza Sadek e Ana Paula Mantovani; sem link"
+        },
+        {
+          "chave": "jota|fofoca|pacheco-indicacao-stf|2026|2026-10-26",
+          "fonte": "JOTA (Folha)",
+          "categoria": "Fofoquinha",
+          "titulo": "Governo avalia indicar Rodrigo Pacheco ao STF ainda neste ano",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "observacao": "sem link"
+        },
+        {
+          "chave": "concurso|trt8_apoio|edital-1-2026-fcc|2026|2026-10-02",
+          "fonte": "valorfinal.com.br (secundária)",
+          "categoria": "Concursos - Apoio",
+          "titulo": "TRT8 — servidores: edital 1/2026 (FCC), 50 vagas, inscrições 05/10 a 05/11",
+          "data": "2026-10-02",
+          "url": "https://valorfinal.com.br/concursos/edital/tribunal-regional-do-trabalho-da-8-regiao__1-2026",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO",
+          "observacao": "so fonte secundaria; listagem se contradiz sobre inicio das inscricoes"
+        },
+        {
+          "chave": "versiculo|dailyverses|galatas-2-20|2026|2026-10-26",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Gálatas 2:20 (ARC)",
+          "data": "2026-10-26",
+          "url": "https://dailyverses.net/pt/2026/10/26",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|almanack-idx99|2026|2026-10-26",
+          "fonte": "A sabedoria de Charlie Munger",
+          "categoria": "Munger",
+          "titulo": "Quer garantir a infelicidade? Seja pouco confiável.",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "falha",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: página oficial lida em 26/10, último ato é o resultado preliminar da escrita (DO 07/10); sem convocação de orais",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP X concurso: inscrições até 11/11 em notícia oficial; vagas e prova só em secundárias; edital não lido",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador 003/2026: só secundárias; home oficial sem menção em 26/10; CETAP bloqueado",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: página oficial (20/10) lista editais até o 109 sem inscrição definitiva (até 06/11) nem oral (9–20/11); editais 108/109 não lidos",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado previsto para 20/10 sem publicação localizada em 26/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8 edital 1/2026 (FCC, 50 vagas, inscrições 05/10 a 05/11): só listagem de terceiros, com datas contraditórias",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "fontes": {
+          "conjur": {
+            "nota": "26/10: noticia/artigo/coluna http 403 (antes 500). Fallback: WebSearch com allowed_domains conjur.com.br devolve titulos e slugs datados (sem horario).",
+            "status": "instavel"
+          }
+        },
+        "pendencias": {
+          "pge_al_resultado": {
+            "texto": "PGE-AL: resultado previsto para 20/10 sem publicação localizada em 26/10",
+            "faixa": "ativa"
+          },
+          "trt8_edital_verificar": {
+            "texto": "TRT8 edital 1/2026 (FCC): só listagem de terceiros, datas contraditórias; achar edital oficial",
+            "faixa": "ativa",
+            "politica": "Confirmar no TRT8/FCC; depois atualizar o registro e remover.",
+            "dominio_oficial": "www.trt8.jus.br"
+          }
+        },
+        "concursos": {
+          "pge_rj": {
+            "verificado_em": "2026-10-26"
+          },
+          "dpe_sp": {
+            "verificado_em": "2026-10-26"
+          },
+          "alepa_procurador": {
+            "verificado_em": "2026-10-26"
+          },
+          "trf2_juiz": {
+            "verificado_em": "2026-10-26"
+          },
+          "pge_al": {
+            "verificado_em": "2026-10-26"
+          },
+          "trt8_apoio": {
+            "bloco": "Quadro de apoio",
+            "linha": "TRT8 — Analista e Técnico Judiciário: edital 1/2026 (DOU 02/10), FCC, 50 vagas, inscrições de 05/10 a 05/11, taxas R$ 110/R$ 90 — só em listagem de terceiros, que se contradiz sobre o início das inscrições",
+            "selo": "PENDÊNCIA DE VERIFICAÇÃO",
+            "verificado_em": "2026-10-26",
+            "prazos": [
+              {
+                "data": "2026-11-05",
+                "evento": "fim das inscrições (fonte secundária)",
+                "confirmado": false
+              }
+            ],
+            "pendencia": "trt8_edital_verificar"
+          }
+        },
+        "armadilhas_detectadas": [
+          "banca_edital_antigo"
+        ]
+      },
+      "execution_id": "2026-10-26-7h",
+      "date": "2026-10-26",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-23T07:07:59-03:00",
+      "window_end": "2026-10-26T07:09:00-03:00",
+      "run_started_at": "2026-10-26T07:09:00-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 26/10/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r-5565686917460556087",
+      "run_finished_at": "2026-10-26T07:15:10-03:00",
+      "coletores": {
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 21046,
+          "chamadas": 11,
+          "duracao_ms": 29968,
+          "chamadas_modelo": 5,
+          "contexto_total": 66600,
+          "cache_gravado": 21044,
+          "saida": 7238
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 107022,
+          "chamadas": 9,
+          "duracao_ms": 85184,
+          "chamadas_modelo": 7,
+          "contexto_total": 361092,
+          "cache_gravado": 107020,
+          "saida": 11286
+        },
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 49094,
+          "chamadas": 26,
+          "duracao_ms": 154398,
+          "chamadas_modelo": 13,
+          "contexto_total": 346330,
+          "cache_gravado": 49092,
+          "saida": 11830
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 182433,
+        "chamadas": 18,
+        "duracao_ms": 364358,
+        "chamadas_modelo": 7,
+        "contexto_total": 998403,
+        "cache_gravado": 103097,
+        "saida": 34948
+      },
+      "gmail_message_id": "1a177c14c15ab8e4",
+      "delivery_reconciled_at": "2026-10-27T07:13:11-03:00"
     }
   ]
 }
