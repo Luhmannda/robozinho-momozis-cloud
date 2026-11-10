@@ -7734,6 +7734,332 @@
       },
       "gmail_message_id": "1a177c14c15ab8e4",
       "delivery_reconciled_at": "2026-10-27T07:13:11-03:00"
+    },
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Push Planalto (sonda) vazio; Congresso leis sem norma nova (ultima Lei 15.526, DOU 30/09); coleta_web MPV http 0 e ConJur 403: 1 WebSearch cada (MPV: nenhuma nova na janela, ultima 1397 DOU 21/10; ConJur: nada datado de 26/10, ultimo 25/10). Informativo STF 1234 baixado do PDF oficial; 1235, RG 395 e STJ 907 inexistentes. Boletim da Camara sem [LEI]/[PLENARIO] (so projetos apresentados). STF Push: 4 noticias dentro da janela. JOTA: 4 de 8 links resolvidos conferidos; Overkill sem link (SEM_MATCH). Trecho de clipping do JOTA sem link por fato. Noticia 'publicacao trilingue' do STF (26/10) omitida: POSSIVEL_REPETIDA de 22/10, sem desdobramento novo comprovado."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|piso-magisterio-professores-temporarios|2026|2026-10-26",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF define prazo para aplicação do piso nacional do magistério a professores temporários",
+          "data": "2026-10-26",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-define-prazo-para-aplicacao-do-piso-nacional-do-magisterio-a-professores-temporarios/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|confederacao-seguradoras-recusa-propostas|2026|2026-10-26",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "Confederação questiona no STF lei que obriga seguradoras a comunicar recusa de propostas",
+          "data": "2026-10-26",
+          "url": "https://noticias.stf.jus.br/postsnoticias/confederacao-questiona-no-stf-lei-que-obriga-seguradoras-a-comunicar-recusa-de-propostas/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|jornada-30h-fisioterapeutas|2026|2026-10-26",
+          "fonte": "Push STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF reafirma jornada máxima de 30 horas semanais para fisioterapeutas e terapeutas ocupacionais",
+          "data": "2026-10-26",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-reafirma-jornada-maxima-de-30-horas-semanais-para-fisioterapeutas-e-terapeutas-ocupacionais/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|informativo|1234|2026|2026-10-26",
+          "fonte": "STF",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF 1234",
+          "data": "2026-10-26",
+          "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1234.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "jota|midia|medidas-flavio-bolsonaro-moraes|2026|2026-10-27",
+          "fonte": "JOTA (clipping)",
+          "categoria": "Mídia",
+          "titulo": "Medidas impostas a Flávio Bolsonaro por Moraes e efeitos no STF",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|midia|zanin-esclarece-votacao-19h|2026|2026-10-26",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Cristiano Zanin esclarece decisão que mandou estender votação até as 19h",
+          "data": "2026-10-26",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/cristiano-zanin-esclarece-decisao-que-mandou-estender-votacao-ate-as-19h",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|midia|nunes-marques-seguranca-processo-eleitoral|2026|2026-10-26",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques fala em 'absoluta segurança' do processo eleitoral mesmo com prorrogação",
+          "data": "2026-10-26",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/nunes-marques-fala-em-absoluta-seguranca-do-processo-eleitoral-mesmo-com-prorrogacao",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|midia|bets-audiencia-stf-3-novembro|2026|2026-10-27",
+          "fonte": "JOTA (clipping)",
+          "categoria": "Mídia",
+          "titulo": "Proibição das bets terá audiência pública no STF em 3 de novembro",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|midia|stj-seguro-vida-reajuste-idade|2026|2026-10-27",
+          "fonte": "JOTA (clipping Folha)",
+          "categoria": "Mídia",
+          "titulo": "STJ: seguro de vida coletivo permite reajuste por idade",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|midia|stj-desapropriacao-data-referencia|2026|2026-10-27",
+          "fonte": "JOTA (clipping Valor)",
+          "categoria": "Mídia",
+          "titulo": "STJ: Primeira Seção fixa critérios para data de referência de indenizações por desapropriação",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467153|2026|2026-10-27",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "4ª turma do STJ tem voto contrário a gênero neutro em registro; 3ª turma já permitiu",
+          "data": "2026-10-27",
+          "url": "https://www.migalhas.com.br/quentes/467153/4-turma-tem-voto-contrario-a-genero-neutro-em-registro-3-permitiu",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467278|2026|2026-10-26",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "STJ: Ministro anula trânsito em julgado após advogado atuar sem poderes",
+          "data": "2026-10-26",
+          "url": "https://www.migalhas.com.br/quentes/467278/stj-ministro-anula-transito-em-julgado-por-advogado-atuar-sem-poderes",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467234|2026|2026-10-26",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "STF tem na pauta poupança, previdência e caso Buser",
+          "data": "2026-10-26",
+          "url": "https://www.migalhas.com.br/quentes/467234/stf-tem-na-pauta-poupanca-previdencia-e-caso-buser",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467268|2026|2026-10-26",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Justiça afasta IR sobre valorização de bens transmitidos por herança",
+          "data": "2026-10-26",
+          "url": "https://www.migalhas.com.br/quentes/467268/justica-afasta-ir-sobre-valorizacao-de-bens-transmitidos-por-heranca",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|opiniao|stf-modular-terras-rurais|2026|2026-10-26",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "STF deve modular decisão sobre terras rurais e capital estrangeiro",
+          "data": "2026-10-26",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/stf-deve-modular-decisao-sobre-terras-rurais-e-capital-estrangeiro",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|opiniao|nao-fixar-tese-precedente|2026|2026-10-26",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Não fixar tese não descaracteriza o precedente",
+          "data": "2026-10-26",
+          "url": "https://www.jota.info/opiniao-e-analise/artigos/nao-fixar-tese-nao-descaracteriza-o-precedente",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|opiniao|parques-de-papel|2026|2026-10-26",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Parques de papel: obstáculos à efetividade das unidades de conservação",
+          "data": "2026-10-26",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/advogadas-publicas-em-debate/parques-de-papel-obstaculos-a-efetividade-das-unidades-de-conservacao",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|opiniao|overkill-feminicidio-parte-2|2026|2026-10-26",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Overkill em casos de feminicídio – parte 2",
+          "data": "2026-10-26",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|fofoquinha|pacheco-vaga-barroso-stf|2026|2026-10-27",
+          "fonte": "JOTA (clipping O Globo/Valor)",
+          "categoria": "Fofoquinha",
+          "titulo": "Ministros do STF articulam apoio a Rodrigo Pacheco para a vaga de Barroso",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "FORTE INDÍCIO"
+        },
+        {
+          "chave": "dailyverses|versiculo|salmo-91-1-2|2026|2026-10-27",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Salmo 91:1-2 (ARC)",
+          "data": "2026-10-27",
+          "url": "https://dailyverses.net/pt/2026/10/27",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|sabedoria|idx100|2026|2026-10-27",
+          "fonte": "A sabedoria de Charlie Munger",
+          "categoria": "Munger",
+          "titulo": "Não aprenda só com a própria experiência",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "falha",
+        "conjur": "falha",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto: sonda vazia na janela",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP X concurso: inscrições até 11/11 em nota oficial relida; vagas e prova só em secundárias; edital não lido",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador 003/2026: só secundárias; home oficial sem menção em 27/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: inscrição definitiva e oral só em secundárias; home oficial de 27/10 sem menção ao concurso",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado previsto para 20/10 sem publicação localizada em 27/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: /concursos oficial lida em 27/10 sem convocação de orais",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8 edital 1/2026 (FCC): só listagem de terceiros; página oficial bloqueada pela rede",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "fontes": {
+          "conjur": {
+            "nota": "27/10: coleta_web 403 (noticia/artigo/coluna). WebSearch allowed_domains conjur.com.br devolve titulos datados ate 25/10; nada de 26/10.",
+            "status": "instavel"
+          }
+        },
+        "concursos": {
+          "dpe_sp": {
+            "verificado_em": "2026-10-27"
+          },
+          "pge_rj": {
+            "verificado_em": "2026-10-27"
+          },
+          "alepa_procurador": {
+            "verificado_em": "2026-10-27"
+          }
+        }
+      },
+      "execution_id": "2026-10-27-7h",
+      "date": "2026-10-27",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-26T07:09:00-03:00",
+      "window_end": "2026-10-27T07:07:58-03:00",
+      "run_started_at": "2026-10-27T07:07:58-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 27/10/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r-827123828806572716",
+      "run_finished_at": "2026-10-27T07:13:11-03:00",
+      "coletores": {
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 19230,
+          "chamadas": 10,
+          "duracao_ms": 23610,
+          "chamadas_modelo": 5,
+          "contexto_total": 64322,
+          "cache_gravado": 19228,
+          "saida": 5402
+        },
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 25206,
+          "chamadas": 11,
+          "duracao_ms": 49332,
+          "chamadas_modelo": 5,
+          "contexto_total": 78813,
+          "cache_gravado": 25204,
+          "saida": 3850
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 90401,
+          "chamadas": 15,
+          "duracao_ms": 108711,
+          "chamadas_modelo": 12,
+          "contexto_total": 728834,
+          "cache_gravado": 90399,
+          "saida": 11048
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 179662,
+        "chamadas": 22,
+        "duracao_ms": 311556,
+        "chamadas_modelo": 8,
+        "contexto_total": 1059466,
+        "cache_gravado": 115493,
+        "saida": 33157
+      },
+      "gmail_message_id": "1a17cd9eebfd1f96",
+      "delivery_reconciled_at": "2026-10-28T07:13:20-03:00"
     }
   ]
 }
