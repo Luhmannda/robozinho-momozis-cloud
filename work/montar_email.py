@@ -738,7 +738,10 @@ def preparar(ex, j, led, ev, v):
     em = ex.setdefault("email", {})
     hoje = j["data"]
     itens = []
+    descartar = segunda_tentativa(ex.get("items") or [], ev, avisos)
     for it in ex.get("items") or []:
+        if it.get("ref") in descartar:
+            continue
         it = resolver(dict(it), ev, erros)
         if it is None:
             continue
@@ -821,6 +824,41 @@ def preparar(ex, j, led, ev, v):
                                       for c in cards if isinstance(c, list)):
         avisos.append("há prazo de concurso em até 7 dias ou concurso novo e nenhum card do resumo executivo trata disso")
     return erros, avisos
+
+
+def segunda_tentativa(itens, ev, avisos):
+    """Informativo citado por ref cujo documento nao abriu no passo 2 (o servidor do STF recusa
+    de forma intermitente): tenta mais uma vez agora, minutos depois. Abriu -> entra na evidencia
+    e sai com destaques. Nao abriu -> edicao nova segue como numero/data/link; edicao que ja
+    tinha sido anunciada sem destaques e descartada (devolvida no conjunto), sem repetir o aviso."""
+    descartar = set()
+    alvos = [(it["ref"], re.fullmatch(r"(stf|rg|stj)(\d+)", str(it.get("ref") or ""))) for it in itens
+             if it.get("ref")]
+    alvos = [(ref, m) for ref, m in alvos if m and not (ev.get(ref) or {}).get("ok")]
+    if not alvos:
+        return descartar
+    try:
+        import informativos
+        pub = informativos.publicados()
+    except Exception as e:  # noqa: BLE001 — a segunda tentativa e reforco, nunca bloqueia
+        avisos.append("segunda tentativa dos informativos indisponível (%s)" % e)
+        return descartar
+    for ref, m in alvos:
+        tipo, n = m.group(1), int(m.group(2))
+        anunciada = pub.get(tipo, {}).get(n) is True
+        try:
+            r = informativos.obter(tipo, n, "atrasada" if anunciada else "nova")
+        except Exception:  # noqa: BLE001
+            r = {}
+        if r.get("ok"):
+            ev[ref] = dict(r, _fonte="informativo")
+            avisos.append("%s: documento abriu na segunda tentativa — %d destaques (sem \"destaques\", saem os 6 "
+                          "primeiros)" % (ref, len(r["itens"])))
+        elif anunciada:
+            descartar.add(ref)
+            avisos.append("%s: documento segue sem abrir (http %s); já anunciado antes — fica para a próxima "
+                          "execução" % (ref, r.get("http")))
+    return descartar
 
 
 def main():

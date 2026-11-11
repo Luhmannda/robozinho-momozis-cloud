@@ -332,12 +332,14 @@ def main():
             for n, it in enumerate(r["itens"]):
                 print("  %d %s" % (n, linha_item(r["tipo"], it)))
         elif sit in ("atrasada", "pulada"):
-            print("SEGUE SEM CONTEUDO %s %s: %s — nada a publicar hoje; nova tentativa na proxima execucao"
-                  % (nome, r.get("numero", ""), r.get("motivo") or "http %s" % r.get("http")))
+            print("SEGUE SEM CONTEUDO %s %s [id %s]: %s — inclua {\"ref\": \"%s\"} mesmo assim: o montador tenta "
+                  "abrir de novo; se nao abrir, descarta o item sozinho"
+                  % (nome, r.get("numero", ""), r.get("id"), r.get("motivo") or "http %s" % r.get("http"), r.get("id")))
         elif r.get("http") in (0, 403):
-            print("ERRO %s %s: http %s — so publique se o coletor Gmail trouxe o e-mail desta edicao "
-                  "(numero, data, link, \"sem_conteudo\": true); o conteudo sera buscado de novo amanha"
-                  % (nome, r.get("numero", ""), r.get("http")))
+            print("ERRO %s %s [id %s]: http %s — so publique se o coletor Gmail trouxe o e-mail desta edicao: "
+                  "{\"ref\": \"%s\", \"data\": \"AAAA-MM-DD\", \"url\": \"<link do e-mail>\"}; o montador tenta abrir "
+                  "de novo e, sem sucesso, publica numero, data e link"
+                  % (nome, r.get("numero", ""), r.get("id"), r.get("http"), r.get("id")))
         else:
             print("SEM EDICAO NOVA %s (%s: %s)" % (nome, r.get("numero", "-"),
                                                  r.get("motivo") or "http %s" % r.get("http")))
