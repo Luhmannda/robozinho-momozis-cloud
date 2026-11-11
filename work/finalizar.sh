@@ -35,6 +35,13 @@ janela() { python3 -c "import json,sys; print(json.load(open('/tmp/janela.json')
 if [[ -z "$ANTERIOR" && -f /tmp/janela.json ]]; then ANTERIOR=$(janela execucao_anterior); fi
 if [[ -n "$ANTERIOR" && "$ANTERIOR" == "$(janela execution_id)" ]]; then ANTERIOR="" MSG=""; fi
 
+# Re-execucao detectada pelo inicio.py (a edicao de hoje ja existe): nao ha o que gravar.
+if [[ "$(janela reexecucao)" == "True" ]]; then
+  echo "RE-EXECUCAO: a edicao de hoje ja esta registrada — nada gravado, nada commitado."
+  echo "PUSH: OK (nada a enviar)"
+  exit 0
+fi
+
 rm -f /tmp/relatorio.txt
 python3 work/Update-Historico.py --nova-execucao /tmp/execucao.json \
   ${DRAFT:+--draft-id "$DRAFT"} \

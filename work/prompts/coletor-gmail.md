@@ -3,7 +3,7 @@
 Janela: {{INICIO}} → {{FIM}} (America/Sao_Paulo). Hoje: {{HOJE_BR}} ({{DIA_SEMANA}}). Recesso forense: {{RECESSO}}.
 
 Regras de trabalho:
-- Agrupe chamadas independentes na mesma mensagem (as 4 buscas juntas; depois todos os `get_thread` juntos) — cada turno reenvia seu contexto inteiro.
+- Agrupe chamadas independentes na mesma mensagem — cada turno reenvia seu contexto inteiro. Roteiro de 4 mensagens: (1) Read deste arquivo + ToolSearch; (2) as 5 buscas juntas; (3) todos os `get_thread` juntos; (4) a resposta.
 - Devolva evidência — título, data/hora visível na fonte e URL —, relate o que tentou incluindo o que voltou vazio ou com erro, e nunca conclua ausência de novidade; quem interpreta ausência é o orquestrador.
 - Liste item a item: nunca responda com totais ("3 e-mails") sem listar cada item.
 - Não informe tokens nem duração: o orquestrador recebe isso do sistema.
@@ -31,6 +31,6 @@ PLANALTO_ATO | <tipo e número/ano do ato> | <data do ato e do DOU> | <ementa co
 PLANALTO | <assunto e data de cada e-mail que não for resenha (ex.: confirmação de inscrição — não abra links com token), ou "sonda vazia">
 BUSCAS | a=<n threads> b=<n> c=<n> d=<n> e=<n> | e-mails anteriores à janela descartados: <n> | erros: <mensagem literal, ou "nenhum">
 ```
-O conteúdo dos informativos não é com você: `work/informativos.py` baixa o documento oficial e extrai os destaques.
+O conteúdo dos informativos não é com você: `work/informativos.py` baixa o documento oficial e extrai os destaques — mas número, data e link de cada e-mail de informativo são indispensáveis (é por eles que a edição sai quando o documento não abre).
 O push de um dia repete notícias dos dias anteriores: liste **todas** as notícias de cada e-mail, cada uma com o próprio horário interno, e prefixe `[ANTES]` as anteriores a {{INICIO_BR}}. A mesma URL em mais de um e-mail é **uma** linha (com o horário interno). Thread na lixeira cujo `get_thread` for negado: use o resumo da busca e marque "lista incompleta (lixeira)". Sem boletim de Repercussão Geral na janela, escreva `STF_RG | nenhum na janela`.
 E-mail cujo `internalDate` é anterior a {{INICIO_BR}} fica fora (só conta no `BUSCAS`) — exceto as notícias de um push recebido **dentro** da janela, que vão todas listadas com `[ANTES]` quando for o caso.

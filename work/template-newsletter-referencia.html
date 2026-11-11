@@ -1,206 +1,179 @@
 <!-- =====================================================================
-TEMPLATE DE REFERÊNCIA v3 — Robozinho dos Momozis até Passar
-v2 aprovada em 11/07/2026; v3 aprovada pelo usuário em 24/09/2026 — mantém paleta e estrutura e
-acrescenta: largura fluida (max-width 600px, cabe no celular sem zoom),
-títulos canônicos das 13 seções, mapa completo selo→estilo, quadro
-"Prazos no radar", fonte real do versículo e errata padronizada.
-REGRA: reproduzir esta estrutura e estes estilos EXATAMENTE; trocar apenas o
-conteúdo dos {{ }}. URLs diretas (nunca wrappers/rastreio). Estilos inline.
-Em edição Extra, trocar "Edição das 7h" por "Edição extra" no cabeçalho.
+AMOSTRA DE REFERÊNCIA — template v4 — Robozinho dos Momozis até Passar
+Gerada por work/montar_email.py com o conteúdo da edição de 11/11/2026 (mais os
+Informativos STJ 908 e 909, que o script passou a ler). Serve para conferência
+visual (abra no navegador). A rotina NÃO lê este arquivo: o layout vive no
+montar_email.py e o orquestrador não escreve HTML.
+
+v3 aprovada em 24/09/2026; v4 (11/11/2026) mantém paleta, ordem das 13 seções,
+selos e textos fixos, e muda: selos que não quebram de linha; Concursos em uma
+coluna (órgão — cargo em negrito + selo, detalhes abaixo, novidade em fundo
+creme); quadro "Prazos no radar" com os prazos só de fonte secundária à parte,
+em cinza; destaques dos informativos em lista; marcação mais enxuta.
 
 PALETA: navy #0b2545 · dourado #c5a253 · fundo externo #eef1f4 · card cinza
-#f4f6fa · card creme #fdf6e9 · divisória #e4e9ef · linhas #e8edf2 · zebra
-#f9fafc · texto #2f3a45 · apoio #5a6773 · link #0b4f92.
-
-SELO = <span style="display:inline-block;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px;ESTILO">TEXTO</span>
-(nas tabelas de concursos: font-size:9px;padding:2px 6px). ESTILO por selo:
-- OFICIAL  background:#e8eef7;color:#0b2545
-    CONFIRMADO POR FONTE OFICIAL · CONFIRMADO · VERSÍCULO DO DIA
-- VERDE    color:#1e6b3a;border:1px solid #bfe3cc
-    CONFIRMADO POR FONTE OFICIAL ALTERNATIVA · INSCRIÇÕES ABERTAS · EDITAL PUBLICADO · NOVO
-- URGENTE  background:#fdf0f0;color:#a61b1b;border:1px solid #f0c2c2
-    ENCERRA HOJE · ENCERRA EM BREVE · URGENTE · PROVA EM BREVE
-- NEUTRO   color:#5a6773;border:1px solid #c9ced6
-    MÍDIA ESPECIALIZADA · OPINIÃO/ANÁLISE · EM ANDAMENTO · EM PLANEJAMENTO · PROVA REALIZADA · INSCRIÇÕES ENCERRADAS
-- ALERTA   color:#8a6d1d;border:1px solid #e6d3a3
-    PENDÊNCIA · PENDÊNCIA DE VERIFICAÇÃO · FORTE INDÍCIO · RUMOR · SEM CONFIRMAÇÃO OFICIAL
-- NAVY     background:#0b2545;color:#ffffff
-    SABEDORIA DO DIA
-
-TÍTULOS DAS SEÇÕES (bloco "TÍTULO DE SEÇÃO" abaixo), nesta ordem:
-🏛️ Planalto — Resenha Diária e legislação federal (+ frase fixa) · ⚖️ STF — Notícias ·
-⚖️ STF — Jurisprudência · ⚖️ STJ — Notícias · ⚖️ STJ — Jurisprudência · 📚 Informativos ·
-💼 Concursos jurídicos — Carreira jurídica · 🗂️ Concursos jurídicos — Quadro de apoio ·
-📰 Se saiu na mídia não é fofoca! · 🤫 FOFOQUINHA JURÍDICA · 🙏 Porque sem Deus, nada é possível ·
-💡 Conhecimento nunca é demais · 📋 Observações de verificação, lacunas e pendências.
-Seção sem conteúdo próprio: uma linha de apoio (bloco "LINHA DE APOIO"), nunca omitir.
+#f4f6fa · card creme #fdf6e9 · divisória #e4e9ef · texto #2f3a45 · apoio
+#5a6773 · link #0b4f92.
+SELOS (lista fechada; estilos em montar_email.py): OFICIAL (fundo #e8eef7) ·
+VERDE (borda #bfe3cc) · URGENTE (fundo #fdf0f0) · NEUTRO (borda #c9ced6) ·
+ALERTA (borda #e6d3a3) · NAVY (fundo #0b2545).
 ===================================================================== -->
-
-<!-- PREHEADER (invisível; vira o preview da inbox; o enchimento impede o Gmail de emendar texto do corpo) -->
-<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">{{2–3 destaques do dia separados por " · "}}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
-
-<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#eef1f4" style="border-collapse:collapse">
-<tr><td align="center" style="padding:20px 8px">
+<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">DPE-SP encerra inscrições hoje · Informativos STJ 908 e 909 · Dino decide sobre a escala 5×2 até sexta&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#eef1f4" style="border-collapse:collapse"><tr><td align="center" style="padding:20px 8px">
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff" style="width:100%;max-width:600px;border-collapse:collapse">
-
-<!-- CABEÇALHO -->
-<tr><td bgcolor="#0b2545" style="padding:26px 20px;font-family:Arial,Helvetica,sans-serif" align="center">
-<div style="font-size:34px;line-height:38px;margin:0 0 6px 0">🤖📜</div>
-<div style="font-size:22px;line-height:28px;color:#ffffff;font-weight:bold;margin:0">Robozinho dos Momozis até Passar</div>
-<div style="font-size:13px;line-height:19px;color:#c5a253;font-weight:bold;margin:8px 0 0 0">Legislação, jurisprudência e concursos jurídicos sem drama. Ou quase.</div>
-<div style="font-size:12px;line-height:17px;color:#a9b7cc;margin:10px 0 0 0">Edição das 7h · {{DD/MM/AAAA}} ({{dia-da-semana}}) · América/São Paulo</div>
-</td></tr>
-
-<!-- ÍNDICE -->
-<tr><td bgcolor="#f4f6fa" style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;color:#0b2545">
-<b>Nesta edição:</b> Planalto/Legislação · STF Notícias · STF Jurisprudência · STJ Notícias · STJ Jurisprudência · Informativos · Concursos – Carreira · Concursos – Apoio · Se saiu na mídia não é fofoca! · FOFOQUINHA JURÍDICA · Porque sem Deus, nada é possível · Conhecimento nunca é demais · Pendências.
-</td></tr>
-
-<!-- RESUMO EXECUTIVO (3 a 5 cards) -->
-<tr><td style="padding:20px 20px 4px 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545;margin-bottom:12px">Resumo executivo</div>
-</td></tr>
-<tr><td style="padding:0 20px 6px 20px">
-<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
-<tr><td bgcolor="#f4f6fa" style="border-left:4px solid #0b2545;padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
-<b>{{emoji}} {{Título curto do destaque}}:</b> {{uma frase de resumo}}.
-</td></tr>
-<tr><td style="height:8px;line-height:8px;font-size:1px">&nbsp;</td></tr>
-<!-- ...demais cards iguais... -->
+<tr><td bgcolor="#0b2545" align="center" style="padding:26px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:34px;line-height:38px;margin-bottom:6px">🤖📜</div><div style="font-size:22px;line-height:28px;color:#ffffff;font-weight:bold">Robozinho dos Momozis até Passar</div><div style="font-size:13px;line-height:19px;color:#c5a253;font-weight:bold;margin-top:8px">Legislação, jurisprudência e concursos jurídicos sem drama. Ou quase.</div><div style="font-size:12px;line-height:17px;color:#a9b7cc;margin-top:10px">Edição das 7h · 11/11/2026 (quarta-feira) · América/São Paulo</div></td></tr>
+<tr><td bgcolor="#f4f6fa" style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;color:#0b2545"><b>Nesta edição:</b> Planalto/Legislação · STF Notícias · STF Jurisprudência · STJ Notícias · STJ Jurisprudência · Informativos · Concursos – Carreira · Concursos – Apoio · Se saiu na mídia não é fofoca! · FOFOQUINHA JURÍDICA · Porque sem Deus, nada é possível · Conhecimento nunca é demais · Pendências.</td></tr>
+<tr><td style="padding:20px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">Resumo executivo</div>
+<div style="background:#f4f6fa;border-left:4px solid #0b2545;padding:10px 12px;margin-bottom:8px"><b>⏰ Concursos:</b> a DPE-SP (Defensor, FCC, 70 vagas) encerra as inscrições hoje, às 23h59; TJAP (Juiz) e DPE-PB (apoio) encerram na sexta (13/11), ambos só em fonte secundária. Novo no radar: DPDF (analista), ainda sem confirmação oficial.</div>
+<div style="background:#f4f6fa;border-left:4px solid #0b2545;padding:10px 12px;margin-bottom:8px"><b>📚 Informativos STJ 908 e 909:</b> destaques das duas edições, entre eles prompt injection em peça recursal como ato atentatório à dignidade da Justiça e remição proporcional por aprovação parcial no Enem.</div>
+<div style="background:#f4f6fa;border-left:4px solid #0b2545;padding:10px 12px;margin-bottom:8px"><b>🏛️ Legislação:</b> Decreto nº 13.159/2026 prorroga a redução de alíquotas de tributos sobre gasolina e etanol; o boletim da Câmara registra aprovações em Plenário, entre elas crédito de 18,5 bi para exportadores.</div>
+<div style="background:#f4f6fa;border-left:4px solid #0b2545;padding:10px 12px;margin-bottom:8px"><b>⚖️ Escala 5×2 no STF:</b> segundo o STF, o ministro Flávio Dino decidirá sobre a implementação da nova jornada até sexta-feira (13); a suspensão da emenda não está em discussão.</div>
+<div style="background:#f4f6fa;border-left:4px solid #0b2545;padding:10px 12px;margin-bottom:8px"><b>🤫 Caso Master:</b> o Valor diz que a PF deve incluir Fux, Gilmar Mendes e André Mendonça nos novos relatórios; sem confirmação oficial.</div></td></tr>
+<tr><td style="padding:10px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773"><i>Janela de cobertura: das 7h07 de ontem (10/11) às 7h08 de hoje (11/11/2026), fuso América/São Paulo. Limitações: Informativo STF 1236 inacessível (http 403); páginas oficiais de bancas e tribunais de concursos bloqueadas pela rede.</i></td></tr>
+<tr><td style="padding:16px 20px 0"><div style="border-top:1px solid #e4e9ef;font-size:1px;line-height:1px">&nbsp;</div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">🏛️ Planalto — Resenha Diária e legislação federal</div>
+<div style="font-size:12px;color:#8a8f5c;font-style:italic;margin:-4px 0 12px 14px">isso aqui só existe porque eles não param de inventar moda...</div>
+<div style="margin:0px 0 4px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <span style="font-size:12px;color:#5a6773">— Resenha Diária PUSH Legislação de 09/11 (recebida em 10/11, 12h18).</span></div>
+<div style="padding:6px 0"><a href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13159.htm" style="color:#0b4f92;text-decoration:underline"><b>Decreto nº 13.159/2026</b></a> <span style="font-size:11px;color:#5a6773">(09/11, DOU edição extra de 09/11)</span><br>Prorroga os prazos de redução das alíquotas da Contribuição para o Programa de Integração Social e para o Programa de Formação do Patrimônio do Servidor Público - PIS/Pasep, da Contribuição para o Financiamento da Seguridade Social - Cofins e da Contribuição de Intervenção no Domínio Econômico incidente sobre a importação e a comercialização de gasolina e suas correntes - Cide-Combustíveis incidentes sobre a gasolina e as suas correntes, exceto a gasolina de aviação, e da Contribuição para o PIS/Pasep e da Cofins incidentes sobre o etanol hidratado combustível.</div>
+<div style="margin:14px 0 4px"><b style="color:#1e6b3a;border:1px solid #bfe3cc;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL ALTERNATIVA</b> <span style="font-size:12px;color:#5a6773">— boletim da Agência Câmara de 11/11 (6h03); só títulos do boletim, sem leitura do texto das normas.</span></div>
+<div style="padding:6px 0;border-bottom:1px solid #e8edf2"><a href="https://www.camara.leg.br/noticias/1318105-medida-provisoria-cria-fundo-garantidor-para-novas-operacoes-de-credito-rural" style="color:#0b4f92;text-decoration:underline"><b>Medida provisória cria fundo garantidor para novas operações de crédito rural</b></a> <span style="font-size:11px;color:#5a6773">(número da MPV não identificado no boletim)</span></div>
+<div style="padding:6px 0;border-bottom:1px solid #e8edf2"><a href="https://www.camara.leg.br/noticias/1317853-camara-aprova-credito-de-185-bi-para-exportadores-afetados-por-novo-tarifaco-dos-eua" style="color:#0b4f92;text-decoration:underline"><b>Câmara aprova crédito de 18,5 bi para exportadores afetados por novo tarifaço dos EUA</b></a> <span style="font-size:11px;color:#5a6773">(Plenário)</span></div>
+<div style="padding:6px 0;border-bottom:1px solid #e8edf2"><a href="https://www.camara.leg.br/noticias/1317852-camara-aprova-renegociacao-de-dividas-rurais-de-produtores-prejudicados-por-eventos-climaticos-extremos" style="color:#0b4f92;text-decoration:underline"><b>Câmara aprova renegociação de dívidas rurais de produtores prejudicados por eventos climáticos extremos</b></a> <span style="font-size:11px;color:#5a6773">(Plenário)</span></div>
+<div style="padding:6px 0"><a href="https://www.camara.leg.br/noticias/1318042-camara-envia-ao-senado-projeto-que-flexibiliza-codigo-florestal" style="color:#0b4f92;text-decoration:underline"><b>Câmara envia ao Senado projeto que flexibiliza Código Florestal</b></a> <span style="font-size:11px;color:#5a6773">(Plenário)</span></div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">⚖️ STF — Notícias</div>
+<p style="margin:0 0 12px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>Escala 5×2: relator decidirá sobre implementação da nova jornada até sexta-feira (13).</b> Suspensão da emenda não está em discussão, afirmou ministro Flávio Dino. <i>Fonte: <a href="https://noticias.stf.jus.br/postsnoticias/escala-5x2-relator-decidira-sobre-implementacao-da-nova-jornada-ate-sexta-feira-13/" style="color:#0b4f92">Push STF</a>, 10/11 20:11.</i></p>
+<p style="margin:0 0 12px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>Associação questiona regras do CNJ sobre leilões judiciais.</b> <i>Fonte: <a href="https://noticias.stf.jus.br/postsnoticias/associacao-questiona-regras-do-cnj-sobre-leiloes-judiciais/" style="color:#0b4f92">Push STF</a>, 10/11 (só o título veio no push).</i></p>
+<p style="margin:0 0 12px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>Companhia de saneamento do RJ deve pagar dívidas judiciais por precatórios, decide STF.</b> <i>Fonte: <a href="https://noticias.stf.jus.br/postsnoticias/companhia-de-saneamento-do-rj-deve-pagar-dividas-judiciais-por-precatorios-decide-stf/" style="color:#0b4f92">Push STF</a>, 10/11 (só o título veio no push).</i></p>
+<p style="margin:0 0 12px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>STF autoriza buscas em investigação sobre suspeitas de desvio de emendas parlamentares na Bahia.</b> <i>Fonte: <a href="https://noticias.stf.jus.br/postsnoticias/stf-autoriza-buscas-em-investigacao-sobre-suspeitas-de-desvio-de-emendas-parlamentares-na-bahia/" style="color:#0b4f92">Push STF</a>, 10/11 (só o título veio no push).</i></p></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">⚖️ STF — Jurisprudência</div>
+<div style="font-size:12px;line-height:18px;color:#5a6773">Nenhum boletim de Repercussão Geral em Pauta na janela; decisões do STF noticiadas só pela mídia estão em Se saiu na mídia não é fofoca!</div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">⚖️ STJ — Notícias</div>
+<div style="font-size:12px;line-height:18px;color:#5a6773">O STJ da janela chegou só pela mídia — ver Se saiu na mídia não é fofoca!</div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">⚖️ STJ — Jurisprudência</div>
+<div style="font-size:12px;line-height:18px;color:#5a6773">Sem teses do CodJu na janela; ver Informativos.</div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">📚 Informativos</div>
+<p style="margin:0 0 12px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>Informativo STF nº 1236.</b> Conteúdo não acessível nesta execução; os destaques entram quando o documento abrir. <i>Fonte: <a href="http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF" style="color:#0b4f92">Push STF Informativo</a>, 10/11 (e-mail recebido em 10/11, 22h16).</i></p>
+<p style="margin:0 0 6px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>Informativo STJ nº 909 — 10 de novembro de 2026.</b> <i>Fonte: <a href="https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&amp;livre=0909.cod." style="color:#0b4f92">STJ — página oficial do informativo</a>, 10/11.</i></p>
+<div style="margin:0 0 14px 14px;font-size:12px;line-height:18px"><p style="margin:0 0 6px">▸ <b>Direito Processual Penal</b> — O termo inicial da contagem do prazo para impugnar decisão judicial proferida no Tribunal do Júri é, para o Ministério Público e para a Defensoria Pública, a data da entrega dos autos na repartição administrativa do órgão, sendo irrelevante que a intimação pessoal tenha se dado durante a sessão plenária, em cartório ou por mandado. <i>REsp 2.225.548-PA, Rel. Ministro Rogerio Schietti, Terceira Seção, por unanimidade, julgado em 8/10/2026 (RQF Tema 1403).</i></p>
+<p style="margin:0 0 6px">▸ <b>Execução Penal</b> — 1) É cabível a remição proporcional da pena em favor da pessoa privada de liberdade que consiga aprovação parcial no Enem, assim entendida a obtenção, em ao menos uma das quatro áreas de conhecimento ou na redação, da pontuação mínima fixada pelo Inep para fins de certificação (atualmente, 450 pontos por área de conhecimento e 500 pontos na redação), vedada nova remição pelo mesmo fato gerador educacional, nos termos da Tese n. 3 do Tema Repetitivo n. 1.357 do STJ. <i>REsp 2.101.592-SP, Rel. Ministro Rogerio Schietti, Terceira Seção, por unanimidade, julgado em 8/10/2026 (Repetitivo Tema 1270).</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito do Consumidor, Direito Processual Civil</b> — O Ministério Público somente tem legitimidade ativa para ajuizar ação civil pública em defesa de interesses individuais homogêneos disponíveis quando demonstrado interesse social qualificado, aferível por critérios quantitativos (número significativo de lesados) ou qualitativos (natureza do dano ou impacto sistêmico). <i>EAREsp 222.660-MS, Rel. Ministro Raul Araújo, Corte Especial, por unanimidade, julgado em 4/11/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito Administrativo, Direito da Saúde</b> — A exigência do art. 15, § 1º, da Lei n. 5.991/1973 demanda a permanência física e contínua de farmacêutico, durante todo o horário de funcionamento das drogarias e farmácias, em cada estabelecimento, sendo insuficiente o atendimento remoto em regime de plantão. <i>REsp 1.776.753-MG, Rel. Ministro Marco Aurélio Bellizze, Segunda Turma, por unanimidade, julgado em 3/11/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito Penal</b> — A aplicação da majorante do art. 40, IV, da Lei n. 11.343/2006 exige nexo finalístico entre o uso da arma e a atividade de tráfico, com emprego do armamento para garantir o sucesso da mercancia; nessa hipótese, o delito de arma é absorvido. Ausente o nexo, o crime previsto na Lei n. 10.826/2003 configura crime autônomo, em concurso material com o tráfico. <i>AgRg no HC 1.092.822-RS, Rel. Ministro Rogerio Schietti, Sexta Turma, por unanimidade, julgado em 26/8/2026, DJEN 31/8/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito Processual Penal</b> — Em casos nos quais o suspeito tem algum traço distintivo, como tatuagem ou cicatriz, apesar de ser difícil conseguir dublês com a mesma característica, é possível tentar ocultar a parte do corpo em que há a marca distintiva em todos os indivíduos exibidos ao reconhecedor de modo a não gerar induzimento em relação a um deles. <i>AgRg no HC 1.056.253-PE, Rel. Ministro Rogerio Schietti, Sexta Turma, por maioria, julgado em 4/8/2026, DJEN 14/9/2026.</i></p></div>
+<p style="margin:0 0 6px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">CONFIRMADO POR FONTE OFICIAL</b> <b>Informativo STJ nº 908 — 03 de novembro de 2026.</b> <i>Fonte: <a href="https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&amp;livre=0908.cod." style="color:#0b4f92">STJ — página oficial do informativo</a>, 03/11.</i></p>
+<div style="margin:0 0 14px 14px;font-size:12px;line-height:18px"><p style="margin:0 0 6px">▸ <b>Direito Processual Civil</b> — A inserção oculta, em peça processual, de comandos (prompt injection) destinados a interferir no processamento automatizado do documento afronta os deveres de boa-fé, lealdade, cooperação e transparência processual, configura ato atentatório à dignidade da Justiça, nos termos do art. 77, IV e VI, do Código de Processo Civil, e autoriza a aplicação da multa processual correspondente. <i>AREsp 3.095.458-SP, Rel. Ministro Paulo Sérgio Domingues, Primeira Turma, por unanimidade, julgado em 20/10/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito Administrativo</b> — O dano moral coletivo em improbidade administrativa não é automático e somente se reconhece excepcionalmente, mediante prova de lesão extrapatrimonial grave e repercussão social qualificada. <i>REsp 2.209.648-RJ, Rel. Ministro Marco Aurélio Bellizze, Segunda Turma, por unanimidade, julgado em 20/10/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito do Consumidor</b> — 1 - Não há autorização legal expressa à exclusão de cobertura pela operadora do plano de saúde do sensor contínuo de glicose (Freestyle libre 2), tendo em vista que, assim como o sistema de infusão contínua de insulina (bomba de insulina), trata-se de "produto para a saúde" ou "dispositivo médico", assim definido pela Anvisa, e não pode ser classificado como medicamento de uso domiciliar ou órtese, razão pela qual não se enquadra nas exceções previstas nos incisos VI e VII do art. 10 da Lei n. 9.656/1998. <i>REsp 2.263.523-SP, Rel. Ministra Nancy Andrighi, Terceira Turma, por unanimidade, julgado em 20/10/2026, DJEN 26/10/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito Civil</b> — Há interesse processual para o ajuizamento da ação de sonegados contra os herdeiros, caso demonstrada a inequívoca oposição à colação dos bens indicados como objeto de fraude, ainda que em momento processual anterior ao encerramento do inventário. <i>REsp 2.296.199-SC, Rel. Ministro Ricardo Villas Bôas Cueva, Terceira Turma, por unanimidade, julgado em 20/10/2026, DJEN 26/10/2026.</i></p>
+<p style="margin:0 0 6px">▸ <b>Direito Penal</b> — 1. A ausência de contato físico não exclui, de plano, a possibilidade de configuração do crime de importunação sexual, devendo a avaliação ocorrer à luz do conjunto probatório e das circunstâncias do caso concreto. <i>Processo em segredo de justiça, Rel. Ministra Nilsoni de Freitas, Sexta Turma, por unanimidade, julgado em 8/10/2026 e DJEN 13/10/2026.</i></p></div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">💼 Concursos jurídicos — Carreira jurídica</div>
+<div style="background:#fdf6e9;border-left:4px solid #c5a253;padding:10px 12px;margin-bottom:12px">
+<div style="font-size:12px;font-weight:bold;color:#0b2545;margin-bottom:6px">⏰ Prazos no radar <span style="font-weight:normal;color:#5a6773">· próximos 30 dias</span></div>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;line-height:17px;color:#2f3a45">
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#a61b1b;white-space:nowrap">11/11 · hoje</td><td style="padding:3px 0">DPE-SP — fim das inscrições (23h59)</td></tr>
 </table>
-</td></tr>
-
-<!-- JANELA DE COBERTURA -->
-<tr><td style="padding:18px 20px 0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773">
-<i>Janela de cobertura: {{ex.: "das 7h17 de ontem (DD/MM) às 7h17 de hoje (DD/MM/AAAA)"; às segundas: "de sexta (DD/MM) até hoje, cobrindo o fim de semana"}}, fuso América/São Paulo. {{nota de gap, se houver}}. {{limitações, se houver}}.</i>
-</td></tr>
-
-<!-- DIVISÓRIA (entre grandes blocos) -->
-<tr><td style="padding:16px 20px 0 20px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#e4e9ef" style="height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr></table></td></tr>
-
-<!-- TÍTULO DE SEÇÃO (usar para todas as seções da lista do comentário) -->
-<tr><td style="padding:22px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">{{emoji e título canônico}}</div>
-</td></tr>
-
-<!-- SEÇÃO PLANALTO (título + frase fixa + lista de atos) -->
-<tr><td style="padding:22px 20px 0 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px"><span style="font-size:16px;font-weight:bold;color:#0b2545">🏛️ Planalto — Resenha Diária e legislação federal</span></div>
-<div style="font-size:12px;color:#8a8f5c;font-style:italic;margin:6px 0 12px 10px">isso aqui só existe porque eles não param de inventar moda...</div>
-</td></tr>
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
-<span style="display:inline-block;color:#1e6b3a;border:1px solid #bfe3cc;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL ALTERNATIVA</span>
-<span style="font-size:12px;color:#5a6773"> — {{origem e horário da fonte}}.</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
-<tr><td style="padding:6px 0;border-bottom:1px solid #e8edf2"><a href="{{url-direta}}" style="color:#0b4f92;font-weight:bold;text-decoration:underline">{{Lei nº X.XXX/AAAA}}</a> <span style="font-size:11px;color:#5a6773">({{DD/MM}}, DOU {{DD/MM}}{{; com veto — VET NN/AAAA}})</span><br>{{ementa, copiada da fonte}}.</td></tr>
-<!-- ...demais atos iguais; último sem border-bottom... -->
+<div style="font-size:11px;color:#5a6773;margin:8px 0 2px">A confirmar — data vista só em fonte secundária:</div>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;line-height:17px;color:#2f3a45">
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">13/11 · em 2 dias</td><td style="padding:3px 0;color:#5a6773">TJAP — fim das inscrições, 16h</td></tr>
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">13/11 · em 2 dias</td><td style="padding:3px 0;color:#5a6773">DPE-PB — fim das inscrições, 23h59</td></tr>
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">18/11 · em 7 dias</td><td style="padding:3px 0;color:#5a6773">TJPB — fim das inscrições, 16h</td></tr>
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">23/11 · em 12 dias</td><td style="padding:3px 0;color:#5a6773">TRF3 — fim das inscrições</td></tr>
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">25/11 · em 14 dias</td><td style="padding:3px 0;color:#5a6773">PGM Suzano/SP — fim das inscrições</td></tr>
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">26/11 · em 15 dias</td><td style="padding:3px 0;color:#5a6773">TJSC — fim das inscrições</td></tr>
+<tr><td width="118" valign="top" style="padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap">03/12 · em 22 dias</td><td style="padding:3px 0;color:#5a6773">DPDF (Defensoria Pública do DF) — início das inscrições</td></tr>
 </table>
-</td></tr>
-
-<!-- ITEM PADRÃO (STF/STJ/Informativos/Mídia/FOFOQUINHA): parágrafo com selo + fonte -->
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45">
-<p style="margin:0 0 12px 0"><span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">CONFIRMADO POR FONTE OFICIAL</span> {{texto do item com <b>negrito</b> no núcleo}}. <i>Fonte: <a href="{{url}}" style="color:#0b4f92">{{fonte}}</a>, {{DD/MM HH:MM}}.</i></p>
-</td></tr>
-
-<!-- LINHA DE APOIO (seção sem conteúdo próprio nesta janela) -->
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773">{{uma frase dizendo onde está o conteúdo, ex.: "O STJ da janela chegou só pela mídia — ver Se saiu na mídia não é fofoca!"}}</td></tr>
-
-<!-- OPINIÃO/ANÁLISE — bloco OBRIGATÓRIO dentro da célula da seção Mídia, após o último item
-     e após a linha "ver mais" (máx. 6 itens; sem link quando não resolvido) -->
-<p style="margin:12px 0 0 0;font-size:12px"><a href="{{listagem}}" style="color:#0b4f92">Ver mais no {{veículo}}</a> — {{n}} outras matérias da janela.</p>
-<p style="margin:14px 0 6px 0;font-size:12px;font-weight:bold;color:#0b2545">Opinião/Análise</p>
-<p style="margin:0 0 6px 0;font-size:12px;line-height:18px"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px">OPINIÃO/ANÁLISE</span> <a href="{{url-resolvida}}" style="color:#0b4f92">{{Título do artigo}}</a> — {{autor, se houver}} ({{veículo}}, {{DD/MM}}).</p>
-<p style="margin:0;font-size:12px;line-height:18px"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px">OPINIÃO/ANÁLISE</span> "{{Título sem link resolvido}}" — {{autor}} ({{veículo}}, {{DD/MM}}; sem link próprio).</p>
-
-<!-- CONCURSOS — CARREIRA. Primeiro, se houver prazo confirmado nos próximos 30 dias, o quadro
-     PRAZOS NO RADAR (ordem cronológica; "hoje"/"amanhã"/"em N dias"; prazo ≤ 7 dias em vermelho #a61b1b).
-     Depois os blocos de carreira: barra navy, badge à direita, ZEBRA branco/#f9fafc; ordem:
-     Magistratura Estadual · Magistratura Federal · Promotor de Justiça (Estadual) ·
-     MPF/MPU — Procurador da República · PFN · AGU · Procurador do Estado (PGE) ·
-     Procurador do Município (PGM) · Defensor Público Estadual (DPE) · Defensor Público Federal (DPU) -->
-<tr><td style="padding:18px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">💼 Concursos jurídicos — Carreira jurídica</div>
-</td></tr>
-<tr><td style="padding:4px 20px 10px 20px;font-family:Arial,Helvetica,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-<tr><td bgcolor="#fdf6e9" style="border-left:4px solid #c5a253;padding:10px 12px">
-<div style="font-size:12px;font-weight:bold;color:#0b2545;margin-bottom:6px">⏰ Prazos no radar</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;line-height:17px;color:#2f3a45">
-<tr><td width="92" style="padding:3px 0;vertical-align:top;font-weight:bold;color:#a61b1b">{{DD/MM}} · {{em N dias}}</td><td style="padding:3px 0">{{Órgão — o que vence}}</td></tr>
-<tr><td width="92" style="padding:3px 0;vertical-align:top;font-weight:bold;color:#0b2545">{{DD/MM}} · {{em N dias}}</td><td style="padding:3px 0">{{Órgão — o que vence}}</td></tr>
+</div>
+<table width="100%" cellpadding="7" cellspacing="0" style="border-collapse:collapse;font-size:12px;line-height:18px">
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Magistratura Estadual</td></tr>
+<tr><td><b>TJRS — Juiz Substituto</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">INSCRIÇÕES ENCERRADAS</b><br>Banca FGV, 30 vagas, subsídio R$ 30.505,36, prova em 13/12; inscrições encerradas em 14/10 às 16h pelo prazo do edital (prorrogação não verificada). <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>TJDFT — Juiz Substituto (XLV concurso)</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Banca Cebraspe, subsídio ~R$ 37.765,55, ~20 a 24 vagas segundo secundárias; sem edital; última informação oficial vista (02/02/2026) sem previsão. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td><b>TJRR — Juiz Substituto (VI concurso)</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Comissão organizadora instituída em junho/2026 segundo secundária; banca não definida. <i>(herdada; verificado em 10/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>TJPB — Juiz Substituto</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Seis vagas; tribunal teria confirmado em setembro/2026 que prepara novo concurso, sem data de edital nem banca (secundária). <i>(herdada; verificado em 10/11)</i></td></tr>
+<tr><td><b>TJSC — Juiz Substituto</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Banca FGV, 15 vagas + CR; inscrições até 26/11 e objetiva em 31/01/2027 segundo secundárias (início 19/10 ou 26/10, divergente); edital não lido. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#fdf6e9"><td><b>TJAP — Juiz Substituto</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br><b style="color:#8a6d1d">Atualizado hoje:</b> Edital nº 01/2026, FGV, 15 vagas, taxa R$ 358,77, subsídio R$ 35.877,27; inscrições de 13/10 a 13/11 às 16h (boleto até 16/11); exige ENAM; objetiva em 24/01/2027; prorrogação não localizada; sem fonte oficial.</td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Magistratura Federal</td></tr>
+<tr><td><b>TRF5 — Juiz Federal Substituto (XVI concurso)</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">INSCRIÇÕES ENCERRADAS</b><br>Inscrições encerradas em 28/09; 11 vagas imediatas + CR, banca FGV, subsídio R$ 37.765,55; prova objetiva em 20/12/2026 segundo uma secundária (remarcada), outras de agosto citam 29/11; nada oficial lido. <i>(herdada; verificado em 05/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>TRF2 — XIX concurso (Edital 154/2025, 27 vagas + CR)</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Edital 109/2026 com resultado provisório da prova de sentença (24 aprovados); prazo de 06/11 (inscrição definitiva) sem desfecho confirmado; home oficial (09/11) sem oral nem inscrição definitiva; secundárias divergem no calendário e citam suspensão pelo CNJ sem data. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td><b>TRF1 — Juiz Federal Substituto (XVIII concurso)</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Edital 2/2026 com DOU de 03/09/2026 segundo agregador; banca FGV segundo matéria mais antiga do Estratégia; vagas, taxa e datas não lidas; sem fonte oficial. <i>(herdada; verificado em 10/11)</i></td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Promotor de Justiça (Estadual)</td></tr>
+<tr><td><b>MP-PB e MP-AL — Promotor de Justiça</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>MP-PB anunciou novo concurso (edital previsto em 2026, ~10 vagas, banca não definida, segundo secundária); MP-AL com banca divergente entre fontes; nenhum edital publicado. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>MP-AP — Promotor de Justiça</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Banca FCC definida em setembro e comissão em pauta segundo secundária (04/11); sem vagas, taxa ou datas. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">MPF/MPU — Procurador da República</td></tr>
+<tr><td><b>MPF/MPU — Procurador da República</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Sem edital localizado. <i>(herdada; verificado em 06/11)</i></td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">PFN</td></tr>
+<tr><td><b>PFN</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>50 das 170 vagas autorizadas no certame conjunto AGU/PFN (ver AGU); sem edital nem banca. <i>(herdada; verificado em 10/11)</i></td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">AGU — Advogado da União</td></tr>
+<tr><td><b>AGU/PFN</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>170 vagas autorizadas (50 AGU, 50 PFN, 50 Procurador Federal e 20 Procurador do Bacen); banca organizadora ainda indefinida; banca examinadora de PFN citada por secundária (Portaria CSAGU/AGU nº 7, 14/10, não lida); edital previsto até o fim de 2026. <i>(herdada; verificado em 05/11)</i></td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Procurador do Estado (PGE)</td></tr>
+<tr><td><b>PGE-RJ — 19º concurso de Procurador (5 vagas + CR, FGV)</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM ANDAMENTO</b><br>/concursos oficial lida em 23/10 sem convocação de orais; último ato oficial visto foi o resultado preliminar da prova escrita geral (DO de 07/10/2026); orais de 7 a 16/10 citadas por fontes secundárias sem base oficial. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>PGE-AL — Procurador</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM ANDAMENTO</b><br>Gabaritos preliminares publicados; resultado final da objetiva e provisório da discursiva previstos para ~20/10, sem publicação localizada em 23/10; 20 vagas: 10 imediatas + 10 CR. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td><b>PGE-RS — 16º concurso</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Regulamento publicado em 21/09 (Resolução PGE 315/2026), comissão formada; edital de abertura sem data. <i>(herdada; verificado em 05/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>PGE-BA</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Comissão formada (Resolução CS 024), 135 vagas totais, banca FCC; edital ainda sem publicação. <i>(herdada; verificado em 05/11)</i></td></tr>
+<tr><td><b>PGE-MA</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Comissão formada (Portaria 269/2025), 10 vagas + CR; banca indefinida. <i>(herdada; verificado em 06/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>ALEPA (Assembleia Legislativa do Pará) — Procurador (Concurso nº 003/2026)</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Edital só em fontes secundárias; 5 vagas imediatas, banca CETAP, taxa R$ 118,00; inscrições de 01/10 a 04/11, encerradas segundo secundárias (sem prorrogação localizada); prova em 13/12; site oficial sem menção a concurso em 05/11. <i>(herdada; verificado em 05/11)</i></td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Procurador do Município (PGM)</td></tr>
+<tr><td><b>PGM Juazeiro/BA</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Edital previsto para o fim de setembro de 2026, ainda sem publicação, vagas, banca ou datas. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>PGM Chapecó/SC — Procurador</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Banca definida (Objetiva Instituto de Desenvolvimento e Inovação, contratada em outubro) segundo secundária; sem vagas ou datas. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td><b>PGM Valinhos/SP — Procurador (ABCP, 2 vagas imediatas + CR, R$ 12.995,34)</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Segundo o Estratégia, a errata nº 001 fixa classificação final em 09/11 e homologação em 10/11; gabarito preliminar e listas provisórias citados, o que indica prova aplicada; sem confirmação oficial. <i>(herdada; verificado em 10/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>PGM Curitiba — Procurador do Município</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Edital Normativo 6/2026 (FAFIPA), 5 vagas, R$ 38.087,99, taxa R$ 250,00; inscrições de 07/10 a 05/11 (23h59) — encerradas segundo secundárias (edital republicado com retificações; prorrogação não localizada); objetiva 13/12 (secundária). <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#fdf6e9"><td><b>PGM Suzano/SP — Procurador</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br><b style="color:#8a6d1d">Atualizado hoje:</b> Edital nº 02/2026 (23/10), Instituto Nosso Rumo, inscrições de 29/10 a 25/11, taxa R$ 106,62, R$ 12.062,91 (40h), cadastro de reserva; provas previstas para 13/12; sem fonte oficial.</td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Defensor Público Estadual (DPE)</td></tr>
+<tr bgcolor="#fdf6e9"><td><b>DPE-SP — X concurso de Defensor</b> <b style="background:#fdf0f0;color:#a61b1b;border:1px solid #f0c2c2;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">ENCERRA HOJE</b><br><b style="color:#8a6d1d">Atualizado hoje:</b> 70 vagas, remuneração inicial R$ 29.716,00, taxa R$ 250, banca FCC; inscrições até hoje (11/11) às 23h59 (boleto até 12/11); prova objetiva em 10/01/2027 só em secundária (diverge de dissertativas em 03 e 04/07/2027); edital não lido.</td></tr>
+<tr bgcolor="#f4f6fa"><td><b>DPE-RO</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Comissão formada em maio/2026; recursos previstos na LOA 2026. <i>(herdada; verificado em 06/11)</i></td></tr>
+<tr><td><b>DPE-MA — Defensor Público</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Lei criou 35 novos cargos (04/11, secundária); sem edital nem banca. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>DPE-RN — Defensor</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Regulamento aprovado e comissão formada, 10 vagas + CR, banca Cebraspe segundo blog; sem data de edital. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td><b>DPE-SC — Defensor Público</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Comissão formada segundo secundária; sem edital ou datas. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#fdf6e9"><td><b>DPE-RJ — Defensor</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br><b style="color:#8a6d1d">Atualizado hoje:</b> FGV, 35 vagas + CR, 7.560 inscritos; prova objetiva prevista para 30/08 e, segundo secundárias, realizada, com gabarito e resultado preliminar (data incerta, 29/09 em uma fonte); próxima fase: dissertativas, data a definir; sem fonte oficial.</td></tr>
+<tr><td></td></tr>
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Defensor Público Federal (DPU)</td></tr>
+<tr><td><b>DPU — VII concurso</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Resolução CSDPU 255/2026; comissão criada em 13/10 (Portaria GABSUBDPGF nº 01); prazo de manifestação de interesse nas bancas encerrou em 26/10; sem banca, edital ou número oficial de vagas. <i>(herdada; verificado em 10/11)</i></td></tr>
+</table></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">🗂️ Concursos jurídicos — Quadro de apoio</div>
+<table width="100%" cellpadding="7" cellspacing="0" style="border-collapse:collapse;font-size:12px;line-height:18px">
+<tr><td bgcolor="#0b2545" style="color:#ffffff;font-weight:bold;font-size:11px">Analista e técnico (TJ, TRF, TRT, MP, Defensoria)</td></tr>
+<tr bgcolor="#fdf6e9"><td><b>DPDF (Defensoria Pública do DF) — Analista (cargo não confirmado)</b> <b style="color:#1e6b3a;border:1px solid #bfe3cc;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">NOVO</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>7 vagas + CR; edital publicado segundo uma secundária e inscrições de 03/12/2026 a 07/01/2027 segundo outra; isenção de 10 a 12/11; banca, taxa e remuneração não vistas; sem fonte oficial.</td></tr>
+<tr bgcolor="#f4f6fa"><td><b>PGE-RJ — Analista e Técnico</b> <b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">EM PLANEJAMENTO</b><br>Autorização publicada no DOERJ em 05/11 para 30 vagas de analista e cadastro de reserva de técnico (vencimento inicial R$ 7.612,62 e R$ 5.155,21); banca a contratar e edital a elaborar. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr><td><b>TRT8 — Analista e Técnico Judiciário</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>Edital 1/2026 (DOU 02/10), FCC, 50 vagas, taxas R$ 110/R$ 90; inscrições de 05/10 a 05/11 — encerradas segundo secundárias (taxa possivelmente paga até 06/11; sem prorrogação localizada); prova prevista para 17/01/2027 (secundária); página oficial bloqueada pela rede. <i>(herdada; verificado em 09/11)</i></td></tr>
+<tr bgcolor="#f4f6fa"><td><b>TRF3 — Analista e Técnico Judiciário (Vunesp)</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br>11 vagas imediatas + CR; taxas R$ 160 (analista) e R$ 100 (técnico); inscrições de 04/11 a 23/11 pelo site da Vunesp (só fonte secundária; confirmação oficial pendente). <i>(herdada; verificado em 06/11)</i></td></tr>
+<tr bgcolor="#fdf6e9"><td><b>DPE-PB — Analista e Técnico da Defensoria</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br><b style="color:#8a6d1d">Atualizado hoje:</b> Edital nº 01/2026, FCC, 20 vagas (médio e superior), taxa de R$ 103 a R$ 123; inscrições de 28/09 a 13/11 às 23h59; prova objetiva prevista para 28/02/2027; só secundárias.</td></tr>
+<tr bgcolor="#fdf6e9"><td><b>TJPB — Analista Judiciário (Edital nº 01/2026)</b> <b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b><br><b style="color:#8a6d1d">Atualizado hoje:</b> 50 vagas imediatas + CR, FGV, taxa R$ 120; inscrições de 20/10 até 16h de 18/11; provas em 24/01/2027; salário diverge entre secundárias (R$ 7.526,14 x R$ 7.033,78); edital trata só de analista.</td></tr>
+</table></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">📰 Se saiu na mídia não é fofoca!</div>
+<p style="margin:0 0 12px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">MÍDIA ESPECIALIZADA</b> <b>Edson Fachin arquiva inquérito das fake news depois de mais de 7 anos de tramitação.</b> O JOTA Principal diz que o inquérito foi aberto de ofício em 2019 por Dias Toffoli, passou por 4 gestões (Fux, Rosa Weber, Barroso e Fachin) e foi encerrado em 9/11; Fachin prometeu levantar o sigilo após retirar dados sensíveis dos investigados. Sem confirmação oficial localizada nesta execução. <i>Fonte: <a href="https://www.jota.info/stf/do-supremo/edson-fachin-arquiva-inquerito-das-fake-news-depois-de-mais-de-7-anos-de-tramitacao" style="color:#0b4f92">JOTA</a>, 10/11.</i></p>
+<p style="margin:0 0 12px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">MÍDIA ESPECIALIZADA</b> <b>STJ valida regras da ANS que proíbem cobrança direta em planos coletivos por adesão.</b> Para a 1ª turma, cabe à ANS definir a responsabilidade pelo pagamento e a forma de cobrança dos planos. <i>Fonte: <a href="https://www.migalhas.com.br/quentes/468315/stj-valida-regra-da-ans-que-proibe-cobranca-direta-em-planos-coletivos" style="color:#0b4f92">Migalhas</a>, 10/11.</i></p>
+<p style="margin:0 0 12px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">MÍDIA ESPECIALIZADA</b> <b>Pagamento a portuários avulsos não gera créditos de PIS/Cofins, decide STJ.</b> A 1ª turma entendeu que a intermediação obrigatória por órgão gestor de mão de obra não afasta a vedação legal a créditos sobre remuneração de pessoas físicas. <i>Fonte: <a href="https://www.migalhas.com.br/quentes/468312/stj-nega-creditos-de-pis-cofins-sobre-trabalho-portuario-avulso" style="color:#0b4f92">Migalhas</a>, 10/11.</i></p>
+<p style="margin:0 0 12px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">MÍDIA ESPECIALIZADA</b> <b>TJ-SP suspende decisões que afastavam IBS e CBS da base do ICMS.</b> Por risco de perda de arrecadação em 2027, o presidente do TJ-SP atendeu pedido da Fazenda Estadual para manter IBS e CBS na base do ICMS. <i>Fonte: <a href="https://conjur.com.br/2026-nov-10/tj-sp-suspende-decisoes-que-afastavam-ibs-e-cbs-da-base-do-icms/" style="color:#0b4f92">ConJur</a>, 10/11.</i></p>
+<p style="margin:0 0 12px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">MÍDIA ESPECIALIZADA</b> <b>STJ afasta servidores por vazamento a advogado amigo de Flávio; ex-secretário de TI do STJ é preso.</b> Suspeita de repasse de minuta de decisão ao advogado Willer Tomaz; os indícios surgiram do celular de Tomaz em investigação sobre lavagem de dinheiro, e ele nega. Segundo a Folha (clipping do JOTA, 11/11), o ex-secretário de TIC do STJ, Humberto Fontoura Pradera, foi preso preventivamente ontem pela PF, por ordem do Supremo, na segunda fase da Operação Linceu. Sem confirmação oficial localizada. <i>Fonte: <a href="https://www.jota.info/justica/stj-afasta-servidores-e-pf-faz-busca-contra-suspeito-de-vazamento-a-advogado-amigo-de-flavio" style="color:#0b4f92">JOTA / Folha</a>, 10/11.</i></p>
+<p style="margin:0 0 12px"><b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b> <b>TSE multa Meta em R$ 7,5 milhões por descumprir ordens durante a eleição.</b> Segundo o clipping do JOTA (11/11, "principais jornais"), o TSE condenou a Meta por unanimidade, relator Marco Aurélio Bellizze, por cumprimento parcial e tardio das ordens de tratamento igualitário a Lula e Flávio Bolsonaro; confirmação oficial não localizada nesta execução. <i>Fonte: JOTA (clipping), 11/11 (sem link).</i></p>
+<p style="margin:0 0 12px"><b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">PENDÊNCIA DE VERIFICAÇÃO</b> <b>6ª Turma do STJ aumenta as penas dos dois sócios da Boate Kiss.</b> Segundo o clipping do JOTA (11/11), Elissandro Spohr passou de 12 anos para 14 anos e 4 meses e Mauro Hoffmann, de 12 anos para 13 anos e 2 meses, em regime inicial fechado; confirmação oficial não localizada nesta execução. <i>Fonte: JOTA (clipping), 11/11 (sem link).</i></p>
+<p style="margin:0 0 12px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">MÍDIA ESPECIALIZADA</b> <b>STF mantém lei paulista sobre policiais penais (ADI 7781).</b> 81, o STF manteve as regras da Lei Complementar 1.416/2024 sobre a carreira da Polícia Penal de SP: vinculação à SAP e promoção/progressão regulamentada por decreto. Sem confirmação oficial localizada. <i>Fonte: <a href="https://www.jota.info/stf/do-supremo/stf-mantem-lei-paulista-que-sujeita-policial-penal-a-trabalhar-em-condicoes-precarias-de-seguranca" style="color:#0b4f92">JOTA</a>, 10/11.</i></p>
+<p style="margin:0;font-size:12px;color:#5a6773">Ver mais, entre as outras matérias da janela: <a href="https://conjur.com.br/noticias/" style="color:#0b4f92">ConJur (22)</a> · <a href="https://www.migalhas.com.br/quentes" style="color:#0b4f92">Migalhas (10)</a>.</p>
+<p style="margin:14px 0 6px;font-size:12px;font-weight:bold;color:#0b2545">Opinião/Análise</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:18px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">OPINIÃO/ANÁLISE</b> <a href="https://www.jota.info/opiniao-e-analise/colunas/coluna-flavia-maia/triunfo-de-fachin-fim-do-inquerito-das-fake-news-nao-sera-suficiente-para-pacificar-stf" style="color:#0b4f92">Triunfo de Fachin, fim do inquérito das fake news não será suficiente para pacificar STF</a> — Flávia Maia (JOTA, 10/11).</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:18px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">OPINIÃO/ANÁLISE</b> <a href="https://www.jota.info/opiniao-e-analise/artigos/a-cbs-e-os-limites-da-neutralidade-arrecadatoria" style="color:#0b4f92">A CBS e os limites da neutralidade arrecadatória</a> — Lorena Gargaglione (JOTA, 10/11).</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:18px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">OPINIÃO/ANÁLISE</b> <a href="https://www.jota.info/opiniao-e-analise/artigos/quatro-regimes-em-cinco-anos-os-honorarios-contra-a-fazenda" style="color:#0b4f92">Quatro regimes em cinco anos: os honorários contra a Fazenda</a> — Aderaldo Cavalcanti da Silva Júnior (JOTA, 10/11).</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:18px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">OPINIÃO/ANÁLISE</b> <a href="https://www.jota.info/opiniao-e-analise/artigos/a-recuperacao-judicial-como-a-linha-de-credito-mais-barata-do-pais" style="color:#0b4f92">A recuperação judicial como a linha de crédito mais barata do país</a> — Valdo de Rizzo e Luís Fernando Guerrero (JOTA, 10/11).</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:18px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">OPINIÃO/ANÁLISE</b> <a href="https://www.jota.info/opiniao-e-analise/colunas/juizo-de-valor/violencia-processual-de-genero-prova-revitimizacao-e-autonomia-conceitual" style="color:#0b4f92">Violência processual de gênero: prova, revitimização e autonomia conceitual</a> — Guilherme Guimarães Feliciano e Mariana Borges Ferrer Ferreira (JOTA, 10/11).</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:18px"><b style="color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap">OPINIÃO/ANÁLISE</b> <a href="https://www.jota.info/opiniao-e-analise/colunas/releitura-trabalhista/negociacao-coletiva-sobre-o-valor-dos-repousos-semanais-remunerados" style="color:#0b4f92">Negociação coletiva sobre o valor dos repousos semanais remunerados</a> — Otavio Calvet (JOTA, 10/11).</p></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">🤫 FOFOQUINHA JURÍDICA</div>
+<p style="margin:0 0 12px"><b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">FORTE INDÍCIO</b> <b>Caso Master: PF deve incluir Fux, Gilmar Mendes e André Mendonça nos novos relatórios.</b> Segundo o Valor Econômico (11/11), os relatórios anteriores abrangiam Nunes Marques, Dias Toffoli e Alexandre de Moraes; a ampliação atende à orientação de Fachin de reunir todas as citações em registros descritivos, com entrega prevista até o fim do mês. Importa porque aprofunda a crise institucional em torno do STF; sem confirmação oficial. <i>Fonte: Valor Econômico (via JOTA), 11/11 (sem link).</i></p>
+<p style="margin:0 0 12px"><b style="color:#8a6d1d;border:1px solid #e6d3a3;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">RUMOR</b> <b>Nunes Marques diz a interlocutores que não se considera suspeito para julgar casos do Master.</b> Segundo O Globo (Bela Megale, 11/11), ele se afastou em setembro do julgamento das mensagens Vorcaro-Moraes, citando a presidência do TSE, e a retomada seria mais provável em 2027. Declaração atribuída a interlocutores; sem confirmação oficial. <i>Fonte: O Globo (via JOTA), 11/11 (sem link).</i></p></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">🙏 Porque sem Deus, nada é possível</div>
+<div style="background:#fdf6e9;padding:14px 16px"><b style="background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">VERSÍCULO DO DIA</b><p style="margin:8px 0 6px;font-size:14px;line-height:21px;color:#3d3113;font-style:italic">“A solicitude no coração do homem o abate, mas uma boa palavra o alegra.”</p><p style="margin:0 0 10px;font-size:12px;color:#8a6d1d;font-weight:bold">Provérbios 12:25 (ARC) — <a href="https://dailyverses.net/pt/2026/11/11" style="color:#8a6d1d">DailyVerses.net</a>, confirmado para 11/11/2026</p><p style="margin:0;font-size:12px;line-height:18px;color:#5a6773">Dia de prazo apertado para quem corre atrás de edital: a ansiedade pesa, e uma boa palavra de um colega ou de um mentor alivia. Faça a inscrição, respire e confie no estudo acumulado.</p></div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45"><div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px">💡 Conhecimento nunca é demais</div>
+<div style="background:#f4f6fa;padding:14px 16px"><b style="background:#0b2545;color:#ffffff;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap">SABEDORIA DO DIA</b><p style="margin:8px 0 6px;font-size:14px;line-height:21px;color:#2f3a45;font-style:italic">“Não seja confiante demais a ponto de achar que sabe o que ainda não sabe.”</p><p style="margin:0;font-size:12px;color:#5a6773">— Charlie Munger · <i>A sabedoria de Charlie Munger (Poor Charlie's Almanack)</i></p></div></td></tr>
+<tr><td style="padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545;margin:0px 0 6px">Fontes oficiais consultadas</div><div style="font-size:12px;line-height:19px;color:#3d4b59">PUSH Planalto (Resenha Diária) · Congresso Nacional (últimas leis e MPVs) · boletim da Agência Câmara · Push STF (notícias) · Push STF (informativos) · STJ CodJu · documentos oficiais dos informativos (STF/STJ) · página oficial de concursos da DPE-SP</div><div style="font-size:14px;font-weight:bold;color:#0b2545;margin:14px 0 6px">Fontes secundárias consultadas</div><div style="font-size:12px;line-height:19px;color:#3d4b59">JOTA (clipping, opinião e bastidores) · ConJur (mídia especializada) · Migalhas (mídia especializada) · DailyVerses.net (versículo) · portais e blogs de concursos (prazos e editais, sempre sujeitos a confirmação oficial)</div>
+<div style="font-size:14px;font-weight:bold;color:#0b2545;margin:14px 0 6px">📋 Observações de verificação, lacunas e pendências</div>
+<div style="background:#fdf6e9;border:1px solid #e6d3a3;padding:10px 12px;font-size:12px;line-height:19px;color:#3d4b59">• Informativo STF 1236: documento inacessível (http 403); os destaques entram quando o PDF abrir.<br>• PUSH Planalto: resenhas de 03, 04, 06, 09 e 10/11 recebidas (Decreto 13.159); manter 1 sonda por dia.<br>• Caso Master: Valor (11/11) diz que PF incluirá Fux, Gilmar e Mendonça nos novos relatórios, entrega até o fim do mês; Fachin arquivou o inquérito das fake news (JOTA); sem confirmação oficial.<br>• Concursos com confirmação oficial pendente (14): ALEPA (Assembleia Legislativa do Pará), DPDF (Defensoria Pública do DF), DPE-PB, DPE-RJ, PGM Curitiba, PGM Suzano/SP, PGM Valinhos/SP, TJAP, TJPB, TJSC, TRF1, TRF2, TRF3, TRT8 — detalhes na seção de Concursos.</div></td></tr>
+<tr><td style="padding:22px 0 0"><div style="background:#0b2545;padding:20px;font-family:Arial,Helvetica,sans-serif;text-align:center"><div style="font-size:13px;color:#ffffff;font-weight:bold">🤖 Robozinho dos Momozis até Passar</div><div style="font-size:11px;color:#a9b7cc;margin-top:6px;line-height:16px">Newsletter jurídica automatizada · conteúdo informativo, não substitui a consulta às fontes oficiais nem assessoria jurídica.<br>Próxima edição: amanhã, às 7h.</div></div></td></tr>
+<tr><td style="padding:16px 20px 22px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:13px;font-weight:bold;color:#0b2545;margin-bottom:6px">Suporte usado na execução</div><div style="font-size:11px;line-height:17px;color:#5a6773">Coletores Gmail, JOTA e Concursos; scripts coleta_web, informativos, versiculo e montar_email. Sem falha técnica registrada.</div><div style="font-size:10px;line-height:15px;color:#8b95a1;margin-top:8px">Gerado em 11/11/2026 17:20 (América/São Paulo) · execução 2026-11-11-7h</div></td></tr>
 </table>
-</td></tr>
-</table>
-</td></tr>
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#2f3a45">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-<tr bgcolor="#0b2545"><td colspan="2" style="color:#ffffff;font-weight:bold;padding:6px 8px;font-size:11px">{{Bloco de carreira}}</td></tr>
-<tr><td style="padding:6px 8px;border-bottom:1px solid #e8edf2" width="72%">{{Órgão — cargo: vagas, remuneração, prazos; <b>novidades</b> em negrito, <i>(herdada)</i> em itálico}}.</td><td style="padding:6px 8px;border-bottom:1px solid #e8edf2;text-align:right;vertical-align:top"><span style="display:inline-block;color:#1e6b3a;border:1px solid #bfe3cc;font-size:9px;font-weight:bold;padding:2px 6px;border-radius:3px">INSCRIÇÕES ABERTAS</span></td></tr>
-<tr bgcolor="#f9fafc"><td style="padding:6px 8px;border-bottom:1px solid #e8edf2" width="72%">{{segunda linha do bloco — zebra}}.</td><td style="padding:6px 8px;border-bottom:1px solid #e8edf2;text-align:right;vertical-align:top"><span style="display:inline-block;color:#5a6773;border:1px solid #c9ced6;font-size:9px;font-weight:bold;padding:2px 6px;border-radius:3px">EM ANDAMENTO</span></td></tr>
-<!-- entre blocos: <tr><td colspan="2" style="height:6px;line-height:6px;font-size:1px">&nbsp;</td></tr> -->
-</table>
-</td></tr>
-
-<!-- VERSÍCULO (caixa creme) — fonte = a que o versiculo.py reportou -->
-<tr><td style="padding:22px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">🙏 Porque sem Deus, nada é possível</div>
-</td></tr>
-<tr><td style="padding:0 20px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-<tr><td bgcolor="#fdf6e9" style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif">
-<span style="display:inline-block;background:#e8eef7;color:#0b2545;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">VERSÍCULO DO DIA</span>
-<p style="margin:8px 0 6px 0;font-size:14px;line-height:21px;color:#3d3113;font-style:italic">“{{texto do versículo}}”</p>
-<p style="margin:0 0 10px 0;font-size:12px;color:#8a6d1d;font-weight:bold">{{Referência}} ({{versão}}) — <a href="{{url}}" style="color:#8a6d1d">{{fonte real}}</a>, confirmado para {{DD/MM/AAAA}}</p>
-<p style="margin:0;font-size:12px;line-height:18px;color:#5a6773">{{reflexão própria de 2–3 linhas conectada ao dia}}</p>
-</td></tr>
-</table>
-</td></tr>
-
-<!-- MUNGER (caixa cinza) -->
-<tr><td style="padding:18px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="border-left:4px solid #c5a253;padding-left:10px;font-size:16px;font-weight:bold;color:#0b2545">💡 Conhecimento nunca é demais</div>
-</td></tr>
-<tr><td style="padding:0 20px 4px 20px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-<tr><td bgcolor="#f4f6fa" style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif">
-<span style="display:inline-block;background:#0b2545;color:#ffffff;font-size:10px;font-weight:bold;padding:2px 7px;border-radius:3px">SABEDORIA DO DIA</span>
-<p style="margin:8px 0 6px 0;font-size:14px;line-height:21px;color:#2f3a45;font-style:italic">“{{citação}}”</p>
-<p style="margin:0;font-size:12px;color:#5a6773">— Charlie Munger · <i>{{título da fonte}}</i>{{ · obs de atribuição, se houver}}</p>
-</td></tr>
-</table>
-</td></tr>
-
-<!-- FONTES + PENDÊNCIAS -->
-<tr><td style="padding:18px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Fontes oficiais consultadas</div></td></tr>
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">{{lista separada por " · "}}</td></tr>
-<tr><td style="padding:14px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">Fontes secundárias consultadas</div></td></tr>
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">{{lista com a função de cada uma}}</td></tr>
-<tr><td style="padding:14px 20px 8px 20px;font-family:Arial,Helvetica,sans-serif"><div style="font-size:14px;font-weight:bold;color:#0b2545">📋 Observações de verificação, lacunas e pendências</div></td></tr>
-<tr><td style="padding:0 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#3d4b59">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-<!-- ERRATA (só quando o ledger tiver pendência errata_*; publicar uma vez) -->
-<tr><td bgcolor="#fdf0f0" style="padding:10px 12px;border:1px solid #f0c2c2;color:#5c1a1a"><b>Errata da edição de {{DD/MM}}:</b> {{correção objetiva: onde se leu X, leia-se Y}}</td></tr>
-<tr><td style="height:8px;line-height:8px;font-size:1px">&nbsp;</td></tr>
-<tr><td bgcolor="#fdf6e9" style="padding:10px 12px;border:1px solid #e6d3a3">
-• {{pendência 1}}<br>
-• {{pendência 2}}
-</td></tr>
-</table>
-</td></tr>
-
-<!-- RODAPÉ -->
-<tr><td bgcolor="#0b2545" style="padding:20px;font-family:Arial,Helvetica,sans-serif;text-align:center">
-<div style="font-size:13px;color:#ffffff;font-weight:bold">🤖 Robozinho dos Momozis até Passar</div>
-<div style="font-size:11px;color:#a9b7cc;margin-top:6px;line-height:16px">Newsletter jurídica automatizada · conteúdo informativo, não substitui a consulta às fontes oficiais nem assessoria jurídica.<br>Próxima edição: {{amanhã | segunda-feira}}, às 7h.</div>
-</td></tr>
-
-<!-- SUPORTE USADO (com carimbo de geração) -->
-<tr><td style="padding:16px 20px 22px 20px;font-family:Arial,Helvetica,sans-serif">
-<div style="font-size:13px;font-weight:bold;color:#0b2545;margin-bottom:6px">Suporte usado na execução</div>
-<div style="font-size:11px;line-height:17px;color:#5a6773">{{ferramentas e scripts usados, o que funcionou e o que falhou}}</div>
-<div style="font-size:10px;line-height:15px;color:#8b95a1;margin-top:8px">Gerado em {{DD/MM/AAAA HH:MM}} (América/São Paulo) · execução {{execution_id}}</div>
-</td></tr>
-
-</table>
-</td></tr>
-</table>
+</td></tr></table>

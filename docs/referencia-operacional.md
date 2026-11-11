@@ -12,7 +12,7 @@
 
 ## 4. Histórico e não duplicidade
 
-- **Gravação: sempre pelo helper** (ROTINA passo 9), passando o **caminho do arquivo** da nova execução, nunca JSON inline. Em tempo de execução, ler apenas `work/robozinho-estado.json`; o histórico integral só em dúvida real — e nunca se conclui "não existe edição do dia X" a partir de leitura truncada.
+- **Gravação: sempre pelo helper** (ROTINA passo 7), passando o **caminho do arquivo** da nova execução, nunca JSON inline. Em tempo de execução, ler apenas `work/robozinho-estado.json`; o histórico integral só em dúvida real — e nunca se conclui "não existe edição do dia X" a partir de leitura truncada.
 - **Campos por execução:** `execution_id`, `type`, `run_started_at`, `run_finished_at`, `date`, `timezone`, `window_start`, `window_end`, `recipients`, `email_subject`, `delivery` (`sent`/`draft`/`draft_ja_existente`), `gmail_message_id` ou `draft_id`, `items`, `source_status`, `errors`, `pendencias`, `verification_notes`. Campos extras são permitidos.
 - **Por item:** fonte, categoria, título, data, identificador, URL oficial, status e **chave única estável** `fonte|tipo|numero|ano|data`, minúsculas (ex.: `dou|decreto|11999|2026|2026-06-29`). Item que muda de estado (prova marcada → prova realizada; rumor → desfecho) recebe chave nova com o desfecho; nunca reutiliza a chave anterior.
 - **Arquivamento (automático):** o principal mantém as 10 execuções mais recentes; o excedente vai para `resumo-legislativo-historico-arquivo-AAAA-MM.json`. **Nunca apagar, apenas mover.**
@@ -96,10 +96,10 @@ Papéis: **primário** (PUSH Planalto — antes de qualquer rota web, Seção 6)
 
 O modelo principal é **orquestrador e revisor**; o que é determinístico (datas, janela, listagens web, contadores) vai para scripts em `work/`; coleta volumosa vai para subagentes com modelos eficientes (escopo, modelos e prompts: ROTINA passo 5). **Critério: volume, não dificuldade** — subagente parte do zero e reconstrói contexto; delegar tarefa de 1 chamada custa mais do que executá-la.
 
-**Nunca delegar:** ancoragem de data; checagem cruzada de armadilhas; classificação de status e selos; versículo; composição do e-mail; decisões do ledger; e `create_draft` — o rascunho é criado uma única vez, pelo orquestrador, após revisão. Subagente jamais cria, edita ou envia e-mail.
+**Nunca delegar:** ancoragem de data; checagem cruzada de armadilhas; classificação de status e selos; a escolha do que entra em cada seção (a montagem do HTML é do `work/montar_email.py`); decisões do ledger; e `create_draft` — o rascunho é criado uma única vez, pelo orquestrador, após revisão. Subagente jamais cria, edita ou envia e-mail.
 
 **Contrato de todo subagente** (uma linha, no prompt): *devolva evidência — título, data visível na fonte, URL —, relate o que tentou incluindo o que voltou vazio, e nunca conclua ausência de novidade; quem interpreta ausência é o orquestrador.* Existe para evitar o **falso negativo** — coletor diz "nada", orquestrador registra ausência, e a ferramenta é que falhou (Seção 8.1).
 
-**Revisão antes de compor:** ROTINA passo 6. Coletor que falhe: o orquestrador executa aquela fonte ele mesmo — delegação que falha nunca vira seção vazia.
+**Revisão antes de compor:** ROTINA passo 3. Coletor que falhe: o orquestrador executa aquela fonte ele mesmo — delegação que falha nunca vira seção vazia.
 
 **Aprendizado sobre a delegação:** registrar no ledger o coletor que devolveu digest incompleto, afirmou ausência sem listar tentativas ou precisou ser refeito. Falha recorrente → promover de `haiku` para `sonnet`, ou reabsorver. Esta divisão de trabalho é hipótese sujeita à evidência, como qualquer outra.

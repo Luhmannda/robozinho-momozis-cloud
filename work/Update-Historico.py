@@ -30,7 +30,7 @@
 #   --validar      : so valida (itens, selos, chaves, URLs, ledger_updates)
 #                    e acusa POSSIVEL_REPETIDA (mesma materia de outra fonte
 #                    ja publicada) e POSSIVEL_DUPLICATA_NA_EDICAO. Nao grava
-#                    nada. Roda ANTES do create_draft (ROTINA passo 5).
+#                    nada. Chamado pelo work/montar_email.py (ROTINA passos 4/5).
 #   --draft-id ID  : grava o id do rascunho; run_finished_at vazio ou
 #                    "PENDENTE" vira agora.
 #   --medir-uso    : preenche `coletores` e `orquestrador` com o uso real
@@ -650,6 +650,27 @@ def main():
         emitir("VALIDACAO: OK (%d itens, %d avisos) — nada foi gravado."
                % (len(nova_exec.get("items") or []), len(avisos)))
         return
+    # Re-execucao no mesmo dia SEM rascunho novo (a edicao ja existe): o registro da
+    # execucao original fica como esta. Antes ele era substituido por um registro vazio,
+    # o que apagava os itens publicados (deduplicacao) e adiantava o fim da janela —
+    # a edicao seguinte pularia o intervalo (disparo extra de 11/11/2026, 16h40).
+    original = next((e for e in historico["executions"]
+                     if e.get("execution_id") == nova_exec["execution_id"]), None)
+    if original is not None and nova_exec.get("delivery") == "draft_ja_existente":
+        add_log("RE-EXECUCAO sem rascunho novo: registro %s preservado (%d itens, delivery=%s, janela ate %s)."
+                % (original.get("execution_id"), len(original.get("items") or []),
+                   original.get("delivery"), original.get("window_end")))
+        emitir("STATUS: OK — nada a gravar (duplicata; historico, estado e ledger intactos)")
+        return
+
+    # O historico guarda o registro do que saiu, nao o texto do e-mail: os campos que so
+    # servem a montagem (work/montar_email.py) ficam de fora para o arquivo nao inchar.
+    nova_exec.pop("email", None)
+    for it in nova_exec.get("items") or []:
+        if it.get("nota") and not it.get("observacao"):
+            it["observacao"] = it["nota"]
+        for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor"):
+            it.pop(campo, None)
     # grava a versao normalizada, para o historico ficar consistente
     write_json_no_bom(args.nova_execucao_path, nova_exec)
 

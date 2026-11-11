@@ -14,9 +14,15 @@
 #     e teste de rede (curl) das paginas oficiais: pendencia ativa cuja
 #     pagina oficial esta bloqueada so e reverificada na 1a execucao da
 #     semana (a busca secundaria diaria nao pode promover o selo);
-#   - /tmp/janela.json, lido por coleta_web.py.
+#   - /tmp/janela.json, lido pelos demais scripts (janela, assunto, cabecalho,
+#     rodape e citacao do Munger: nada disso e redigitado pelo orquestrador).
+#   - RE-EXECUCAO (a edicao de hoje ja esta no estado): saida curta, so com o
+#     anti-duplicata — sem ledger nem prompts. Em 11/11/2026 um disparo extra as
+#     16h40 recebeu a saida inteira e a rotina mandava gravar por cima do registro
+#     da manha. Se o rascunho foi apagado sem envio, --refazer reabre a janela
+#     original e ignora o registro de hoje na deduplicacao.
 #
-# USO:  python3 work/inicio.py [--agora 2026-09-24T07:17:00-03:00]
+# USO:  python3 work/inicio.py [--refazer] [--agora 2026-09-24T07:17:00-03:00]
 # =====================================================================
 
 import argparse
@@ -88,12 +94,13 @@ def em_recesso(d):
 
 
 def alcancaveis(dominios):
-    """{dominio: bool}. False = a rede do ambiente bloqueia (curl devolve 000)."""
+    """{dominio: bool}. False = a rede do ambiente bloqueia (curl devolve 000) ou o
+    servidor recusa (403/5xx): mandar o coletor "ler por curl" nesses casos so gasta turno."""
     def teste(d):
         try:
             r = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "-m", "6",
                                 "https://%s/" % d], capture_output=True, timeout=10)
-            return r.stdout.decode().strip() not in ("", "000")
+            return r.stdout.decode().strip()[:1] in ("2", "3")
         except Exception:
             return False
     ds = sorted({d for d in dominios if d})
@@ -116,10 +123,16 @@ def resumo_ledger(led):
     Substitui o Read do JSON inteiro no passo 1 (~40% menor, reenviado a cada turno)."""
     print("\n==== LEDGER (resumo; em conflito com o prompt mestre, o ledger vence) ====")
     print("FONTES:")
+    mortas = [f["id"] for f in led.get("fontes", [])
+              if f.get("status") in ("bloqueado", "descontinuado", "indisponivel")]
     for f in led.get("fontes", []):
+        if f["id"] in mortas:
+            continue
         extra = "".join(" %s=%s" % (k, f[k]) for k in ("ultimo_sucesso", "sem_sucesso", "dias_sem_email")
                         if f.get(k) not in (None, "", 0))
         print("- %s [%s%s]: %s" % (f["id"], f.get("status"), extra, f.get("nota", "")))
+    if mortas:
+        print("- não tentar (bloqueado/descontinuado/indisponível): " + ", ".join(mortas))
     print("ARMADILHAS (checklist antes de publicar):")
     for x in led.get("armadilhas", []):
         print("- %s (%s): %s" % (x["id"], x.get("fonte", ""), x.get("regra", "")))
@@ -153,6 +166,8 @@ def resumo_ledger(led):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--agora", help="ISO com fuso, so para teste")
+    ap.add_argument("--refazer", action="store_true",
+                    help="re-execucao legitima: o rascunho de hoje foi apagado sem envio")
     a = ap.parse_args()
     agora = (datetime.fromisoformat(a.agora) if a.agora else datetime.now(TZ)).replace(microsecond=0)
     hoje = agora.date()
@@ -166,8 +181,43 @@ def main():
     if agora.weekday() >= 5:
         alertas.append("HOJE NÃO É DIA ÚTIL — só gerar edição se for pedido expresso (Extra)")
     exec_id = "%s-7h" % hoje.isoformat()
+    ignorar_exec = ""
     if ult.get("execution_id") == exec_id:
-        alertas.append("JÁ EXISTE a execução %s no estado — re-execução: o anti-duplicata do passo 2 decide" % exec_id)
+        assunto = ult.get("email_subject") or ASSUNTO % hoje.strftime("%d/%m/%Y")
+        if not a.refazer:
+            with open("/tmp/janela.json", "w", encoding="utf-8") as f:
+                json.dump({"data": hoje.isoformat(), "execution_id": exec_id, "assunto": assunto,
+                           "reexecucao": True}, f, ensure_ascii=False, indent=1)
+            # o prompt do agendamento le os tres prompts na mesma mensagem: deixa-los curtos, nao ausentes
+            for nome in ("gmail", "jota", "concursos"):
+                with open("/tmp/coletor-%s.md" % nome, "w", encoding="utf-8") as f:
+                    f.write("RE-EXECUÇÃO: a edição de hoje já existe; não há coleta. Siga a saída do work/inicio.py.\n")
+            print("HOJE %s (%s) %s | execution_id=%s" % (hoje.strftime("%d/%m/%Y"), DIAS[agora.weekday()],
+                                                       agora.strftime("%H:%M:%S %z"), exec_id))
+            print("ASSUNTO HOJE: %s" % assunto)
+            print("RE-EXECUÇÃO: a edição de hoje já está registrada (delivery %s, draft_id %s, janela até %s)."
+                  % (ult.get("delivery"), ult.get("draft_id"), ult.get("window_end")))
+            print("1) Faça SÓ o anti-duplicata, numa mensagem: list_drafts com o assunto de hoje + "
+                  "search_threads com o assunto de hoje + in:sent.")
+            print("2) Algum devolveu algo → a edição existe: PushNotification \"duplicata detectada, nada "
+                  "criado\" e FIM. Não rode coleta, não escreva /tmp/execucao.json e NÃO rode "
+                  "work/finalizar.sh — o registro da manhã fica intacto.")
+            print("3) Os dois vazios (rascunho apagado sem envio) → rode `python3 work/inicio.py --refazer` "
+                  "e siga a ROTINA normalmente a partir do passo 1.")
+            return
+        # refazer: mesma janela da execucao de hoje (ate agora) e a "anterior" volta a ser a de ontem
+        try:
+            execs = ler("resumo-legislativo-historico.json")["executions"]
+        except Exception:
+            execs = []
+        de_hoje = next((e for e in execs if e.get("execution_id") == exec_id), {})
+        antes = [e for e in execs if e.get("execution_id") != exec_id]
+        ignorar_exec = exec_id
+        alertas.append("REFAZENDO a execução %s: janela original reaberta; o registro de hoje será "
+                       "substituído no passo 7 e não conta na deduplicação" % exec_id)
+        ult = dict(antes[-1]) if antes else {}
+        if de_hoje.get("window_start"):
+            ult["window_end"] = de_hoje["window_start"]
 
     inicio = datetime.fromisoformat(ult["window_end"]) if ult.get("window_end") else \
         agora - timedelta(hours=72 if agora.weekday() == 0 else 24)
@@ -199,10 +249,22 @@ def main():
     concursos = ledger.get("concursos", [])
     rede = alcancaveis([p.get("dominio_oficial") for p in pend_conc] +
                        [c.get("dominio_oficial") for c in concursos])
+    # banca oficial lida por script (work/bancas.py): o que ela cobre sai da fila do coletor
+    try:
+        import bancas
+        banca = bancas.coletar(hoje, concursos)
+    except Exception as e:  # noqa: BLE001 — a banca e reforco, nunca bloqueia a edicao
+        banca = {"banca": "FGV", "http": 0, "concursos": [], "erro": str(e)}
+    with open("/tmp/bancas.json", "w", encoding="utf-8") as f:
+        json.dump(banca, f, ensure_ascii=False, indent=1)
+    cobertos = {i for c in banca["concursos"] for i in c.get("coberto") or []}
+    pend_coberta = {c.get("pendencia") for c in concursos if c.get("id") in cobertos and c.get("pendencia")}
     linhas = []
     for p in pend_conc:
         dom = p.get("dominio_oficial")
         bloqueado = bool(dom) and not rede.get(dom, False)
+        if p["id"] in pend_coberta:
+            continue                      # o orquestrador ja tem a pagina oficial da banca
         if p.get("faixa") == "ativa" and bloqueado and not primeira:
             acao = ("SÓ VIGIAR MOVIMENTO NOVO — a página oficial (%s) está bloqueada pela rede; "
                     "reverificar na 1ª execução da semana" % dom)
@@ -227,11 +289,12 @@ def main():
             elif 0 <= dias <= 30:
                 proximos.append((dias, d, c, pz))
     proximos.sort(key=lambda x: x[0])
+    fila = lambda x: x[2].get("id") not in cobertos      # so vai ao coletor o que a banca nao cobriu
     fmt_pz = lambda dias, d, c, pz: "%s (%s) %s — %s [%s] (id %s)" % (
         d.strftime("%d/%m"), quando(dias), orgao(c), pz.get("evento"),
         "confirmado" if pz.get("confirmado") else "a confirmar", c.get("id"))
-    prioridade = (["- confirmar desfecho: " + fmt_pz(*x) for x in vencidos] +
-                  ["- " + fmt_pz(*x) for x in proximos if x[0] <= 7])
+    prioridade = (["- confirmar desfecho: " + fmt_pz(*x) for x in vencidos if fila(x)] +
+                  ["- " + fmt_pz(*x) for x in proximos if x[0] <= 7 and fila(x)])
     na_fila = {x[2].get("id") for x in vencidos} | {x[2].get("id") for x in proximos if x[0] <= 7}
     demais = [orgao(c) for c in concursos if not c.get("pendencia") and c.get("id") not in na_fila]
 
@@ -241,7 +304,7 @@ def main():
             return (hoje - date.fromisoformat(c.get("verificado_em", ""))).days
         except ValueError:
             return 999
-    velhos = sorted((c for c in concursos if c.get("id") not in na_fila and idade(c) >= RODIZIO_DIAS),
+    velhos = sorted((c for c in concursos if c.get("id") not in na_fila | cobertos and idade(c) >= RODIZIO_DIAS),
                     key=idade, reverse=True)[:RODIZIO_N]
     rodizio = ["- %s (id %s; verificado há %d dias; selo %s): %s" % (
         orgao(c), c.get("id"), idade(c), c.get("selo"), c.get("linha", "")) +
@@ -275,6 +338,8 @@ def main():
         "DESCOBERTA_TEMA": tema,
         "DESCOBERTA_CONSULTAS": "\n".join("- `%s`" % q for q in consultas),
         "CONCURSOS_ACOMPANHADOS": acompanhados or "(nenhum)",
+        "BANCA_COBERTOS": "; ".join("%s (id %s)" % (orgao(c), c["id"]) for c in concursos
+                                    if c["id"] in cobertos) or "(nenhum hoje)",
     }
 
     def sub(m):
@@ -301,7 +366,12 @@ def main():
               "primeira_semana": primeira, "recesso": recesso,
               "assunto": ASSUNTO % hoje_br,
               "assunto_anterior": ult.get("email_subject") or ASSUNTO % ant_br,
-              "execucao_anterior": ult.get("execution_id"), "draft_id_anterior": ult.get("draft_id")}
+              "execucao_anterior": ult.get("execution_id"), "draft_id_anterior": ult.get("draft_id"),
+              "ignorar_execucao": ignorar_exec,
+              # lidos pelo montar_email.py: cabecalho, rodape e Munger nao sao redigitados
+              "hoje_br": hoje_br, "dia_semana": DIAS[agora.weekday()], "rodape": rodape,
+              "munger": {"texto": cit["pt"], "fonte": fontes_m.get(cit.get("fonte"), cit.get("fonte")),
+                         "obs": cit.get("obs") or "", "idx": doy % len(q["quotes"])}}
     with open("/tmp/janela.json", "w", encoding="utf-8") as f:
         json.dump(janela, f, ensure_ascii=False, indent=1)
 
@@ -322,10 +392,10 @@ def main():
     print("PENDENCIAS DE CONCURSO p/ coletor: %d | regra: %s" % (len(pend_conc), regra))
     radar = [fmt_pz(*x) for x in proximos if x[3].get("confirmado")]
     a_conf = [fmt_pz(*x) for x in proximos if not x[3].get("confirmado")]
-    print("CONCURSOS: %d no registro | RADAR (só confirmados vão ao quadro): %s" % (
+    print("CONCURSOS: %d no registro | PRAZOS confirmados em fonte oficial (30 dias): %s" % (
         len(concursos), "; ".join(radar) or "nenhum"))
     if a_conf:
-        print("  a confirmar (só na linha do bloco, com o selo dela): " + "; ".join(a_conf))
+        print("  só em fonte secundária (o quadro os lista à parte, em cinza): " + "; ".join(a_conf))
     for x in vencidos:
         print("ALERTA: prazo vencido %s — confirmar desfecho e atualizar o registro (ledger_updates.concursos)"
               % fmt_pz(*x))
@@ -334,19 +404,20 @@ def main():
         ", ".join(bloq) or "nenhuma", ", ".join(d for d, ok in rede.items() if ok) or "nenhuma"))
     for p in ledger.get("pendencias_vivas", []):
         if p.get("faixa") == "ativa" and int(p.get("execucoes") or 0) >= LIMITE_ATIVA:
-            alertas.append("pendência %s ativa há %s execuções (limite %d): no passo 5, em "
+            alertas.append("pendência %s ativa há %s execuções (limite %d): no passo 4, em "
                            "ledger_updates.pendencias, rebaixar a faixa (longo_prazo/cronica) ou remover "
                            "— a validação recusa sem isso" % (p["id"], p.get("execucoes"), LIMITE_ATIVA))
     print("CONCURSOS COLETOR: rodízio=%d registro(s) | descoberta do dia: %s" % (len(velhos), tema))
     for al in alertas:
         print("ALERTA: " + al)
+    print()
+    bancas.imprimir(banca) if banca.get("concursos") else print(
+        "BANCA FGV: não lida (%s) — concursos da FGV seguem pelo coletor." % (banca.get("erro") or "http %s" % banca.get("http")))
     resumo_ledger(ledger)
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, "
           "coletor-jota e coletor-concursos (primeiro plano) + Bash: python3 work/coleta_web.py; "
-          "python3 work/informativos.py; python3 work/versiculo.py --data %s --dia %d + Read "
-          "work/template-newsletter-referencia.html"
-          % (hoje.isoformat(), doy))
+          "python3 work/informativos.py; python3 work/versiculo.py")
 
 
 if __name__ == "__main__":

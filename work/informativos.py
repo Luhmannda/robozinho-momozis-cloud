@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 # =====================================================================
 # informativos.py — conteudo dos informativos direto do documento oficial
-# (os e-mails do STF e do STJ trazem so o link). Descobre as edicoes novas
-# pelo numero seguinte ao ultimo publicado no historico, baixa e extrai os
-# destaques. Deterministico, sem tokens; roda no passo 2 da ROTINA.
+# (os e-mails do STF e do STJ trazem so o link). Deterministico, sem tokens;
+# roda no passo 2 da ROTINA. Procura, por produto:
+#   - as edicoes NOVAS (numeros seguintes ao maior ja publicado; um numero
+#     que falhe nao interrompe a busca: o seguinte ainda e tentado);
+#   - as edicoes ATRASADAS: as duas ultimas que sairam so com numero/data/link
+#     ("conteudo nao acessivel") ou que foram puladas — o conteudo entra
+#     quando o documento abrir (em 11/11/2026 o 1236 do STF e o 909 do STJ
+#     tinham saido sem destaques e nunca mais seriam buscados; o 908 nem saiu).
+# Cada edicao ganha um id (stf1236, rg397, stj909): o orquestrador escolhe os
+# destaques pelo indice e o work/montar_email.py copia o texto oficial.
 #
 #   Informativo STF  https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_N.pdf
 #   RG em Pauta      https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/EdioN.pdf
@@ -13,9 +20,10 @@
 #   O servidor do STF devolve 403 ao user-agent do curl: usa-se o de navegador
 #   E um Referer de portal.stf.jus.br (sem o Referer o PDF da RG 394 deu 403 em 22/10/2026).
 #
-# USO:   python3 work/informativos.py                 (edicoes novas, pelo historico)
+# USO:   python3 work/informativos.py                 (edicoes novas e atrasadas, pelo historico)
 #        python3 work/informativos.py stf:1232 rg:392 stj:905   (edicoes dadas)
-# SAIDA: resumo compacto em stdout; JSON em /tmp/informativos.json.
+# SAIDA: indice compacto em stdout (id, data, destaques numerados e curtos);
+#        texto integral dos destaques em /tmp/informativos.json.
 # =====================================================================
 
 import glob
@@ -26,6 +34,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -37,7 +46,7 @@ URL = {
 }
 NOME = {"stf": "INFORMATIVO STF", "rg": "REPERCUSSAO GERAL EM PAUTA", "stj": "INFORMATIVO STJ"}
 MES = "janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro"
-MAX_ITENS, MAX_TXT = 10, 350
+MAX_ITENS, MAX_TXT = 10, 520
 MESES = {m: i + 1 for i, m in enumerate(MES.split("|"))}
 
 
@@ -170,10 +179,12 @@ def stj(dados, numero):
     t = html.unescape(re.sub(r"<[^>]+>", " ", t))
     L = [re.sub(r"\s+", " ", l).strip() for l in t.split("\n")]
     L = [l for l in L if l]
-    cab = re.compile(r"^Informativo de Jurisprud\S* n\. %d - (\d{1,2} de \w+ de \d{4})\.\s*(.*)$" % numero)
+    # ate 10/2026 o cabecalho era "n. 907"; desde o 908 e "nº 908" (o script deixou de achar a edicao)
+    cab = re.compile(r"^Informativo de Jurisprud\S* n(?:\.|º|°|o\.?)\s*%d - (\d{1,2} de \w+ de \d{4})\.\s*(.*)$" % numero)
     secoes = re.compile(r"^(RECURSOS REPETITIVOS|CORTE ESPECIAL|PRIMEIRA SEÇÃO|SEGUNDA SEÇÃO|TERCEIRA SEÇÃO|"
                         r"PRIMEIRA TURMA|SEGUNDA TURMA|TERCEIRA TURMA|QUARTA TURMA|QUINTA TURMA|SEXTA TURMA|"
-                        r"EDIÇÃO EXTRAORDINÁRIA|PROCESSO EM SEGREDO DE JUSTIÇA|ÁREAS DO DIREITO)$")
+                        r"EDIÇÃO EXTRAORDINÁRIA|PROCESSO EM SEGREDO DE JUSTIÇA|ÁREAS DO DIREITO|"
+                        r"RELEVÂNCIA DA QUESTÃO FEDERAL)$")
     data, itens, secao, atual = "", [], "", None
     for i, l in enumerate(L):
         if secoes.match(l):
@@ -198,49 +209,92 @@ def stj(dados, numero):
 
 
 # ------------------------------------------------------------------ orquestracao
-def ultimos():
-    """Maior numero ja publicado por produto (historico principal + arquivos)."""
-    maior = {"stf": 0, "rg": 0, "stj": 0}
+SEM_CONTEUDO = re.compile(r"(?i)n[aã]o (foi |estava )?(acess|lid)|inacess|\b403\b|sem teses|link gen[eé]rico|"
+                          r"s[oó] n[uú]mero")
+
+
+def publicados():
+    """{produto: {numero: sem_conteudo}} do historico principal e dos arquivos.
+    sem_conteudo=True: a edicao saiu so com numero/data/link e os destaques ainda nao."""
+    pub = {"stf": {}, "rg": {}, "stj": {}}
+    ignorar = ""
+    try:
+        ignorar = json.load(open("/tmp/janela.json", encoding="utf-8")).get("ignorar_execucao") or ""
+    except Exception:
+        pass
     for f in glob.glob(os.path.join(AQUI, "resumo-legislativo-historico*.json")):
         try:
             execs = json.load(open(f, encoding="utf-8"))["executions"]
         except Exception:
             continue
         for e in execs:
+            if e.get("execution_id") == ignorar:
+                continue
             for it in e.get("items") or []:
                 p = (it.get("chave") or "").split("|")
-                if len(p) < 3 or p[1] != "informativo":
+                if len(p) < 3 or p[1] != "informativo" or p[0] not in ("stf", "stj"):
                     continue
-                m = re.fullmatch(r"repercussao-geral-(\d+)", p[2])
-                if p[0] == "stf" and m:
-                    maior["rg"] = max(maior["rg"], int(m.group(1)))
-                elif p[0] in ("stf", "stj") and p[2].isdigit():
-                    maior[p[0]] = max(maior[p[0]], int(p[2]))
-    return maior
+                m = re.fullmatch(r"(repercussao-geral-)?(\d+)(-conteudo)?", p[2])
+                if not m:
+                    continue
+                tipo = "rg" if m.group(1) else p[0]
+                if tipo == "rg" and p[0] != "stf":
+                    continue
+                n = int(m.group(2))
+                vazio = bool(it.get("sem_conteudo")) or (
+                    "sem_conteudo" not in it and not m.group(3)
+                    and bool(SEM_CONTEUDO.search(it.get("observacao") or "")))
+                # um registro com conteudo (ou o "-conteudo" posterior) vence o anuncio vazio
+                pub[tipo][n] = pub[tipo].get(n, True) and vazio
+    return pub
 
 
-def obter(tipo, n):
+def candidatos(pub):
+    """[(numero, situacao)] — 'atrasada' (ja anunciada sem destaques), 'pulada' (numero
+    anterior ao ultimo que nunca saiu) e 'nova'. So as duas ultimas edicoes sao revisitadas."""
+    if not pub:
+        return []
+    base = max(pub)
+    lista = []
+    for n in (base - 1, base):
+        if n not in pub:
+            lista.append((n, "pulada"))
+        elif pub[n]:
+            lista.append((n, "atrasada"))
+    return lista + [(n, "nova") for n in range(base + 1, base + 4)]
+
+
+def obter(tipo, n, situacao="nova"):
     url = URL[tipo] % n
     codigo, dados = baixar(url)
+    r = {"tipo": tipo, "numero": n, "id": "%s%d" % (tipo, n), "url": url, "http": codigo,
+         "situacao": situacao, "ok": False}
     if codigo != 200 or not dados:
-        return {"tipo": tipo, "numero": n, "url": url, "http": codigo, "ok": False}
+        return r
     if tipo in ("stf", "rg"):
         if not dados.startswith(b"%PDF"):
-            return {"tipo": tipo, "numero": n, "url": url, "http": codigo, "ok": False, "motivo": "nao e PDF"}
+            return dict(r, motivo="nao e PDF")
         data, itens = (stf if tipo == "stf" else rg)(dados)
     else:
         data, itens = stj(dados, n)
-    return {"tipo": tipo, "numero": n, "url": url, "http": codigo, "ok": bool(itens), "data": data,
-            "itens": itens, "motivo": "" if itens else "edicao sem itens (inexistente ou nao publicada)"}
+    r.update(ok=bool(itens), data=data, itens=itens,
+             motivo="" if itens else "edicao sem itens (inexistente ou nao publicada)")
+    if itens:
+        r["chave"] = chave(r)
+        if situacao == "atrasada":      # a chave do anuncio ja existe no historico: o conteudo ganha a sua
+            p = r["chave"].split("|")
+            r["chave"] = "|".join(p[:2] + [p[2] + "-conteudo"] + p[3:])
+    return r
 
 
 def linha_item(tipo, it):
+    """Indice curto para o orquestrador escolher; o texto integral fica no JSON."""
     if tipo == "stf":
-        return "[%s] %s — %s" % (it["secao"], it["ramo"], it["titulo"])
+        return "[%s] %s — %s" % (it["secao"], it["ramo"], curto(it["titulo"], 150))
     if tipo == "rg":
-        tese = (" — Tese: " + it["tese"]) if it["tese"] else ""
-        return "[%s] Tema %s — %s — %s%s" % (it["secao"], it["tema"], it["processo"], it["titulo"], tese)
-    return "[%s] %s — %s — %s — Destaque: %s" % (it["secao"], it["processo"], it["ramo"], it["tema"], it["destaque"])
+        return "[%s] Tema %s — %s%s" % (it["secao"], it["tema"], curto(it["titulo"], 150),
+                                       " (com tese)" if it["tese"] else "")
+    return "[%s] %s — %s" % (it["secao"], it["ramo"], curto(it["tema"], 150))
 
 
 def main():
@@ -250,27 +304,42 @@ def main():
         for tipo, n in pedidos:
             resultados.append(obter(tipo, int(n)))
     else:
-        base = ultimos()
+        pub = publicados()
         for tipo in ("stf", "rg", "stj"):
-            if not base[tipo]:
-                resultados.append({"tipo": tipo, "ok": False, "motivo": "nenhuma edicao no historico"})
+            if not pub[tipo]:
+                resultados.append({"tipo": tipo, "ok": False, "situacao": "nova",
+                                   "motivo": "nenhuma edicao no historico"})
                 continue
-            for n in range(base[tipo] + 1, base[tipo] + 4):   # ate 3 edicoes novas de uma vez
-                r = obter(tipo, n)
+            falhas = 0
+            for n, situacao in candidatos(pub[tipo]):
+                if situacao == "nova" and falhas >= 2:
+                    break                       # dois numeros novos seguidos sem edicao: parar
+                if resultados:
+                    time.sleep(1.5)             # sem rajada no mesmo servidor
+                r = obter(tipo, n, situacao)
                 resultados.append(r)
-                if not r["ok"]:
-                    break
+                if situacao == "nova":
+                    falhas = 0 if r["ok"] else falhas + 1
+                    if r["http"] in (0, 403):
+                        break                   # servidor recusou: nao insistir nos numeros seguintes
     for r in resultados:
+        nome, sit = NOME[r["tipo"]], r.get("situacao")
         if r.get("ok"):
-            print("%s %d (%s) — %d destaques — %s — chave=%s" % (NOME[r["tipo"]], r["numero"], r["data"],
-                                                                len(r["itens"]), r["url"], chave(r)))
-            for it in r["itens"]:
-                print("  " + linha_item(r["tipo"], it))
+            aviso = {"atrasada": " — ATRASADA: ja anunciada sem destaques; publique os destaques agora (herdada)",
+                     "pulada": " — PULADA: nunca saiu; publique como herdada"}.get(sit, "")
+            print("%s %d [id %s] (%s)%s — %d destaques — chave=%s" % (
+                nome, r["numero"], r["id"], r["data"], aviso, len(r["itens"]), r["chave"]))
+            for n, it in enumerate(r["itens"]):
+                print("  %d %s" % (n, linha_item(r["tipo"], it)))
+        elif sit in ("atrasada", "pulada"):
+            print("SEGUE SEM CONTEUDO %s %s: %s — nada a publicar hoje; nova tentativa na proxima execucao"
+                  % (nome, r.get("numero", ""), r.get("motivo") or "http %s" % r.get("http")))
         elif r.get("http") in (0, 403):
-            print("ERRO %s %s: http %s — acesso bloqueado; publicar numero, data e link do e-mail e dizer que o "
-                  "conteudo nao foi acessivel" % (NOME[r["tipo"]], r.get("numero", ""), r.get("http")))
+            print("ERRO %s %s: http %s — so publique se o coletor Gmail trouxe o e-mail desta edicao "
+                  "(numero, data, link, \"sem_conteudo\": true); o conteudo sera buscado de novo amanha"
+                  % (nome, r.get("numero", ""), r.get("http")))
         else:
-            print("SEM EDICAO NOVA %s (%s: %s)" % (NOME[r["tipo"]], r.get("numero", "-"),
+            print("SEM EDICAO NOVA %s (%s: %s)" % (nome, r.get("numero", "-"),
                                                  r.get("motivo") or "http %s" % r.get("http")))
     with open("/tmp/informativos.json", "w", encoding="utf-8") as f:
         json.dump(resultados, f, ensure_ascii=False, indent=1)

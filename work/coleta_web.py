@@ -15,9 +15,14 @@
 #   [REPETIDA?~chave] — o orquestrador nao precisa ler as chaves publicadas.
 # - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados).
 #
+# - Cada item publicavel ganha um id curto (lei15527, mpv1400, c7, m3): o
+#   orquestrador cita o id em /tmp/execucao.json ({"ref": "c7", ...}) e o
+#   work/montar_email.py copia titulo, linha-fina, hora, URL e chave daqui —
+#   nada disso e redigitado (menos saida e nenhum erro de copia).
+#
 # USO:   python3 work/coleta_web.py [--janela /tmp/janela.json]
 #        (sem janela.json: inicio = window_end do estado, fim = agora)
-# SAIDA: resumo compacto em stdout; JSON completo em /tmp/coleta_web.json.
+# SAIDA: indice compacto em stdout (sem URL); JSON completo em /tmp/coleta_web.json.
 #        Fonte com erro aparece como "ERRO ... usar WebSearch".
 # =====================================================================
 
@@ -43,6 +48,7 @@ URLS_CONJUR = {"noticia": "https://conjur.com.br/noticias/",
                "artigo": "https://conjur.com.br/artigos/",
                "coluna": "https://conjur.com.br/colunas/"}
 URL_MIGALHAS = "https://www.migalhas.com.br/quentes"
+IGNORAR_EXEC = ""   # re-execucao (inicio.py --refazer): a edicao de hoje nao conta como publicada
 PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
                    r"webin[aá]rio|curso|encontro|jornada)\b|\blan[cç]amento d[eo] livro\b", re.I)
 
@@ -87,8 +93,10 @@ def dmy(s):
 
 
 def carregar_janela(caminho):
+    global IGNORAR_EXEC
     if caminho and os.path.exists(caminho):
         j = json.load(open(caminho, encoding="utf-8"))
+        IGNORAR_EXEC = j.get("ignorar_execucao") or ""
         return datetime.fromisoformat(j["inicio"]), datetime.fromisoformat(j["fim"])
     est = json.load(open(os.path.join(AQUI, "robozinho-estado.json"), encoding="utf-8"))
     return (datetime.fromisoformat(est["ultima_execucao"]["window_end"]),
@@ -108,6 +116,8 @@ def carregar_publicados():
         return set(), set()
     chaves, urls = set(), set()
     for e in h:
+        if e.get("execution_id") == IGNORAR_EXEC:
+            continue
         for it in e.get("items") or []:
             chaves.add((it.get("chave") or "").lower())
             if it.get("url"):
@@ -287,7 +297,7 @@ def marcar_promo_e_repetidas(res):
                            encoding="utf-8"))["executions"]
     except Exception:
         h = []
-    idx = repeticao.indice(h)
+    idx = repeticao.indice(h, ignorar_exec_id=IGNORAR_EXEC or None)
     for r in res:
         if r["fonte"] not in ("conjur", "migalhas"):
             continue
@@ -309,6 +319,11 @@ def hm(it):
         return q.strftime("%d/%m %H:%M")
     d = it.get("data")
     return d.strftime("%d/%m") if d else "?"
+
+
+def curto(t, n):
+    t = (t or "").strip()
+    return t if len(t) <= n else t[:n - 1].rsplit(" ", 1)[0] + "…"
 
 
 def ok(http):
@@ -334,8 +349,9 @@ def main():
 
     marcar_promo_e_repetidas(res)
 
-    print("JANELA %s -> %s (herdada = antes de %s)" % (
-        inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M")))
+    print("JANELA %s -> %s (herdada = antes de %s) | cite o id em {\"ref\": ...}; URL, hora e chave "
+          "saem do JSON" % (inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M")))
+    seq = {"conjur": 0, "migalhas": 0}
     for r in res:
         itens = r["itens"]
         cont = {}
@@ -348,21 +364,34 @@ def main():
                   " — fonte ok, sem WebSearch" % (r["listadas"], r["mais_recente"]))
         elif not ok(r["http"]) or (not itens and r["fonte"] != "congresso_mpv"):
             print("ERRO: fonte indisponivel ou 0 itens extraidos — usar WebSearch (fallback)")
+        ja = ["%s %s (%s)" % ("MPV" if r["fonte"] == "congresso_mpv" else i.get("tipo", "Lei"), i["numero"],
+                              curto(i["ementa"], 70))
+              for i in itens if i["situacao"] == "JA_PUBLICADA" and r["fonte"].startswith("congresso")]
+        if ja:
+            print("JA PUBLICADAS (nao repetir, nem pelo boletim da Camara): " + "; ".join(ja[:6]))
         for i in itens:
             s = i["situacao"]
-            if r["fonte"] == "congresso_leis" and s != "JA_PUBLICADA":
-                print("[%s] %s nº %s de %s (DOU %s) — %s%s | %s | %s | chave=%s" % (
-                    s, i["tipo"], i["numero"], i["data_ato"], i["dou"], i["ementa"],
-                    " | veto: " + i["veto"] if i["veto"] else "", i["materia"], i["url"], i["chave"]))
+            if r["fonte"] == "congresso_leis":
+                if s == "JA_PUBLICADA":
+                    continue
+                i["id"] = "lei%s" % i["numero"]
+                print("[%s] %s | %s nº %s de %s (DOU %s) — %s%s | %s" % (
+                    s, i["id"], i["tipo"], i["numero"], i["data_ato"], i["dou"], i["ementa"],
+                    " | veto: " + i["veto"] if i["veto"] else "", i["materia"]))
             elif r["fonte"] == "congresso_mpv":
-                print("[%s] MPV %s/%s — DOU %s (detalhe oficial, http %s) — %s | %s%s" % (
-                    s, i["numero"], i["ano"], i["dou"] or "?", i["http_detalhe"],
-                    i["ementa"][:160], i["url"], " | chave=" + i["chave"] if i["dou"] else ""))
+                if s == "JA_PUBLICADA":
+                    continue
+                i["id"] = "mpv%s" % i["numero"]
+                print("[%s] %s | MPV %s/%s — DOU %s (detalhe oficial, http %s) — %s" % (
+                    s, i["id"], i["numero"], i["ano"], i["dou"] or "?", i["http_detalhe"], i["ementa"]))
             elif s in ("NOVA", "HERDADA", "SEM_DATA"):
-                extra = (" — " + i["resumo"][:220]) if i.get("resumo") else ""
+                seq[r["fonte"]] += 1
+                i["id"] = "%s%d" % (r["fonte"][0], seq[r["fonte"]])
                 tag = i.get("tipo", "noticia")[:3].upper()
+                # artigo/coluna: so o titulo (no maximo 6 vao ao e-mail, sem resumo)
+                extra = (" — " + curto(i["resumo"], 170)) if i.get("resumo") and tag == "NOT" else ""
                 rep = " [REPETIDA?~%s]" % i["repetida"] if i.get("repetida") else ""
-                print("[%s|%s] %s | %s%s | %s%s" % (s, tag, hm(i), i["titulo"], extra, i["url"], rep))
+                print("[%s|%s] %s | %s | %s%s%s" % (s, tag, i["id"], hm(i), i["titulo"], extra, rep))
 
     def ser(o):
         return o.isoformat() if isinstance(o, (datetime, date)) else str(o)

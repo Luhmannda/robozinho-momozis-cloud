@@ -14,6 +14,8 @@ Regras de trabalho:
 
 **Orçamento do dia:** {{REGRA_FAIXA}} Busca que sobrar de A ou B passa para C.
 
+**Já lidos hoje na banca oficial (FGV) pelo script do orquestrador — não gaste busca nem `curl` com eles** (só reporte se achar algo que contradiga a banca): {{BANCA_COBERTOS}}. A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas (Cebraspe, FCC, Vunesp, bancas regionais).
+
 ## A. Prazos e pendências (verificar primeiro)
 Prazos dos próximos 7 dias e vencidos há pouco (mantido, prorrogado, encerrado, resultado saiu?):
 {{CONCURSOS_PRIORIDADE}}

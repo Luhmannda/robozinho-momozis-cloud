@@ -14,7 +14,8 @@
 # Sem cruzar nem desempatar: a primeira que responder com versiculo
 # datado de hoje e publicada, rotulada com a fonte real.
 #
-# USO:  python3 work/versiculo.py --data 2026-09-07 --dia 250
+# USO:  python3 work/versiculo.py            (data e dia do ano vem de /tmp/janela.json)
+#       python3 work/versiculo.py --data 2026-09-07 --dia 250
 # SAIDA: JSON em stdout ({"ok": true, "fonte": ..., "referencia": ...,
 #        "versao": ..., "texto": ..., "data_pagina": ..., "url": ...})
 #        ou {"ok": false, "tentativas": [...]} — ai vale o fallback por
@@ -119,9 +120,19 @@ def dailyverses(data, tentativas):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--data", required=True, help="AAAA-MM-DD (ancora do passo 1)")
-    p.add_argument("--dia", required=True, type=int, help="dia do ano (doy do passo 1)")
+    p.add_argument("--data", help="AAAA-MM-DD (padrao: a ancora do passo 1, em /tmp/janela.json)")
+    p.add_argument("--dia", type=int, help="dia do ano (padrao: doy do /tmp/janela.json)")
     a = p.parse_args()
+    if not a.data or not a.dia:
+        j = json.load(open("/tmp/janela.json", encoding="utf-8"))
+        a.data, a.dia = a.data or j["data"], a.dia or j["doy"]
+
+    def sair(r, codigo):
+        # /tmp/versiculo.json: lido pelo work/montar_email.py (o texto nao e redigitado)
+        with open("/tmp/versiculo.json", "w", encoding="utf-8") as f:
+            json.dump(r, f, ensure_ascii=False, indent=1)
+        print(json.dumps(r, ensure_ascii=False))
+        sys.exit(codigo)
 
     tentativas = []
     # YouVersion devolve desafio anti-bot desde 07/09 (13 falhas em 15 execucoes ate 04/11):
@@ -135,10 +146,8 @@ def main():
     r = r or dailyverses(a.data, tentativas)
     if r:
         r["tentativas"] = tentativas
-        print(json.dumps(r, ensure_ascii=False, indent=1))
-        sys.exit(0)
-    print(json.dumps({"ok": False, "tentativas": tentativas}, ensure_ascii=False, indent=1))
-    sys.exit(1)
+        sair(r, 0)
+    sair({"ok": False, "tentativas": tentativas}, 1)
 
 
 if __name__ == "__main__":
