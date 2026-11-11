@@ -8060,6 +8060,440 @@
       },
       "gmail_message_id": "1a17cd9eebfd1f96",
       "delivery_reconciled_at": "2026-10-28T07:13:20-03:00"
+    },
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Buscas Gmail com after:<epoch> voltaram {} nos coletores Gmail e JOTA (threads dentro da janela existiam); refeitas com after:AAAA/MM/DD e newer_than e horário conferido por thread. Considerar trocar a forma da consulta nos prompts dos coletores.",
+        "Informativo STF 1234 (e-mail de 27/10 22:11) já constava do histórico (26/10): não republicado. STF RG e STJ CodJu sem e-mail na janela; Informativo STJ 907 veio de informativos.py.",
+        "Boletim Câmara: só o item [LEI][PLENARIO] publicado; dois 'Câmara aprova' sem órgão identificado ficaram de fora.",
+        "Dino/interferência estrangeira: título do STF diz 'Relator'; o nome do ministro vem só da mídia (Estadão/JOTA).",
+        "coleta_web: Congresso sem lei nova na janela; MPVs 1397/1398 já publicadas; ConJur e Migalhas ok.",
+        "Concursos: coletor fez 6 buscas; TJRS, TJSC, TRF5, MPs, PGE-RS/BA/MA, PGMs, DPE-RJ/RO e DPU não reverificados hoje."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "camara|mpv-plenario|mp-indenizacao-servidores-fronteira|2026|2026-10-28",
+          "fonte": "Agência Câmara",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Câmara aprova MP que amplia alcance de indenização para servidores em áreas estratégicas de fronteira",
+          "data": "2026-10-28",
+          "url": "https://www.camara.leg.br/noticias/1314372-camara-aprova-mp-que-amplia-alcance-de-indenizacao-para-servidores-em-areas-estrategicas-de-fronteira",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA"
+        },
+        {
+          "chave": "stf|noticia|fake-news-arquivamento|2026|2026-10-28",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF determina arquivamento de investigações relacionadas ao inquérito das fake news",
+          "data": "2026-10-28",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-determina-arquivamento-de-investigacoes-relacionadas-ao-inquerito-das-fake-news/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|interferencia-estrangeira|2026|2026-10-27",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "Relator determina investigação sobre possível interferência estrangeira nas eleições brasileiras",
+          "data": "2026-10-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/relator-determina-investigacao-sobre-possivel-interferencia-estrangeira-nas-eleicoes-brasileiras/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|1a-turma-roubo-arma|2026|2026-10-27",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "1ª Turma mantém decisão que negou redução de pena a condenado por roubo com arma de fogo",
+          "data": "2026-10-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/1a-turma-mantem-decisao-que-negou-reducao-de-pena-a-condenado-por-roubo-com-arma-de-fogo/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|competencia-jt-valec|2026|2026-10-27",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "STF mantém competência da Justiça do Trabalho para julgar pedido de reintegração à Valec de ex-funcionário da RFFSA",
+          "data": "2026-10-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-mantem-competencia-da-justica-do-trabalho-para-julgar-pedido-de-funcionario-da-valec/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|cestf-audiencia-rj|2026|2026-10-27",
+          "fonte": "STF",
+          "categoria": "STF Notícias",
+          "titulo": "CESTF prorroga para próxima sexta (30) prazo de inscrições para audiência acadêmica no Rio de Janeiro",
+          "data": "2026-10-27",
+          "url": "https://noticias.stf.jus.br/postsnoticias/cestf-prorroga-para-proxima-sexta-30-prazo-de-inscricoes-para-audiencia-academica-no-rio-de-janeiro/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stj|informativo|907|2026|2026-10-27",
+          "fonte": "STJ",
+          "categoria": "Informativos",
+          "titulo": "Informativo STJ 907 (27/10/2026) — 10 destaques",
+          "data": "2026-10-27",
+          "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0907.cod.",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "chave do informativos.py; seis destaques publicados"
+        },
+        {
+          "chave": "jota|noticia|flavio-foge-eua-passaportes|2026|2026-10-27",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Investigado em dois inquéritos no STF, Flávio Bolsonaro foge para os Estados Unidos",
+          "data": "2026-10-27",
+          "url": "https://www.jota.info/eleicoes/eleicoes-2026/investigado-em-dois-inqueritos-no-stf-flavio-bolsonaro-foge-para-os-estados-unidos",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|globo-criticas-ministros-moraes|2026|2026-10-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Flávio foge do Brasil, e decisão de Moraes vira alvo de críticas no STF",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping de outro veículo, sem link; O Globo (Bela Megale, via clipping JOTA)"
+        },
+        {
+          "chave": "jota|noticia|valor-extradicao-flavio|2026|2026-10-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Extradição de Flávio Bolsonaro: criminalistas ouvidos pelo Valor",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping de outro veículo, sem link; Valor Econômico (via clipping JOTA)"
+        },
+        {
+          "chave": "jota|noticia|estadao-tse-psol-rede-clausula|2026|2026-10-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TSE reconhece que federação PSOL-Rede superou a cláusula de barreira",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping de outro veículo, sem link; O Estado de S. Paulo (via clipping JOTA)"
+        },
+        {
+          "chave": "jota|noticia|tjsp-99food-ifood|2026|2026-10-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TJSP mantém condenação da 99 Food por concorrência desleal contra o iFood",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping de outro veículo, sem link; clipping JOTA (veículo não identificado)"
+        },
+        {
+          "chave": "jota|noticia|estadao-oabsp-deolane|2026|2026-10-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Tribunal de Ética da OAB-SP anula suspensão preventiva de Deolane Bezerra",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping de outro veículo, sem link; O Estado de S. Paulo (via clipping JOTA)"
+        },
+        {
+          "chave": "jota|noticia|valor-tst-atestado-cid|2026|2026-10-28",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TST rejeita recurso de faxineira sobre desconto de faltas por atestados sem CID",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "clipping de outro veículo, sem link; Valor Econômico (via clipping JOTA)"
+        },
+        {
+          "chave": "migalhas|noticia|467277|2026|2026-10-28",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Dia do Servidor Público: Veja decisões do STF e STJ sobre a categoria",
+          "data": "2026-10-28",
+          "url": "https://www.migalhas.com.br/quentes/467277/dia-do-servidor-publico-veja-decisoes-do-stf-e-stj-sobre-a-categoria",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467358|2026|2026-10-27",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "STF: Cármen critica quem questiona seus votos sem ler a Constituição",
+          "data": "2026-10-27",
+          "url": "https://www.migalhas.com.br/quentes/467358/stf-carmen-critica-quem-questiona-seus-votos-sem-ler-a-constituicao",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|digest-itbi-stf-6mil-acoes|2026|2026-10-27",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Decisão do STF sobre ITBI pode impactar mais de 6 mil ações em tribunais estaduais",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "só manchete do digest, sem link"
+        },
+        {
+          "chave": "conjur|artigo|inquerito-fake-news-fim-excecao|2026|2026-10-28",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Inquérito das Fake News: o fim de uma exceção duradoura",
+          "data": "2026-10-28",
+          "url": "https://conjur.com.br/2026-out-28/inquerito-das-fake-news-o-fim-de-uma-excecao-duradoura/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|artigo|voto-distrital-misto-pl|2026|2026-10-28",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Feitiço se virará contra o feiticeiro? Voto distrital misto e número de deputados federais do PL",
+          "data": "2026-10-28",
+          "url": "https://conjur.com.br/2026-out-28/feitico-se-virara-contra-o-feiticeiro-voto-distrital-misto-e-numero-de-deputados-federais-do-pl/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|artigo|imunidade-itbi-fii-tema-1348|2026|2026-10-27",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "A imunidade do ITBI e os fundos imobiliários depois do Tema 1.348",
+          "data": "2026-10-27",
+          "url": "https://conjur.com.br/2026-out-27/a-imunidade-do-itbi-e-os-fundos-imobiliarios-depois-do-tema-1-348/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|artigo|tese-repetitiva-coisa-julgada|2026|2026-10-27",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Tese repetitiva e coisa julgada continuativa: limites que o STJ ainda precisa traçar",
+          "data": "2026-10-27",
+          "url": "https://conjur.com.br/2026-out-27/tese-repetitiva-e-coisa-julgada-continuativa-os-limites-que-o-stj-ainda-precisa-tracar/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|opiniao|seguranca-juridica-infraestrutura|2026|2026-10-27",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Segurança jurídica é a infraestrutura invisível da confiança no Brasil",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "sem link; autor não informado"
+        },
+        {
+          "chave": "jota|opiniao|adpf-outras-vias|2026|2026-10-27",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "A ADPF diante de outras vias processuais",
+          "data": "2026-10-27",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "sem link; autor não informado"
+        },
+        {
+          "chave": "fofoquinha|rumor|alcolumbre-indulto-anistia|2026|2026-10-28",
+          "fonte": "Folha de S.Paulo (via clipping JOTA)",
+          "categoria": "Fofoquinha",
+          "titulo": "Alcolumbre pretende negociar indulto ou anistia a Jair Bolsonaro, segundo dois aliados",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "RUMOR"
+        },
+        {
+          "chave": "fofoquinha|sem-confirmacao|stf-retoma-mensagens-vorcaro|2026|2026-10-28",
+          "fonte": "O Globo (via clipping JOTA)",
+          "categoria": "Fofoquinha",
+          "titulo": "STF deverá retomar discussão sobre referências a ministros nas mensagens de Daniel Vorcaro",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL"
+        },
+        {
+          "chave": "concurso|dpe_sp|inscricoes-70-vagas|2026|2026-10-27",
+          "fonte": "Defensoria Pública de SP",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-SP — X concurso de Defensor: 70 vagas, R$ 29.716,00, inscrições até 11/11",
+          "data": "2026-10-27",
+          "url": "https://www.defensoria.sp.def.br/noticias/-/noticia/7606050/defensoria-publica-de-sp-segue-com-inscricoes-abertas-para-concurso-com-70-vagas-e-salario-inicial-de-r-29-7-mil",
+          "status": "EDITAL PUBLICADO"
+        },
+        {
+          "chave": "versiculo|dailyverses|apocalipse-1-8|2026|2026-10-28",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Apocalipse 1:8 (ARC)",
+          "data": "2026-10-28",
+          "url": "https://dailyverses.net/pt/2026/10/28",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|101|discurso-usc|2026|2026-10-28",
+          "fonte": "A sabedoria de Charlie Munger",
+          "categoria": "Munger",
+          "titulo": "Não fique caído após o primeiro, o segundo ou o terceiro revés",
+          "data": "2026-10-28",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto sem resenha na janela",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: 70 vagas e R$ 29.716 confirmados em notícia oficial de 27/10; prova só em secundárias; edital não lido",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador 003/2026: só secundárias; home oficial sem menção, /concursos 404 (28/10)",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: inscrição definitiva 16/10–06/11 e oral 9–20/11 só em secundárias; home oficial de 28/10 sem menção",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: página oficial de 28/10 sem convocação de orais; último ato em 07/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado previsto para 20/10 sem publicação localizada em 28/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8 edital 1/2026: só terceiros; página oficial bloqueada",
+          "faixa": "ativa"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT XLV: edital sem data oficial",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN: sem banca e edital",
+          "faixa": "longo_prazo"
+        }
+      ],
+      "ledger_updates": {
+        "fontes": {
+          "gmail_push_planalto": {
+            "nota": "Sem resenha em 28/10; seguir com 1 sonda/dia.",
+            "status": "saudavel"
+          }
+        },
+        "pendencias": {
+          "dpe_sp_edital_verificar": {
+            "texto": "DPE-SP: 70 vagas e R$ 29.716 confirmados em notícia oficial de 27/10; prova só em secundárias; edital não lido",
+            "faixa": "ativa",
+            "politica": "Edital lido no DOE/FCC: confirmar prova e aposentar.",
+            "dominio_oficial": "www.defensoria.sp.def.br"
+          }
+        },
+        "concursos": {
+          "dpe_sp": {
+            "bloco": "Defensor Público Estadual (DPE)",
+            "linha": "DPE-SP — X concurso de Defensor: notícia oficial de 27/10 confirma 70 vagas, remuneração inicial R$ 29.716,00, taxa R$ 250 e banca FCC; edital no DOE em 09/10, inscrições de 13/10 a 11/11 (23h59; boleto até 12/11); prova objetiva (10/01/2027) só em fonte secundária; edital não lido",
+            "selo": "INSCRIÇÕES ABERTAS",
+            "verificado_em": "2026-10-28",
+            "prazos": [
+              {
+                "data": "2026-11-11",
+                "evento": "fim das inscrições",
+                "confirmado": true
+              },
+              {
+                "data": "2027-01-10",
+                "evento": "prova objetiva (fonte secundária)",
+                "confirmado": false
+              }
+            ],
+            "fonte": "https://www.defensoria.sp.def.br/noticias/-/noticia/7606050/defensoria-publica-de-sp-segue-com-inscricoes-abertas-para-concurso-com-70-vagas-e-salario-inicial-de-r-29-7-mil",
+            "dominio_oficial": "www.defensoria.sp.def.br",
+            "pendencia": "dpe_sp_edital_verificar"
+          }
+        }
+      },
+      "execution_id": "2026-10-28-7h",
+      "date": "2026-10-28",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-27T07:07:58-03:00",
+      "window_end": "2026-10-28T07:07:28-03:00",
+      "run_started_at": "2026-10-28T07:07:28-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 28/10/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r-5814961297522579024",
+      "run_finished_at": "2026-10-28T07:13:20-03:00",
+      "coletores": {
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 42744,
+          "chamadas": 24,
+          "duracao_ms": 61377,
+          "chamadas_modelo": 8,
+          "contexto_total": 164368,
+          "cache_gravado": 42742,
+          "saida": 14489
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 134672,
+          "chamadas": 20,
+          "duracao_ms": 82583,
+          "chamadas_modelo": 10,
+          "contexto_total": 717512,
+          "cache_gravado": 134670,
+          "saida": 11070
+        },
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 35100,
+          "chamadas": 19,
+          "duracao_ms": 98637,
+          "chamadas_modelo": 13,
+          "contexto_total": 307313,
+          "cache_gravado": 35098,
+          "saida": 7743
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 190692,
+        "chamadas": 18,
+        "duracao_ms": 347005,
+        "chamadas_modelo": 6,
+        "contexto_total": 886666,
+        "cache_gravado": 106504,
+        "saida": 34212
+      },
+      "gmail_message_id": "1a182003a9d6f2a6",
+      "delivery_reconciled_at": "2026-10-29T07:15:18-03:00"
     }
   ]
 }
