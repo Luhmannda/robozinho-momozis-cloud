@@ -9029,6 +9029,397 @@
       },
       "gmail_message_id": "1a187345286b47f5",
       "delivery_reconciled_at": "2026-10-30T07:12:50-03:00"
+    },
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Coletas Gmail e JOTA: after:<epoch> voltou {} em todas as buscas (armadilha gmail_after_epoch); refeitas com after:2026/10/28 e filtradas pelo horário interno. Sem resenha do PUSH Planalto na janela (sonda vazia nas duas formas). Congresso: sem lei nova na janela; MPVs 1397 e 1398 já publicadas. Câmara: boletim de 30/10 sem itens [LEI]/[PLENARIO]. Informativos STF 1235 e RG 396 sem edição (404); STJ 908 inexistente; STJ 907 e STF 1234 chegaram antes da janela. JOTA: itens só com título saem sem detalhe; boletins-resumo sem link por item. Coletor de concursos usou 4 de 6 buscas; TRT8 e demais não reverificados (limite). Versículo via DailyVerses (YouVersion 403)."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|militar-hiv-reforma-obrigatoria|2026|2026-10-29",
+          "fonte": "STF Notícias (Push)",
+          "categoria": "STF Notícias",
+          "titulo": "Supremo discute reforma obrigatória de militar com HIV mesmo sem sintomas",
+          "data": "2026-10-29",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-discute-reforma-obrigatoria-de-militar-com-hiv-mesmo-sem-sintomas/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|fachin-operacao-sem-desconto-compliance-zero|2026|2026-10-29",
+          "fonte": "STF Notícias (Push)",
+          "categoria": "STF Notícias",
+          "titulo": "Presidente do STF devolve Operação Sem Desconto a relator e mantém provisoriamente Compliance Zero",
+          "data": "2026-10-29",
+          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-devolve-operacao-sem-desconto-a-relator-e-mantem-provisoriamente-compliance-zero/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|isencao-previdenciaria-servidores-incapacitados|2026|2026-10-29",
+          "fonte": "STF Notícias (Push)",
+          "categoria": "STF Notícias",
+          "titulo": "STF valida regra que altera isenção de contribuição previdenciária sobre aposentadoria de servidores incapacitados",
+          "data": "2026-10-29",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-valida-regra-que-altera-isencao-de-contribuicao-previdenciaria-sobre-aposentadoria-de-servidores-incapacitados/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "stf|noticia|previdencia-complementar-homens-mulheres|2026|2026-10-29",
+          "fonte": "STF Notícias (Push)",
+          "categoria": "STF Notícias",
+          "titulo": "STF suspende julgamento sobre igualdade entre homens e mulheres na previdência complementar",
+          "data": "2026-10-29",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-julgamento-sobre-igualdade-entre-homens-e-mulheres-na-previdencia-complementar/",
+          "status": "CONFIRMADO POR FONTE OFICIAL"
+        },
+        {
+          "chave": "jota|noticia|pf-indicia-vorcaro-master|2026|2026-10-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "A Polícia Federal indiciou Daniel Vorcaro e mais 14 pessoas por fraudes no Banco Master",
+          "data": "2026-10-29",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|motta-pec-voto-distrital-misto|2026|2026-10-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Hugo Motta declarou que colocará para votação a PEC do voto distrital misto",
+          "data": "2026-10-29",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|tcu-cbs-aliquota-referencia|2026|2026-10-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "TCU aprova alíquota de referência de 11,3% para CBS e redutor de 44,2%",
+          "data": "2026-10-29",
+          "url": "",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "conjur|noticia|presidente-tce-mt-preso|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Presidente do TCE-MT é preso por indícios de desvios na corte",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/presidente-do-tce-mt-e-preso-por-indicios-de-desvios-na-corte/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "conjur|noticia|tse-clausula-desempenho|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "TSE fixa critério para aferir cláusula de desempenho dos partidos",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/tse-afirma-entendimento-para-aferir-clausula-de-desempenho-para-partidos/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467547-moraes-arquiva-monark|2026|2026-10-29",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "A pedido da PGR, Moraes arquiva investigação contra Monark",
+          "data": "2026-10-29",
+          "url": "https://www.migalhas.com.br/quentes/467547/a-pedido-da-pgr-moraes-arquiva-investigacao-contra-monark",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|nunes-marques-revisao-criminal-bolsonaro|2026|2026-10-29",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Nunes Marques dá 10 dias para PGR apresentar parecer em nova revisão criminal de Jair Bolsonaro",
+          "data": "2026-10-29",
+          "url": "",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "migalhas|noticia|467522-tst-vendedora-depressao|2026|2026-10-30",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "TST: Vendedora com depressão relacionada ao trabalho receberá R$ 80 mil",
+          "data": "2026-10-30",
+          "url": "https://www.migalhas.com.br/quentes/467522/vendedora-com-depressao-relacionada-ao-trabalho-recebera-r-80-mil",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "conjur|noticia|simples-nacional-parcelamento|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Empresa pode voltar ao Simples Nacional se parcelar débitos tributários",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/empresa-pode-voltar-ao-simples-nacional-se-parcelar-debitos-tributarios/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467550-fachin-pauta-stf|2026|2026-10-29",
+          "fonte": "Migalhas",
+          "categoria": "Fofoquinha",
+          "titulo": "Com ausências e suspeição, Fachin tem dificuldade para organizar pauta do STF",
+          "data": "2026-10-29",
+          "url": "https://www.migalhas.com.br/quentes/467550/com-ausencias-e-suspeicao-fachin-tem-dificuldade-para-organizar-pauta",
+          "status": "SEM CONFIRMAÇÃO OFICIAL"
+        },
+        {
+          "chave": "conjur|opiniao|escala-6x1-empregado-hipersuficiente|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Fim da escala 6×1 e o novo empregado hipersuficiente",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/fim-da-escala-6x1-e-o-novo-empregado-hipersuficiente/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|nova-lei-mei-remissao|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Nova lei do MEI prevê remissão de dívidas previdenciárias e amplia limite de receita",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/nova-lei-do-mei-preve-remissao-de-dividas-previdenciarias-e-amplia-limite-de-receita/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|deepfakes-prova-penal|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Deepfakes exigem maior rigor na prova penal",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/deepfakes-exigem-maior-rigor-na-prova-penal/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|inss-judicializacao|2026|2026-10-29",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "INSS produz a própria judicialização? Falhas administrativas do maior litigante do país",
+          "data": "2026-10-29",
+          "url": "https://conjur.com.br/2026-out-29/inss-produz-a-propria-judicializacao-falhas-administrativas-do-maior-litigante-do-pais/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|lucro-presumido-beneficio-fiscal|2026|2026-10-30",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Oito décadas de presunção: o lucro presumido nunca foi benefício fiscal",
+          "data": "2026-10-30",
+          "url": "https://conjur.com.br/2026-out-30/oito-decadas-de-presuncao-o-lucro-presumido-nunca-foi-beneficio-fiscal/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|titulo-judicial-prisao|2026|2026-10-30",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Título judicial da prisão: autonomia da preventiva e vícios do flagrante",
+          "data": "2026-10-30",
+          "url": "https://conjur.com.br/2026-out-30/titulo-judicial-da-prisao-autonomia-da-preventiva-e-vicios-do-flagrante/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "dailyverses|versiculo|proverbios-3-5-6|2026|2026-10-30",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Provérbios 3:5-6 (ARC)",
+          "data": "2026-10-30",
+          "url": "https://dailyverses.net/pt/2026/10/30",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|inveja-comparacao-103|2026|2026-10-30",
+          "fonte": "A sabedoria de Charlie Munger (Poor Charlie's Almanack)",
+          "categoria": "Munger",
+          "titulo": "A inveja nasce da comparação",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        },
+        {
+          "chave": "concurso|dpe_sp|inscricoes-abertas|2026|2026-10-30",
+          "fonte": "Defensoria Pública de SP",
+          "categoria": "Concursos - Carreira",
+          "titulo": "DPE-SP — X concurso de Defensor: inscrições abertas até 11/11",
+          "data": "2026-10-30",
+          "url": "https://www.defensoria.sp.def.br/noticias/-/noticia/7606050/defensoria-publica-de-sp-segue-com-inscricoes-abertas-para-concurso-com-70-vagas-e-salario-inicial-de-r-29-7-mil",
+          "status": "INSCRIÇÕES ABERTAS"
+        },
+        {
+          "chave": "concurso|trf2_juiz|oral-divergencia|2026|2026-10-30",
+          "fonte": "Estratégia Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF2 — XIX concurso: resultado provisório da sentença e oral com datas divergentes",
+          "data": "2026-10-30",
+          "url": "https://cj.estrategia.com/portal/concurso-trf2-juiz-federal-2026-resultado-prova-sentenca/",
+          "status": "EM ANDAMENTO"
+        },
+        {
+          "chave": "concurso|alepa_procurador|inscricoes-04-11|2026|2026-10-30",
+          "fonte": "Estratégia Concursos",
+          "categoria": "Concursos - Carreira",
+          "titulo": "ALEPA — Procurador: inscrições até 04/11 (só secundárias; sem prorrogação localizada)",
+          "data": "2026-10-30",
+          "url": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto: sem resenha na janela de 30/10; 1 sonda por execução",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Caso Master/INSS: STF oficial (29/10) devolve Operação Sem Desconto ao relator e mantém Compliance Zero até referendo; JOTA relata indiciamento de Vorcaro pela PF e PGR a decidir",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: página oficial lida em 30/10 (HTTP 200) sem lista legível; inconclusivo",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: notícia oficial lida em 30/10 confirma 70 vagas e inscrições até 11/11; edital e prova não lidos",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador 003/2026: só secundárias; home oficial sem menção em 30/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: oral em 9-20/11 (fontes antigas) ou 7-11/12 (Estratégia de 30/10); nenhuma oficial",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado previsto para 20/10 sem publicação localizada em 30/10",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8 edital 1/2026 (FCC): inscrições até 05/11 só em secundárias; oficial bloqueada",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "fontes": {
+          "gmail_push_planalto": {
+            "nota": "Sem resenha em 30/10 (epoch e after:data vazios); seguir com 1 sonda/dia.",
+            "status": "saudavel"
+          }
+        },
+        "pendencias": {
+          "crise_institucional_stf_pgr_acompanhar": {
+            "texto": "Caso Master/INSS: STF oficial (29/10) devolve Operação Sem Desconto ao relator e mantém Compliance Zero até referendo; JOTA relata indiciamento de Vorcaro pela PF.",
+            "faixa": "longo_prazo",
+            "politica": "Prioridade: qualquer desdobramento OFICIAL (STF, STJ/CNJ, PF, gabinetes). Declaração só da mídia vale no máximo FORTE INDICIO.",
+            "dominio_oficial": "noticias.stf.jus.br"
+          },
+          "trf2_oral_divergencia": {
+            "texto": "TRF2 XIX: oral em 9-20/11 (fontes antigas) ou 7-11/12 (Estratégia de 30/10); nenhuma oficial.",
+            "faixa": "ativa",
+            "politica": "Abrir a notícia oficial do TRF2 sobre o concurso, corrigir o registro e aposentar.",
+            "dominio_oficial": "www.trf2.jus.br"
+          },
+          "dpe_sp_edital_verificar": {
+            "texto": "DPE-SP: notícia oficial lida em 30/10 confirma 70 vagas e inscrições até 11/11; edital e prova não lidos.",
+            "faixa": "ativa",
+            "politica": "Edital lido no DOE/FCC: confirmar prova e aposentar.",
+            "dominio_oficial": "www.defensoria.sp.def.br"
+          }
+        },
+        "concursos": {
+          "dpe_sp": {
+            "verificado_em": "2026-10-30"
+          },
+          "alepa_procurador": {
+            "verificado_em": "2026-10-30"
+          },
+          "trf2_juiz": {
+            "linha": "TRF2 — XIX concurso (Edital 154/2025, 27 vagas + CR): Edital 109/2026 com resultado provisório da prova de sentença (24 aprovados, Estratégia); inscrição definitiva até 06/11 e oral (9–20/11 ou 7–11/12) só em secundárias divergentes; página oficial sem essas datas",
+            "verificado_em": "2026-10-30"
+          }
+        },
+        "armadilhas_detectadas": [
+          "gmail_after_epoch"
+        ]
+      },
+      "execution_id": "2026-10-30-7h",
+      "date": "2026-10-30",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-29T07:08:34-03:00",
+      "window_end": "2026-10-30T07:07:39-03:00",
+      "run_started_at": "2026-10-30T07:07:39-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 30/10/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r4939997691290633180",
+      "run_finished_at": "2026-10-30T07:12:50-03:00",
+      "coletores": {
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 26244,
+          "chamadas": 12,
+          "duracao_ms": 62145,
+          "chamadas_modelo": 7,
+          "contexto_total": 130824,
+          "cache_gravado": 26242,
+          "saida": 4948
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 132508,
+          "chamadas": 12,
+          "duracao_ms": 77435,
+          "chamadas_modelo": 7,
+          "contexto_total": 438627,
+          "cache_gravado": 132504,
+          "saida": 10467
+        },
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 64733,
+          "chamadas": 24,
+          "duracao_ms": 92457,
+          "chamadas_modelo": 6,
+          "contexto_total": 132399,
+          "cache_gravado": 64731,
+          "saida": 25883
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 192750,
+        "chamadas": 18,
+        "duracao_ms": 308844,
+        "chamadas_modelo": 6,
+        "contexto_total": 813325,
+        "cache_gravado": 121062,
+        "saida": 37370
+      },
+      "gmail_message_id": "1a18c4cfa2dda2cd",
+      "delivery_reconciled_at": "2026-11-02T07:16:01-03:00"
     }
   ]
 }
