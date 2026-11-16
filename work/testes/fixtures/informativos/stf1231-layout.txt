@@ -1,0 +1,147 @@
+
+05 de outubro de 2026
+
+SUMÁRIO
+
+
+                                                                                        1 PLENÁRIO
+
+DIREITO ADMINISTRATIVO
+ LICENÇA-MATERNIDADE; GESTANTES E ADOTANTES; DIFERENTES VÍNCULOS LABORAIS;
+ CRITÉRIOS E PRAZOS; UNIFORMIZAÇÃO
+
+ » Licença-maternidade: uniformização de prazos para as mães biológicas e adotantes em
+   diferentes regimes de trabalho – ADI 7.495/DF ........................................................................................................................6
+
+ POLÍCIA PENAL; AGENTES DE SEGURANÇA PENITENCIÁRIOS; CONTRATO TEMPORÁRIO
+
+ » Contratação de agentes temporários para o desempenho de atribuições da Polícia Penal –
+   ADI 7.069/GO ...................................................................................................................................................................................................7
+
+DIREITO TRIBUTÁRIO
+ IMPOSTOS; ICMS; BASE DE CÁLCULO; ENERGIA ELÉTRICA
+
+ » ICMS: inclusão, na base de cálculo do imposto sobre energia elétrica, do valor da
+   subvenção econômica da Lei nº 10.604/2002 – RE 990.115/SP (Tema 1.113 RG) ...............................................8
+
+ IMPOSTOS; ICMS; CRÉDITO TRIBUTÁRIO; INCENTIVOS FISCAIS; ISENÇÃO; REVOGAÇÃO
+ UNILATERAL; CONVÊNIO CONFAZ; QUÓRUM
+
+ » ICMS: limitação de benefícios fiscais no âmbito estadual – ADI 7.822/SP, ADI 7.830/SP,
+   ADI 7.844/SP e ADI 7.848/SP .............................................................................................................................................................. 10
+
+ IMPOSTOS; ICMS; SUBVENÇÃO DE TARIFA DE ENERGIA ELÉTRICA; CONVÊNIO; CONFAZ
+
+ » ICMS sobre a subvenção de tarifa de energia elétrica – ADI 3.973/DF.................................................................... 11
+
+ TAXAS; CUSTAS JUDICIAIS; MAJORAÇÃO; ANTERIORIDADE NONAGESIMAL
+
+ » Majoração de custas judiciais no Estado do Espírito Santo e anterioridade nonagesimal –
+   ADI 7.935/ES ................................................................................................................................................................................................. 13
+
+
+
+                                                                                           2 TURMAS
+
+
+
+                                                             3 INOVAÇÕES NORMATIVAS STF
+
+                                                                                             
+  Edição 1231/2026
+
+
+DIREITO ADMINISTRATIVO
+LICENÇA-MATERNIDADE; GESTANTES           RESUMO:
+E ADOTANTES; DIFERENTES VÍNCULOS
+                                         A licença-maternidade deve ser assegurada de forma isonômica
+LABORAIS; CRITÉRIOS E PRAZOS;
+UNIFORMIZAÇÃO                            às mães biológicas e adotantes, vedada qualquer diferenciação
+                                         fundada na idade da criança ou na natureza do vínculo laboral
+DIREITO CONSTITUCIONAL
+IGUALDADE; FILHOS BIOLÓGICOS E           ou funcional da beneficiária.
+ADOTIVOS; PROTEÇÃO À MATERNIDADE E
+À INFÂNCIA
+                                     No caso, foram questionadas normas federais que estabelecem
+diferentes períodos e condições para a licença-maternidade e a licença decorrente de adoção, aplicá-
+veis a empregadas regidas pela CLT, servidoras públicas, membros do Ministério Público e integrantes
+das Forças Armadas. A disciplina impugnada previa, em determinadas situações, prazo inferior para mães
+adotantes, redução do período de afastamento conforme a idade da criança adotada e distinções de
+acordo com o regime jurídico da beneficiária. Questionou-se, ainda, a possibilidade de compartilha-
+mento da licença parental entre os integrantes do núcleo familiar.
+A licença-maternidade visa à proteção da maternidade e da criança, proporcionando condições para o
+convívio, o fortalecimento do vínculo afetivo e a integração ao núcleo familiar. Por isso, não se admite
+tratamento distinto entre mães biológicas e adotantes nem a fixação de períodos distintos de licença em
+razão da idade da criança adotada ou da natureza do vínculo laboral ou funcional da beneficiária.
+Assim, todas as mães, biológicas ou adotantes, fazem jus à licença-maternidade de idêntico conteúdo,
+consistente em afastamento remunerado de 120 dias, prorrogável por mais 60 dias, contado do nono
+mês de gestação, do parto, da adoção ou da obtenção da guarda para fins de adoção, bem como da alta
+hospitalar do recém-nascido ou da mãe, o que ocorrer por último. Por outro lado, quanto à pretensão de
+compartilhamento da licença parental, a ausência de modelo explícito na Constituição impõe o respeito
+à margem de conformação do legislador, a quem cabe disciplinar a matéria (1).
+Com base nesses e em outros entendimentos, o Plenário, por unanimidade, conheceu da ação direta e
+julgou parcialmente procedente o pedido para: (i) declarar a inconstitucionalidade, com nulidade par-
+cial, do art. 210, caput e parágrafo único, da Lei nº 8.112/1990, e do art. 223, V, da Lei Complementar nº
+75/1993; e (ii) conferir interpretação conforme à Constituição aos arts. 392, caput e §§ 1º a 3º, 392-A, caput
+e §§ 4º e 5º, 392-B e 392-C da CLT; ao art. 207 da Lei nº 8.112/1990; ao art. 223, III, da Lei Complementar
+nº 75/1993; ao art. 1º da Lei nº 13.109/2015; e ao art. 1º, I, da Lei nº 11.770/2008, para assegurar às mães
+biológicas e adotantes licença de igual duração e conteúdo, independentemente do vínculo laboral ou
+
+
+
+DIREITO ADMINISTRATIVO
+POLÍCIA PENAL; AGENTES DE SEGURANÇA            RESUMO:
+PENITENCIÁRIOS; CONTRATO TEMPORÁRIO
+                                       É inconstitucional – por violar a exigência de concurso público e
+a regra específica do art. 4º da EC nº 104/2019 – a contratação de agentes temporários para o desem-
+penho de atribuições próprias da Polícia Penal.
+
+
+
+DIREITO TRIBUTÁRIO
+IMPOSTOS; ICMS; BASE DE CÁLCULO;                    RESUMO:
+ENERGIA ELÉTRICA
+                                    É inconstitucional – por violar o art. 155, II e § 3º, da CF/1988, e
+DIREITO ADMINISTRATIVO              o art. 34, § 9º, do ADCT – a incidência de ICMS sobre os recursos
+ SERVIÇOS PÚBLICOS; SUBVENÇÃO
+                                    financeiros repassados pela União às empresas prestadoras de
+ ECONÔMICA; CONSUMIDORES DE BAIXA
+ RENDA; CONTRATOS ADMINISTRATIVOS;  serviço público de energia elétrica, a título de subvenção econô-
+ EQUILÍBRIO ECONÔMICO-FINANCEIRO    mica (Lei nº 10.604/2002, art. 5º), com a finalidade de contribuir
+                                    para a modicidade da tarifa de fornecimento de energia elétrica
+aos consumidores finais integrantes da “Subclasse Residencial Baixa Renda” (Lei nº 10.438/2002).
+
+
+
+DIREITO TRIBUTÁRIO
+IMPOSTOS; ICMS; CRÉDITO TRIBUTÁRIO;                 RESUMO:
+INCENTIVOS FISCAIS; ISENÇÃO;          É inconstitucional ato unilateral de estado-membro que revo-
+REVOGAÇÃO UNILATERAL; CONVÊNIO
+CONFAZ; QUÓRUM
+                                      gue, total ou parcialmente, benefício ou isenção de Imposto
+                                      sobre Circulação de Mercadorias e Serviços (ICMS) concedidos
+mediante convênio do Conselho Nacional de Política Fazendária (CONFAZ), sem a observância do
+princípio federativo, do rito procedimental e da deliberação pelo quórum qualificado de quatro quin-
+tos estabelecidos na lei complementar (CF/1988, art. 155, § 2º, XII, g).
+
+
+
+DIREITO TRIBUTÁRIO
+IMPOSTOS; ICMS; SUBVENÇÃO DE TARIFA               RESUMO:
+DE ENERGIA ELÉTRICA; CONVÊNIO; CONFAZ
+                                  É inconstitucional a interpretação de cláusula de Convênio do
+                                  Conselho Nacional de Política Fazendária (CONFAZ) que permite
+ao estado-membro tributar, por meio do Imposto sobre Circulação de Mercadorias e Serviços (ICMS),
+subvenção econômica repassada pela União às concessionárias de energia elétrica.
+
+
+
+ DIREITO TRIBUTÁRIO
+ TAXAS; CUSTAS JUDICIAIS; MAJORAÇÃO;                      RESUMO:
+ ANTERIORIDADE NONAGESIMAL
+                                      É constitucional – desde que guarde coerência com o custo da
+atividade estatal prestada, respeite os princípios da equivalência e do acesso à justiça e estabeleça
+limites mínimos e máximos adequados – a majoração de custas judiciais e despesas processuais,
+observada a anterioridade nonagesimal tributária (CF/1988, art. 150, III, c).
+
+

@@ -1,0 +1,73 @@
+background:#0b2545;color:#ffffff;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap
+background:#0b2545;padding:20px;font-family:Arial,Helvetica,sans-serif;text-align:center
+background:#e8eef7;color:#0b2545;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap
+background:#f4f6fa;border-left:4px solid #0b2545;padding:10px 12px;margin-bottom:8px
+background:#f4f6fa;padding:14px 16px
+background:#fdf0f0;color:#a61b1b;border:1px solid #f0c2c2;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap
+background:#fdf6e9;border-left:4px solid #c5a253;padding:10px 12px;margin-bottom:12px
+background:#fdf6e9;border:1px solid #e6d3a3;padding:10px 12px;font-size:12px;line-height:19px;color:#3d4b59
+background:#fdf6e9;padding:14px 16px
+border-collapse:collapse
+border-collapse:collapse;font-size:12px;line-height:17px;color:#2f3a45
+border-collapse:collapse;font-size:12px;line-height:18px
+border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;font-weight:bold;color:#0b2545;margin-bottom:10px
+border-top:1px solid #e4e9ef;font-size:1px;line-height:1px
+color:#0b4f92
+color:#0b4f92;text-decoration:underline
+color:#1e6b3a;border:1px solid #bfe3cc;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap
+color:#5a6773;border:1px solid #c9ced6;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap
+color:#5a6773;border:1px solid #c9ced6;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap
+color:#8a6d1d
+color:#8a6d1d;border:1px solid #e6d3a3;font-size:10px;padding:2px 7px;border-radius:3px;white-space:nowrap
+color:#8a6d1d;border:1px solid #e6d3a3;font-size:9px;padding:2px 6px;border-radius:3px;white-space:nowrap
+color:#ffffff;font-weight:bold;font-size:11px
+display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden
+font-size:10px;line-height:15px;color:#8b95a1;margin-top:8px
+font-size:11px;color:#5a6773
+font-size:11px;color:#5a6773;margin:8px 0 2px
+font-size:11px;color:#a9b7cc;margin-top:6px;line-height:16px
+font-size:11px;line-height:17px;color:#5a6773
+font-size:12px;color:#5a6773
+font-size:12px;color:#8a8f5c;font-style:italic;margin:-4px 0 12px 14px
+font-size:12px;font-weight:bold;color:#0b2545;margin-bottom:6px
+font-size:12px;line-height:17px;color:#a9b7cc;margin-top:10px
+font-size:12px;line-height:18px;color:#5a6773
+font-size:12px;line-height:19px;color:#3d4b59
+font-size:13px;color:#ffffff;font-weight:bold
+font-size:13px;font-weight:bold;color:#0b2545;margin-bottom:6px
+font-size:13px;line-height:19px;color:#c5a253;font-weight:bold;margin-top:8px
+font-size:14px;font-weight:bold;color:#0b2545;margin:0px 0 6px
+font-size:14px;font-weight:bold;color:#0b2545;margin:14px 0 6px
+font-size:22px;line-height:28px;color:#ffffff;font-weight:bold
+font-size:34px;line-height:38px;margin-bottom:6px
+font-weight:normal;color:#5a6773
+margin:0 0 10px;font-size:12px;color:#8a6d1d;font-weight:bold
+margin:0 0 12px
+margin:0 0 14px 14px;font-size:12px;line-height:18px
+margin:0 0 6px
+margin:0 0 6px;font-size:12px;line-height:18px
+margin:0;font-size:12px;color:#5a6773
+margin:0;font-size:12px;line-height:18px;color:#5a6773
+margin:0px 0 4px
+margin:14px 0 4px
+margin:14px 0 6px;font-size:12px;font-weight:bold;color:#0b2545
+margin:8px 0 6px;font-size:14px;line-height:21px;color:#2f3a45;font-style:italic
+margin:8px 0 6px;font-size:14px;line-height:21px;color:#3d3113;font-style:italic
+padding:10px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5a6773
+padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;color:#0b2545
+padding:16px 20px 0
+padding:16px 20px 22px;font-family:Arial,Helvetica,sans-serif
+padding:20px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45
+padding:20px 8px
+padding:22px 0 0
+padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif
+padding:22px 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#2f3a45
+padding:26px 20px;font-family:Arial,Helvetica,sans-serif
+padding:3px 0
+padding:3px 0;color:#5a6773
+padding:3px 0;font-weight:bold;color:#0b2545;white-space:nowrap
+padding:3px 0;font-weight:bold;color:#5a6773;white-space:nowrap
+padding:3px 0;font-weight:bold;color:#a61b1b;white-space:nowrap
+padding:6px 0
+padding:6px 0;border-bottom:1px solid #e8edf2
+width:100%;max-width:600px;border-collapse:collapse

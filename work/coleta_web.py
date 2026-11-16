@@ -16,14 +16,26 @@
 # - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados).
 #
 # - Cada item publicavel ganha um id curto (lei15527, mpv1400, c7, m3): o
-#   orquestrador cita o id em /tmp/execucao.json ({"ref": "c7", ...}) e o
+#   orquestrador cita o id em $ROBOZINHO_TMP/execucao.json ({"ref": "c7", ...}) e o
 #   work/montar_email.py copia titulo, linha-fina, hora, URL e chave daqui —
 #   nada disso e redigitado (menos saida e nenhum erro de copia).
 #
-# USO:   python3 work/coleta_web.py [--janela /tmp/janela.json]
+# - Rede: 1 nova tentativa apos ~3 s em http 0/429/5xx (16/11: um http 0
+#   transitorio nas MPVs custou ToolSearch + WebSearch inuteis). Em tempo
+#   esgotado (curl -m 20) so a listagem tenta de novo; as paginas de materia nao.
+# - Saida compacta: noticias com linha-fina; artigos/colunas do ConJur so o
+#   titulo (ate ~90 caracteres) e no maximo 10 no indice — escolhidos pelos
+#   termos de prova no titulo, nao pela recencia; o resto so contado (id no JSON).
+# - Status das fontes: grava $ROBOZINHO_TMP/fontes_status.json (merge, com trava)
+#   e imprime no fim "SOURCE_STATUS {json}" pronto para o source_status.
+#
+# USO:   python3 work/coleta_web.py [--janela $ROBOZINHO_TMP/janela.json]
+#        [--saida $ROBOZINHO_TMP/coleta_web.json] [--historico work/resumo-...json]
 #        (sem janela.json: inicio = window_end do estado, fim = agora)
-# SAIDA: indice compacto em stdout (sem URL); JSON completo em /tmp/coleta_web.json.
-#        Fonte com erro aparece como "ERRO ... usar WebSearch".
+#        ROBOZINHO_TMP (padrao /tmp) e a pasta de todos os arquivos temporarios.
+# SAIDA: indice compacto em stdout (sem URL); JSON completo em $ROBOZINHO_TMP/coleta_web.json.
+#        Fonte com erro aparece como "ERRO ... usar WebSearch" (MPV: conferir antes
+#        as PLANALTO_ATO do coletor Gmail). Ultima linha: SOURCE_STATUS {...}.
 # =====================================================================
 
 import argparse
@@ -32,6 +44,8 @@ import json
 import os
 import re
 import subprocess
+import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, date
 from zoneinfo import ZoneInfo
@@ -39,6 +53,9 @@ from zoneinfo import ZoneInfo
 TZ = ZoneInfo("America/Sao_Paulo")
 UA = "Mozilla/5.0 (X11; Linux x86_64) Robozinho/1.0"
 AQUI = os.path.dirname(os.path.abspath(__file__))
+TMP = os.environ.get("ROBOZINHO_TMP", "/tmp")
+HISTORICO = os.path.join(AQUI, "resumo-legislativo-historico.json")
+PAUSA_REPETICAO = 3      # segundos antes da nova tentativa (http 0/429/5xx)
 MESES = {m: i + 1 for i, m in enumerate(
     "jan fev mar abr mai jun jul ago set out nov dez".split())}
 
@@ -53,24 +70,54 @@ PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin
                    r"webin[aá]rio|curso|encontro|jornada)\b|\blan[cç]amento d[eo] livro\b", re.I)
 
 
-def fetch(url, timeout=20):
+def _fetch1(url, timeout):
+    """Um GET (curl -L). Devolve (codigo, corpo, tempo_esgotado)."""
     try:
         r = subprocess.run(["curl", "-s", "-L", "-m", str(timeout), "-A", UA,
                             "-w", "\n%{http_code}", url],
                            capture_output=True, timeout=timeout + 5)
         out = r.stdout.decode("utf-8", "replace")
+    except subprocess.TimeoutExpired:
+        return 0, "", True
     except Exception:
-        return 0, ""
+        return 0, "", False
     corpo, _, codigo = out.rpartition("\n")
     try:
-        return int(codigo), corpo
+        return int(codigo), corpo, r.returncode == 28
     except ValueError:
-        return 0, out
+        return 0, out, r.returncode == 28
+
+
+def repetir(codigo):
+    return codigo == 0 or codigo == 429 or codigo >= 500
+
+
+def fetch_n(url, timeout=20, repetir_timeout=True):
+    """(codigo, corpo, tentativas): GET com 1 nova tentativa apos ~3 s em http
+    0/429/5xx. Tempo esgotado so tenta de novo se repetir_timeout (senao uma
+    fonte lenta soma 20 s por pagina). 403/404 = 1 tentativa so."""
+    codigo, corpo, esgotado = _fetch1(url, timeout)
+    if repetir(codigo) and (repetir_timeout or not esgotado):
+        time.sleep(PAUSA_REPETICAO)
+        codigo, corpo, _ = _fetch1(url, timeout)
+        return codigo, corpo, 2
+    return codigo, corpo, 1
+
+
+def fetch(url, timeout=20, repetir_timeout=True):
+    """(codigo, corpo) do fetch_n."""
+    return fetch_n(url, timeout, repetir_timeout)[:2]
+
+
+def tentativas_txt(r):
+    """'1 tentativa' / '2 tentativas' da listagem (campo "tentativas"); '' se faltar."""
+    n = r.get("tentativas")
+    return "%d tentativa%s" % (n, "s" if n != 1 else "") if isinstance(n, int) and n > 0 else ""
 
 
 def fetch_many(urls):
     with ThreadPoolExecutor(max_workers=8) as ex:
-        return dict(zip(urls, ex.map(fetch, urls)))
+        return dict(zip(urls, ex.map(lambda u: fetch(u, repetir_timeout=False), urls)))
 
 
 def limpa(s):
@@ -108,12 +155,15 @@ def chave_url(url):
     return "migalhas:" + m.group(1) if m else (url or "").rstrip("/")
 
 
-def carregar_publicados():
+def carregar_historico():
     try:
-        h = json.load(open(os.path.join(AQUI, "resumo-legislativo-historico.json"),
-                           encoding="utf-8"))["executions"]
+        return json.load(open(HISTORICO, encoding="utf-8"))["executions"]
     except Exception:
-        return set(), set()
+        return []
+
+
+def carregar_publicados(h=None):
+    h = carregar_historico() if h is None else h
     chaves, urls = set(), set()
     for e in h:
         if e.get("execution_id") == IGNORAR_EXEC:
@@ -122,11 +172,12 @@ def carregar_publicados():
             chaves.add((it.get("chave") or "").lower())
             if it.get("url"):
                 urls.add(chave_url(it["url"]))
-    atos = set()
+    import repeticao
+    atos = set()          # (tipo canonico, numero): "planalto|lc|239" = Lei Complementar 239
     for k in chaves:
         p = k.split("|")
         if len(p) >= 4 and p[0] == "planalto" and p[2].isdigit():
-            atos.add((p[1], p[2]))
+            atos.add((repeticao.tipo_canonico(p[1]), p[2].lstrip("0") or p[2]))
     return atos, urls
 
 
@@ -148,11 +199,13 @@ def classifica(quando, inicio, fim, recorte):
 
 # ------------------------------------------------------------ Congresso
 def leis(inicio, fim, recorte, atos_pub):
-    cod, t = fetch(URL_LEIS)
+    import repeticao
+    cod, t, n_tent = fetch_n(URL_LEIS)
     # listadas/mais_recente: pagina lida sem norma na janela (ex.: periodo
     # eleitoral, out/2026) nao e erro da fonte; em 16/10 isso virou "ERRO",
     # WebSearch inutil e status "falha".
-    out = {"fonte": "congresso_leis", "http": cod, "itens": [], "listadas": 0, "mais_recente": ""}
+    out = {"fonte": "congresso_leis", "http": cod, "tentativas": n_tent, "itens": [], "listadas": 0,
+           "mais_recente": ""}
     for bloco in t.split('<div class="sf-lista-resumos__resumo">')[1:]:
         m = re.search(r'<dt>Norma:</dt>\s*<dd>\s*<a href="([^"]+)">([^<]+)</a>\s*'
                       r'\(<a[^>]*>DOU de (\d\d/\d\d/\d{4})</a>\)', bloco)
@@ -170,7 +223,7 @@ def leis(inicio, fim, recorte, atos_pub):
         ementa = re.search(r"<dt>Ementa:</dt>\s*<dd>(.*?)</dd>", bloco, re.S)
         materia = re.search(r"<dt>Mat[ée]ria:</dt>\s*<dd>\s*<a[^>]*>([^<]+)</a>", bloco)
         veto = re.search(r"<dt>Veto aposto:</dt>\s*<dd>\s*<a[^>]*>([^<]+)</a>", bloco)
-        if (slug, numero) in atos_pub:
+        if (repeticao.tipo_canonico(slug), numero.lstrip("0") or numero) in atos_pub:
             sit = "JA_PUBLICADA"
         elif dou < inicio.date() - timedelta(days=7):
             continue
@@ -189,12 +242,14 @@ def leis(inicio, fim, recorte, atos_pub):
 
 
 def mpvs(inicio, fim, recorte, atos_pub):
-    cod, t = fetch(URL_MPV)
-    out = {"fonte": "congresso_mpv", "http": cod, "itens": []}
+    cod, t, n_tent = fetch_n(URL_MPV)
+    out = {"fonte": "congresso_mpv", "http": cod, "tentativas": n_tent, "itens": [], "listadas": 0}
     candidatos = []
     for bloco in t.split('<div class="sf-lista-resumos__resumo">')[1:]:
         m = re.search(r'href="(https://www\.congressonacional\.leg\.br/materias/medidas-provisorias/-/mpv/\d+)"'
                       r'.*?MPV (\d+)/(\d{4})', bloco, re.S)
+        if m:
+            out["listadas"] += 1
         dia = re.search(r"Dia de tramita[çc][ãa]o</dt>\s*<dd><span>(\d+)</span>", bloco)
         if not m or not dia or int(dia.group(1)) > 10:
             continue
@@ -206,7 +261,7 @@ def mpvs(inicio, fim, recorte, atos_pub):
         c2, p = paginas[url]
         d = re.search(r"Publicada no DOU de (\d\d/\d\d/\d{4})", p)
         dou = dmy(d.group(1)) if d else None
-        if ("mpv", numero) in atos_pub:
+        if ("mpv", numero.lstrip("0") or numero) in atos_pub:
             sit = "JA_PUBLICADA"
         else:
             sit = classifica(dou, inicio, fim, recorte) if dou else "SEM_DATA_OFICIAL"
@@ -239,10 +294,17 @@ def conjur(inicio, fim, recorte, urls_pub):
             dia = date(int(a), MESES[mes], int(d))
             it = {"tipo": tipo, "titulo": limpa(tit), "url": url, "data": dia}
             vistos[url] = it
+            # pelo dia; so os dias de borda (inicio, recorte, fim) sao abertos para
+            # a hora decidir. Antes todo dia intermediario virava NOVA: na janela de
+            # 72h de 16/11, os itens de 14/11 (antes do recorte) sairam NOVA.
             if dia < inicio.date():
                 it["situacao"] = "FORA"
             elif dia in (inicio.date(), recorte.date(), fim.date()):
                 abrir.append(url)          # so a hora decide
+            elif dia < recorte.date():
+                it["situacao"] = "HERDADA"
+            elif dia > fim.date():
+                it["situacao"] = "DEPOIS"
             else:
                 it["situacao"] = "NOVA"
     abertas = fetch_many(abrir)
@@ -265,8 +327,8 @@ def conjur(inicio, fim, recorte, urls_pub):
 
 
 def migalhas(inicio, fim, recorte, urls_pub):
-    cod, t = fetch(URL_MIGALHAS)
-    out = {"fonte": "migalhas", "http": cod, "itens": []}
+    cod, t, n_tent = fetch_n(URL_MIGALHAS)
+    out = {"fonte": "migalhas", "http": cod, "tentativas": n_tent, "itens": []}
     lista = []
     for art in t.split("<article")[1:]:
         m = re.search(r'href="(https://www\.migalhas\.com\.br/quentes/\d+/[^"]+)"', art)
@@ -288,15 +350,12 @@ def migalhas(inicio, fim, recorte, urls_pub):
     return out
 
 
-def marcar_promo_e_repetidas(res):
+def marcar_promo_e_repetidas(res, h=None):
     """PROMO: sorteio/evento promocional (nao e noticia). REPETIDA?: mesma
-    materia ja publicada por outra fonte nas ultimas edicoes."""
+    materia ja publicada por outra fonte nas ultimas edicoes.
+    h: execucoes do historico (padrao: o historico principal)."""
     import repeticao
-    try:
-        h = json.load(open(os.path.join(AQUI, "resumo-legislativo-historico.json"),
-                           encoding="utf-8"))["executions"]
-    except Exception:
-        h = []
+    h = carregar_historico() if h is None else h
     idx = repeticao.indice(h, ignorar_exec_id=IGNORAR_EXEC or None)
     for r in res:
         if r["fonte"] not in ("conjur", "migalhas"):
@@ -331,14 +390,198 @@ def ok(http):
     return all(v == 200 for v in vals)
 
 
+# Opiniao do ConJur no indice: no maximo MAX_OPINIAO, pelos termos de prova no
+# titulo (nao pela recencia: recente nao e o mesmo que relevante para concurso).
+MAX_OPINIAO, MAX_TIT_OPINIAO = 10, 90
+_ANCORA = re.compile(r"\b(stf|stj|tst|tse|tcu|cnj|cnmp|supremo|tema|sumulas?|vinculantes?|repercussao|"
+                     r"repetitivos?|precedentes?|adi|adpf|adc|re|resp|hc|lei|lc|pec|plp|codigo|cpc|cpp|"
+                     r"clt|ctn|constituicao)\b")
+_TERMO = re.compile(r"\b(constitucional\w*|penal|processo\w*|processua\w*|tribut\w*|improbidade|provas?|"
+                    r"juri|jurisprud\w*|recursos?|execucao|licita\w*|administrativ\w*|civil|consumidor\w*|"
+                    r"familia|sucess\w*|contrat\w*|responsabilidade|crimes?|criminal|delitos?|dolo|trafico|"
+                    r"inquerito|foro|ilicit\w*|penas?|fiscal|impostos?|icms|iss|cbs|ibs|reforma|direitos?|"
+                    r"garantias?|juros|creditos?|dividas?|nulidade|competencia|prescricao|honorarios|"
+                    r"sucumb\w*|servidor\w*|concurso\w*)\b")
+_NUMERO = re.compile(r"\b(tema|sumula|lei|lc|pec|plp|adi|adpf|adc|re|resp|hc|decreto|mpv?|ec)\s*"
+                     r"(?:n[o°.]*\s*)?\d")
+
+
+def nota_prova(titulo):
+    """2 por ancora (tribunal, precedente, ato), 1 por termo juridico, +2 se cita numero."""
+    s = unicodedata.normalize("NFKD", (titulo or "").lower())
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return (2 * len(set(_ANCORA.findall(s))) + len(set(_TERMO.findall(s)))
+            + (2 if _NUMERO.search(s) else 0))
+
+
+def opiniao_no_indice(itens, maximo=MAX_OPINIAO):
+    """ids dos artigos/colunas publicaveis que entram no indice impresso."""
+    cand = [(n, i) for n, i in enumerate(itens)
+            if i.get("tipo") in ("artigo", "coluna") and i.get("situacao") in ("NOVA", "HERDADA", "SEM_DATA")]
+    melhores = sorted(cand, key=lambda x: (-nota_prova(x[1]["titulo"]), x[0]))[:maximo]
+    return {i["id"] for _, i in melhores}
+
+
+def imprimir(res, inicio, fim, recorte):
+    """Indice compacto (linhas de texto). Atribui os ids (lei15527, mpv1400, c7, m3)."""
+    out = ["JANELA %s -> %s (herdada = antes de %s) | cite o id em {\"ref\": ...}; URL, hora e chave "
+           "saem do JSON" % (inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M"))]
+    seq = {"conjur": 0, "migalhas": 0}
+    for r in res:                     # ids primeiro (a ordem de sempre: os refs nao mudam)
+        for i in r["itens"]:
+            if r["fonte"] in seq and i["situacao"] in ("NOVA", "HERDADA", "SEM_DATA"):
+                seq[r["fonte"]] += 1
+                i["id"] = "%s%d" % (r["fonte"][0], seq[r["fonte"]])
+    for r in res:
+        itens = r["itens"]
+        cont = {}
+        for i in itens:
+            cont[i["situacao"]] = cont.get(i["situacao"], 0) + 1
+        out.append("\n== %s http=%s %s" % (r["fonte"].upper(), r["http"],
+                                           " ".join("%s=%d" % kv for kv in sorted(cont.items()))))
+        if r["fonte"] == "congresso_mpv" and (not ok(r["http"]) or not r.get("listadas", 1)):
+            out.append("ERRO: congresso_mpv %s — antes de gastar WebSearch, confira as PLANALTO_ATO do "
+                       "coletor Gmail (a Resenha PUSH traz as MPVs da janela); WebSearch "
+                       "site:congressonacional.leg.br so se o PUSH Planalto nao veio"
+                       % ("indisponivel (%s)" % ", ".join(x for x in ("http=%s" % r["http"], tentativas_txt(r)) if x)
+                          if not ok(r["http"])
+                          else "lida sem nenhuma MPV listada (layout mudou?)"))
+        elif r["fonte"] == "congresso_leis" and ok(r["http"]) and not itens and r.get("listadas"):
+            out.append("SEM NORMA NOVA NA JANELA: pagina lida (%d normas listadas; a mais recente: %s)"
+                       " — fonte ok, sem WebSearch" % (r["listadas"], r["mais_recente"]))
+        elif not ok(r["http"]) or (not itens and r["fonte"] != "congresso_mpv"):
+            out.append("ERRO: fonte indisponivel ou 0 itens extraidos — usar WebSearch (fallback)")
+        ja = ["%s %s (%s)" % ("MPV" if r["fonte"] == "congresso_mpv" else i.get("tipo", "Lei"), i["numero"],
+                              curto(i["ementa"], 70))
+              for i in itens if i["situacao"] == "JA_PUBLICADA" and r["fonte"].startswith("congresso")]
+        if ja:
+            out.append("JA PUBLICADAS (nao repetir, nem pelo boletim da Camara): " + "; ".join(ja[:6]))
+        no_indice = opiniao_no_indice(itens) if r["fonte"] == "conjur" else set()
+        fora = 0
+        for i in itens:
+            s = i["situacao"]
+            if r["fonte"] == "congresso_leis":
+                if s == "JA_PUBLICADA":
+                    continue
+                i["id"] = "lei%s" % i["numero"]
+                out.append("[%s] %s | %s nº %s de %s (DOU %s) — %s%s | %s" % (
+                    s, i["id"], i["tipo"], i["numero"], i["data_ato"], i["dou"], i["ementa"],
+                    " | veto: " + i["veto"] if i["veto"] else "", i["materia"]))
+            elif r["fonte"] == "congresso_mpv":
+                if s == "JA_PUBLICADA":
+                    continue
+                i["id"] = "mpv%s" % i["numero"]
+                out.append("[%s] %s | MPV %s/%s — DOU %s (detalhe oficial, http %s) — %s" % (
+                    s, i["id"], i["numero"], i["ano"], i["dou"] or "?", i["http_detalhe"], i["ementa"]))
+            elif s in ("NOVA", "HERDADA", "SEM_DATA"):
+                tag = i.get("tipo", "noticia")[:3].upper()
+                rep = " [REPETIDA?~%s]" % i["repetida"] if i.get("repetida") else ""
+                if i.get("tipo") in ("artigo", "coluna"):
+                    # artigo/coluna: so o titulo, encurtado (no maximo 6 vao ao e-mail, sem resumo)
+                    if i["id"] not in no_indice:
+                        fora += 1
+                        continue
+                    out.append("[%s|%s] %s | %s | %s%s" % (s, tag, i["id"], hm(i),
+                                                           curto(i["titulo"], MAX_TIT_OPINIAO), rep))
+                    continue
+                extra = (" — " + curto(i["resumo"], 170)) if i.get("resumo") and tag == "NOT" else ""
+                out.append("[%s|%s] %s | %s | %s%s%s" % (s, tag, i["id"], hm(i), i["titulo"], extra, rep))
+        if fora:
+            out.append("(+%d artigos/colunas fora do indice: titulos com menos termos de prova; "
+                       "continuam no JSON)" % fora)
+    return out
+
+
+# ------------------------------------------------------------ status das fontes
+def _entre_parenteses(s):
+    return " (%s)" % s if s else ""
+
+
+def status_fontes(res):
+    """{id do source_status: (status, detalhe)} das 4 fontes deste script."""
+    por = {r["fonte"]: r for r in res}
+    st = {}
+    r = por.get("congresso_leis")
+    if r:
+        if r["http"] != 200:
+            st["congresso_ultimas_leis"] = ("falha", "http=%s%s" % (r["http"], _entre_parenteses(tentativas_txt(r))))
+        elif not r.get("listadas"):
+            st["congresso_ultimas_leis"] = ("falha", "pagina lida, 0 normas extraidas (layout?)")
+        else:
+            novas = sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA")
+            st["congresso_ultimas_leis"] = ("ok", "%d norma(s) na janela" % novas if novas
+                                            else "sem norma nova na janela")
+    r = por.get("congresso_mpv")
+    if r:
+        if r["http"] != 200:
+            st["congresso_mpvs"] = ("falha", "http=%s%s; conferir PLANALTO_ATO"
+                                    % (r["http"], _entre_parenteses(tentativas_txt(r))))
+        elif not r.get("listadas", 1):
+            st["congresso_mpvs"] = ("falha", "pagina lida, 0 MPVs listadas (layout?)")
+        else:
+            st["congresso_mpvs"] = ("ok", "%d MPV(s) recente(s)" % len(r["itens"]))
+    for fonte in ("conjur", "migalhas"):
+        r = por.get(fonte)
+        if not r:
+            continue
+        if not ok(r["http"]):
+            st[fonte] = ("falha", "http=%s%s" % (r["http"], _entre_parenteses(tentativas_txt(r))))
+        elif not r["itens"]:
+            st[fonte] = ("falha", "0 itens extraidos (layout?)")
+        else:
+            pub = sum(1 for i in r["itens"] if i["situacao"] in ("NOVA", "HERDADA", "SEM_DATA"))
+            st[fonte] = ("ok", "%d publicaveis" % pub)
+    return st
+
+
+def gravar_status(st, script, caminho=None):
+    """Merge em $ROBOZINHO_TMP/fontes_status.json ({id: {status, detalhe, script,
+    execution_id}}), com trava (os scripts do passo 2 rodam em paralelo)."""
+    caminho = caminho or os.path.join(TMP, "fontes_status.json")
+    exec_id = ""
+    try:
+        exec_id = json.load(open(os.path.join(TMP, "janela.json"), encoding="utf-8")).get("execution_id") or ""
+    except Exception:
+        pass
+    try:
+        import fcntl
+    except ImportError:
+        fcntl = None
+    with open(caminho + ".lock", "w") as trava:
+        if fcntl:
+            fcntl.flock(trava, fcntl.LOCK_EX)
+        try:
+            atual = json.load(open(caminho, encoding="utf-8"))
+            if not isinstance(atual, dict):
+                atual = {}
+        except Exception:
+            atual = {}
+        for ident, (status, detalhe) in st.items():
+            atual[ident] = {"status": status, "detalhe": detalhe, "script": script,
+                            "execution_id": exec_id}
+        tmp = caminho + ".%d.tmp" % os.getpid()
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(atual, f, ensure_ascii=False, indent=1)
+        os.replace(tmp, caminho)
+
+
+def linha_status(st):
+    return "SOURCE_STATUS " + json.dumps({k: v[0] for k, v in st.items()}, ensure_ascii=False)
+
+
 def main():
+    global HISTORICO
     ap = argparse.ArgumentParser()
-    ap.add_argument("--janela", default="/tmp/janela.json")
-    ap.add_argument("--saida", default="/tmp/coleta_web.json")
+    ap.add_argument("--janela", default=os.path.join(TMP, "janela.json"))
+    ap.add_argument("--saida", default=os.path.join(TMP, "coleta_web.json"))
+    ap.add_argument("--historico", default=HISTORICO,
+                    help="historico principal (padrao: work/resumo-legislativo-historico.json)")
     a = ap.parse_args()
+    HISTORICO = a.historico
     inicio, fim = carregar_janela(a.janela)
     recorte = fim - timedelta(hours=24)
-    atos_pub, urls_pub = carregar_publicados()
+    historico = carregar_historico()
+    atos_pub, urls_pub = carregar_publicados(historico)
 
     with ThreadPoolExecutor(max_workers=4) as ex:
         fl = ex.submit(leis, inicio, fim, recorte, atos_pub)
@@ -347,57 +590,21 @@ def main():
         fg = ex.submit(migalhas, inicio, fim, recorte, urls_pub)
         res = [fl.result(), fm.result(), fc.result(), fg.result()]
 
-    marcar_promo_e_repetidas(res)
-
-    print("JANELA %s -> %s (herdada = antes de %s) | cite o id em {\"ref\": ...}; URL, hora e chave "
-          "saem do JSON" % (inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M")))
-    seq = {"conjur": 0, "migalhas": 0}
-    for r in res:
-        itens = r["itens"]
-        cont = {}
-        for i in itens:
-            cont[i["situacao"]] = cont.get(i["situacao"], 0) + 1
-        print("\n== %s http=%s %s" % (r["fonte"].upper(), r["http"],
-                                      " ".join("%s=%d" % kv for kv in sorted(cont.items()))))
-        if ok(r["http"]) and not itens and r.get("listadas"):
-            print("SEM NORMA NOVA NA JANELA: pagina lida (%d normas listadas; a mais recente: %s)"
-                  " — fonte ok, sem WebSearch" % (r["listadas"], r["mais_recente"]))
-        elif not ok(r["http"]) or (not itens and r["fonte"] != "congresso_mpv"):
-            print("ERRO: fonte indisponivel ou 0 itens extraidos — usar WebSearch (fallback)")
-        ja = ["%s %s (%s)" % ("MPV" if r["fonte"] == "congresso_mpv" else i.get("tipo", "Lei"), i["numero"],
-                              curto(i["ementa"], 70))
-              for i in itens if i["situacao"] == "JA_PUBLICADA" and r["fonte"].startswith("congresso")]
-        if ja:
-            print("JA PUBLICADAS (nao repetir, nem pelo boletim da Camara): " + "; ".join(ja[:6]))
-        for i in itens:
-            s = i["situacao"]
-            if r["fonte"] == "congresso_leis":
-                if s == "JA_PUBLICADA":
-                    continue
-                i["id"] = "lei%s" % i["numero"]
-                print("[%s] %s | %s nº %s de %s (DOU %s) — %s%s | %s" % (
-                    s, i["id"], i["tipo"], i["numero"], i["data_ato"], i["dou"], i["ementa"],
-                    " | veto: " + i["veto"] if i["veto"] else "", i["materia"]))
-            elif r["fonte"] == "congresso_mpv":
-                if s == "JA_PUBLICADA":
-                    continue
-                i["id"] = "mpv%s" % i["numero"]
-                print("[%s] %s | MPV %s/%s — DOU %s (detalhe oficial, http %s) — %s" % (
-                    s, i["id"], i["numero"], i["ano"], i["dou"] or "?", i["http_detalhe"], i["ementa"]))
-            elif s in ("NOVA", "HERDADA", "SEM_DATA"):
-                seq[r["fonte"]] += 1
-                i["id"] = "%s%d" % (r["fonte"][0], seq[r["fonte"]])
-                tag = i.get("tipo", "noticia")[:3].upper()
-                # artigo/coluna: so o titulo (no maximo 6 vao ao e-mail, sem resumo)
-                extra = (" — " + curto(i["resumo"], 170)) if i.get("resumo") and tag == "NOT" else ""
-                rep = " [REPETIDA?~%s]" % i["repetida"] if i.get("repetida") else ""
-                print("[%s|%s] %s | %s | %s%s%s" % (s, tag, i["id"], hm(i), i["titulo"], extra, rep))
+    marcar_promo_e_repetidas(res, historico)
+    for linha in imprimir(res, inicio, fim, recorte):
+        print(linha)
 
     def ser(o):
         return o.isoformat() if isinstance(o, (datetime, date)) else str(o)
     with open(a.saida, "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1, default=ser)
     print("\n(JSON completo: %s)" % a.saida)
+    st = status_fontes(res)
+    try:
+        gravar_status(st, "coleta_web.py")
+    except Exception as e:
+        print("AVISO: fontes_status.json nao gravado (%s)" % e)
+    print(linha_status(st))
 
 
 if __name__ == "__main__":

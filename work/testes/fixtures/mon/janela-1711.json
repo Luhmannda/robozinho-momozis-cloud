@@ -1,0 +1,32 @@
+{
+ "data": "2026-11-17",
+ "doy": 321,
+ "execution_id": "2026-11-17-7h",
+ "gmail_apos": "2026/11/16",
+ "inicio": "2026-11-16T07:07:30-03:00",
+ "fim": "2026-11-17T07:05:00-03:00",
+ "epoch_inicio": 1794823650,
+ "primeira_semana": false,
+ "recesso": false,
+ "tipo": "diaria",
+ "edicao_extra": false,
+ "cabecalho_extra": "",
+ "feriado_hoje": null,
+ "feriados_na_janela": [],
+ "dias_uteis_sem_registro": [],
+ "assunto": "Robozinho dos Momozis até Passar - 17/11/2026 - 7h",
+ "assunto_anterior": "Robozinho dos Momozis até Passar - 16/11/2026 - 7h",
+ "execucao_anterior": "2026-11-16-7h",
+ "draft_id_anterior": "r-8531923072759232391",
+ "ignorar_execucao": "",
+ "hoje_br": "17/11/2026",
+ "dia_semana": "terça-feira",
+ "rodape": "amanhã",
+ "munger": {
+  "texto": "Sem números aproximados você se engana; quantifique antes de acreditar numa história bonita.",
+  "fonte": "Aforismos públicos amplamente atribuídos a Charlie Munger",
+  "obs": "",
+  "tipo": "licao",
+  "idx": 121
+ }
+}

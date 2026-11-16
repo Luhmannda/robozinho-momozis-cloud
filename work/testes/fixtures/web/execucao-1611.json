@@ -1,0 +1,263 @@
+{
+"execution_id": "2026-11-16-7h",
+"items": [
+{
+"chave": "planalto|lei|15529|2026|2026-11-12",
+"titulo": "Lei nº 15.529, de 12/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/lei/l15529.htm"
+},
+{
+"chave": "planalto|decreto|13166|2026|2026-11-13",
+"titulo": "Decreto nº 13.166, de 12/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13166.htm"
+},
+{
+"chave": "planalto|decreto|13163|2026|2026-11-13",
+"titulo": "Decreto nº 13.163, de 12/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13163.htm"
+},
+{
+"chave": "planalto|decreto|13164|2026|2026-11-13",
+"titulo": "Decreto nº 13.164, de 12/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13164.htm"
+},
+{
+"chave": "planalto|decreto|13162|2026|2026-11-13",
+"titulo": "Decreto nº 13.162, de 12/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13162.htm"
+},
+{
+"chave": "planalto|decreto|13165|2026|2026-11-13",
+"titulo": "Decreto nº 13.165, de 12/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13165.htm"
+},
+{
+"chave": "push-stf|noticia|stf-invalida-emenda-sobre-eleicao-de-dirigentes-de-tribu|2026|2026-11-16",
+"titulo": "STF invalida emenda sobre eleição de dirigentes de Tribunais de Justiça",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-invalida-emenda-sobre-eleicao-de-dirigentes-de-tribunais-de-justica/"
+},
+{
+"chave": "push-stf|noticia|stf-invalida-lei-que-dispensava-pagamento-de-honorarios|2026|2026-11-13",
+"titulo": "STF invalida lei que dispensava pagamento de honorários a procuradores municipais",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-invalida-lei-que-dispensava-pagamento-de-honorarios-a-procuradores-municipais/"
+},
+{
+"chave": "push-stf|noticia|supremo-na-semana-comenta-fim-da-isencao-de-pena-em-crim|2026|2026-11-14",
+"titulo": "Supremo na Semana comenta fim da isenção de pena em crimes patrimoniais contra familiar",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/supremo-na-semana-comenta-fim-da-isencao-de-pena-em-crimes-patrimoniais-contra-familiar/"
+},
+{
+"chave": "push-stf|noticia|reconhecer-papel-do-judiciario-na-desigualdade-racial-e|2026|2026-11-13",
+"titulo": "Reconhecer papel do Judiciário na desigualdade racial é condição para superá-la, afirma Fachin",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/reconhecer-papel-do-judiciario-na-desigualdade-racial-e-condicao-para-supera-la-afirma-fachin/"
+},
+{
+"chave": "push-stf|noticia|stf-vai-ao-territorio-do-povo-kumaruara-para-ouvir-lider|2026|2026-11-13",
+"titulo": "STF vai ao território do povo Kumaruara para ouvir lideranças indígenas no Pará",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-vai-ao-territorio-do-povo-kumaruara-para-ouvir-liderancas-indigenas-no-para/"
+},
+{
+"chave": "stf|informativo|1236-conteudo|2026|2026-11-10",
+"titulo": "Informativo STF nº 1236",
+"categoria": "Informativos",
+"url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1236.pdf"
+},
+{
+"chave": "stf|informativo|repercussao-geral-397-conteudo|2026|2026-11-09",
+"titulo": "Repercussão Geral em Pauta nº 397",
+"categoria": "Informativos",
+"url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio397.pdf"
+},
+{
+"chave": "conjur|noticia|stf-vai-reiniciar-julgamento-sobre-fim-da-escala-6|2026|2026-11-15",
+"titulo": "STF vai reiniciar julgamento sobre fim da escala 6×1 em plenário presencial",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-15/stf-vai-reiniciar-julgamento-sobre-fim-da-escala-6x1-em-plenario/"
+},
+{
+"chave": "conjur|noticia|stf-confirma-preservacao-de-dados-de-celular-apree|2026|2026-11-14",
+"titulo": "STF confirma preservação de dados de celular apreendido sem mandado prévio",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-14/stf-confirma-preservacao-de-dados-de-celular-apreendido-sem-mandado-previo/"
+},
+{
+"chave": "valor-economico|noticia|stf-reconhece-repercussao-geral-do-milagre-da-contribuic|2026|2026-11-16",
+"titulo": "STF reconhece repercussão geral do \"milagre da contribuição única\"",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|pgr-se-manifesta-contra-anulacao-da-pena-de-bolsonaro-e|2026|2026-11-13",
+"titulo": "PGR se manifesta contra anulação da pena de Bolsonaro e diz que caso é diferente do de Moraes",
+"categoria": "Mídia",
+"url": "https://www.jota.info/stf/do-supremo/pgr-se-manifesta-contra-anulacao-da-pena-de-bolsonaro-e-diz-que-caso-e-diferente-do-de-moraes"
+},
+{
+"chave": "conjur|noticia|stj-limita-complementacao-de-condenacao-contra-a-f|2026|2026-11-15",
+"titulo": "STJ limita complementação de condenação contra a Fazenda Pública",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-15/stj-limita-complementacao-de-condenacao-contra-a-fazenda-publica/"
+},
+{
+"chave": "conjur|noticia|repactuacao-de-divida-bancaria-nao-gera-honorarios|2026|2026-11-14",
+"titulo": "Repactuação de dívida bancária não gera honorários sucumbenciais, decide STJ",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-14/repactuacao-de-divida-bancaria-nao-gera-honorarios-sucumbenciais-decide-stj/"
+},
+{
+"chave": "conjur|noticia|stj-julga-contribuicao-previdenciaria-em-rateio-de|2026|2026-11-15",
+"titulo": "STJ julga contribuição previdenciária em rateio de recursos do Fundeb/Fundef",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-15/stj-julga-contribuicao-previdenciaria-em-rateio-de-recursos-do-fundeb-fundef/"
+},
+{
+"chave": "jota|noticia|senado-aprova-texto-base-do-pacote-fiscal-com-impacto-pr|2026|2026-11-13",
+"titulo": "Senado aprova texto-base do pacote fiscal com impacto previsto de até R$ 56 bi",
+"categoria": "Mídia",
+"url": "https://www.jota.info/legislativo/senado-aprova-texto-base-do-pacote-fiscal-com-impacto-previsto-de-ate-r-56-bi"
+},
+{
+"chave": "conjur|opiniao|365-dias-uma-prorrogacao-o-stj-e-o-controle-judici|2026|2026-11-16",
+"titulo": "365 dias, uma prorrogação: STJ e controle judicial do inquérito civil",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-16/365-dias-uma-prorrogacao-o-stj-e-o-controle-judicial-do-inquerito-civil/"
+},
+{
+"chave": "conjur|opiniao|male-captum-bene-retentum-prova-ilicita-por-violac|2026|2026-11-15",
+"titulo": "Male captum, bene retentum ? Prova ilícita por violação ao foro e o investigado sem prerrogativa",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-15/male-captum-bene-retentum-prova-ilicita-por-violacao-ao-foro-e-o-investigado-sem-prerrogativa/"
+},
+{
+"chave": "conjur|opiniao|pedir-droga-e-trafico-limites-da-participacao-crim|2026|2026-11-14",
+"titulo": "Pedir droga é tráfico? Limites da participação criminal e paradoxo do policial disfarçado",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-14/pedir-droga-e-trafico-limites-da-participacao-criminal-e-paradoxo-do-policial-disfarcado/"
+},
+{
+"chave": "conjur|opiniao|inadmissibilidade-da-prova-ilicita-e-sua-extensao|2026|2026-11-14",
+"titulo": "Inadmissibilidade da prova ilícita e sua extensão ao plenário do júri",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-14/inadmissibilidade-da-prova-ilicita-e-sua-extensao-ao-plenario-do-juri-parte-01/"
+},
+{
+"chave": "conjur|opiniao|limites-nas-sumulas-vinculantes-e-a-legitimidade-d|2026|2026-11-14",
+"titulo": "Limites nas súmulas vinculantes e a legitimidade democrática",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-14/limites-nas-sumulas-vinculantes-e-a-legitimidade-democratica/"
+},
+{
+"chave": "jota|opiniao|jornada-de-trabalho-o-stf-pode-dispensar-a-negociacao-co|2026|2026-11-13",
+"titulo": "Jornada de trabalho: o STF pode dispensar a negociação coletiva?",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/jornada-de-trabalho-o-stf-pode-dispensar-a-negociacao-coletiva"
+},
+{
+"chave": "o-globo|fofoca|tebet-e-sondada-para-o-stf-enquanto-ministros-reforcam-a|2026|2026-11-16",
+"titulo": "Tebet é sondada para o STF, enquanto ministros reforçam apoio a Pacheco",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota|fofoca|governo-tem-proposta-pronta-contra-supersalarios-que-pod|2026|2026-11-13",
+"titulo": "Governo tem proposta pronta contra supersalários que pode ir ao Congresso neste ano",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota|fofoca|nunes-marques-diz-nos-bastidores-que-levara-ao-plenario|2026|2026-11-13",
+"titulo": "Nunes Marques diz nos bastidores que levará ao plenário a revisão criminal de Bolsonaro",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "concurso|agu|atualizado|2026|2026-11-16",
+"titulo": "AGU/PFN",
+"categoria": "Concursos - Carreira"
+},
+{
+"chave": "concurso|pge_ma|atualizado|2026|2026-11-16",
+"titulo": "PGE-MA — Procurador",
+"categoria": "Concursos - Carreira",
+"url": "https://cj.estrategia.com/portal/?p=72283"
+},
+{
+"chave": "concurso|dpe_sp|atualizado|2026|2026-11-16",
+"titulo": "DPE-SP — X concurso de Defensor",
+"categoria": "Concursos - Carreira",
+"url": "https://www.defensoria.sp.def.br"
+},
+{
+"chave": "concurso|trt8_apoio|atualizado|2026|2026-11-16",
+"titulo": "TRT8 — Analista e Técnico Judiciário",
+"categoria": "Concursos - Apoio",
+"url": "https://folha.qconcursos.com/n/concurso-trt8-edital-2026"
+},
+{
+"chave": "concurso|tjap_juiz|atualizado|2026|2026-11-16",
+"titulo": "TJAP — Juiz de Direito Substituto",
+"categoria": "Concursos - Carreira",
+"url": "https://conhecimento.fgv.br/concursos/tjap26"
+},
+{
+"chave": "concurso|trf3_apoio|atualizado|2026|2026-11-16",
+"titulo": "TRF3 — Analista e Técnico Judiciário (Vunesp, Edital 01/2026)",
+"categoria": "Concursos - Apoio",
+"url": "https://www.dgabc.com.br/Noticia/4365063/concurso-trf-3-veja-prazos-salarios-de-ate-rs-20-mil-e-como-se-inscrever"
+},
+{
+"chave": "concurso|dpe_pb_apoio|atualizado|2026|2026-11-16",
+"titulo": "DPE-PB — Analista e Técnico da Defensoria",
+"categoria": "Concursos - Apoio",
+"url": "https://www.aprovaconcursos.com.br/noticias/?p=167290"
+},
+{
+"chave": "concurso|alego_procurador|atualizado|2026|2026-11-16",
+"titulo": "ALEGO (Goiás) — Procurador",
+"categoria": "Concursos - Carreira",
+"url": "https://cj.estrategia.com/portal/?p=72283"
+},
+{
+"chave": "concurso|mpsp_oficial|novo|2026|2026-11-16",
+"titulo": "MP-SP — Oficial de Promotoria I",
+"categoria": "Concursos - Apoio",
+"url": "https://folha.qconcursos.com/n/concurso-mp-sp-2026-oficial-promotoria-aval-comissao"
+},
+{
+"chave": "concurso|mppa_apoio|novo|2026|2026-11-16",
+"titulo": "MP-PA — servidores",
+"categoria": "Concursos - Apoio",
+"url": "https://www.estrategiaconcursos.com.br/blog/concurso-mp-pa-edital-sera-publicado-em-novembro/amp/"
+},
+{
+"chave": "concurso|mprj_promotor|novo|2026|2026-11-16",
+"titulo": "MP-RJ — Promotor de Justiça (XL Concurso)",
+"categoria": "Concursos - Carreira",
+"url": "https://folha.qconcursos.com/n/concurso-mp-rj-promotor-coordenacao-executiva-2026"
+},
+{
+"chave": "concurso|pgm_campinas_setec|novo|2026|2026-11-16",
+"titulo": "SETEC Campinas/SP — Procurador (Edital 02/2026)",
+"categoria": "Concursos - Carreira",
+"url": "https://tribunadejundiai.com.br/economia/concursos/concurso-setec-campinas/"
+},
+{
+"chave": "dailyverses|versiculo|joao-16-28|2026|2026-11-16",
+"titulo": "João 16:28 (ARC)",
+"categoria": "Versículo",
+"url": "https://dailyverses.net/pt/2026/11/16"
+},
+{
+"chave": "munger|citacao|120|2026|2026-11-16",
+"titulo": "Saiba defender a posição contrária melhor que seus adversários antes de confiar na sua.",
+"categoria": "Munger"
+}
+]
+}

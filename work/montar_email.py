@@ -1,33 +1,53 @@
 #!/usr/bin/env python3
 # =====================================================================
-# montar_email.py — passo 5 da ROTINA: do julgamento ao HTML pronto.
+# montar_email.py — passos 4/5 da ROTINA: do julgamento ao HTML pronto.
 #
-# O orquestrador escreve so o JULGAMENTO em /tmp/execucao.json (itens,
-# selos, resumo executivo, pendencias, ledger_updates). Este script:
+# O orquestrador escreve so o JULGAMENTO em $ROBOZINHO_TMP/execucao.json
+# (itens, selos, resumo executivo, pendencias, ledger_updates). Este script:
 #   1. resolve os {"ref": id} com a evidencia dos scripts do passo 2
 #      (coleta_web, informativos): titulo, linha-fina, hora, URL e chave
-#      sao COPIADOS, nunca redigitados;
-#   2. acrescenta o que e deterministico (versiculo, Munger, itens de
-#      concurso que mudaram, pendencias do ledger, fontes consultadas);
-#   3. valida (Update-Historico.py --validar + checagens do e-mail);
-#   4. monta o e-mail INTEIRO no layout do template v4 — cabecalho, indice,
-#      as 13 secoes, Concursos a partir do registro do ledger, rodape e
-#      carimbo — e o imprime para o create_draft.
+#      sao COPIADOS, nunca redigitados; informativo sai com TODOS os
+#      destaques (resumo oficial do STF, estagio da RG, tipo do STJ);
+#   2. acrescenta o que e deterministico: versiculo, Munger, itens de
+#      concurso que mudaram, pendencias do ledger, fontes consultadas, selo
+#      por data e carimbo da banca (work/selos.py, work/bancas.py), grupo do
+#      Planalto a partir da resenha, "impacto" pre-preenchido pela ementa,
+#      linhas de apoio, rotulo "sem link";
+#   3. descarta sozinho, nas secoes de apoio (Midia, Opiniao, Fofoquinha), o
+#      repetido certo — REPUBLICADA (chave exata) e POSSIVEL_REPETIDA da mesma
+#      fonte — e lista o descarte (linha DESCARTADA);
+#   4. valida (Update-Historico.py --validar + checagens do e-mail);
+#   5. monta o e-mail INTEIRO no layout do template v4 e GRAVA em arquivo.
 #
 # Por que: ate 11/11/2026 o orquestrador compunha o HTML a mao e colava no
 # meio dele as secoes de Concursos impressas por outro script. Em 05/11 e
 # 10/11 o rascunho saiu com o marcador __CONCURSOS__ no lugar das secoes;
 # em 11/11 o selo do Munger saiu invisivel. Com o corpo inteiro vindo
 # daqui, o create_draft e uma copia: nao ha o que "encaixar".
+# 16/11/2026 (revisao): o corpo nao vai mais ao stdout (acima de ~30 KB a
+# saida do Bash vira uma previa de 2 KB); o execucao.json do orquestrador
+# nao e mais sobrescrito (a 2a rodada ignorava a correcao de "destaques");
+# o tamanho nunca e ERRO (o corte do Gmail em ~102 KB e so visual).
 #
-# USO:   python3 work/montar_email.py            (valida, grava /tmp/email.html e imprime o HTML)
-#        python3 work/montar_email.py --sem-html (so valida e grava; nao imprime o corpo)
-# SAIDA: relatorio curto + "==== HTMLBODY ====" ... "==== FIM HTMLBODY ====";
-#        com ERRO, exit 2 e nenhum HTML.
+# USO:   python3 work/montar_email.py [--execucao F] [--janela F] [--ledger F]
+#            [--historico F] [--saida F] [--resolvido F] [--bancas F]
+#            [--fontes-status F] [--com-html]
+#        --com-html: imprime tambem o corpo entre "==== HTMLBODY ====" e
+#        "==== FIM HTMLBODY ====" (so depuracao). --sem-html: aceito, e o padrao.
+# SAIDA (stdout, < 3 KB), nesta ordem:
+#        VALIDACAO: ... / MONTAGEM: OK|OK COM AVISOS ... / ASSUNTO: / PARA: /
+#        DESCARTADA ... / AVISO ACIONÁVEL: ... / AVISO: ... / BYTES: / SHA256: / CAMINHO:
+#        com ERRO: linhas "ERRO: ..." + "MONTAGEM: ERRO ...", exit 2, nenhum HTML.
+# ARQUIVOS ($ROBOZINHO_TMP, padrao /tmp): le execucao.json, janela.json,
+#        coleta_web.json, informativos.json, versiculo.json, bancas.json,
+#        fontes_status.json; grava execucao.resolvido.json (o passo 7 usa) e
+#        email.html — ou email-com-avisos.html quando houver AVISO ACIONÁVEL
+#        (os dois sao apagados no inicio de cada rodada).
 # =====================================================================
 
 import argparse
 import copy
+import hashlib
 import html
 import json
 import os
@@ -38,7 +58,20 @@ import unicodedata
 from datetime import date, datetime
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
+if AQUI not in sys.path:
+    sys.path.insert(0, AQUI)
+
+import bancas  # noqa: E402
+import feriados  # noqa: E402
+import selos  # noqa: E402
+
 DESTINATARIOS = ["pereirafranciscofilho@gmail.com", "luizaxbarreto@gmail.com"]
+
+
+def tmp(nome):
+    """$ROBOZINHO_TMP/<nome> (padrao /tmp), lido a cada chamada."""
+    return os.path.join(os.environ.get("ROBOZINHO_TMP") or "/tmp", nome)
+
 
 # ------------------------------------------------------------------ identidade visual (template v4)
 FONTE = "font-family:Arial,Helvetica,sans-serif"
@@ -70,9 +103,16 @@ APOIO = "Quadro de apoio"
 ORDEM_SELO = ["ENCERRA HOJE", "ENCERRA EM BREVE", "INSCRIÇÕES ABERTAS", "EDITAL PUBLICADO",
               "PROVA EM BREVE", "EM ANDAMENTO", "INSCRIÇÕES ENCERRADAS", "PROVA REALIZADA",
               "EM PLANEJAMENTO", "PENDÊNCIA DE VERIFICAÇÃO", "PENDÊNCIA"]
-COMPACTAR_APOS = 14          # dias sem verificacao: linha compacta ate o rodizio alcancar
 RADAR_DIAS = 30
 RADAR_A_CONFIRMAR = True     # prazos so em fonte secundaria entram no quadro, em cinza e rotulados
+A_CONFIRMAR_DIAS = 14        # ... so inscricao ou prova em ate 14 dias, sem divergencia pendente (decisao 16)
+# Concursos compactos (decisao 4): de terca a sexta, registro sem mudanca desde antes da edicao
+# anterior e sem prazo no radar sai numa linha por bloco; dormente sai compacto todo dia.
+DORMENCIA_DIAS_UTEIS = 15
+SELOS_DORMENCIA = ("EM PLANEJAMENTO", "PENDÊNCIA DE VERIFICAÇÃO", "PENDÊNCIA")
+NUNCA_COMPACTAR = ("ENCERRA HOJE", "ENCERRA EM BREVE", "INSCRIÇÕES ABERTAS", "PROVA EM BREVE", "EDITAL PUBLICADO")
+TAMANHO_AVISO = 80_000       # bytes: AVISO com o tamanho por secao (nunca ERRO; o Gmail corta a exibicao ~102 KB)
+IMPACTO_MAX = 160
 
 # secoes de noticia, na ordem do e-mail: (categoria, titulo, linha de apoio quando vazia)
 SECOES = [
@@ -89,26 +129,134 @@ SECOES = [
      "a cadência é semanal."),
 ]
 CATEGORIAS_NOTICIA = [c for c, _, _ in SECOES] + ["Mídia", "Opinião/Análise", "Fofoquinha"]
+SECOES_APOIO = ("Mídia", "Opinião/Análise", "Fofoquinha")     # descarte automatico de repetido (decisao 8)
 INDICE = ("Planalto/Legislação · STF Notícias · STF Jurisprudência · STJ Notícias · STJ Jurisprudência · "
           "Informativos · Concursos – Carreira · Concursos – Apoio · Se saiu na mídia não é fofoca! · "
           "FOFOQUINHA JURÍDICA · Porque sem Deus, nada é possível · Conhecimento nunca é demais · Pendências.")
 FRASE_PLANALTO = "isso aqui só existe porque eles não param de inventar moda..."
-ROTULO_FONTE = {  # id do source_status -> como aparece em "Fontes consultadas"
+ROTULO_FONTE = {  # id do source_status -> como aparece em "Fontes consultadas" e no rodape
     "gmail_push_stf": "Push STF (notícias)", "gmail_push_stf_informativos": "Push STF (informativos)",
     "gmail_stj_codju": "STJ CodJu", "gmail_push_planalto": "PUSH Planalto (Resenha Diária)",
     "gmail_camara": "boletim da Agência Câmara", "congresso_ultimas_leis": "Congresso Nacional (últimas leis)",
     "congresso_mpvs": "Congresso Nacional (medidas provisórias)",
+    "informativos_docs": "documentos oficiais dos informativos (STF/STJ)",
     "gmail_jota": "JOTA (clipping, opinião e bastidores)", "conjur": "ConJur (mídia especializada)",
     "migalhas": "Migalhas (mídia especializada)", "youversion": "YouVersion (versículo)",
     "dailyverses": "DailyVerses.net (versículo)",
 }
 OFICIAIS = ["gmail_push_planalto", "congresso_ultimas_leis", "congresso_mpvs", "gmail_camara",
-            "gmail_push_stf", "gmail_push_stf_informativos", "gmail_stj_codju"]
+            "gmail_push_stf", "gmail_push_stf_informativos", "gmail_stj_codju", "informativos_docs"]
 SECUNDARIAS = ["gmail_jota", "conjur", "migalhas", "youversion", "dailyverses"]
+STATUS_FONTE = ("ok", "vazio", "falha", "nao_tentada")
 WRAPPER = re.compile(r"t\.rdsv2\.net|google\.com/url|[?&]utm_")
 MESES = {m: i + 1 for i, m in enumerate("janeiro fevereiro março abril maio junho julho agosto setembro "
                                         "outubro novembro dezembro".split())}
 DIAS = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"]
+HOST_OFICIAL = re.compile(r"(?:^|\.)(?:jus|gov|leg|mp|def)\.br$", re.I)
+# rotulo de fonte oficial sem URL (item_oficial): ao menos uma palavra de ROTULO_OFICIAL e nenhuma fora do
+# vocabulario (sem acento, minusculas; numeros e datas nao contam). "via", "jota", "decisao"... derrubam.
+ROTULO_OFICIAL = set("stf stj codju planalto push congresso camara senado presidencia dou".split())
+VOCAB_ROTULO_OFICIAL = ROTULO_OFICIAL | set("""
+noticias noticia informativo informativos jurisprudencia tese teses boletim agencia portal resenha diaria
+legislacao oficial documento pagina edicao extra rota ultimas leis publicadas rg repercussao geral pauta
+andamento processual superior tribunal supremo federal justica nacional diario uniao imprensa gmail
+de da do das dos e o a em no na
+""".split())
+
+# AVISO que pede decisao do orquestrador antes do rascunho: com algum deles o corpo vai para
+# email-com-avisos.html (o Read de email.html na mesma mensagem falha barato; quem aceita o aviso
+# le o outro arquivo, sem rodar de novo). Os demais AVISOs sao informativos.
+# "contradiz o selo por data" (helper: selo escrito hoje diferente do que a data da) e "prorrogação não
+# confirmada" (selos.py: prazo vencido sem a banca confirmar; o selo caiu para PENDÊNCIA DE VERIFICAÇÃO) pedem
+# o selo ou os prazos certos: sem isso o e-mail saia "INSCRIÇÕES ABERTAS" para inscricao que acaba em 2 dias.
+# "prazos[n].tipo" (montador, tipo_contra_evento; e o do helper com o mesmo prefixo): `tipo` 'outro'/'prova' num
+# prazo que o evento diz ser de inscricao desligava o selo por data sem alerta (INSCRIÇÕES ABERTAS a 2 dias do fim).
+ACIONAVEL = re.compile(r"REPUBLICADA|POSSIVEL_REPETIDA|POSSIVEL_DUPLICATA|movimento oficial não refletido|"
+                       r"relacionado a |nenhum card do resumo|citam? item descartado|contradiz o selo por data|"
+                       r"prorrogação não confirmada|\.prazos\[\d+\]\.tipo\b")
+
+# G7: atos de rotina do Planalto (agrupados no fim da secao; nada e omitido)
+ROTINA_ATO = re.compile(
+    r"abre\s+aos?\s+or[çc]amentos?|cr[ée]dito\s+(?:suplementar|especial|extraordin[áa]rio)|"
+    r"aumento\s+(?:do|de)\s+capital|\bacordo\b.{0,160}?\b(?:turismo|servi[çc]os\s+a[ée]reos|transporte\s+a[ée]reo)",
+    re.I)
+ROTINA_EXCETO = re.compile(r"coopera[çc][ãa]o\s+jur[íi]dica|mat[ée]ria\s+penal|extradi[çc]|transfer[êe]ncia\s+de\s+"
+                           r"(?:pessoas\s+)?(?:presos|condenad|apenad)|assist[êe]ncia\s+jur[íi]dica|crime|penal",
+                           re.I)
+# cargos: so cargo em comissao/funcao de confianca (e "remaneja"). Cargo de carreira juridica ("transforma
+# cargos vagos em cargos de Juiz Federal Substituto") e criacao de cargo efetivo nunca sao rotina.
+ROTINA_CARGOS = re.compile(r"\bremaneja|cargos?\s+em\s+comiss[ãa]o|fun[çc][õo]es\s+(?:de\s+confian[çc]a|comissionadas|"
+                           r"gratificadas)", re.I)
+CARGOS_EXCETO = re.compile(r"\bju[íi]z(?:es|a|as)?\b|magistrad|desembargador|\bprocurador(?!ia)|\bpromotor(?!ia)|"
+                           r"\bdefensor(?!ia)|\bmembros?\s+d[oa]s?\b|\bcri(?:a|am|a[çc][ãa]o)\b.{0,40}?cargos\s+efetivos|"
+                           r"\bvagas\b", re.I)
+
+# K6: "impacto" pre-preenchido pela ementa ("Altera ... Codigo Penal" -> "Altera: Código Penal")
+_N = r"\s+n[ºo°.]*\s*"
+CODIGOS = [(re.compile(p, re.I), rot) for p, rot in (
+    (r"C[óo]digo\s+Penal(?!\s+Militar)|Decreto-Lei" + _N + r"2\.848\b", "Código Penal"),
+    (r"C[óo]digo\s+de\s+Processo\s+Penal|Decreto-Lei" + _N + r"3\.689\b", "Código de Processo Penal"),
+    (r"C[óo]digo\s+Penal\s+Militar|Decreto-Lei" + _N + r"1\.001\b", "Código Penal Militar"),
+    (r"C[óo]digo\s+Civil|\bLei" + _N + r"10\.406\b", "Código Civil"),
+    (r"C[óo]digo\s+de\s+Processo\s+Civil|\bLei" + _N + r"13\.105\b", "Código de Processo Civil"),
+    (r"Consolida[çc][ãa]o\s+das\s+Leis\s+do\s+Trabalho|\bCLT\b|Decreto-Lei" + _N + r"5\.452\b", "CLT"),
+    (r"C[óo]digo\s+Tribut[áa]rio\s+Nacional|\bLei" + _N + r"5\.172\b", "Código Tributário Nacional"),
+    (r"C[óo]digo\s+de\s+Defesa\s+do\s+Consumidor|\bLei" + _N + r"8\.078\b", "Código de Defesa do Consumidor"),
+    (r"Estatuto\s+da\s+Crian[çc]a|\bLei" + _N + r"8\.069\b", "Estatuto da Criança e do Adolescente"),
+    (r"Lei\s+de\s+Execu[çc][ãa]o\s+Penal|\bLei" + _N + r"7\.210\b", "Lei de Execução Penal"),
+    (r"\bLei" + _N + r"8\.429\b|Lei\s+de\s+Improbidade\s+Administrativa", "Lei de Improbidade Administrativa"),
+    (r"\bLei" + _N + r"14\.133\b", "Lei de Licitações e Contratos (14.133/2021)"),
+    (r"\bLei" + _N + r"11\.340\b|Lei\s+Maria\s+da\s+Penha", "Lei Maria da Penha"),
+    (r"C[óo]digo\s+de\s+Tr[âa]nsito|\bLei" + _N + r"9\.503\b", "Código de Trânsito Brasileiro"),
+    (r"C[óo]digo\s+Eleitoral|\bLei" + _N + r"4\.737\b", "Código Eleitoral"),
+    (r"\bLei" + _N + r"9\.504\b", "Lei das Eleições"),
+    (r"\bLei" + _N + r"11\.343\b", "Lei de Drogas"),
+    (r"\bLei" + _N + r"8\.072\b|Lei\s+dos\s+Crimes\s+Hediondos", "Lei dos Crimes Hediondos"),
+    (r"\bLei" + _N + r"8\.112\b", "Estatuto dos Servidores Federais (Lei 8.112/1990)"),
+    (r"\bLei" + _N + r"7\.347\b", "Lei da Ação Civil Pública"),
+    (r"\bLei" + _N + r"12\.016\b", "Lei do Mandado de Segurança"),
+    (r"\bLei" + _N + r"13\.709\b|Lei\s+Geral\s+de\s+Prote[çc][ãa]o\s+de\s+Dados|\bLGPD\b", "LGPD"),
+    (r"Lei\s+Complementar" + _N + r"101\b|Lei\s+de\s+Responsabilidade\s+Fiscal", "Lei de Responsabilidade Fiscal"),
+    (r"\bLei" + _N + r"9\.099\b", "Lei dos Juizados Especiais"),
+    (r"\bLei" + _N + r"8\.906\b|Estatuto\s+da\s+Advocacia", "Estatuto da Advocacia e da OAB"),
+    (r"\bLei" + _N + r"9\.784\b", "Lei do Processo Administrativo Federal"),
+    (r"\bLei" + _N + r"12\.850\b|Lei\s+d[ae]s?\s+Organiza[çc](?:[ãa]o|[õo]es)\s+Criminosas?", "Lei das Organizações Criminosas"),
+    (r"\bLei" + _N + r"9\.613\b|Lei\s+de\s+Lavagem", "Lei de Lavagem de Dinheiro"),
+    (r"\bLei" + _N + r"10\.826\b|Estatuto\s+do\s+Desarmamento", "Estatuto do Desarmamento"),
+    (r"\bLei" + _N + r"10\.741\b|Estatuto\s+d[ao]\s+(?:Pessoa\s+)?Idos", "Estatuto da Pessoa Idosa"),
+    (r"\bLei" + _N + r"13\.146\b|Estatuto\s+da\s+Pessoa\s+com\s+Defici[êe]ncia", "Estatuto da Pessoa com Deficiência"),
+    (r"\bLei" + _N + r"11\.101\b", "Lei de Recuperação Judicial e Falência"),
+    (r"Decreto-Lei" + _N + r"4\.657\b|Lei\s+de\s+Introdu[çc][ãa]o", "LINDB"),
+    (r"\bLei" + _N + r"9\.605\b", "Lei de Crimes Ambientais"),
+    (r"\bLei" + _N + r"6\.015\b|Lei\s+de\s+Registros\s+P[úu]blicos", "Lei de Registros Públicos"),
+    (r"\bLei" + _N + r"12\.527\b", "Lei de Acesso à Informação"),
+    (r"\bLei" + _N + r"12\.846\b", "Lei Anticorrupção"),
+    (r"\bLei" + _N + r"8\.625\b", "Lei Orgânica Nacional do Ministério Público"),
+    (r"Lei\s+Complementar" + _N + r"80\b", "Lei Orgânica da Defensoria Pública (LC 80/1994)"),
+    (r"Lei\s+Complementar" + _N + r"75\b", "Lei Orgânica do MPU (LC 75/1993)"),
+    (r"Lei\s+Complementar" + _N + r"35\b", "LOMAN (LC 35/1979)"),
+    (r"Lei\s+Complementar" + _N + r"73\b", "Lei Orgânica da AGU (LC 73/1993)"),
+    (r"Constitui[çc][ãa]o\s+Federal|Ato\s+das\s+Disposi[çc][õo]es\s+Constitucionais", "Constituição Federal"),
+)]
+VERBO_ALTERA = re.compile(r"^\s*(Altera|Acrescenta|Inclui|Modifica|Revoga|D[áa]\s+nova\s+reda[çc][ãa]o)", re.I)
+# So o objeto do verbo conta: o trecho acaba na finalidade ("para", "a fim de", "nos termos") ou na oracao
+# que descreve o diploma alterado ("o Decreto nº 11.615, que regulamenta a Lei nº 10.826" nao altera a Lei).
+FIM_OBJETO = re.compile(
+    r"[;:]|,?\s+(?:que|para|nos\s+termos|a\s+fim\s+de|com\s+(?:o\s+|a\s+)?(?:objetivo|fim|finalidade|vistas)|"
+    r"conforme|(?:institu[íi]d|criad|regulamentad|aprovad|previst|referid|mencionad|disciplinad|estabelecid|"
+    r"editad)[oa]s?)\b", re.I)
+# especie que nao altera lei nem codigo: decreto regulamentar, decreto legislativo, resolucao, portaria
+ATO_INFRALEGAL = re.compile(r"^\s*(?:Decreto(?![\s-]+Lei\b)|Resolu[çc][ãa]o|Portaria|Instru[çc][ãa]o)", re.I)
+ATO_EC = re.compile(r"^\s*(?:Emenda\s+Constitucional|EC)\b", re.I)
+
+# G3b: palavras que nao distinguem materia (mais as PARADAS do repeticao.py)
+GENERICOS = set("""
+stf stj supremo tribunal tribunai federal justica lei leis tema julgamento julga julgar julgou decisao decide
+decidiu recurso geral repercussao ministro ministra plenario corte direito publico publica prazo quando ainda
+segundo base acao caso valor valore processo norma regra constitucional inconstitucional constituicao estado
+estadual municipal uniao nacional demai artigo art inciso texto dia dias ano anos sobre maioria voto voto
+relator relatora reconhece confirma nega mantem pode deve
+""".split())
 
 
 # ------------------------------------------------------------------ utilitarios
@@ -116,7 +264,7 @@ def ler(caminho, padrao=None):
     try:
         with open(caminho, encoding="utf-8") as f:
             return json.load(f)
-    except (OSError, ValueError):
+    except (OSError, ValueError, TypeError):
         return padrao
 
 
@@ -136,18 +284,34 @@ def slug(s, n=60):
     return re.sub(r"[^a-z0-9]+", "-", t).strip("-")[:n].strip("-")
 
 
+FECHA_ASPAS = "”\"'’»"
+
+
 def ponto(s):
-    """'texto' -> 'texto.' sem duplicar a pontuacao final."""
+    """'texto' -> 'texto.' sem duplicar a pontuacao final. Aspa de fechamento nao e pontuacao:
+    '... do "milagre"' -> '... do "milagre".'; '... previstas.”' fica como esta."""
     s = (s or "").strip()
-    return s if not s or s[-1] in ".!?…”\"" or s.endswith(("</b>", "</i>")) else s + "."
+    if not s or s.endswith(("</b>", "</i>")) or s[-1] in ".!?…":
+        return s
+    if s[-1] in FECHA_ASPAS:
+        antes = s[:-1].rstrip()
+        return s if antes and antes[-1] in ".!?…" else s + "."
+    return s + "."
 
 
 def br_data(iso, ano=False):
     try:
         d = date.fromisoformat((iso or "")[:10])
-    except ValueError:
+    except (ValueError, TypeError):
         return ""
     return d.strftime("%d/%m/%Y" if ano else "%d/%m")
+
+
+def _data(v):
+    try:
+        return date.fromisoformat(str(v or "")[:10])
+    except ValueError:
+        return None
 
 
 def selo(texto, pequeno=False):
@@ -177,15 +341,25 @@ def apoio(texto):
     return '<div style="font-size:12px;line-height:18px;color:%s">%s</div>' % (APOIO_COR, esc(texto))
 
 
+def subtitulo(texto, topo=14):
+    """Subtitulo dentro de uma secao (o mesmo da Opiniao/Analise)."""
+    return ('<p style="margin:%s 0 6px;font-size:12px;font-weight:bold;color:%s">%s</p>'
+            % ("%dpx" % topo if topo else "0", NAVY, esc(texto)))
+
+
+def host(url):
+    return selos.host(url)
+
+
 # ------------------------------------------------------------------ 1. evidencia e refs
-def evidencias():
+def evidencias(coleta=None, informativos=None):
     """{id: registro} do que os scripts do passo 2 coletaram."""
     ev = {}
-    for bloco in ler("/tmp/coleta_web.json", []) or []:
+    for bloco in ler(coleta or tmp("coleta_web.json"), []) or []:
         for it in bloco.get("itens") or []:
             if it.get("id"):
                 ev[it["id"]] = dict(it, _fonte=bloco.get("fonte"))
-    for r in ler("/tmp/informativos.json", []) or []:
+    for r in ler(informativos or tmp("informativos.json"), []) or []:
         if r.get("id"):
             ev[r["id"]] = dict(r, _fonte="informativo")
     return ev
@@ -219,19 +393,151 @@ def limpo(s):
     return re.sub(r"\(\s+", "(", s).strip()
 
 
-def texto_destaque(tipo, d):
+def _verdade(v):
+    return v is True or str(v).strip().lower() in ("true", "1", "sim")
+
+
+def rotulo_rg(d, hoje=None):
+    """Estagio do tema para o leitor (informativos.py grava `estagio`): 'Tese publicada',
+    'Repercussão geral em votação (PV, até 13/11)', 'Pauta do Plenário 11/11' etc. Vazio = sem rotulo."""
+    est = re.sub(r"\s+", " ", str(d.get("estagio") or "")).strip()
+    if not est:
+        return ""
+    passou = False
+    prev = _data(d.get("previsao"))
+    if hoje and prev:
+        passou = prev < (hoje if isinstance(hoje, date) else _data(hoje) or prev)
+    nota = "resultado no próximo boletim" if passou else ""
+    m = re.fullmatch(r"em votação no PV(?: até (\d{2}/\d{2}))?", est, re.I)
+    if m:
+        dentro = ", ".join(x for x in ("PV", ("até " + m.group(1)) if m.group(1) else "") if x)
+        return "Repercussão geral em votação (%s%s)" % (dentro, "; " + nota if nota else "")
+    m = re.fullmatch(r"pauta do plen[áa]rio(?: (\d{2}/\d{2}))?", est, re.I)
+    if m:
+        return "Pauta do Plenário%s%s" % ((" " + m.group(1)) if m.group(1) else "", " (%s)" % nota if nota else "")
+    m = re.fullmatch(r"pauta da sess[ãa]o virtual(?: de (\d{2}/\d{2}) a (\d{2}/\d{2}))?", est, re.I)
+    if m:
+        base = ("Sessão virtual de %s a %s" % (m.group(1), m.group(2))) if m.group(1) else "Pauta da sessão virtual"
+        return base + (" (%s)" % nota if nota else "")
+    if est.lower() == "finalizado":
+        return "Votação finalizada"
+    return est[:1].upper() + est[1:]
+
+
+def _pendente_rg(d):
+    return re.match(r"(?i)em votação|pauta", str(d.get("estagio") or "")) is not None
+
+
+def _tema_rg(d):
+    return "<b>Tema %s</b> (%s)" % (esc(d.get("tema")), esc(limpo(d.get("processo"))))
+
+
+def texto_destaque(tipo, d, hoje=None):
+    """Um destaque do informativo em HTML (texto copiado do documento oficial, sem corte)."""
     if tipo == "stf":
-        return "<b>%s</b> — %s" % (esc(caixa_titulo(d["ramo"])), esc(ponto(limpo(d["titulo"]))))
+        resumo = (" <i>Resumo:</i> " + esc(limpo(d["resumo"]))) if d.get("resumo") else ""
+        return "<b>%s</b> — %s%s" % (esc(caixa_titulo(d["ramo"])), esc(ponto(limpo(d["titulo"]))), resumo)
     if tipo == "rg":
-        tese = (" <i>Tese:</i> " + esc(limpo(d["tese"]))) if d.get("tese") else ""
-        return "<b>Tema %s</b> (%s) — %s%s" % (esc(d["tema"]), esc(limpo(d["processo"])),
-                                               esc(ponto(limpo(d["titulo"]))), tese)
-    return "<b>%s</b> — %s <i>%s</i>" % (esc(caixa_titulo(d["ramo"])), esc(ponto(limpo(d["destaque"]))),
-                                         esc(ponto(limpo(d["processo"]))))
+        rot = rotulo_rg(d, hoje)
+        rot = (" · <i>%s</i>" % esc(rot)) if rot else ""
+        if d.get("tese"):
+            cauda = " <i>Tese:</i> " + esc(limpo(d["tese"]))
+        elif d.get("decisao") and not _pendente_rg(d):
+            cauda = " <i>Decisão:</i> " + esc(ponto(limpo(d["decisao"])))
+        else:
+            cauda = ""
+        return "%s%s — %s%s" % (_tema_rg(d), rot, esc(ponto(limpo(d["titulo"]))), cauda)
+    # stj: o tipo do precedente vem antes (Repetitivo/RQF com o tema; Corte Especial)
+    ramo = esc(caixa_titulo(d.get("ramo")))
+    t = d.get("tipo") or ""
+    if t in ("Repetitivo", "RQF"):
+        cab = "<b>%s</b> · %s" % (esc(" · ".join(x for x in (t, d.get("precedente") or "") if x)), ramo)
+    elif t == "Corte Especial":
+        cab = "<b>Corte Especial</b> · %s" % ramo
+    else:
+        cab = "<b>%s</b>" % ramo
+    return "%s — %s <i>%s</i>" % (cab, esc(ponto(limpo(d["destaque"]))), esc(ponto(limpo(d["processo"]))))
 
 
-def resolver(it, ev, erros):
-    """Completa o item com a evidencia do ref. Campo escrito pelo orquestrador vence."""
+def grupo_rg(d):
+    """Estagio do tema da RG para a ordem do bloco: 0 = com tese ou desfecho, 1 = em votacao ou em pauta
+    (sem tese ainda), 2 = sem repercussao geral (numa linha so, no fim)."""
+    if _verdade(d.get("sem_repercussao_geral")):
+        return 2
+    return 1 if _pendente_rg(d) and not d.get("tese") else 0
+
+
+def aviso_ordem_rg(spec, itens, idx, ref, avisos):
+    """Na RG a "ordem" do orquestrador vale DENTRO de cada estagio (grupo_rg): o bloco sempre traz primeiro
+    os temas com tese ou desfecho. Quando a ordem pedida poe um tema de estagio posterior antes, AVISO
+    informativo (antes a ordem era ignorada em silencio)."""
+    if not isinstance(spec, dict):        # a lista antiga ja tem o seu AVISO (selecionar)
+        return
+    pedidos = [i for i in spec.get("ordem") or [] if isinstance(i, int) and not isinstance(i, bool) and i in idx]
+    sai = sorted(pedidos, key=lambda i: (grupo_rg(itens[i]), pedidos.index(i)))
+    if sai != pedidos:
+        k = next(n for n, (a, b) in enumerate(zip(sai, pedidos)) if a != b)
+        avisos.append("%s: na Repercussão Geral a \"ordem\" vale dentro de cada estágio (com tese ou desfecho → em "
+                      "votação ou pauta → sem repercussão geral): Tema %s sai depois do Tema %s" % (
+                          ref, itens[pedidos[k]].get("tema"), itens[sai[k]].get("tema")))
+
+
+def destaques_html(tipo, itens, hoje=None):
+    """Lista de <p> do bloco de destaques. RG (G5): primeiro os temas com tese ou desfecho, depois os em
+    votacao ou em pauta (sem tese ainda), e os sem repercussao geral numa linha so; dentro de cada estagio,
+    a ordem recebida (a do orquestrador, ver aviso_ordem_rg)."""
+    if tipo != "rg":
+        return [texto_destaque(tipo, d, hoje) for d in itens]
+    cheios = [d for d in itens if grupo_rg(d) == 0]
+    pendentes = [d for d in itens if grupo_rg(d) == 1]
+    sem_rg = [d for d in itens if grupo_rg(d) == 2]
+    out = [texto_destaque("rg", d, hoje) for d in cheios + pendentes]
+    if sem_rg:
+        out.append("<i>Sem repercussão geral:</i> " + "; ".join(
+            "%s — %s" % (_tema_rg(d), esc(limpo(d["titulo"]).rstrip("."))) for d in sem_rg) + ".")
+    return out
+
+
+def selecionar(spec, n, ref, erros, avisos):
+    """'destaques' do orquestrador -> indices. Ausente ou "todos": todos, na ordem do documento (G5).
+    Lista (formato antigo): esses primeiro, na ordem dada, e depois o resto — nada sai.
+    {"ordem": [...], "excluir": [...]}: ordem e exclusao explicitas."""
+    todos = list(range(n))
+    if spec in (None, "", "todos", []):
+        return todos
+    if isinstance(spec, dict):
+        ordem, excluir = list(spec.get("ordem") or []), list(spec.get("excluir") or [])
+    elif isinstance(spec, list):
+        ordem, excluir = list(spec), []
+        if len(set(spec)) < n:
+            avisos.append("%s: \"destaques\" em lista agora só ordena (saem os %d); para tirar um, "
+                          "{\"excluir\": [i]}" % (ref, n))
+    else:
+        erros.append("ref %s: \"destaques\" deve ser lista de índices ou {\"ordem\": [...], \"excluir\": [...]}" % ref)
+        return todos
+    ruins = [i for i in ordem + excluir if isinstance(i, bool) or not isinstance(i, int) or not 0 <= i < n]
+    if ruins:
+        erros.append("ref %s: destaques %s fora de 0..%d" % (ref, ruins, n - 1))
+    fora = {i for i in excluir if i not in ruins}
+    vistos, sel = set(), []
+    for i in ordem + todos:
+        if i in ruins or i in fora or i in vistos:
+            continue
+        vistos.add(i)
+        sel.append(i)
+    return sel
+
+
+# temas (so RG): os temas que sairam no e-mail, gravados no historico; o informativos.py tira da revisita de
+# uma RG anterior o tema ja publicado com uma RG posterior (INF-rev-1c: o Tema 1.483 da RG 397 voltava na 394)
+DERIVADOS = {"destaques_texto", "observacao", "herdada", "chave", "sem_conteudo", "temas"}
+
+
+def resolver(it, ev, erros, avisos=None, hoje=None):
+    """Completa o item com a evidencia do ref. Campo escrito pelo orquestrador vence; campo DERIVADO
+    (destaques_texto, observacao, herdada, chave...) que venha no arquivo e ignorado e recalculado —
+    o execucao.json de uma rodada anterior nunca congela a montagem seguinte (K2)."""
+    avisos = [] if avisos is None else avisos
     ref = it.get("ref")
     if not ref:
         return it
@@ -270,20 +576,22 @@ def resolver(it, ev, erros):
                 "url": e["url"], "fonte": veic, "data": dia, "hora": q[11:16] if len(q) > 15 else "",
                 "chave": "%s|%s|%s|%s|%s" % (e["_fonte"], "opiniao" if opiniao else "noticia", sl, dia[:4], dia)}
     elif e and e["_fonte"] == "informativo" and e.get("ok"):
-        idx = it.get("destaques")
-        if idx is None:
-            idx = list(range(min(6, len(e["itens"]))))
-        ruins = [i for i in idx if not isinstance(i, int) or not 0 <= i < len(e["itens"])]
-        if ruins:
-            erros.append("ref %s: destaques %s fora de 0..%d" % (ref, ruins, len(e["itens"]) - 1))
-            idx = [i for i in idx if i not in ruins]
+        idx = selecionar(it.get("destaques"), len(e["itens"]), ref, erros, avisos)
+        anunciada = e.get("anunciada_em") or e.get("anunciada_na_edicao") or ""
         base = {"categoria": "Informativos", "status": "CONFIRMADO POR FONTE OFICIAL",
                 "titulo": NOME_INF[e["tipo"]] % e["numero"], "meta": e.get("data") or "",
                 "url": e["url"], "data": data_extenso(e.get("data")),
                 "fonte": "STJ — página oficial do informativo" if e["tipo"] == "stj" else "STF — documento oficial",
-                "chave": e["chave"], "destaques_texto": [texto_destaque(e["tipo"], e["itens"][i]) for i in idx],
+                "chave": e["chave"],
+                "destaques_texto": destaques_html(e["tipo"], [e["itens"][i] for i in idx], hoje),
                 "observacao": "%d de %d destaques publicados" % (len(idx), len(e["itens"])),
-                "herdada": e.get("situacao") in ("atrasada", "pulada")}
+                "herdada": e.get("situacao") in ("atrasada", "pulada"),
+                "_revisita": bool(e.get("revisita")),
+                "_nota_auto": ("destaques da edição anunciada em %s" % br_data(anunciada))
+                if e.get("situacao") == "atrasada" and br_data(anunciada) else ""}
+        if e["tipo"] == "rg":
+            base["temas"] = [str(e["itens"][i]["tema"]) for i in idx if e["itens"][i].get("tema")]
+            aviso_ordem_rg(it.get("destaques"), e["itens"], idx, ref, avisos)
     elif m:
         # edicao anunciada por e-mail cujo documento nao abriu: numero, data e link, sem destaques
         tipo, n = m.group(1), int(m.group(2))
@@ -302,7 +610,8 @@ def resolver(it, ev, erros):
         erros.append("ref desconhecido: %r (use um id impresso por coleta_web.py ou informativos.py)" % ref)
         return None
     novo = dict(base)
-    novo.update({k: v for k, v in it.items() if k not in ("destaques",) and v not in (None, "")})
+    novo.update({k: v for k, v in it.items()
+                 if k != "destaques" and k not in DERIVADOS and not k.startswith("_") and v not in (None, "")})
     return novo
 
 
@@ -315,6 +624,7 @@ ATO = re.compile(r"^(Lei Complementar|Lei|Decreto Legislativo|Decreto|Medida Pro
 TIPO_CHAVE = {"Planalto/Legislação": "ato", "STF Notícias": "noticia", "STF Jurisprudência": "tese",
               "STJ Notícias": "noticia", "STJ Jurisprudência": "tese", "Informativos": "informativo",
               "Mídia": "noticia", "Opinião/Análise": "opiniao", "Fofoquinha": "fofoca"}
+SEM_CONFIRMACAO = "sem confirmação oficial localizada nesta execução"
 
 
 def chave_auto(it):
@@ -330,9 +640,126 @@ def chave_auto(it):
     return "%s|%s|%s|%s|%s" % (fonte, TIPO_CHAVE.get(cat, "item"), slug(it.get("titulo"), 56), dia[:4], dia)
 
 
+# ------------------------------------------------------------------ campos deterministicos dos itens
+SO_SEM_LINK = re.compile(r"^\s*(?:clipping\s+)?sem\s+link(?:\s+pr[óo]prio)?\s*\.?\s*$", re.I)
+TEM_SEM_LINK = re.compile(r"sem\s+link", re.I)
+
+
+def limpar_nota(nota):
+    """'clipping sem link; sem confirmação...' -> 'sem confirmação...': o rotulo 'sem link' e automatico."""
+    partes = [p.strip() for p in str(nota or "").split(";")]
+    return "; ".join(p for p in partes if p and not SO_SEM_LINK.match(p))
+
+
+EXTRA_META = re.compile(r"\(\s*(?:edi[çc][ãa]o\s+)?extra\s*\)|(?:edi[çc][ãa]o\s+)?\bextra\b", re.I)
+DATA_ATO_META = re.compile(r"\s*(?:(?:do\s+)?ato\s+(?:de\s+)?)?\d{1,2}/\d{1,2}(?:/\d{2,4})?\s*[,;·]?\s*", re.I)
+
+
+def norm_meta(meta):
+    """Metadado do Planalto no formato 'DOU DD/MM[ · edição extra][; <resto>]'. Aceita o antigo
+    'DD/MM, DOU DD/MM (edição extra)' e o do coletor 'ato DD/MM/AAAA; DOU DD/MM/AAAA (edição extra)'.
+    So sai a data do ato antes do DOU (o titulo ja a traz) e a marca de edicao extra (vira ' · edição extra');
+    todo o resto escrito pelo orquestrador fica, depois de '; ', sem parenteses aninhados: veto, republicacao,
+    retificacao, vigencia ('DOU 13/11 (republicação por incorreção)' -> 'DOU 13/11; republicação por incorreção')."""
+    m = str(meta or "").strip()
+    if not m:
+        return ""
+    dou = re.search(r"\bDOU\s+(?:de\s+)?(\d{1,2})/(\d{1,2})(?:/\d{2,4})?", m)
+    if not dou:
+        return re.sub(r"\s*\(([^()]*)\)", r" · \1", m)
+    out = "DOU %02d/%02d" % (int(dou.group(1)), int(dou.group(2)))
+    if EXTRA_META.search(m):
+        out += " · edição extra"
+    antes = m[:dou.start()]
+    if DATA_ATO_META.fullmatch(antes) or not antes.strip():
+        antes = ""
+    partes = []
+    for s in (antes, m[dou.end():]):
+        s = EXTRA_META.sub("", s)
+        for _ in range(3):                         # parenteses (ate aninhados) viram separador
+            s = re.sub(r"\(([^()]*)\)", r"; \1;", s)
+        for p in re.split(r"\s*[;·]\s*", s):
+            p = p.strip(" ,:;·-–—()")
+            if p:
+                partes.append(p)
+    return out + "".join("; " + p for p in partes)
+
+
+def grupo_resenha(r):
+    """'Resenha Diária PUSH Legislação - 13/11/2026 (edição extra) | recebida 14/11 01h43' ->
+    'Resenha Diária PUSH Legislação de 13/11 — edição extra (recebida em 14/11, 01h43)'. '' se nao reconhecer."""
+    s = str(r or "")
+    m = re.search(r"Legisla\w*\s*(?:[-–—:]|de)?\s*(\d{1,2})/(\d{1,2})", s, re.I)
+    if not m:
+        return ""
+    g = "Resenha Diária PUSH Legislação de %02d/%02d" % (int(m.group(1)), int(m.group(2)))
+    if re.search(r"extra", s, re.I):
+        g += " — edição extra"
+    rec = re.search(r"recebida\s+(?:em\s+)?(\d{1,2})/(\d{1,2})(?:/\d{2,4})?,?\s*(?:[àa]s\s+)?(\d{1,2})\s*[h:]\s*(\d{2})",
+                    s, re.I)
+    if rec:
+        g += " (recebida em %02d/%02d, %02dh%s)" % (int(rec.group(1)), int(rec.group(2)), int(rec.group(3)),
+                                                    rec.group(4))
+    return g
+
+
+def eh_rotina(it):
+    """G7: credito orcamentario, remanejamento de cargos, aumento de capital, acordo de turismo ou de
+    servicos aereos — nunca cooperacao juridica penal, extradicao, transferencia de presos."""
+    texto = "%s %s" % (it.get("titulo") or "", it.get("resumo") or "")
+    if ROTINA_EXCETO.search(texto):
+        return False
+    return bool(ROTINA_ATO.search(texto)) or bool(ROTINA_CARGOS.search(texto) and not CARGOS_EXCETO.search(texto))
+
+
+def impacto_auto(ementa, titulo=""):
+    """'Altera o Decreto-Lei nº 2.848 (Código Penal) e a Lei nº 7.210' -> 'Altera: Código Penal; Lei de
+    Execução Penal'. So o objeto do verbo conta (ate a finalidade ou a oracao "que regulamenta..."); decreto,
+    resolucao e portaria nunca alteram lei; Constituicao so em emenda constitucional. '' na duvida (o AVISO
+    "Planalto sem impacto" segue pedindo ao orquestrador)."""
+    m = VERBO_ALTERA.match(ementa or "")
+    if not m or ATO_INFRALEGAL.match(titulo or ""):
+        return ""
+    objeto = ementa[m.end():]
+    fim = FIM_OBJETO.search(objeto)
+    if fim:
+        objeto = objeto[:fim.start()]
+    achados = []
+    for rx, rot in CODIGOS:
+        if rot == "Constituição Federal" and not ATO_EC.match(titulo or ""):
+            continue
+        x = rx.search(objeto)
+        if x and rot not in [r for _, r in achados]:
+            achados.append((x.start(), rot))
+    if not achados:
+        return ""
+    verbo = "Revoga" if m.group(1).lower().startswith("revoga") else "Altera"
+    out = verbo + ":"
+    for _, rot in sorted(achados):
+        cand = out + (" " if out.endswith(":") else "; ") + rot
+        if len(cand) > IMPACTO_MAX:
+            break
+        out = cand
+    return out if not out.endswith(":") else ""
+
+
+def item_oficial(it):
+    """O item vem de fonte oficial? Pela URL (orgao publico) e, sem URL, pelo rotulo da fonte: lista fechada
+    ("Push STF", "STJ CodJu", "PUSH Planalto", "Congresso Nacional", "boletim da Agência Câmara"...). Basta uma
+    palavra fora do vocabulario oficial ("STJ (via JOTA)", "JOTA (decisão do STJ)") para o rotulo nao valer."""
+    h = host(it.get("url"))
+    if h:
+        return bool(HOST_OFICIAL.search(h))
+    t = unicodedata.normalize("NFKD", str(it.get("fonte") or "").lower())
+    palavras = {p for p in re.split(r"[^a-z0-9]+", "".join(c for c in t if not unicodedata.combining(c)))
+                if p and not p.isdigit()}
+    return bool(palavras & ROTULO_OFICIAL) and palavras <= VOCAB_ROTULO_OFICIAL
+
+
 # ------------------------------------------------------------------ 2. ledger em memoria
 def aplicar_concursos(concursos, upd):
-    """Copia do registro com ledger_updates.concursos. Devolve (lista, novos, alterados)."""
+    """Copia do registro com ledger_updates.concursos. Devolve (lista, novos, alterados).
+    Alterado = linha, selo ou prazos mudaram (selos.mudou, o mesmo criterio do mudou_em do helper)."""
     regs = copy.deepcopy(concursos)
     por_id = {c["id"]: c for c in regs}
     novos, alterados = set(), set()
@@ -344,8 +771,8 @@ def aplicar_concursos(concursos, upd):
         if ident in por_id:
             antes = dict(por_id[ident])
             por_id[ident].update({k: v for k, v in campos.items() if k != "desfecho"})
-            # so verificado_em novo (RODIZIO IGUAL) nao e novidade para o leitor
-            if any(antes.get(k) != v for k, v in campos.items() if k not in ("verificado_em", "desfecho")):
+            # so verificado_em novo (RODIZIO IGUAL) ou fonte/dominio nao e novidade para o leitor
+            if selos.mudou(antes, por_id[ident]):
                 alterados.add(ident)
         else:
             c = dict(campos, id=ident)
@@ -372,6 +799,142 @@ def orgao(c):
     return (c.get("linha") or c.get("id") or "").split(":")[0].split(" — ")[0].strip()
 
 
+def ler_banca(caminho, hoje):
+    """bancas.json de HOJE (o inicio.py grava `data`); outro dia, formato antigo ou ausente = None."""
+    res = ler(caminho)
+    if not isinstance(res, dict) or res.get("data") != hoje:
+        return None
+    return res
+
+
+def execucoes_historico(caminho, com_arquivos=False):
+    """Execucoes do historico principal (e, se pedido, dos arquivos mensais listados em archive_files)."""
+    h = ler(caminho, {}) or {}
+    out = list(h.get("executions") or [])
+    if com_arquivos:
+        pasta = os.path.dirname(os.path.abspath(caminho))
+        for nome in h.get("archive_files") or []:
+            out += (ler(os.path.join(pasta, nome), {}) or {}).get("executions") or []
+    return out
+
+
+CLASSE_INSCRICAO = {"inscricoes_fim": "o fim das inscrições", "inscricoes_inicio": "o início das inscrições"}
+RE_AVISO_TIPO = re.compile(r"^ledger_updates\.concursos\.(\S+?)\.prazos\[(\d+)\]\.tipo\b")
+
+
+def tipo_contra_evento(upd, por_id, hoje, ctx_banca):
+    """AVISOs (acionaveis) para `prazos[n].tipo` do update de hoje que esconde um prazo de inscricao: o `evento`
+    (so o texto; selos.tipo_contradiz_evento, a regra do helper) diz inscricoes_fim/inscricoes_inicio e o tipo
+    escrito da outra classe. O tipo
+    prevalece sobre o evento, e com 'outro' o selo por data ignora o prazo: o e-mail saia INSCRIÇÕES ABERTAS (ou
+    ENCERRA HOJE de ontem) para inscricao que acaba em 2 dias, sem ENCERRA EM BREVE nem rebaixamento. Nao muda
+    o selo: o tipo pode ser decisao (o regex do evento erra); diz o que a data daria com a classe do evento."""
+    out = []
+    for ident, campos in (upd or {}).items():
+        if not isinstance(campos, dict) or campos.get("remover") or not isinstance(campos.get("prazos"), list):
+            continue
+        for n, p in enumerate(campos["prazos"]):
+            if not isinstance(p, dict) or "tipo" not in p:
+                continue
+            if hasattr(selos, "tipo_contradiz_evento"):     # a mesma regra do helper (avisos_tipo_prazo)
+                pelo_evento = selos.tipo_contradiz_evento(p)
+            else:
+                pelo_evento = selos.classe_prazo({k: v for k, v in p.items() if k != "tipo"})
+                if selos.classe_prazo(p) == pelo_evento:
+                    pelo_evento = None
+            if pelo_evento not in CLASSE_INSCRICAO:
+                continue
+            daria = ""
+            c = por_id.get(ident)
+            if c is not None:
+                alt = dict(c, prazos=[dict(q, tipo=pelo_evento) if i == n and isinstance(q, dict) else q
+                                      for i, q in enumerate(campos["prazos"])])
+                x = ctx_banca.get(ident) or {}
+                try:
+                    novo, motivo = selos.selo_por_data(alt, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                                       ultima_retificacao=x.get("ultima_retificacao"),
+                                                       inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+                except (KeyError, ValueError, TypeError, AttributeError):
+                    novo, motivo = c.get("selo"), None
+                if novo != c.get("selo") and motivo:
+                    porque = motivo.split(": ", 1)[-1].split(": ")[0].split(" — ")[0]
+                    daria = " (com '%s', o selo por data daria '%s': %s)" % (pelo_evento, novo, porque)
+            out.append("ledger_updates.concursos.%s.prazos[%d].tipo: %r num prazo cujo evento é %s («%s») — com "
+                       "esse tipo o selo por data ignora o prazo%s; se é %s, escreva tipo '%s' ou omita o tipo; "
+                       "se não é, aceite o aviso" % (
+                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], str(p.get("evento") or "")[:80],
+                           daria, CLASSE_INSCRICAO[pelo_evento], pelo_evento))
+    return out
+
+
+def sem_tipo_repetido(do_helper, proprios):
+    """AVISOs do helper (--validar) sem o de prazos[n].tipo que o montador ja deu para o mesmo prazo: fica o do
+    montador, que diz o selo que a data daria com o mesmo estado do e-mail. Prazo so do helper continua."""
+    meus = {m.groups() for m in map(RE_AVISO_TIPO.match, proprios) if m}
+    out = []
+    for a in do_helper:
+        m = RE_AVISO_TIPO.match(a)
+        if not (m and m.groups() in meus):
+            out.append(a)
+    return out
+
+
+def estado_concursos(ex, j, led, op, avisos):
+    """Registro de concursos como sai no e-mail: ledger + ledger_updates de hoje + carimbo da banca lida
+    hoje + selo por data (work/selos.py; nunca sobre selo escrito hoje) + mudou_em (migracao em memoria).
+    Mesma regra do helper (aplicar_mecanicos_concursos), para o e-mail e o ledger nao divergirem:
+    - selo ESCRITO hoje = selos.selo_escrito (difere do registro de antes); a copia do selo nao e decisao;
+    - carimbo e contexto da banca com o update de hoje: o registro que AINDA diverge do edital nao e
+      carimbado nem conta como banca lida (bancas.divergencias_pendentes)."""
+    hoje = date.fromisoformat(j["data"])
+    upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
+    antes = {c.get("id"): c for c in led.get("concursos") or []}
+    regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd)
+    por_id = {c["id"]: c for c in regs}
+    banca = ler_banca(op.get("bancas") or tmp("bancas.json"), j["data"])
+    if banca:
+        try:
+            carimbos = bancas.carimbos(banca, regs, hoje, upd=upd)
+        except (KeyError, ValueError, TypeError):
+            carimbos = {}
+        for ident, campos in carimbos.items():
+            if ident in por_id:      # o julgamento de hoje prevalece; carimbo nao e novidade para o leitor
+                por_id[ident].update({k: v for k, v in campos.items() if k not in (upd.get(ident) or {})})
+    try:
+        ctx_banca = bancas.contexto_selos(banca, regs, hoje, upd) if banca else {}
+    except (KeyError, ValueError, TypeError):
+        ctx_banca = {}
+    avisos += tipo_contra_evento(upd, por_id, hoje, ctx_banca)
+    selo_mudou = set()
+    for c in regs:
+        if selos.selo_escrito(upd.get(c["id"]), antes.get(c["id"])):
+            continue
+        x = ctx_banca.get(c["id"]) or {}
+        novo, motivo = selos.selo_por_data(c, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                           ultima_retificacao=x.get("ultima_retificacao"),
+                                           inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        if novo != c.get("selo"):
+            if novo == selos.SELO_SEM_CONFIRMACAO:
+                # o motivo pede ao orquestrador o selo/os prazos (encerradas ou prorrogadas): nada de
+                # "nao escreva o selo"; casa ACIONAVEL ("prorrogação não confirmada")
+                avisos.append("selo por data: %s %s" % (c["id"], motivo))
+            else:
+                avisos.append("selo por data: %s %s (automático; não escreva o selo)" % (c["id"], motivo))
+            c["selo"] = novo
+            c["mudou_em"] = j["data"]
+            selo_mudou.add(c["id"])
+        elif motivo:
+            avisos.append("%s: %s" % (c["id"], motivo))
+    if any(not c.get("mudou_em") for c in regs):
+        ignorar = {j.get("execution_id"), j.get("ignorar_execucao")} - {None, ""}
+        selos.garantir_mudou_em(regs, lambda: [e for e in execucoes_historico(op.get("historico"), True)
+                                               if e.get("execution_id") not in ignorar])
+    for ident in novos | alterados:
+        por_id[ident]["mudou_em"] = j["data"]
+    return {"regs": regs, "novos": novos, "alterados": alterados, "selo_mudou": selo_mudou,
+            "banca": banca or {}}
+
+
 # ------------------------------------------------------------------ 3. secoes do e-mail
 def item_padrao(it):
     """Selo + titulo em negrito + resumo + fonte (com link) e data/hora."""
@@ -380,12 +943,35 @@ def item_padrao(it):
         quando += " " + it["hora"]
     fonte = link(it.get("url"), esc(it.get("fonte") or "fonte"))
     cauda = ", ".join(x for x in (fonte, quando) if x)
-    extras = "; ".join(x for x in (("herdada" if it.get("herdada") else ""), it.get("nota") or "",
-                                   "" if it.get("url") else "sem link") if x)
+    nota = it.get("nota") or ""
+    extras = "; ".join(x for x in (it.get("_nota_auto") or ("herdada" if it.get("herdada") else ""), nota,
+                                   "" if it.get("url") or TEM_SEM_LINK.search(nota) else "sem link") if x)
     titulo = it["titulo"] + (" — " + it["meta"] if it.get("meta") else "")
     resumo = (esc(ponto(it["resumo"])) + " ") if it.get("resumo") else ""
-    return '<p style="margin:0 0 12px">%s <b>%s</b> %s<i>Fonte: %s%s.</i></p>' % (
-        selo(it["status"]), esc(ponto(titulo)), resumo, cauda, " (%s)" % esc(extras) if extras else "")
+    impacto = (" <i>Para a prova</i> — %s" % esc(ponto(it["impacto"]))) if it.get("impacto") else ""
+    return '<p style="margin:0 0 12px">%s <b>%s</b> %s<i>Fonte: %s%s.</i>%s</p>' % (
+        selo(it["status"]), esc(ponto(titulo)), resumo, cauda, " (%s)" % esc(extras) if extras else "", impacto)
+
+
+def _grupos_planalto(itens, topo):
+    partes, grupo = [], object()
+    for n, it in enumerate(itens):
+        g = it.get("grupo") or it.get("fonte") or ""
+        if g != grupo:
+            grupo = g
+            partes.append('<div style="margin:%dpx 0 4px">%s <span style="font-size:12px;color:%s">— %s</span></div>'
+                          % (14 if (partes or topo) else 0, selo(it["status"]), APOIO_COR, esc(ponto(g))))
+        ultimo = n + 1 == len(itens) or (itens[n + 1].get("grupo") or itens[n + 1].get("fonte") or "") != g
+        meta = (' <span style="font-size:11px;color:%s">· %s</span>' % (APOIO_COR, esc(it["meta"]))
+                if it.get("meta") else "")
+        nota = (" <i>(%s)</i>" % esc(it["nota"])) if it.get("nota") else ""
+        corpo_ato = ("<br>" + esc(ponto(it["resumo"]))) if it.get("resumo") else ""
+        impacto = ("<br><i>Para a prova</i> — %s" % esc(ponto(it["impacto"]))) if it.get("impacto") else ""
+        partes.append('<div style="padding:6px 0%s">%s%s%s%s%s</div>' % (
+            "" if ultimo else ";border-bottom:1px solid " + LINHA,
+            link(it.get("url"), "<b>%s</b>" % esc(it["titulo"]), ";text-decoration:underline"),
+            meta, nota, corpo_ato, impacto))
+    return partes
 
 
 def sec_planalto(itens, ss, ex):
@@ -396,31 +982,20 @@ def sec_planalto(itens, ss, ex):
             "Congresso." if sem_push else "Nenhum ato novo na janela (PUSH Planalto e página do Congresso "
                                           "consultados)."))
     else:
-        partes, grupo = [], object()
-        for n, it in enumerate(itens):
-            g = it.get("grupo") or it.get("fonte") or ""
-            if g != grupo:
-                grupo = g
-                partes.append('<div style="margin:%dpx 0 4px">%s <span style="font-size:12px;color:%s">— %s</span></div>'
-                              % (14 if partes else 0, selo(it["status"]), APOIO_COR, esc(ponto(g))))
-            ultimo = n + 1 == len(itens) or (itens[n + 1].get("grupo") or itens[n + 1].get("fonte") or "") != g
-            meta = (' <span style="font-size:11px;color:%s">(%s)</span>' % (APOIO_COR, esc(it["meta"]))
-                    if it.get("meta") else "")
-            nota = (" <i>(%s)</i>" % esc(it["nota"])) if it.get("nota") else ""
-            corpo_ato = ("<br>" + esc(ponto(it["resumo"]))) if it.get("resumo") else ""
-            partes.append('<div style="padding:6px 0%s">%s%s%s%s</div>' % (
-                "" if ultimo else ";border-bottom:1px solid " + LINHA,
-                link(it.get("url"), "<b>%s</b>" % esc(it["titulo"]), ";text-decoration:underline"),
-                meta, nota, corpo_ato))
+        normais = [it for it in itens if not it.get("_rotina")]
+        rotina = [it for it in itens if it.get("_rotina")]
+        partes = _grupos_planalto(normais, False)
+        if rotina:   # G7: no fim da secao, completos (com ementa e link) — so a ordem muda
+            partes.append(subtitulo("Atos de rotina — orçamento, cargos, capital de estatais e acordos de turismo "
+                                    "ou serviços aéreos", 14 if partes else 0))
+            partes += _grupos_planalto(rotina, False)
         corpo = "\n".join(partes)
     frase = ('<div style="font-size:12px;color:#8a8f5c;font-style:italic;margin:-4px 0 12px 14px">%s</div>'
              % FRASE_PLANALTO)
     return secao("🏛️ Planalto — Resenha Diária e legislação federal", frase + "\n" + corpo)
 
 
-def sec_itens(cat, titulo, vazio, itens, ex):
-    if not itens:
-        return secao(titulo, apoio(ex["email"].get("apoio", {}).get(cat) or vazio))
+def _itens_html(itens):
     partes = []
     for it in itens:
         partes.append(item_padrao(it))
@@ -428,7 +1003,73 @@ def sec_itens(cat, titulo, vazio, itens, ex):
             partes[-1] = partes[-1].replace("margin:0 0 12px", "margin:0 0 6px", 1)
             partes.append('<div style="margin:0 0 14px 14px;font-size:12px;line-height:18px">%s</div>' % "\n".join(
                 '<p style="margin:0 0 6px">▸ %s</p>' % d for d in it["destaques_texto"]))
+    return partes
+
+
+def sec_itens(cat, titulo, vazio, itens, ex):
+    if not itens:
+        return secao(titulo, apoio(ex["email"].get("apoio", {}).get(cat) or vazio))
+    return secao(titulo, "\n".join(_itens_html(itens)))
+
+
+def sec_informativos(titulo, vazio, itens, ex):
+    """Informativos; as edicoes antigas revisitadas (C5) num sub-bloco "Em atraso"."""
+    if not itens:
+        return secao(titulo, apoio(ex["email"].get("apoio", {}).get("Informativos") or vazio))
+    atuais = [it for it in itens if not it.get("_revisita")]
+    atraso = [it for it in itens if it.get("_revisita")]
+    partes = _itens_html(atuais)
+    if atraso:
+        partes.append(subtitulo("Em atraso — edições anteriores cujo documento só agora abriu", 14 if partes else 0))
+        partes += _itens_html(atraso)
     return secao(titulo, "\n".join(partes))
+
+
+def apoio_calculado(cat, por_cat):
+    """D5/G3/A8: a linha de apoio de secao vazia confere o que a edicao traz (email.apoio sobrescreve)."""
+    infs = por_cat.get("Informativos") or []
+
+    def edicoes(prefixos, com_conteudo=True):
+        """Edicoes da secao Informativos; com_conteudo: so as que trazem destaques (a "sem_conteudo", cujo
+        documento nao abriu, sai la como "Conteúdo não acessível" e nao tem teses para apontar)."""
+        return [it for it in infs if re.match(r"(%s)\d+$" % prefixos, str(it.get("ref") or ""))
+                and not (com_conteudo and it.get("sem_conteudo"))]
+
+    def nao_abriu(lista):
+        nomes = " e ".join(("da " if it["titulo"].startswith("Repercussão") else "do ") + it["titulo"] for it in lista)
+        return "%s %s não %s nesta execução (número, data e link em 📚 Informativos)" % (
+            "os documentos" if len(lista) > 1 else "o documento", nomes, "abriram" if len(lista) > 1 else "abriu")
+    if cat == "STF Jurisprudência":
+        todas = edicoes("rg|stf", False)
+        stf = edicoes("rg|stf")
+        if not todas:
+            return None
+        if not stf:
+            return "Teses e julgados do STF desta edição ainda não legíveis: %s." % nao_abriu(todas)
+        # "sem RG nova" so quando nenhuma RG da edicao e nova, mesmo a anunciada sem conteudo
+        rg_novo = any(str(it.get("ref")).startswith("rg") and not it.get("herdada") for it in todas)
+        nomes = "; ".join(it["titulo"] for it in sorted(stf, key=lambda x: not str(x.get("ref")).startswith("rg")))
+        if rg_novo:
+            return "Teses e julgados do STF desta edição estão em 📚 Informativos (%s)." % nomes
+        return "Sem Repercussão Geral em Pauta nova na janela; teses e julgados do STF desta edição estão em " \
+               "📚 Informativos (%s)." % nomes
+    stj = edicoes("stj")
+    if cat == "STJ Notícias":
+        na_midia = any(re.search(r"\bSTJ\b|Superior Tribunal de Justiça", "%s %s" % (it.get("titulo"), it.get("resumo")))
+                       for c in ("Mídia", "Fofoquinha") for it in por_cat.get(c) or [])
+        if na_midia:
+            return None          # a linha padrao ("chegou so pela midia") e verdadeira
+        return "Nenhuma notícia do STJ localizada nesta janela%s." % (
+            "; o %s está em 📚 Informativos" % stj[0]["titulo"] if stj else "")
+    if cat == "STJ Jurisprudência":
+        if stj:
+            return "Sem teses do CodJu na janela; as do STJ desta edição estão em 📚 Informativos (%s)." % (
+                "; ".join(it["titulo"] for it in stj))
+        vazias = edicoes("stj", False)
+        if vazias:
+            return "Sem teses do CodJu na janela; %s." % nao_abriu(vazias)
+        return "Sem teses do CodJu nem Informativo STJ novo na janela."
+    return None
 
 
 def partes_linha(linha):
@@ -452,30 +1093,42 @@ def linha_concurso(c, hoje, novos, alterados, zebra):
     idade = (hoje - ver).days if ver else 999
     linha = (c.get("linha") or "").rstrip(".")
     novo, mudou = c["id"] in novos, c["id"] in alterados and idade == 0
-    if idade > COMPACTAR_APOS and not novo:
-        linha = linha.split(";")[0]
     cabeca, corpo = partes_linha(linha)
     corpo = corpo[:1].upper() + corpo[1:]
-    selos = (selo("NOVO", True) + " " if novo else "") + selo(c.get("selo"), True)
+    selos_html = (selo("NOVO", True) + " " if novo else "") + selo(c.get("selo"), True)
     marca = '<b style="color:#8a6d1d">Atualizado hoje:</b> ' if mudou else ""
     cauda = "" if idade == 0 else " <i>(herdada; verificado em %s)</i>" % (ver.strftime("%d/%m") if ver else "?")
     fundo = ' bgcolor="#fdf6e9"' if (novo or mudou) else (' bgcolor="#f4f6fa"' if zebra else "")
     topo = ("<b>%s</b> " % esc(cabeca)) if cabeca else ""
-    return "<tr%s><td>%s%s<br>%s%s.%s</td></tr>" % (fundo, topo, selos, marca, esc(corpo), cauda)
+    return "<tr%s><td>%s%s<br>%s%s.%s</td></tr>" % (fundo, topo, selos_html, marca, esc(corpo), cauda)
+
+
+def linha_compacta(regs, zebra):
+    """Uma linha por bloco: órgão — selo (desde DD/MM), separados por ' · ' (G6/D7/E6)."""
+    itens = " · ".join("<b>%s</b> — %s%s" % (esc(orgao(c)), esc(c.get("selo") or ""),
+                                              " (desde %s)" % br_data(c.get("mudou_em")) if c.get("mudou_em") else "")
+                       for c in regs)
+    return '<tr%s><td style="color:%s">Sem mudança recente — selo e data da última mudança: %s.</td></tr>' % (
+        ' bgcolor="#f4f6fa"' if zebra else "", APOIO_COR, itens)
 
 
 TABELA_CONCURSOS = ('<table width="100%" cellpadding="7" cellspacing="0" style="border-collapse:collapse;'
                     'font-size:12px;line-height:18px">')
 
 
-def bloco_concursos(nome, regs, hoje, novos, alterados, primeiro):
+def bloco_concursos(nome, regs, hoje, novos, alterados, primeiro, compacto=None):
     out = [] if primeiro else ["<tr><td></td></tr>"]
     out.append('<tr><td bgcolor="%s" style="color:#ffffff;font-weight:bold;font-size:11px">%s</td></tr>'
                % (NAVY, esc(nome)))
     if not regs:
         out.append('<tr><td style="color:%s">Nenhum concurso acompanhado neste bloco; a varredura de descoberta '
                    'segue no rodízio semanal.</td></tr>' % APOIO_COR)
-    out += [linha_concurso(c, hoje, novos, alterados, n % 2) for n, c in enumerate(regs)]
+    compacto = compacto or (lambda c: None)
+    cheios = [c for c in regs if not compacto(c)]
+    comp = [c for c in regs if compacto(c)]
+    out += [linha_concurso(c, hoje, novos, alterados, n % 2) for n, c in enumerate(cheios)]
+    if comp:
+        out.append(linha_compacta(comp, len(cheios) % 2))
     return out
 
 
@@ -496,10 +1149,25 @@ def quando_txt(n):
     return {0: "hoje", 1: "amanhã"}.get(n, "em %d dias" % n)
 
 
-def radar(regs, hoje):
+def com_divergencia(regs, pend, banca):
+    """Ids de concurso com divergencia pendente: pendencia ligada que fala em divergencia ou
+    DIVERGE DO REGISTRO da banca lida hoje (decisao 16)."""
+    textos = {p.get("id"): "%s %s" % (p.get("id"), p.get("texto") or "") for p in pend or []}
+    out = {c["id"] for c in regs if c.get("pendencia")
+           and re.search(r"(?i)diverg|inconsist|conflit|contradi|retirar", textos.get(c["pendencia"], ""))}
+    for b in (banca or {}).get("concursos") or []:
+        for d in b.get("divergencias") or []:
+            if d.get("id"):
+                out.add(d["id"])
+    return out
+
+
+def radar(regs, hoje, divergentes=()):
     itens = prazos(regs, hoje)
     conf = [x for x in itens if x[3].get("confirmado")]
-    aconf = [x for x in itens if not x[3].get("confirmado")] if RADAR_A_CONFIRMAR else []
+    aconf = [x for x in itens if not x[3].get("confirmado") and x[1] <= A_CONFIRMAR_DIAS
+             and selos.classe_prazo(x[3]) in ("inscricoes_inicio", "inscricoes_fim", "prova")
+             and x[2]["id"] not in divergentes] if RADAR_A_CONFIRMAR else []
     if not conf and not aconf:
         return ""
 
@@ -521,30 +1189,53 @@ def radar(regs, hoje):
     if conf:
         out += [tab] + linhas(conf, True) + ["</table>"]
     if aconf:
-        out.append('<div style="font-size:11px;color:%s;margin:%dpx 0 2px">A confirmar — data vista só em fonte '
-                   'secundária:</div>' % (APOIO_COR, 8 if conf else 0))
+        out.append('<div style="font-size:11px;color:%s;margin:%dpx 0 2px">A confirmar — inscrição ou prova em até %d '
+                   'dias vista só em fonte secundária:</div>' % (APOIO_COR, 8 if conf else 0, A_CONFIRMAR_DIAS))
         out += [tab] + linhas(aconf, False) + ["</table>"]
     out.append("</div>")
     return "\n".join(out)
 
 
-def sec_concursos(regs, hoje, novos, alterados):
+def criterio_compacto(j, hoje, novos, alterados, selo_mudou):
+    """Funcao c -> None | 'sem_mudanca' | 'dormente' (decisao 4). Novo, alterado, selo mudado hoje,
+    selo de prazo vivo e prazo nos proximos 30 dias nunca compactam."""
+    anterior = _data((j.get("execucao_anterior") or "")[:10])
+    primeira = bool(j.get("primeira_semana"))
+
+    def f(c):
+        if c["id"] in novos or c["id"] in alterados or c["id"] in selo_mudou or c.get("selo") in NUNCA_COMPACTAR:
+            return None
+        if any(0 <= ((_data(p.get("data")) or date.min) - hoje).days <= RADAR_DIAS for p in c.get("prazos") or []):
+            return None
+        mud = _data(c.get("mudou_em"))
+        if mud is None:
+            return None
+        if c.get("selo") in SELOS_DORMENCIA and feriados.dias_uteis_entre(mud, hoje) > DORMENCIA_DIAS_UTEIS:
+            return "dormente"
+        if not primeira and anterior and mud < anterior:
+            return "sem_mudanca"
+        return None
+    return f
+
+
+def sec_concursos(regs, hoje, novos, alterados, compacto=None, divergentes=()):
     def do_bloco(b):
         return sorted((c for c in regs if c.get("bloco") == b),
                       key=lambda c: (c["id"] not in novos,
                                      ORDEM_SELO.index(c.get("selo")) if c.get("selo") in ORDEM_SELO else 99))
-    carreira = [radar(regs, hoje), TABELA_CONCURSOS]
+    carreira = [radar(regs, hoje, divergentes), TABELA_CONCURSOS]
     for n, b in enumerate(BLOCOS):
-        carreira += bloco_concursos(b, do_bloco(b), hoje, novos, alterados, n == 0)
+        carreira += bloco_concursos(b, do_bloco(b), hoje, novos, alterados, n == 0, compacto)
     carreira.append("</table>")
     apoio_html = [TABELA_CONCURSOS] + bloco_concursos(
-        "Analista e técnico (TJ, TRF, TRT, MP, Defensoria)", do_bloco(APOIO), hoje, novos, alterados, True) + ["</table>"]
+        "Analista e técnico (TJ, TRF, TRT, MP, Defensoria)", do_bloco(APOIO), hoje, novos, alterados, True,
+        compacto) + ["</table>"]
     return (secao("💼 Concursos jurídicos — Carreira jurídica", "\n".join(x for x in carreira if x)) + "\n" +
             secao("🗂️ Concursos jurídicos — Quadro de apoio", "\n".join(apoio_html)))
 
 
 def sec_midia(midia, opiniao, ex, ev):
-    usados = {it.get("ref") for it in ex["items"] if it.get("ref")}
+    usados = {it.get("ref") for it in ex["items"] if it.get("ref")} | set(ex.get("_refs_descartadas") or ())
     sobra = {"conjur": 0, "migalhas": 0}
     for e in ev.values():
         if e.get("_fonte") in sobra and e.get("situacao") in ("NOVA", "HERDADA") and e["id"] not in usados:
@@ -565,7 +1256,7 @@ def sec_midia(midia, opiniao, ex, ev):
             partes.append('<p style="margin:0 0 6px;font-size:12px;line-height:18px">%s %s%s (%s%s).</p>' % (
                 selo("OPINIÃO/ANÁLISE", True),
                 link(it.get("url"), esc(it["titulo"])) if it.get("url") else "“%s”" % esc(it["titulo"]),
-                (" — " + quem) if quem else "", onde, "" if it.get("url") else "; sem link próprio"))
+                (" — " + quem) if quem else "", onde, "" if it.get("url") else "; sem link"))
     return secao("📰 Se saiu na mídia não é fofoca!", "\n".join(partes))
 
 
@@ -587,10 +1278,16 @@ def sec_versiculo(v, reflexao):
 
 
 def sec_munger(m):
+    """K1: 'licao' (sintese propria, 187 de 200 itens do banco) sai sem aspas e assinada como licao
+    inspirada; 'aforismo' mantem as aspas. Mesma caixa, mesma cor."""
     obs = (" · " + esc(m["obs"])) if m.get("obs") else ""
-    corpo = ('%s<p style="margin:8px 0 6px;font-size:14px;line-height:21px;color:%s;font-style:italic">“%s”</p>'
-             '<p style="margin:0;font-size:12px;color:%s">— Charlie Munger · <i>%s</i>%s</p>' % (
-                 selo("SABEDORIA DO DIA"), TEXTO, esc(m["texto"]), APOIO_COR, esc(m["fonte"]), obs))
+    if m.get("tipo") == "licao":
+        texto, assinatura = esc(ponto(m["texto"])), "— lição inspirada em Charlie Munger"
+    else:
+        texto, assinatura = "“%s”" % esc(m["texto"]), "— Charlie Munger"
+    corpo = ('%s<p style="margin:8px 0 6px;font-size:14px;line-height:21px;color:%s;font-style:italic">%s</p>'
+             '<p style="margin:0;font-size:12px;color:%s">%s · <i>%s</i>%s</p>' % (
+                 selo("SABEDORIA DO DIA"), TEXTO, texto, APOIO_COR, assinatura, esc(m["fonte"]), obs))
     return secao("💡 Conhecimento nunca é demais", caixa("#f4f6fa", corpo))
 
 
@@ -610,8 +1307,8 @@ def fontes_consultadas(ss, ex, v):
             out.append(rot + {"falha": " — falhou", "vazio": " — sem e-mail na janela"}.get(st, ""))
         return out
     of = lista(OFICIAIS)
-    if any(it.get("destaques_texto") for it in ex["items"]):
-        of.append("documentos oficiais dos informativos (STF/STJ)")
+    if "informativos_docs" not in ss and any(it.get("destaques_texto") for it in ex["items"]):
+        of.append(ROTULO_FONTE["informativos_docs"])
     if ex["email"].get("fontes_extra"):
         of.append(esc(ex["email"]["fontes_extra"]))
     sec = lista(SECUNDARIAS) + ["portais e blogs de concursos (prazos e editais, sempre sujeitos a confirmação oficial)"]
@@ -621,24 +1318,39 @@ def fontes_consultadas(ss, ex, v):
             sub % (NAVY, 14, "Fontes secundárias consultadas") + est % " · ".join(sec))
 
 
+def _tokens(texto):
+    import repeticao
+    return set(repeticao.tokens(texto)) - GENERICOS
+
+
+def ja_em_limitacoes(obs, limitacoes):
+    """G8: a observacao repete uma frase das Limitacoes (mesmo assunto, 3+ termos e 40% em comum)?"""
+    if not limitacoes:
+        return False
+    t = _tokens(obs)
+    for frase in re.split(r"(?<=[.;])\s+", limitacoes):
+        f = _tokens(frase)
+        comum = len(t & f)
+        if comum >= 3 and comum / max(1, min(len(t), len(f))) >= 0.4:
+            return True
+    return False
+
+
 def sec_pendencias(pend, regs, ex, ss):
     # errata: a de hoje vem em email.errata; a herdada do ledger (errata_*) sai uma vez e e removida
     errata = [p for p in pend if p["id"].startswith("errata_") and not p.get("_nova")]
     if ex["email"].get("errata"):
         errata.insert(0, {"id": "errata_hoje", "texto": ex["email"]["errata"]})
-    linhas = [esc(o) for o in ex["email"].get("observacoes") or []]
+    lim = ex["email"].get("limitacoes") or ""
+    linhas = [esc(o) for o in ex["email"].get("observacoes") or [] if not ja_em_limitacoes(o, lim)]
     falhas = [ROTULO_FONTE.get(i, i) for i, st in ss.items() if st == "falha"]
-    if falhas and not linhas:
+    if falhas and not linhas and not lim:
         linhas.append("Falha técnica nesta execução: " + "; ".join(falhas) + ".")
     ids_conc = {c.get("pendencia") for c in regs if c.get("pendencia")}
     for p in pend:
         if p["id"].startswith("errata_") or p["id"] in ids_conc or p.get("faixa") == "cronica":
             continue
         linhas.append(esc(ponto(p.get("texto"))))
-    aguardando = sorted({orgao(c) for c in regs if c.get("selo") in ("PENDÊNCIA DE VERIFICAÇÃO", "PENDÊNCIA")})
-    if aguardando:
-        linhas.append("Concursos com confirmação oficial pendente (%d): %s — detalhes na seção de Concursos."
-                      % (len(aguardando), ", ".join(esc(a) for a in aguardando)))
     out = ['<div style="font-size:14px;font-weight:bold;color:%s;margin:14px 0 6px">📋 Observações de verificação, '
            'lacunas e pendências</div>' % NAVY]
     for p in errata:
@@ -651,27 +1363,88 @@ def sec_pendencias(pend, regs, ex, ss):
     return "\n".join(out)
 
 
+# G8: detalhe tecnico que nao e para o leitor (codigo http/erro, nome de script, id interno com "_").
+# Nao e apagado do texto (apagar embaralhava a frase: "scripts coleta_web, informativos e x" virava
+# "scripts,, e x"): o montador avisa (tecnico_para_leitor) e o orquestrador reescreve.
+TECNICO = re.compile(r"\b(?:https?|erro|status|c[óo]digo)\s*[=:]?\s*[1-5]\d\d\b|\(\s*[45]\d\d\s*\)|"
+                     r"\b[\w-]+\.(?:py|sh)\b|\b[a-z]+(?:_[a-z0-9]+)+\b", re.I)
+
+
+def tecnico_para_leitor(texto):
+    """Trechos tecnicos (TECNICO) do texto, sem repeticao, na ordem; [] = linguagem simples."""
+    out = []
+    for m in TECNICO.finditer(str(texto or "")):
+        if m.group(0) not in out:
+            out.append(m.group(0))
+    return out
+
+
+def suporte_txt(ss, em=None):
+    """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
+    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
+    calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
+    embaralhava a frase e deixava codigo e nome de script."""
+    falhas = []
+    for i in OFICIAIS + SECUNDARIAS:
+        if ss.get(i) == "falha":
+            rot = ROTULO_FONTE.get(i, i)
+            if rot not in falhas:
+                falhas.append(rot)
+    base = ("Leitura automática dos e-mails oficiais (Push STF, PUSH Planalto, CodJu, Câmara) e do JOTA, das páginas "
+            "do Congresso, do ConJur e do Migalhas, dos documentos oficiais dos informativos e das páginas das bancas "
+            "de concurso; e-mail montado automaticamente")
+    return base + (". Fontes que falharam nesta execução: " + "; ".join(falhas) if falhas
+                   else ". Nenhuma fonte falhou nesta execução")
+
+
+def nome_feriado(nome):
+    """'Recesso da Justiça Federal (20/12 a 06/01)' -> 'Recesso da Justiça Federal, 20/12 a 06/01': o nome entra
+    entre parenteses na frase da janela, e parenteses aninhados ficam ilegiveis."""
+    s = str(nome or "")
+    for _ in range(3):
+        s = re.sub(r"\s*\(\s*([^()]*?)\s*\)", r", \1", s)
+    return re.sub(r"\s*,\s*(,\s*)+", ", ", s).strip(" ,")
+
+
 def janela_txt(j, limitacoes):
     ini, fim = datetime.fromisoformat(j["inicio"]), datetime.fromisoformat(j["fim"])
     dias = (fim.date() - ini.date()).days
     rot = "ontem" if dias == 1 else ("hoje" if dias == 0 else DIAS[ini.weekday()])
     hm = lambda d: "%dh%02d" % (d.hour, d.minute)
     fds = any((ini.date().toordinal() + n) % 7 in (5, 6) for n in range(1, dias))   # sabado/domingo no meio
+    # feriado em dia util dentro da janela (antes de hoje): o silencio das fontes oficiais e esperado
+    fer = [f for f in j.get("feriados_na_janela") or [] if isinstance(f, dict) and f.get("data")
+           and f.get("data") < j["data"] and (_data(f["data"]) or date.min).weekday() < 5
+           and f.get("tipo") == "nacional"]
+    cobre = []
+    if fds:
+        cobre.append("o fim de semana")
+    if fer:
+        cobre.append("o feriado de " + " e ".join("%s (%s)" % (br_data(f["data"]), nome_feriado(f.get("nome")))
+                                                  for f in fer))
     t = "Janela de cobertura: das %s de %s (%s) às %s de hoje (%s)%s, fuso América/São Paulo." % (
         hm(ini), rot, ini.strftime("%d/%m"), hm(fim), fim.strftime("%d/%m/%Y"),
-        ", cobrindo o fim de semana" if fds else "")
+        (", cobrindo " + " e ".join(cobre)) if cobre else "")
+    fh = j.get("feriado_hoje")
+    if isinstance(fh, dict) and fh.get("nome"):
+        qual = {"nacional": "feriado nacional", "justica_federal": "feriado na Justiça Federal",
+                "ponto_facultativo": "ponto facultativo"}.get(fh.get("tipo"), "feriado")
+        t += " Hoje é %s (%s)." % (qual, nome_feriado(fh["nome"]))
     if limitacoes:
         t += " Limitações: " + ponto(limitacoes)
     return t
 
 
 # ------------------------------------------------------------------ 4. montagem
-def montar(ex, j, led, ev, v, agora):
+def montar(ex, j, led, ev, v, agora, ctx=None):
+    """Devolve (corpo, secoes [(nome, html)], regs, novos, alterados, pend)."""
     hoje = date.fromisoformat(j["data"])
     em = ex["email"]
     ss = ex.get("source_status") or {}
     upd = ex.get("ledger_updates") or {}
-    regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd.get("concursos"))
+    if ctx is None:
+        ctx = estado_concursos(ex, j, led, {"historico": os.path.join(AQUI, "resumo-legislativo-historico.json")}, [])
+    regs, novos, alterados = ctx["regs"], ctx["novos"], ctx["alterados"]
     # a remocao automatica da errata herdada (agendada em preparar) vale para o ledger, nao para esta
     # edicao: sem esta excecao a errata era retirada antes de ser renderizada e nunca saia
     upd_pend = {k: c for k, c in (upd.get("pendencias") or {}).items()
@@ -684,13 +1457,14 @@ def montar(ex, j, led, ev, v, agora):
 
     pre = ('<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;'
            'overflow:hidden">%s%s</div>' % (esc(em["preheader"]), "&#847;&zwnj;&nbsp;" * 12))
+    edicao = (j.get("cabecalho_extra") or "Edição extra") if j.get("edicao_extra") else "Edição das 7h"
     cab = ('<tr><td bgcolor="%s" align="center" style="padding:26px 20px;%s">'
            '<div style="font-size:34px;line-height:38px;margin-bottom:6px">🤖📜</div>'
            '<div style="font-size:22px;line-height:28px;color:#ffffff;font-weight:bold">Robozinho dos Momozis até Passar</div>'
            '<div style="font-size:13px;line-height:19px;color:%s;font-weight:bold;margin-top:8px">Legislação, '
            'jurisprudência e concursos jurídicos sem drama. Ou quase.</div>'
-           '<div style="font-size:12px;line-height:17px;color:#a9b7cc;margin-top:10px">Edição das 7h · %s (%s) · '
-           'América/São Paulo</div></td></tr>' % (NAVY, FONTE, OURO, j["hoje_br"], j["dia_semana"]))
+           '<div style="font-size:12px;line-height:17px;color:#a9b7cc;margin-top:10px">%s · %s (%s) · '
+           'América/São Paulo</div></td></tr>' % (NAVY, FONTE, OURO, esc(edicao), j["hoje_br"], j["dia_semana"]))
     indice = ('<tr><td bgcolor="#f4f6fa" style="padding:14px 20px;%s;font-size:12px;line-height:20px;color:%s">'
               '<b>Nesta edição:</b> %s</td></tr>' % (FONTE, NAVY, INDICE))
     cards = "\n".join(
@@ -702,93 +1476,367 @@ def montar(ex, j, led, ev, v, agora):
     divisor = ('<tr><td style="padding:16px 20px 0"><div style="border-top:1px solid #e4e9ef;font-size:1px;'
                'line-height:1px">&nbsp;</div></td></tr>')
 
-    corpo = [sec_planalto(por_cat.get("Planalto/Legislação", []), ss, ex)]
+    apoio_em = em.setdefault("apoio", {})
+    secoes = [("Cabeçalho e resumo", "\n".join([cab, indice, resumo, janela, divisor])),
+              ("Planalto/Legislação", sec_planalto(por_cat.get("Planalto/Legislação", []), ss, ex))]
     for cat, titulo, vazio in SECOES[1:]:
-        corpo.append(sec_itens(cat, titulo, vazio, por_cat.get(cat, []), ex))
-    corpo.append(sec_concursos(regs, hoje, novos, alterados))
-    corpo.append(sec_midia(por_cat.get("Mídia", []), por_cat.get("Opinião/Análise", []), ex, ev))
-    corpo.append(sec_itens("Fofoquinha", "🤫 FOFOQUINHA JURÍDICA",
-                           "Nenhuma fofoquinha jurídica relevante localizada nesta execução.",
-                           por_cat.get("Fofoquinha", []), ex))
-    corpo.append(sec_versiculo(v, em.get("reflexao") or ""))
-    corpo.append(sec_munger(j["munger"]))
-    corpo.append('<tr><td style="padding:22px 20px 0;%s">%s\n%s</td></tr>' % (
-        FONTE, fontes_consultadas(ss, ex, v), sec_pendencias(pend, regs, ex, ss)))
+        if not por_cat.get(cat) and not apoio_em.get(cat):
+            vazio = apoio_calculado(cat, por_cat) or vazio
+        if cat == "Informativos":
+            secoes.append((cat, sec_informativos(titulo, vazio, por_cat.get(cat, []), ex)))
+        else:
+            secoes.append((cat, sec_itens(cat, titulo, vazio, por_cat.get(cat, []), ex)))
+    compacto = criterio_compacto(j, hoje, novos, alterados, ctx.get("selo_mudou") or set())
+    secoes.append(("Concursos", sec_concursos(regs, hoje, novos, alterados, compacto,
+                                              com_divergencia(regs, pend, ctx.get("banca")))))
+    secoes.append(("Mídia e Opinião", sec_midia(por_cat.get("Mídia", []), por_cat.get("Opinião/Análise", []), ex, ev)))
+    secoes.append(("Fofoquinha", sec_itens("Fofoquinha", "🤫 FOFOQUINHA JURÍDICA",
+                                           "Nenhuma fofoquinha jurídica relevante localizada nesta execução.",
+                                           por_cat.get("Fofoquinha", []), ex)))
+    secoes.append(("Versículo", sec_versiculo(v, em.get("reflexao") or "")))
+    secoes.append(("Munger", sec_munger(j["munger"])))
+    secoes.append(("Fontes e pendências", '<tr><td style="padding:22px 20px 0;%s">%s\n%s</td></tr>' % (
+        FONTE, fontes_consultadas(ss, ex, v), sec_pendencias(pend, regs, ex, ss))))
     rodape = ('<tr><td style="padding:22px 0 0"><div style="background:%s;padding:20px;%s;text-align:center">'
               '<div style="font-size:13px;color:#ffffff;font-weight:bold">🤖 Robozinho dos Momozis até Passar</div>'
               '<div style="font-size:11px;color:#a9b7cc;margin-top:6px;line-height:16px">Newsletter jurídica '
               'automatizada · conteúdo informativo, não substitui a consulta às fontes oficiais nem assessoria '
               'jurídica.<br>Próxima edição: %s, às 7h.</div></div></td></tr>' % (NAVY, FONTE, j["rodape"]))
-    falhas = "; ".join(ex.get("errors") or [])
-    suporte = em.get("suporte") or (
-        "Coletores Gmail, JOTA e Concursos; scripts coleta_web, informativos, versiculo e montar_email. "
-        + ("Falhas: " + falhas if falhas else "Sem falha técnica registrada."))
     sup = ('<tr><td style="padding:16px 20px 22px;%s"><div style="font-size:13px;font-weight:bold;color:%s;'
            'margin-bottom:6px">Suporte usado na execução</div><div style="font-size:11px;line-height:17px;color:%s">'
            '%s</div><div style="font-size:10px;line-height:15px;color:#8b95a1;margin-top:8px">Gerado em %s '
            '(América/São Paulo) · execução %s</div></td></tr>' % (
-               FONTE, NAVY, APOIO_COR, esc(ponto(suporte)), agora.strftime("%d/%m/%Y %H:%M"), j["execution_id"]))
-    miolo = [cab, indice, resumo, janela, divisor] + corpo + [rodape, sup]
-    return (pre + '\n<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" '
-            'bgcolor="#eef1f4" style="border-collapse:collapse"><tr><td align="center" style="padding:20px 8px">\n'
-            '<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff" '
-            'style="width:100%;max-width:600px;border-collapse:collapse">\n' + "\n".join(miolo) +
-            "\n</table>\n</td></tr></table>"), regs, novos, alterados, pend
+               FONTE, NAVY, APOIO_COR, esc(ponto(suporte_txt(ss, em))), agora.strftime("%d/%m/%Y %H:%M"),
+               j["execution_id"]))
+    secoes.append(("Rodapé", rodape + "\n" + sup))
+    # sentinela oculta no fim do corpo: conferencia barata de completude da copia (decisao 2)
+    sentinela = '<span style="display:none">fim-%s</span>' % esc(j["execution_id"])
+    corpo = (pre + '\n<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" '
+             'bgcolor="#eef1f4" style="border-collapse:collapse"><tr><td align="center" style="padding:20px 8px">\n'
+             '<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff" '
+             'style="width:100%;max-width:600px;border-collapse:collapse">\n' + "\n".join(h for _, h in secoes) +
+             "\n</table>\n" + sentinela + "\n</td></tr></table>")
+    return corpo, secoes, regs, novos, alterados, pend
 
 
 # ------------------------------------------------------------------ 5. preparo e validacao
-def preparar(ex, j, led, ev, v):
-    """Resolve refs, completa campos deterministicos e devolve (erros, avisos)."""
+def descartar_repetidos(itens, execucoes, ignorar_ids):
+    """Decisao 8: nas secoes de apoio, REPUBLICADA (chave exata ja publicada) e POSSIVEL_REPETIDA da
+    MESMA fonte saem sozinhas. Devolve (ficam, [(item, motivo)]). "desdobramento": true mantem o item
+    (o --validar segue avisando). O resto (outra fonte, secoes centrais) continua AVISO."""
+    import repeticao
+    anteriores = [e for e in execucoes if e.get("execution_id") not in ignorar_ids]
+    data_de = {}
+    for e in anteriores:
+        for it in e.get("items") or []:
+            if it.get("chave"):
+                data_de[it["chave"]] = e.get("date") or ""
+    idx = None
+    ficam, fora = [], []
+    for it in itens:
+        ch = it.get("chave") or ""
+        if it.get("categoria") not in SECOES_APOIO or it.get("desdobramento") or not ch or repeticao.ignorar(it):
+            ficam.append(it)
+            continue
+        if ch in data_de:
+            fora.append((it, "REPUBLICADA: a chave já saiu na edição de %s" % br_data(data_de[ch])))
+            continue
+        if idx is None:
+            idx = repeticao.indice(anteriores)
+        m = repeticao.procurar(repeticao.tokens_item(ch.lower(), it.get("titulo")), idx, excluir=ch.lower())
+        if m and m.split("|")[0] == ch.lower().split("|")[0]:
+            fora.append((it, "POSSIVEL_REPETIDA da mesma fonte (%s) ~ %s, publicada em %s"
+                         % (m.split("|")[0], m, br_data(data_de.get(m)) or "edição anterior")))
+            continue
+        ficam.append(it)
+    return ficam, fora
+
+
+def cards_citam_descartados(em, ficam, fora, regs=()):
+    """Decisao 8: card do resumo executivo ou trecho do preheader que trata de item descartado sozinho
+    -> AVISO ACIONÁVEL (o e-mail sairia com um card sobre algo que nao esta em secao nenhuma). Cada trecho
+    (frase do card, partes separadas por ';'; partes do preheader por ' · ') e comparado com o descartado e
+    com o que ficou (itens, destaques dos informativos, linhas dos concursos): se um que ficou explica o
+    trecho tao bem quanto o descartado, nada a pedir."""
+    if not fora:
+        return []
+    import repeticao
+
+    def tk(txt):
+        return set(repeticao.tokens(re.sub(r"<[^>]+>", " ", str(txt or "")))) - GENERICOS
+
+    def nota(t, tf):                     # numero distintivo (ato, processo; ano nao conta) vale como forte
+        num = {x for x in t & tf if x.isdigit() and len(x) >= 3}
+        return len(t & tf) + (5 if num else 0), bool(num)
+
+    ficou = [tk(" ".join(str(it.get(k) or "") for k in ("titulo", "resumo", "destaques_texto", "nota")))
+             for it in ficam]
+    ficou += [tk(c.get("linha")) for c in regs or ()]
+    descart = [(it, motivo, tk("%s %s" % (it.get("titulo") or "", it.get("resumo") or ""))) for it, motivo in fora]
+    trechos = []
+    for c in em.get("resumo") or []:
+        if isinstance(c, list) and len(c) == 3:
+            trechos += [("card do resumo «%s»" % limpo(str(c[1]))[:30], p) for p in re.split(r";|\s·\s", str(c[2]))]
+    trechos += [("preheader", p) for p in str(em.get("preheader") or "").split(" · ")]
+    achados = {}
+    for onde, txt in trechos:
+        t = tk(txt)
+        if not t:
+            continue
+        melhor = None
+        for i, (_, _, tf) in enumerate(descart):
+            pontos, forte = nota(t, tf)
+            comum = len(t & tf)
+            if (forte or (comum >= 3 and comum / len(t) >= 0.5)) and (not melhor or pontos > melhor[0]):
+                melhor = (pontos, i)
+        if not melhor or any(nota(t, tf)[0] >= melhor[0] for tf in ficou):
+            continue
+        achados.setdefault(melhor[1], [])
+        if onde not in achados[melhor[1]]:
+            achados[melhor[1]].append(onde)
+    out = []
+    for i in sorted(achados):
+        it, motivo, _ = descart[i]
+        ondes = achados[i]
+        out.append("%s %s item descartado («%s», %s): troque o card/o trecho ou marque \"desdobramento\": true "
+                   "no item" % (" e ".join(ondes), "citam" if len(ondes) > 1 else "cita",
+                                (it.get("titulo") or "")[:60], motivo.split(":")[0].split(" ")[0]))
+    return out
+
+
+def relacionados_informativos(itens, ev):
+    """G3b: item de Midia que trata de tema de informativo/RG desta edicao -> AVISO 'cite o tema'
+    (o resultado noticiado continua so da midia; a nota de confirmacao nao muda)."""
+    import repeticao
+    edicoes = [(it["ref"], ev[it["ref"]]) for it in itens
+               if it.get("categoria") == "Informativos" and it.get("ref") in ev and ev[it["ref"]].get("ok")]
+    if not edicoes:
+        return []
+    dest = []
+    for ref, e in edicoes:
+        for i, d in enumerate(e.get("itens") or []):
+            txt = " ".join(str(d.get(k) or "") for k in ("titulo", "tese", "resumo", "destaque", "tema"))
+            nums = {re.sub(r"\D", "", x) for x in re.findall(r"\b\d{1,3}(?:\.\d{3})+\b", str(d.get("processo") or ""))}
+            dest.append((ref, i, e["tipo"], d, set(repeticao.tokens(txt)) - GENERICOS, nums))
+    avisos = []
+    for it in itens:
+        if it.get("categoria") != "Mídia" and not (it.get("categoria") == "STJ Notícias" and not item_oficial(it)):
+            continue
+        texto = " ".join(str(it.get(k) or "") for k in ("titulo", "resumo"))
+        t = set(repeticao.tokens(texto)) - GENERICOS
+        nums = {re.sub(r"\D", "", x) for x in re.findall(r"\b\d{1,3}(?:\.\d{3})+\b", texto)}
+        com_nota = texto + " " + str(it.get("nota") or "")
+        temas = {re.sub(r"\D", "", x) for x in re.findall(r"(?i)\bTema\s+(\d[\d.]*)", com_nota)}
+        citadas = {int(x) for x in re.findall(r"(?i)informativo\s+st[fj]\D{0,6}(\d{3,4})\b", com_nota)}
+        melhor = None
+        for ref, i, tipo, d, td, dn in dest:
+            tema = re.sub(r"\D", "", str(d.get("tema") or ""))
+            if (tipo == "rg" and tema and tema in temas) or (tipo != "rg" and int(ref[3:]) in citadas):
+                continue                       # ja cita o tema/o informativo: nada a pedir
+            comum = len(t & td)
+            forte = bool(nums & dn) or (tipo == "rg" and tema and tema in nums)
+            if forte or (comum >= 3 and comum / max(1, min(len(t), len(td))) >= 0.2):
+                nota = (99 if forte else comum)
+                if not melhor or nota > melhor[0]:
+                    melhor = (nota, ref, i, tipo, d)
+        if melhor:
+            _, ref, i, tipo, d = melhor
+            if tipo == "rg":
+                rot = rotulo_rg(d) or "estágio não informado"
+                desc = "Tema %s, %s" % (d.get("tema"), rot[:1].lower() + rot[1:])
+                pede = "cite o tema; o resultado segue só na mídia"
+            else:
+                desc = limpo(d.get("titulo") or d.get("tema") or "")[:70]
+                pede = "cite o informativo; a nota de confirmação não muda"
+            avisos.append("Mídia «%s» relacionado a %s[%d] (%s): %s" % (
+                (it.get("titulo") or "")[:60], ref, i, desc, pede))
+    return avisos
+
+
+def legislacao_so_rotina(em, itens):
+    """G7: card/preheader de Legislacao que so cita (pelo numero) ato de rotina -> AVISO informativo."""
+    plan = [it for it in itens if it.get("categoria") == "Planalto/Legislação"]
+    num = lambda it: (ATO.match(it.get("titulo") or "") or [None, None, ""])[2].replace(".", "")
+    rotina = {num(it) for it in plan if it.get("_rotina")} - {""}
+    outros = [it for it in plan if not it.get("_rotina")]
+    if not rotina:
+        return []
+    out = []
+    textos = [("card de Legislação", c[2]) for c in em.get("resumo") or []
+              if isinstance(c, list) and len(c) == 3 and re.search(r"(?i)legisla|planalto", str(c[1]))]
+    textos += [("preheader", p) for p in str(em.get("preheader") or "").split(" · ")
+               if re.search(r"\b(Lei|Decreto|MP|MPV|Medida)\b", p)]
+    onde_rotina, citados_todos = [], set()
+    for onde, txt in textos:
+        citados = {re.sub(r"\D", "", x) for x in re.findall(r"\b\d{1,2}\.?\d{3}\b", str(txt))
+                   if not re.fullmatch(r"(?:19|20)\d\d", x)}       # ano solto nao e numero de ato
+        if citados and citados <= rotina:
+            onde_rotina.append(onde)
+            citados_todos |= citados
+    if onde_rotina:
+        alt = ", ".join(it["titulo"].split(",")[0] for it in outros[:2])
+        out.append("%s %s só ato de rotina (%s)%s" % (
+            " e ".join(onde_rotina), "citam" if len(onde_rotina) > 1 else "cita", ", ".join(sorted(citados_todos)),
+            ("; prefira " + alt) if alt else "; sem ato fora da rotina hoje, a vaga pode ir para concursos ou teses"))
+    return out
+
+
+def agrupar_avisos(avisos):
+    """Mesma mensagem do helper para varias fontes vira uma linha so (stdout < 3 KB)."""
+    out, grupos = [], {}
+    for a in avisos:
+        m = re.match(r"ledger_updates\.fontes\.(\S+?)\.nota: (.*)$", a)
+        if m:
+            if m.group(2) not in grupos:
+                grupos[m.group(2)] = []
+                out.append(("grupo", m.group(2)))
+            grupos[m.group(2)].append(m.group(1))
+        else:
+            out.append(("linha", a))
+    return [("ledger_updates.fontes.{%s}.nota: %s" % (", ".join(grupos[x]), x) if len(grupos[x]) > 1 else
+             "ledger_updates.fontes.%s.nota: %s" % (grupos[x][0], x)) if tipo == "grupo" else x for tipo, x in out]
+
+
+def mesclar_status(ex, j, caminho, v, avisos):
+    """source_status do orquestrador + o dos scripts ($ROBOZINHO_TMP/fontes_status.json desta execucao,
+    e o source_status do versiculo.json): o do script vale, como no helper. YouVersion barrado pelo
+    anti-bot e a falha esperada da sonda das segundas: nao_tentada, nunca falha (decisao 14)."""
+    ss = ex.setdefault("source_status", {})
+    try:
+        import aguardar_coleta
+        st = aguardar_coleta.ler_fontes_status(caminho, j.get("execution_id"))
+    except Exception:  # noqa: BLE001 — acessorio
+        st = {}
+    script = {k: (x or {}).get("status") for k, x in st.items()}
+    for k, s in ((v or {}).get("source_status") or {}).items():
+        script.setdefault(k, s)
+    trocas = []
+    for fid, s in sorted(script.items()):
+        if s not in STATUS_FONTE:
+            continue
+        if ss.get(fid) not in (None, s):
+            trocas.append("%s %s→%s" % (fid, ss[fid], s))
+        ss[fid] = s
+    if ss.get("youversion") == "falha" and (v or {}).get("ok"):
+        t = next((x for x in (v.get("tentativas") or []) if x.get("fonte") == "YouVersion"), {})
+        if t.get("esperado") or t.get("http") in (403, 429, 503) or re.search(r"anti-bot|challenge|vazia",
+                                                                              str(t.get("motivo") or ""), re.I):
+            trocas.append("youversion falha→nao_tentada (anti-bot esperado)")
+            ss["youversion"] = "nao_tentada"
+    if trocas:
+        avisos.append("source_status: vale o do script — " + "; ".join(trocas))
+
+
+def preparar(ex, j, led, ev, v, op=None):
+    """Resolve refs, completa campos deterministicos e devolve (erros, avisos, ctx)."""
+    op = dict(op or {})
+    op.setdefault("historico", os.path.join(AQUI, "resumo-legislativo-historico.json"))
     erros, avisos = [], []
     em = ex.setdefault("email", {})
     hoje = j["data"]
+    hj = date.fromisoformat(hoje)
+    mesclar_status(ex, j, op.get("fontes_status") or tmp("fontes_status.json"), v, avisos)
     itens = []
     descartar = segunda_tentativa(ex.get("items") or [], ev, avisos)
     for it in ex.get("items") or []:
         if it.get("ref") in descartar:
             continue
-        it = resolver(dict(it), ev, erros)
+        it = resolver(dict(it), ev, erros, avisos, hj)
         if it is None:
             continue
         if it.get("categoria") in ("Versículo", "Munger", "Concursos - Carreira", "Concursos - Apoio"):
             continue                    # gerados aqui; versao escrita a mao e descartada
-        if it.get("categoria") not in CATEGORIAS_NOTICIA:
+        cat = it.get("categoria")
+        if cat not in CATEGORIAS_NOTICIA:
             erros.append("%s: categoria %r fora de %s" % ((it.get("titulo") or it.get("ref") or "item")[:50],
-                                                          it.get("categoria"), " | ".join(CATEGORIAS_NOTICIA)))
+                                                          cat, " | ".join(CATEGORIAS_NOTICIA)))
             continue
         if not it.get("titulo"):
             erros.append("item sem titulo: %s" % json.dumps(it, ensure_ascii=False)[:120])
             continue
-        if not it.get("status") and it.get("categoria") in SELO_PADRAO:
-            it["status"] = SELO_PADRAO[it["categoria"]]
+        rot = it["titulo"][:60]
+        if "nota" in it:
+            it["nota"] = limpar_nota(it["nota"])          # D10: "sem link" e automatico
+            if not it["nota"]:
+                del it["nota"]
+        # G4.3/decisao 12: STJ Noticias aceita julgado noticiado pela midia, com o selo e a nota dela;
+        # STJ Jurisprudencia continua so oficial
+        if cat == "STJ Notícias" and not item_oficial(it):
+            if not it.get("status") or it["status"].startswith("CONFIRMADO"):
+                if it.get("status"):
+                    avisos.append("%s: STJ Notícias de mídia sai como MÍDIA ESPECIALIZADA (era %s)" % (rot, it["status"]))
+                it["status"] = "MÍDIA ESPECIALIZADA"
+            if not re.search(r"(?i)confirma", it.get("nota") or ""):
+                it["nota"] = "; ".join(x for x in (it.get("nota"), SEM_CONFIRMACAO) if x)
+        if cat == "STJ Jurisprudência" and (not item_oficial(it) or it.get("status") == "MÍDIA ESPECIALIZADA"):
+            erros.append("%s: STJ Jurisprudência só aceita fonte oficial (teses do CodJu/STJ: URL *.jus.br ou, sem "
+                         "URL, \"fonte\": \"STJ CodJu\"); julgado noticiado pela mídia vai em STJ Notícias, com selo "
+                         "MÍDIA ESPECIALIZADA" % rot)
+            continue
+        if not it.get("status") and cat in SELO_PADRAO:
+            it["status"] = SELO_PADRAO[cat]
         if not it.get("status"):
-            erros.append("%s: falta \"status\" (selo) — obrigatório em %s" % (it["titulo"][:60], it["categoria"]))
+            erros.append("%s: falta \"status\" (selo) — obrigatório em %s" % (rot, cat))
             continue
         if not it.get("data"):
-            erros.append("%s: falta \"data\" (AAAA-MM-DD da fonte)" % it["titulo"][:60])
+            erros.append("%s: falta \"data\" (AAAA-MM-DD da fonte)" % rot)
+            continue
+        if cat == "Planalto/Legislação":
+            if not it.get("grupo") and it.get("resenha"):
+                it["grupo"] = grupo_resenha(it["resenha"])
+                if not it["grupo"]:
+                    del it["grupo"]
+                    avisos.append("%s: \"resenha\" sem data reconhecível (%s) — escreva \"grupo\"" % (
+                        rot, str(it["resenha"])[:60]))
+            if it.get("meta"):
+                it["meta"] = norm_meta(it["meta"])
+            it["_rotina"] = eh_rotina(it)
+            if not it.get("impacto") and not it["_rotina"]:
+                auto = impacto_auto(it.get("resumo") or "", it["titulo"])
+                if auto:
+                    it["impacto"] = auto
+        if it.get("impacto") and len(str(it["impacto"])) > IMPACTO_MAX:
+            erros.append("%s: \"impacto\" com %d caracteres (máximo %d)" % (rot, len(str(it["impacto"])), IMPACTO_MAX))
             continue
         if not it.get("chave"):
             it["chave"] = chave_auto(it)
         it.setdefault("url", "")
         it.setdefault("fonte", "")
-        for campo in ("titulo", "resumo", "url", "nota", "meta", "grupo"):
+        for campo in ("titulo", "resumo", "url", "nota", "meta", "grupo", "impacto"):
             if WRAPPER.search(str(it.get(campo) or "")):
                 erros.append("%s: wrapper/rastreio em %s" % (it["chave"], campo))
         itens.append(it)
-    # concursos que mudaram hoje, versiculo e Munger: itens do historico gerados aqui
-    upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
-    regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd)
+    # decisao 8: repetido certo nas secoes de apoio sai sozinho (listado como DESCARTADA)
+    ignorar = {j.get("execution_id"), j.get("ignorar_execucao")} - {None, ""}
+    descartadas, fora = [], []
+    if any(it.get("categoria") in SECOES_APOIO for it in itens):
+        itens, fora = descartar_repetidos(itens, execucoes_historico(op["historico"]), ignorar)
+        for it, motivo in fora:
+            descartadas.append("DESCARTADA %s — %s" % (it.get("ref") or "«%s»" % (it.get("titulo") or "")[:70], motivo))
+            if it.get("ref"):
+                ex.setdefault("_refs_descartadas", []).append(it["ref"])
+    avisos += relacionados_informativos(itens, ev)
+    sem_impacto = [it["titulo"].split(",")[0] for it in itens if it["categoria"] == "Planalto/Legislação"
+                   and not it.get("_rotina") and not it.get("impacto") and str(it.get("status")).startswith("CONFIRMADO")]
+    if sem_impacto:
+        avisos.append("Planalto sem \"impacto\" (Para a prova): %s — escreva \"impacto\" (até %d caracteres) quando "
+                      "a ementa não bastar" % ("; ".join(sem_impacto), IMPACTO_MAX))
+    avisos += legislacao_so_rotina(em, itens)
+    # concursos: registro do dia (com carimbo da banca e selo por data); os que mudaram hoje vao ao historico
+    ctx = estado_concursos(ex, j, led, op, avisos)
+    regs, novos, alterados = ctx["regs"], ctx["novos"], ctx["alterados"]
+    avisos += cards_citam_descartados(em, itens, fora, regs)
     for c in regs:
         if c["id"] in novos or c["id"] in alterados:
             cabeca, _ = partes_linha(c.get("linha") or "")
             fonte = c.get("fonte") or ""
+            # E13: so id e selo (a linha ja esta em ledger_updates.concursos)
             itens.append({"chave": "concurso|%s|%s|%s|%s" % (c["id"], "novo" if c["id"] in novos else "atualizado",
                                                              hoje[:4], hoje),
                           "fonte": "Coletor concursos",
                           "categoria": "Concursos - Apoio" if c.get("bloco") == APOIO else "Concursos - Carreira",
                           "titulo": cabeca or c["id"], "data": hoje, "status": c.get("selo"),
-                          "url": fonte if fonte.startswith("http") and not WRAPPER.search(fonte) else "",
-                          "observacao": (c.get("linha") or "")[:300]})
+                          "url": fonte if fonte.startswith("http") and not WRAPPER.search(fonte) else ""})
     if v and v.get("ok"):
         itens.append({"chave": "%s|versiculo|%s|%s|%s" % (slug(v["fonte"].split(".")[0], 20), slug(v["referencia"]),
                                                           hoje[:4], hoje),
@@ -816,19 +1864,33 @@ def preparar(ex, j, led, ev, v):
     cards = em.get("resumo") or []
     if not 3 <= len(cards) <= 5 or any(not isinstance(c, list) or len(c) != 3 for c in cards):
         erros.append("email.resumo: use de 3 a 5 cards no formato [emoji, título curto, frase]")
-    op = [i for i in itens if i["categoria"] == "Opinião/Análise"]
-    if len(op) > 6:
-        erros.append("Opinião/Análise: %d itens (máximo 6)" % len(op))
-    for cat in ("Planalto/Legislação", "STF Notícias", "Mídia", "Fofoquinha", "Informativos"):
+    op_itens = [i for i in itens if i["categoria"] == "Opinião/Análise"]
+    if len(op_itens) > 6:
+        erros.append("Opinião/Análise: %d itens (máximo 6)" % len(op_itens))
+    for cat in ("Planalto/Legislação", "STF Notícias", "Mídia", "Fofoquinha"):
         n = sum(1 for i in itens if i["categoria"] == cat)
         if n > 12:
             avisos.append("%s com %d itens (alvo ~10): corte os menos relevantes" % (cat, n))
-    hj = date.fromisoformat(hoje)
+    # G8: o leitor nao ve codigo http nem nome de script. O rodape e sempre o calculado; limitacoes e
+    # observacoes saem como escritas, entao o montador aponta o trecho tecnico (sem apagar: apagar embaralha)
+    if str(em.get("suporte") or "").strip():
+        avisos.append("email.suporte ignorado: o rodapé \"Suporte usado na execução\" é automático (fontes que "
+                      "falharam vêm do source_status); detalhe técnico vai em errors/verification_notes")
+    lim = em.get("limitacoes") or ""
+    textos = [("email.limitacoes", lim)] + [("email.observacoes[%d]" % i, o)
+                                           for i, o in enumerate(em.get("observacoes") or [])
+                                           if not ja_em_limitacoes(o, lim)]      # a repetida nem sai
+    for onde, txt in textos:
+        tec = tecnico_para_leitor(txt)
+        if tec:
+            avisos.append("%s traz detalhe técnico ao leitor (%s): reescreva em linguagem simples (o técnico vai em "
+                          "errors)" % (onde, ", ".join(tec[:4])))
     urgente = [x for x in prazos(regs, hj) if x[1] <= 7]
-    if (urgente or novos) and not any(re.search(r"(?i)concurs|inscri|edital|prova", " ".join(c[1:]))
+    if (urgente or novos) and not any(re.search(r"(?i)concurs|inscri|edital|prova", " ".join(map(str, c[1:])))
                                       for c in cards if isinstance(c, list)):
         avisos.append("há prazo de concurso em até 7 dias ou concurso novo e nenhum card do resumo executivo trata disso")
-    return erros, avisos
+    ctx["descartadas"] = descartadas
+    return erros, avisos, ctx
 
 
 def segunda_tentativa(itens, ev, avisos):
@@ -857,78 +1919,150 @@ def segunda_tentativa(itens, ev, avisos):
             r = {}
         if r.get("ok"):
             ev[ref] = dict(r, _fonte="informativo")
-            avisos.append("%s: documento abriu na segunda tentativa — %d destaques (sem \"destaques\", saem os 6 "
-                          "primeiros)" % (ref, len(r["itens"])))
+            avisos.append("%s: documento abriu na segunda tentativa — %d destaques (saem todos)" % (ref, len(r["itens"])))
         elif anunciada:
             descartar.add(ref)
-            avisos.append("%s: documento segue sem abrir (http %s); já anunciado antes — fica para a próxima "
-                          "execução" % (ref, r.get("http")))
+            avisos.append("%s: documento segue sem abrir; já anunciado antes — fica para a próxima execução" % ref)
     return descartar
 
 
+def com_avisos(saida):
+    base, ext = os.path.splitext(saida)
+    return base + "-com-avisos" + (ext or ".html")
+
+
+def limpar_para_gravar(ex):
+    """Versao resolvida para o passo 7: sem os campos internos (_*) e os so de exibicao."""
+    out = copy.deepcopy(ex)
+    out.pop("_refs_descartadas", None)
+    for it in out.get("items") or []:
+        for k in [k for k in it if k.startswith("_") or k in ("resenha", "impacto", "desdobramento")]:
+            del it[k]
+    return out
+
+
+def tamanho_secoes(secoes):
+    return sorted(((nome, len(h.encode("utf-8"))) for nome, h in secoes), key=lambda x: -x[1])
+
+
+def kb(n):
+    return ("%.1f KB" % (n / 1000)).replace(".", ",")
+
+
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--execucao", default="/tmp/execucao.json")
-    ap.add_argument("--janela", default="/tmp/janela.json")
+    ap = argparse.ArgumentParser(description="Monta o e-mail do Robozinho a partir do julgamento (passos 4/5).")
+    ap.add_argument("--execucao", default=tmp("execucao.json"))
+    ap.add_argument("--janela", default=tmp("janela.json"))
     ap.add_argument("--ledger", default=os.path.join(AQUI, "robozinho-aprendizado.json"))
-    ap.add_argument("--saida", default="/tmp/email.html")
-    ap.add_argument("--sem-html", action="store_true", help="nao imprime o corpo (so valida e grava)")
+    ap.add_argument("--historico", default=os.path.join(AQUI, "resumo-legislativo-historico.json"))
+    ap.add_argument("--saida", default=tmp("email.html"))
+    ap.add_argument("--resolvido", default=tmp("execucao.resolvido.json"),
+                    help="versao resolvida, lida pelo finalizar.sh (o execucao.json nunca e sobrescrito)")
+    ap.add_argument("--bancas", default=tmp("bancas.json"))
+    ap.add_argument("--fontes-status", dest="fontes_status", default=tmp("fontes_status.json"))
+    ap.add_argument("--com-html", action="store_true", help="imprime tambem o corpo (so depuracao)")
+    ap.add_argument("--sem-html", action="store_true", help=argparse.SUPPRESS)   # compatibilidade: ja e o padrao
     a = ap.parse_args()
+
+    saida_avisos = com_avisos(a.saida)
+    for p in (a.saida, saida_avisos):           # nada de HTML velho depois de uma rodada com ERRO
+        if os.path.exists(p):
+            os.remove(p)
+
+    def falhar(linhas):
+        if os.path.exists(a.resolvido):
+            os.remove(a.resolvido)
+        print("\n".join(linhas))
+        print("MONTAGEM: ERRO — corrija %s e rode de novo (nada foi gravado)." % a.execucao)
+        sys.exit(2)
 
     ex = ler(a.execucao)
     j = ler(a.janela)
     led = ler(a.ledger, {})
-    if ex is None or j is None or "munger" not in j:
-        sys.exit("ERRO: faltam %s ou %s (rode work/inicio.py e escreva o julgamento antes)" % (a.execucao, a.janela))
+    if not isinstance(ex, dict) or not isinstance(j, dict) or "munger" not in j:
+        falhar(["ERRO: faltam %s ou %s (rode work/inicio.py e escreva o julgamento antes)" % (a.execucao, a.janela)])
     ev = evidencias()
-    v = ler("/tmp/versiculo.json", {})
+    v = ler(tmp("versiculo.json"), {})
 
-    erros, avisos = preparar(ex, j, led, ev, v)
+    erros, avisos, ctx = preparar(ex, j, led, ev, v, {"historico": a.historico, "bancas": a.bancas,
+                                                     "fontes_status": a.fontes_status})
     if erros:
-        print("\n".join("ERRO: " + e for e in erros))
-        print("MONTAGEM: ERRO — corrija /tmp/execucao.json e rode de novo (nada foi gravado).")
-        sys.exit(2)
-    resolvido = a.execucao + ".resolvido"
-    with open(resolvido, "w", encoding="utf-8") as f:
-        json.dump(ex, f, ensure_ascii=False, indent=1)
+        falhar(["ERRO: " + e for e in erros])
+    ex.setdefault("execution_id", j.get("execution_id"))
+    with open(a.resolvido, "w", encoding="utf-8") as f:
+        json.dump(limpar_para_gravar(ex), f, ensure_ascii=False, indent=1)
     r = subprocess.run([sys.executable, os.path.join(AQUI, "Update-Historico.py"), "--validar", "--nova-execucao",
-                        resolvido, "--ledger", a.ledger, "--janela", a.janela], capture_output=True, text=True)
-    relatorio = [l for l in r.stdout.splitlines() if l.startswith(("ERRO", "AVISO", "VALIDACAO"))]
-    print("\n".join(relatorio + ["AVISO: " + x for x in avisos]))
+                        a.resolvido, "--ledger", a.ledger, "--janela", a.janela, "--historico", a.historico,
+                        "--bancas", a.bancas, "--fontes-status", a.fontes_status], capture_output=True, text=True)
+    linhas = r.stdout.splitlines()
+    validacao = [l for l in linhas if l.startswith("VALIDACAO")]
     if r.returncode != 0:
-        print(r.stderr.strip()[-400:])
-        print("MONTAGEM: ERRO — corrija /tmp/execucao.json e rode de novo (nada foi gravado).")
-        sys.exit(2)
+        falhar([l for l in linhas if l.startswith("ERRO")] + [x for x in [r.stderr.strip()[-400:]] if x] + validacao)
+    do_helper = [l[len("AVISO: "):] for l in linhas if l.startswith("AVISO: ")]
+    avisos = agrupar_avisos(sem_tipo_repetido(do_helper, avisos) + avisos)
 
     try:
         from zoneinfo import ZoneInfo
         agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
-    except Exception:
+    except Exception:  # noqa: BLE001
         agora = datetime.now()
-    corpo, regs, novos, alterados, pend = montar(ex, j, led, ev, v, agora)
+    corpo, secoes, regs, novos, alterados, pend = montar(ex, j, led, ev, v, agora, ctx)
     problemas = []
     if "{{" in corpo or re.search(r"__[A-Z_]{3,}__", corpo):
         problemas.append("marcador/placeholder no corpo")
     if WRAPPER.search(corpo):
         problemas.append("wrapper/rastreio no corpo")
-    tamanho = len(corpo.encode("utf-8"))
-    if tamanho > 100_000:
-        problemas.append("corpo com %d bytes (> 100 KB: o Gmail corta) — reduza itens de Mídia/Opinião" % tamanho)
     if problemas:
-        print("\n".join("ERRO: " + p for p in problemas))
-        print("MONTAGEM: ERRO — corrija /tmp/execucao.json e rode de novo.")
-        sys.exit(2)
-    os.replace(resolvido, a.execucao)          # o passo 7 grava a versao resolvida
-    with open(a.saida, "w", encoding="utf-8") as f:
-        f.write(corpo)
+        falhar(["ERRO: " + p for p in problemas])
+    dados = corpo.encode("utf-8")
+    if len(dados) >= TAMANHO_AVISO:          # D6: nunca ERRO; a alavanca e Concursos, nao a Midia
+        maiores = tamanho_secoes(secoes)[:4]
+        # 1o dos informativos: diz como ler o arquivo (allow_large) e nao pode cair no montagem-avisos.txt
+        avisos.insert(0, "corpo com %s (≥ %d KB; o Gmail corta a exibição perto de 102 KB, sem perder conteúdo) — "
+                         "maiores seções: %s%s; leia o arquivo com allow_large" % (
+                             kb(len(dados)), TAMANHO_AVISO // 1000, ", ".join("%s %s" % (n, kb(b)) for n, b in maiores),
+                             "; a alavanca é Concursos (compactação e remoção de encerrados)"
+                             if maiores and maiores[0][0] == "Concursos" else ""))
+    acionaveis = [x for x in avisos if ACIONAVEL.search(x)]
+    informativos_av = [x for x in avisos if not ACIONAVEL.search(x)]
+    destino = saida_avisos if acionaveis else a.saida
+    with open(destino, "wb") as f:
+        f.write(dados)
     n_not = sum(1 for i in ex["items"] if i["categoria"] not in ("Concursos - Carreira", "Concursos - Apoio",
                                                                   "Versículo", "Munger"))
-    print("MONTAGEM: OK — %d itens de notícia, %d concursos (%d novos, %d atualizados hoje), %d pendências, "
-          "%d bytes → %s" % (n_not, len(regs), len(novos), len(alterados), len(pend), tamanho, a.saida))
-    print("ASSUNTO: %s" % j["assunto"])
-    print("PARA: %s" % json.dumps(DESTINATARIOS))
-    if not a.sem_html:
-        print("Copie para o htmlBody do create_draft o texto entre os dois marcadores, inteiro e sem alteração:")
+    compacto = criterio_compacto(j, date.fromisoformat(j["data"]), novos, alterados, ctx.get("selo_mudou") or set())
+    n_comp = sum(1 for c in regs if compacto(c))
+    resumo = "%d itens de notícia, %d concursos (%d novos, %d atualizados hoje, %d em linha compacta), %d pendências" % (
+        n_not, len(regs), len(novos), len(alterados), n_comp, len(pend))
+    if ctx["descartadas"]:
+        resumo += ", %d descartada(s)" % len(ctx["descartadas"])
+    saida = validacao[-1:]
+    if acionaveis:
+        saida.append("MONTAGEM: OK COM AVISOS — %s; %d aviso(s) acionável(is): corrija o execucao.json e rode de "
+                     "novo, ou aceite os avisos e use o arquivo de CAMINHO" % (resumo, len(acionaveis)))
+    else:
+        saida.append("MONTAGEM: OK — %s" % resumo)
+    saida += ["ASSUNTO: %s" % j["assunto"], "PARA: %s" % json.dumps(DESTINATARIOS)]
+    detalhe = ctx["descartadas"] + ["AVISO ACIONÁVEL: " + x for x in acionaveis] + ["AVISO: " + x for x in informativos_av]
+    cabe, usado = [], 0
+    for l in detalhe:                        # stdout < 3 KB: o excedente vai para um arquivo
+        # o fim diz o que fazer: corta o meio. O acionavel (pede decisao; o meio pode ser o que fazer, como em
+        # "encerradas → … ; prorrogadas → …") so e cortado acima de 600 caracteres
+        lim = 600 if l.startswith("AVISO ACIONÁVEL: ") else 320
+        l = l if len(l) <= lim else l[:lim - 120] + " … " + l[-117:]
+        if usado + len(l) > 2100:
+            break
+        cabe.append(l)
+        usado += len(l) + 1
+    if len(cabe) < len(detalhe):
+        resto = tmp("montagem-avisos.txt")
+        with open(resto, "w", encoding="utf-8") as f:
+            f.write("\n".join(detalhe) + "\n")
+        cabe.append("(+%d linha(s): lista completa em %s)" % (len(detalhe) - len(cabe), resto))
+    saida += cabe
+    saida += ["BYTES: %d" % len(dados), "SHA256: %s" % hashlib.sha256(dados).hexdigest(), "CAMINHO: %s" % destino]
+    print("\n".join(saida))
+    if a.com_html:
         print("==== HTMLBODY ====")
         print(corpo)
         print("==== FIM HTMLBODY ====")

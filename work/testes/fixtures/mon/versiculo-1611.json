@@ -1,0 +1,17 @@
+{
+ "ok": true,
+ "fonte": "DailyVerses.net",
+ "referencia": "João 16:28",
+ "versao": "ARC",
+ "texto": "Saí do Pai e vim ao mundo; outra vez, deixo o mundo e vou para o Pai.",
+ "data_pagina": "2026-11-16",
+ "url": "https://dailyverses.net/pt/2026/11/16",
+ "tentativas": [
+  {
+   "fonte": "YouVersion",
+   "url": "https://www.bible.com/pt/verse-of-the-day?day=320",
+   "http": 403,
+   "motivo": "desafio anti-bot ou pagina vazia"
+  }
+ ]
+}

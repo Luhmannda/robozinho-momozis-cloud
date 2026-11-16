@@ -1,0 +1,44 @@
+{
+ "youversion": {
+  "status": "nao_tentada",
+  "detalhe": "sonda semanal (so as segundas)",
+  "script": "versiculo.py",
+  "execution_id": "2026-11-17-7h"
+ },
+ "dailyverses": {
+  "status": "ok",
+  "detalhe": "versiculo de 2026-11-17",
+  "script": "versiculo.py",
+  "execution_id": "2026-11-17-7h"
+ },
+ "congresso_ultimas_leis": {
+  "status": "ok",
+  "detalhe": "sem norma nova na janela",
+  "script": "coleta_web.py",
+  "execution_id": "2026-11-17-7h"
+ },
+ "congresso_mpvs": {
+  "status": "ok",
+  "detalhe": "1 MPV(s) recente(s)",
+  "script": "coleta_web.py",
+  "execution_id": "2026-11-17-7h"
+ },
+ "conjur": {
+  "status": "ok",
+  "detalhe": "14 publicaveis",
+  "script": "coleta_web.py",
+  "execution_id": "2026-11-17-7h"
+ },
+ "migalhas": {
+  "status": "ok",
+  "detalhe": "8 publicaveis",
+  "script": "coleta_web.py",
+  "execution_id": "2026-11-17-7h"
+ },
+ "informativos_docs": {
+  "status": "ok",
+  "detalhe": "abertas: rg394, stf1233",
+  "script": "informativos.py",
+  "execution_id": "2026-11-17-7h"
+ }
+}

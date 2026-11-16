@@ -1,0 +1,131 @@
+{
+ "delivery": "draft",
+ "verification_notes": [
+  "Edição anterior (13/11) localizada em in:sent: message_id 1a1d473f5ef62f0d. Nenhum rascunho nem envio com o assunto de hoje antes da criação.",
+  "PUSH Planalto: 3 resenhas na janela (12/11 edição extra, 13/11 e 13/11 edição extra); a atribuição de cada ato à sua resenha foi feita pela data do DOU informada pelo coletor.",
+  "Lei 15.529 veio só pelo PUSH; a listagem do Congresso (coleta_web) ainda só mostrava a Lei 15.528.",
+  "Boletim da Câmara de 14/11: 16 itens, todos de comissão, nenhum [LEI] nem [PLENARIO]; nada publicado.",
+  "Push STF de 16/11 (recebido 02:12): a notícia 'STF invalida emenda sobre eleição de dirigentes de Tribunais de Justiça' veio sem horário interno.",
+  "informativos.py: STF 1236 e RG 397 abriram (atrasadas, publicadas agora); STF 1237 deu 404 e STF 1238 deu 403 sem e-mail do informativo na janela — 1238 não publicado.",
+  "congresso_mpvs: http 0 no coleta_web; 1 WebSearch site:congressonacional.leg.br sem MPV nova com data oficial; resultados só de secundárias sobre MPVs 1.379 e 1.389 (não publicados).",
+  "TJDFT: resumo de buscador (cj.estrategia, listagem) cita inscrições até 11/11/2026 e prova em janeiro/2027; Cebraspe ilegível por curl; tratado como possível edital antigo/guia desatualizado (armadilha banca_edital_antigo) — registro mantido.",
+  "Descoberta de concursos: TRF6 (Juiz Federal, 28 vagas, oral em andamento) e TJSP (Juiz, 220 vagas) vieram só de resumo de buscador sem URL individual nem data — não registrados.",
+  "TJSC: secundária cita inscrições até 11/11; prevalece a banca FGV (até 26/11, 16h).",
+  "AGU: numeração da portaria da banca examinadora diverge entre secundárias (CSAGU/AGU nº 7 x AGU nº 369, ambas de 14/10).",
+  "DPDF não foi reverificado pelo coletor nesta execução (orçamento de buscas).",
+  "JOTA: itens com 'só a manchete' vieram de boletins sem corpo; clippings de Folha, Valor e O Globo sem link."
+ ],
+ "errors": [
+  "congresso_mpvs: coleta_web http 0 (fonte indisponível ou 0 itens)",
+  "informativos.py: Informativo STF 1238 http 403; 1237 http 404",
+  "youversion: http 403 (anti-bot); versículo pelo DailyVerses"
+ ],
+ "source_status": {
+  "gmail_push_stf": "ok",
+  "gmail_push_stf_informativos": "ok",
+  "gmail_stj_codju": "ok",
+  "gmail_push_planalto": "ok",
+  "gmail_camara": "ok",
+  "gmail_jota": "ok",
+  "congresso_ultimas_leis": "ok",
+  "congresso_mpvs": "falha",
+  "conjur": "ok",
+  "migalhas": "ok",
+  "youversion": "falha",
+  "dailyverses": "ok"
+ },
+ "items": [
+  {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL", "grupo": "Resenha Diária PUSH Legislação de 12/11 — edição extra (recebida em 13/11, 08h42)", "meta": "12/11, DOU 12/11 (edição extra)", "titulo": "Lei nº 15.529, de 12/11/2026", "resumo": "Abre ao Orçamento da Seguridade Social da União, em favor dos Ministérios da Previdência Social e do Desenvolvimento e Assistência Social, Família e Combate à Fome, crédito suplementar no valor de R$ 149.440.254.385,00, para reforço de dotações constantes da Lei Orçamentária vigente.", "fonte": "Planalto", "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/lei/l15529.htm", "data": "2026-11-12"},
+  {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL", "grupo": "Resenha Diária PUSH Legislação de 13/11 (recebida em 13/11, 11h55)", "meta": "12/11, DOU 13/11", "titulo": "Decreto nº 13.166, de 12/11/2026", "resumo": "Promulga o Acordo-Quadro para a Disposição de Bens Apreendidos do Crime Organizado Transnacional no Mercosul, firmado pela República Federativa do Brasil, em Montevidéu, em 17 de dezembro de 2018.", "fonte": "Planalto", "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13166.htm", "data": "2026-11-13"},
+  {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL", "grupo": "Resenha Diária PUSH Legislação de 13/11 (recebida em 13/11, 11h55)", "meta": "12/11, DOU 13/11", "titulo": "Decreto nº 13.163, de 12/11/2026", "resumo": "Altera o Decreto nº 11.178, de 18 de agosto de 2022, o Decreto nº 11.203, de 21 de setembro de 2022, o Decreto nº 11.233, de 10 de outubro de 2022, o Decreto nº 11.236, de 18 de outubro de 2022, o Decreto nº 11.336, de 1º de janeiro de 2023, e o Decreto nº 12.586, de 12 de agosto de 2025, e remaneja e transforma cargos em comissão e funções de confiança.", "fonte": "Planalto", "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13163.htm", "data": "2026-11-13"},
+  {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL", "grupo": "Resenha Diária PUSH Legislação de 13/11 (recebida em 13/11, 11h55)", "meta": "12/11, DOU 13/11", "titulo": "Decreto nº 13.164, de 12/11/2026", "resumo": "Promulga o Acordo entre o Governo da República Federativa do Brasil e o Governo da República de Cuba em Matéria de Turismo, firmado em Havana, em 26 de setembro de 2003.", "fonte": "Planalto", "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13164.htm", "data": "2026-11-13"},
+  {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL", "grupo": "Resenha Diária PUSH Legislação de 13/11 (recebida em 13/11, 11h55)", "meta": "12/11, DOU 13/11", "titulo": "Decreto nº 13.162, de 12/11/2026", "resumo": "Autoriza o aumento de capital social da Telecomunicações Brasileiras S.A.", "fonte": "Planalto", "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13162.htm", "data": "2026-11-13"},
+  {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL", "grupo": "Resenha Diária PUSH Legislação de 13/11 — edição extra (recebida em 14/11, 01h43)", "meta": "12/11, DOU 13/11 (edição extra)", "titulo": "Decreto nº 13.165, de 12/11/2026", "resumo": "Promulga o Acordo sobre Serviços Aéreos entre o Governo da República Federativa do Brasil e o Governo da República da Côte d'Ivoire, firmado em Abidjã, em 13 de outubro de 2017.", "fonte": "Planalto", "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13165.htm", "data": "2026-11-13"},
+
+  {"categoria": "STF Notícias", "titulo": "STF invalida emenda sobre eleição de dirigentes de Tribunais de Justiça", "resumo": "Maioria considerou que norma violava a autonomia do Judiciário e estabelecia tratamento desigual entre tribunais", "fonte": "Push STF", "url": "https://noticias.stf.jus.br/postsnoticias/stf-invalida-emenda-sobre-eleicao-de-dirigentes-de-tribunais-de-justica/", "data": "2026-11-16", "nota": "push de 16/11, sem horário interno"},
+  {"categoria": "STF Notícias", "titulo": "STF invalida lei que dispensava pagamento de honorários a procuradores municipais", "fonte": "Push STF", "url": "https://noticias.stf.jus.br/postsnoticias/stf-invalida-lei-que-dispensava-pagamento-de-honorarios-a-procuradores-municipais/", "data": "2026-11-13", "hora": "18:54", "nota": "só o título veio no push; também noticiado pelo JOTA em 13/11"},
+  {"categoria": "STF Notícias", "titulo": "Supremo na Semana comenta fim da isenção de pena em crimes patrimoniais contra familiar", "fonte": "Push STF", "url": "https://noticias.stf.jus.br/postsnoticias/supremo-na-semana-comenta-fim-da-isencao-de-pena-em-crimes-patrimoniais-contra-familiar/", "data": "2026-11-14", "hora": "12:00", "nota": "só o título veio no push"},
+  {"categoria": "STF Notícias", "titulo": "Reconhecer papel do Judiciário na desigualdade racial é condição para superá-la, afirma Fachin", "fonte": "Push STF", "url": "https://noticias.stf.jus.br/postsnoticias/reconhecer-papel-do-judiciario-na-desigualdade-racial-e-condicao-para-supera-la-afirma-fachin/", "data": "2026-11-13", "hora": "21:00", "nota": "só o título veio no push"},
+  {"categoria": "STF Notícias", "titulo": "STF vai ao território do povo Kumaruara para ouvir lideranças indígenas no Pará", "fonte": "Push STF", "url": "https://noticias.stf.jus.br/postsnoticias/stf-vai-ao-territorio-do-povo-kumaruara-para-ouvir-liderancas-indigenas-no-para/", "data": "2026-11-13", "hora": "19:53", "nota": "só o título veio no push"},
+
+  {"ref": "stf1236", "destaques": [0, 1, 2, 3]},
+  {"ref": "rg397", "destaques": [0, 1, 2, 3, 6, 9]},
+
+  {"ref": "c6", "nota": "sem confirmação oficial localizada nesta execução"},
+  {"ref": "c14", "nota": "sem confirmação oficial localizada nesta execução"},
+  {"categoria": "Mídia", "titulo": "STF reconhece repercussão geral do \"milagre da contribuição única\"", "resumo": "Decisão unânime, com relatoria de Edson Fachin. A tese permite calcular a aposentadoria até com uma única contribuição de valor maior; a controvérsia vai da reforma de nov/2019 à lei de maio/2022 que restabeleceu o divisor mínimo. O mérito ainda será julgado, e não houve votos para suspender nacionalmente os processos.", "fonte": "Valor Econômico (via JOTA)", "data": "2026-11-16", "nota": "clipping sem link; sem confirmação oficial localizada nesta execução"},
+  {"categoria": "Mídia", "titulo": "PGR se manifesta contra anulação da pena de Bolsonaro e diz que caso é diferente do de Moraes", "resumo": "Segundo o JOTA, Paulo Gonet se manifestou em 12/11 contra o 2º pedido de revisão criminal de Bolsonaro, sob relatoria de Nunes Marques; diz que não há fatos novos.", "fonte": "JOTA", "url": "https://www.jota.info/stf/do-supremo/pgr-se-manifesta-contra-anulacao-da-pena-de-bolsonaro-e-diz-que-caso-e-diferente-do-de-moraes", "data": "2026-11-13", "nota": "sem confirmação oficial localizada nesta execução"},
+  {"categoria": "Mídia", "titulo": "STF rejeita recursos e manda encerrar ação sobre acordo dos planos econômicos", "resumo": "Segundo o JOTA, em 12/11 o STF rejeitou os recursos de associações de consumidores e manteve o prazo de adesão aos acordos (Bresser, Verão, Collor I e II); o prazo acaba em julho de 2027.", "fonte": "JOTA", "url": "https://www.jota.info/stf/do-supremo/stf-rejeita-recursos-e-manda-encerrar-acao-sobre-acordo-dos-planos-economicos", "data": "2026-11-13", "nota": "sem confirmação oficial localizada nesta execução"},
+  {"categoria": "Mídia", "titulo": "Gilmar Mendes interrompe julgamento com maioria formada para derrubar lei que restringe cota racial", "fonte": "JOTA", "url": "https://www.jota.info/stf/do-supremo/gilmar-mendes-interrompe-julgamento-com-maioria-formada-para-derrubar-lei-que-restringe-cota-racial", "data": "2026-11-14", "nota": "só a manchete veio no boletim; sem confirmação oficial localizada nesta execução"},
+  {"ref": "c11", "nota": "sem confirmação oficial localizada nesta execução"},
+  {"ref": "c15", "nota": "sem confirmação oficial localizada nesta execução"},
+  {"ref": "c5"},
+  {"categoria": "Mídia", "titulo": "Senado aprova texto-base do pacote fiscal com impacto previsto de até R$ 56 bi", "resumo": "Segundo o JOTA, o PLP 299/26 foi aprovado em 12/11 com modificações, com relatoria de Eduardo Braga; os destaques serão votados na terça (17), antes de seguir à Câmara.", "fonte": "JOTA", "url": "https://www.jota.info/legislativo/senado-aprova-texto-base-do-pacote-fiscal-com-impacto-previsto-de-ate-r-56-bi", "data": "2026-11-13"},
+
+  {"ref": "c18"},
+  {"ref": "c24"},
+  {"ref": "c27"},
+  {"ref": "c34"},
+  {"ref": "c35"},
+  {"categoria": "Opinião/Análise", "titulo": "Jornada de trabalho: o STF pode dispensar a negociação coletiva?", "autor": "Sidnei Machado", "fonte": "JOTA", "url": "https://www.jota.info/opiniao-e-analise/artigos/jornada-de-trabalho-o-stf-pode-dispensar-a-negociacao-coletiva", "data": "2026-11-13"},
+
+  {"categoria": "Fofoquinha", "status": "RUMOR", "titulo": "Tebet é sondada para o STF, enquanto ministros reforçam apoio a Pacheco", "resumo": "Segundo a coluna de Lauro Jardim (O Globo), reproduzida pelo JOTA em 16/11, Simone Tebet recebeu sondagens para o STF e para o TCU. Lula teria reunião marcada na semana com Gilmar Mendes, Zanin, Dino e Moraes, que defenderão Rodrigo Pacheco para a vaga aberta com a aposentadoria de Barroso. Importa porque define a composição da Corte; não há ato oficial de indicação.", "fonte": "O Globo (via JOTA)", "data": "2026-11-16", "nota": "clipping sem link"},
+  {"categoria": "Fofoquinha", "status": "SEM CONFIRMAÇÃO OFICIAL", "titulo": "Governo tem proposta pronta contra supersalários que pode ir ao Congresso neste ano", "resumo": "Segundo apuração do JOTA (13/11), a proposta prevê lista taxativa de verbas indenizatórias acima do teto (R$ 46.366,19, o salário dos ministros do STF) e limites a esses pagamentos; o governo ainda não definiu os valores e o texto está em calibragem interna. Importa para as carreiras jurídicas; nada foi enviado ao Congresso.", "fonte": "JOTA", "data": "2026-11-13", "nota": "sem link"},
+  {"categoria": "Fofoquinha", "status": "SEM CONFIRMAÇÃO OFICIAL", "titulo": "Nunes Marques diz nos bastidores que levará ao plenário a revisão criminal de Bolsonaro", "resumo": "Bastidor atribuído ao JOTA (13/11), no contexto da manifestação da PGR contra o 2º pedido de revisão criminal. Importa pelo rito do julgamento; não há despacho nem pauta oficial localizados.", "fonte": "JOTA", "data": "2026-11-13", "nota": "sem link"}
+ ],
+ "email": {
+  "preheader": "TJPB encerra inscrições na quarta (18/11), 16h · Lei 15.529 e cinco decretos · Informativo STF 1236 e RG 397 com destaques",
+  "resumo": [
+   ["⏰", "Concursos", "TJPB (Analista, FGV) encerra as inscrições na quarta, 18/11, às 16h; TJAP (Juiz) encerrou em 13/11; TJSC (Juiz) segue aberto até 26/11. Entram no radar MP-SP (Oficial de Promotoria), MP-RJ (Promotor) e MP-PA (servidores)."],
+   ["📜", "Legislação", "Lei 15.529 abre crédito suplementar de R$ 149,4 bilhões à Seguridade Social; cinco decretos de 12/11, entre eles o que promulga o Acordo-Quadro do Mercosul sobre bens apreendidos do crime organizado transnacional."],
+   ["⚖️", "STF", "Supremo invalida emenda sobre eleição de dirigentes de Tribunais de Justiça e lei que dispensava honorários a procuradores municipais."],
+   ["📚", "Informativos", "Informativo STF 1236 (piso do magistério para temporários, horas extras de policiais penais, ISS na base do PIS/Cofins) e Repercussão Geral em Pauta 397, agora com os destaques."]
+  ],
+  "reflexao": "Quem sabe de onde veio e para onde vai atravessa o caminho sem se perder nele. A semana de estudo começa melhor quando o destino está claro: cada edital, cada informativo lido, é só um trecho da travessia.",
+  "limitacoes": "A página de medidas provisórias do Congresso não respondeu nesta execução; a busca de apoio não localizou MPV nova com data oficial. O Informativo STF 1238 não abriu (403) e não chegou por e-mail na janela.",
+  "observacoes": [
+   "Medidas provisórias: fonte do Congresso indisponível hoje; nenhuma MPV publicada nesta edição.",
+   "Informativo STF 1238: documento não abriu (403); será tentado de novo na próxima edição.",
+   "Boletim da Câmara de 14/11 trouxe só aprovações em comissão; nada de Plenário ou lei nova."
+  ]
+ },
+ "ledger_updates": {
+  "fontes": {
+   "gmail_push_planalto": {"nota": "Resenhas de 12/11 (edição extra), 13/11 e 13/11 (edição extra) recebidas na janela de 16/11 (Lei 15.529 e Decretos 13.162 a 13.166). Fluxo voltou a ser diário desde 09/11; manter 1 sonda/dia por data (after:AAAA/MM/DD)."},
+   "congresso_mpvs": {"nota": "16/11: coleta_web com http 0 (indisponível); WebSearch de apoio sem MPV nova com data oficial. Antes disso respondia desde 22/10."},
+   "gmail_push_stf_informativos": {"nota": "16/11: informativos.py abriu STF 1236 e RG 397 (publicados com destaques); 1237 deu 404 e 1238 deu 403; sem e-mail de informativo na janela. Informativo e RG são produtos distintos; conteúdo vem de work/informativos.py quando o PDF abre."}
+  },
+  "pendencias": {
+   "planalto_push_mudo": {"texto": "PUSH Planalto: resenhas de 09, 10, 12 e 13/11 recebidas (as de 12 e 13/11 com edições extras); fluxo aparentemente diário de novo; manter 1 sonda por dia."},
+   "agu_pfn_edital": {"texto": "AGU/PFN: faltam banca organizadora e edital; banca examinadora citada em secundárias com numeração divergente (Portaria CSAGU/AGU nº 7 x Portaria AGU nº 369, ambas de 14/10)."},
+   "dpe_sp_edital_verificar": {"texto": "DPE-SP (FCC, 70 vagas): inscrições terminaram em 11/11 às 23h59 segundo o registro; a home oficial, lida em 16/11, ainda exibe a chamada 'Últimos dias para se inscrever', sem data nem menção a prorrogação; edital e data de prova não lidos."},
+   "trt8_edital_verificar": {"texto": "TRT8 edital 1/2026 (FCC): inscrições encerradas em 05/11, convocação prevista para 08/12 e prova em 17/01/2027, tudo só em secundárias; oficial bloqueada pela rede.", "faixa": "longo_prazo"},
+   "trf3_apoio_verificar": {"texto": "TRF3 Analista/Técnico (Vunesp, Edital 01/2026): inscrições de 04/11 a 23/11 (23h59) e prova prevista para 31/01/2027 segundo secundárias; PDF oficial do edital localizado pelo buscador, mas não lido (página do TRF3 bloqueada pela rede)."},
+   "dpe_pb_apoio_verificar": {"texto": "DPE-PB Analista/Técnico (FCC): inscrições encerradas em 13/11 às 23h59 segundo secundárias, sem prorrogação localizada; prova em 28/02/2027; site oficial e FCC não lidos.", "faixa": "longo_prazo"},
+   "pgm_campinas_setec_verificar": {"texto": "SETEC Campinas/SP — Procurador (Edital 02/2026): 1 vaga + cadastro de reserva e inscrições até 04/12 segundo resumo de buscador com redação inconsistente; sem fonte oficial.", "faixa": "ativa", "politica": "Confirmar no edital oficial/banca; promover selo só com fonte oficial; não confirmado em 2 execuções: remover o registro."}
+  },
+  "concursos": {
+   "tjap_juiz": {"selo": "INSCRIÇÕES ENCERRADAS", "linha": "TJAP — Juiz de Direito Substituto: banca FGV, 15 vagas + cadastro de reserva, taxa R$ 358,77, subsídio R$ 35.877,27; inscrições encerradas em 13/11 às 16h, conforme o edital na página da FGV; em 13/11 a banca publicou o resultado definitivo da análise dos pedidos de isenção da taxa (candidatos indeferidos); prova objetiva prevista para 24/01/2027", "prazos": [{"data": "2027-01-24", "evento": "prova objetiva (prevista)", "confirmado": true}], "verificado_em": "2026-11-16", "fonte": "https://conhecimento.fgv.br/concursos/tjap26"},
+   "tjpb_apoio": {"selo": "ENCERRA EM BREVE", "verificado_em": "2026-11-16"},
+   "tjsc_juiz": {"verificado_em": "2026-11-16"},
+   "tjrs_juiz": {"verificado_em": "2026-11-16"},
+   "trf5_juiz": {"verificado_em": "2026-11-16"},
+   "dpe_pb_apoio": {"selo": "PENDÊNCIA DE VERIFICAÇÃO", "linha": "DPE-PB — Analista e Técnico da Defensoria: Edital nº 01/2026, FCC; inscrições encerradas em 13/11 às 23h59 segundo secundárias, sem prorrogação localizada; remuneração de R$ 4.042,50 (técnico) e R$ 5.197,50 (analista); vagas divergem entre secundárias (20 x 13); prova objetiva em 28/02/2027; só fontes secundárias", "prazos": [{"data": "2027-02-28", "evento": "prova objetiva (fonte secundária)", "confirmado": false}], "verificado_em": "2026-11-16", "fonte": "https://www.aprovaconcursos.com.br/noticias/?p=167290"},
+   "trf3_apoio": {"selo": "PENDÊNCIA DE VERIFICAÇÃO", "linha": "TRF3 — Analista e Técnico Judiciário (Vunesp, Edital 01/2026): 11 vagas imediatas + CR; taxas R$ 160 (analista) e R$ 100 (técnico); salários de R$ 9.776,73 a R$ 20.013,11; inscrições das 10h de 04/11 às 23h59 de 23/11, com pagamento até 24/11; prova prevista para 31/01/2027 — tudo segundo fontes secundárias (confirmação oficial pendente)", "prazos": [{"data": "2026-11-23", "evento": "fim das inscrições, 23h59 (fonte secundária)", "confirmado": false}, {"data": "2027-01-31", "evento": "prova (fonte secundária)", "confirmado": false}], "verificado_em": "2026-11-16", "fonte": "https://www.dgabc.com.br/Noticia/4365063/concurso-trf-3-veja-prazos-salarios-de-ate-rs-20-mil-e-como-se-inscrever"},
+   "trt8_apoio": {"linha": "TRT8 — Analista e Técnico Judiciário: edital 1/2026 (DOU 02/10), FCC, taxas R$ 110/R$ 90; inscrições de 05/10 a 05/11, encerradas segundo secundárias; edital de convocação previsto para 08/12/2026 e prova objetiva em 17/01/2027 (secundárias); página oficial bloqueada pela rede", "prazos": [{"data": "2026-12-08", "evento": "edital de convocação para as provas (previsto, fonte secundária)", "confirmado": false}, {"data": "2027-01-17", "evento": "prova (fonte secundária)", "confirmado": false}], "verificado_em": "2026-11-16", "fonte": "https://folha.qconcursos.com/n/concurso-trt8-edital-2026"},
+   "pgm_suzano": {"verificado_em": "2026-11-16"},
+   "dpe_sp": {"linha": "DPE-SP — X concurso de Defensor: 70 vagas, remuneração inicial R$ 29.716,00, taxa R$ 250, banca FCC; inscrições terminaram em 11/11 às 23h59 (boleto até 12/11) segundo o registro; a home oficial, lida em 16/11, ainda exibe a chamada 'Últimos dias para se inscrever', sem data nem menção a prorrogação; prova objetiva em 10/01/2027 só em secundária; edital não lido", "verificado_em": "2026-11-16"},
+   "agu": {"linha": "AGU/PFN — 170 vagas autorizadas (50 AGU, 50 PFN, 50 Procurador Federal e 20 Procurador do Bacen); banca organizadora ainda indefinida; banca examinadora citada por secundárias com numeração divergente (Portaria CSAGU/AGU nº 7 x Portaria AGU nº 369, ambas de 14/10, não lidas); edital previsto até o fim de 2026", "verificado_em": "2026-11-16"},
+   "alepa_procurador": {"verificado_em": "2026-11-16"},
+   "pge_rs": {"verificado_em": "2026-11-16"},
+   "pge_rj": {"verificado_em": "2026-11-16"},
+   "pge_ma": {"linha": "PGE-MA — Procurador: comissão formada (Portaria 269/2025); 10 vagas + 50 de cadastro de reserva para Procurador de 2ª classe e edital esperado 'até dia 20', segundo blogs de 10-11/11 (data não confirmada); banca indefinida", "selo": "EM PLANEJAMENTO", "verificado_em": "2026-11-16", "fonte": "https://cj.estrategia.com/portal/?p=72283"},
+   "alego_procurador": {"linha": "ALEGO (Goiás) — Procurador: presidente da Assembleia teria assinado a comissão do novo concurso, com edital em breve, segundo blog de 10-11/11; remuneração inicial R$ 37.259,71; banca não informada", "selo": "EM PLANEJAMENTO", "verificado_em": "2026-11-16", "fonte": "https://cj.estrategia.com/portal/?p=72283"},
+   "mpsp_oficial": {"bloco": "Quadro de apoio", "linha": "MP-SP — Oficial de Promotoria I: concurso autorizado exclusivamente para cadastro de reserva; comissão formada pelo Aviso nº 851/2026-PGJ (09/11) elabora o edital e escolhe a banca, segundo secundárias; sem vagas, remuneração ou taxa", "selo": "EM PLANEJAMENTO", "prazos": [], "verificado_em": "2026-11-16", "fonte": "https://folha.qconcursos.com/n/concurso-mp-sp-2026-oficial-promotoria-aval-comissao"},
+   "mppa_apoio": {"bloco": "Quadro de apoio", "linha": "MP-PA — servidores: uma secundária diz que o órgão confirmou edital em novembro, com a CETAP como banca; outra lista edital não publicado e banca a definir; sem vagas nem datas", "selo": "EM PLANEJAMENTO", "prazos": [], "verificado_em": "2026-11-16", "fonte": "https://www.estrategiaconcursos.com.br/blog/concurso-mp-pa-edital-sera-publicado-em-novembro/amp/"},
+   "mprj_promotor": {"bloco": "Promotor de Justiça (Estadual)", "linha": "MP-RJ — Promotor de Justiça (XL Concurso): coordenação executiva definida e regulamento divulgado, segundo secundária; banca a definir; sem edital", "selo": "EM PLANEJAMENTO", "prazos": [], "verificado_em": "2026-11-16", "fonte": "https://folha.qconcursos.com/n/concurso-mp-rj-promotor-coordenacao-executiva-2026"},
+   "pgm_campinas_setec": {"bloco": "Procurador do Município (PGM)", "linha": "SETEC Campinas/SP — Procurador (Edital 02/2026): 1 vaga + cadastro de reserva, exigida OAB ativa; inscrições até 04/12/2026 segundo fonte secundária de redação inconsistente; banca, taxa e remuneração não vistas; sem fonte oficial", "selo": "PENDÊNCIA DE VERIFICAÇÃO", "prazos": [{"data": "2026-12-04", "evento": "fim das inscrições (fonte secundária, a verificar)", "confirmado": false}], "verificado_em": "2026-11-16", "fonte": "https://tribunadejundiai.com.br/economia/concursos/concurso-setec-campinas/", "pendencia": "pgm_campinas_setec_verificar"}
+  },
+  "armadilhas_detectadas": ["banca_edital_antigo", "websearch_data"]
+ }
+}

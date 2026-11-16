@@ -4,7 +4,8 @@
 # historico da newsletter "Robozinho dos Momozis ate Passar", para uso
 # no ambiente de nuvem (Linux) das rotinas agendadas.
 #
-# Replica fielmente work/Update-Historico.ps1 (PowerShell/Windows):
+# Nasceu como porte do antigo helper PowerShell (Update-Historico.ps1, do
+# ambiente Windows; nao esta neste repositorio) e hoje e a unica versao:
 # reconciliacao de entrega, anti-duplicata por execution_id,
 # arquivamento (max_execucoes), gravacao UTF-8 sem BOM, deteccao de
 # mojibake e emissao de robozinho-estado.json.
@@ -42,6 +43,34 @@
 #   ledger_updates : campo da nova execucao com as decisoes de julgamento do
 #                    ledger (notas, pendencias, concursos, armadilhas),
 #                    aplicadas aqui junto com os contadores — sem Edit manual.
+#                    Validados (so nos campos tocados) contra o padrao de prova:
+#                    selo de concurso da lista propria; selo que promove ou
+#                    prazo confirmado so com fonte oficial (selos.py); remover
+#                    exige desfecho; concurso novo exige fonte http; linha sem
+#                    "hoje/amanha/ontem"; verificado_em ate a data da janela;
+#                    url_oficial e dominio_oficial escritos so oficiais. AVISOs:
+#                    DIVERGE DO REGISTRO nao corrigido; selo escrito que
+#                    contradiz o selo por data.
+#   Migracao     : regra de armadilha que o codigo tornou falsa e reescrita
+#                    (REGRAS_ATUALIZADAS; so se o texto atual for o antigo,
+#                    idempotente; o inicio.py aplica o mesmo em memoria).
+#   Mecanico (o orquestrador nao escreve): carimbo da banca lida hoje
+#                    (verificado_em/fonte/dominio_oficial, bancas.carimbos; nunca
+#                    no registro que ainda DIVERGE DO REGISTRO), selo por data
+#                    (selos.selo_por_data, nunca sobre selo escrito hoje; o selo
+#                    copiado igual ao do registro sai do update antes: nao e
+#                    decisao — marca `selos_copiados` na execucao),
+#                    mudou_em dos concursos, URLs vistas na banca
+#                    (work/concursos-estado.json), status das fontes lidas por
+#                    script ($ROBOZINHO_TMP/fontes_status.json).
+#   --refazer      : os ledger_updates da re-execucao sao aplicados de novo
+#                    (upsert idempotente); so os contadores ficam 1 vez por
+#                    execution_id.
+#   Entrega        : "sent" so com --reconciliar-message-id (prova do in:sent);
+#                    sem ela, fica "draft" com delivery_check e ALERTA.
+#   Uso            : custo_relativo do orquestrador (medir_uso.py); ALERTA_ECONOMIA
+#                    acima de 1,3x a mediana das ultimas 10; ALERTA de troca de modelo.
+# Temporarios em $ROBOZINHO_TMP (padrao /tmp).
 # =====================================================================
 
 import argparse
@@ -51,6 +80,10 @@ import re
 import sys
 import unicodedata
 from datetime import datetime, date
+
+import selos
+
+TMP = os.environ.get("ROBOZINHO_TMP", "/tmp")
 
 CATEGORIAS = [
     "Planalto/Legislação", "STF Notícias", "STF Jurisprudência", "STJ Notícias",
@@ -146,14 +179,14 @@ DESTINATARIOS = ["pereirafranciscofilho@gmail.com", "luizaxbarreto@gmail.com"]
 
 
 def completar_cabecalho(ex, caminho_janela):
-    """Campos deterministicos vem do inicio.py (/tmp/janela.json), nao do
+    """Campos deterministicos vem do inicio.py ($ROBOZINHO_TMP/janela.json), nao do
     orquestrador: menos saida e nenhum erro de digitacao em data ou janela."""
     if not caminho_janela or not os.path.exists(caminho_janela):
         return []
     j = read_json(caminho_janela)
     if ex.get("execution_id") and ex["execution_id"] != j.get("execution_id"):
         return []          # execucao de outro dia (ex.: reprocessamento): nao mistura
-    mapa = {"execution_id": j.get("execution_id"), "date": j.get("data"), "type": "diaria",
+    mapa = {"execution_id": j.get("execution_id"), "date": j.get("data"), "type": j.get("tipo") or "diaria",
             "timezone": "America/Sao_Paulo", "window_start": j.get("inicio"),
             "window_end": j.get("fim"), "run_started_at": j.get("fim"),
             "email_subject": j.get("assunto"), "recipients": DESTINATARIOS}
@@ -202,8 +235,9 @@ CAMPOS_EDITAVEIS = {
     "fontes": {"nota", "status"},
     "pendencias": {"texto", "faixa", "politica", "coletor", "dominio_oficial", "remover", "desfecho"},
     "concursos": {"bloco", "linha", "selo", "prazos", "fonte", "verificado_em",
-                  "dominio_oficial", "pendencia", "remover", "desfecho"},
+                  "dominio_oficial", "pendencia", "url_oficial", "remover", "desfecho"},
 }
+# mecanicos (gravados so por este helper): concursos.mudou_em; fontes: ultimo_sucesso, sem_sucesso...
 OBRIGATORIOS_NOVO = {"pendencias": ("texto", "faixa"),
                      "concursos": ("bloco", "linha", "selo", "verificado_em")}
 LISTA_DO_LEDGER = {"fontes": "fontes", "pendencias": "pendencias_vivas", "concursos": "concursos"}
@@ -237,8 +271,10 @@ def pendencias_estouradas(upd, led):
     return erros
 
 
-def validar_ledger_updates(upd, led):
-    """Erros de forma do campo ledger_updates. Nada e aplicado aqui."""
+def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
+    """Erros do campo ledger_updates (forma e padrao de prova, so nos campos tocados). Nada e
+    aplicado aqui. hoje = data da janela (AAAA-MM-DD); ex_id = execution_id (re-aplicacao do
+    mesmo dia: armadilha nova ja gravada nao e erro); carimbos = bancas.carimbos() de hoje."""
     if not upd:
         return pendencias_estouradas({}, led)
     if not isinstance(upd, dict):
@@ -249,12 +285,17 @@ def validar_ledger_updates(upd, led):
         if k not in secoes:
             erros.append("ledger_updates: secao desconhecida %r (use %s)" % (k, ", ".join(sorted(secoes))))
     niveis = set((led.get("niveis_de_esforco") or {}).keys()) | {"indisponivel"}
+    reaplicacao = bool(ex_id) and led.get("atualizado_por_execucao") == ex_id
+    pend_upd = upd.get("pendencias") if isinstance(upd.get("pendencias"), dict) else {}
+    pend_ids = ({p.get("id") for p in led.get("pendencias_vivas") or []}
+                | {i for i, c in pend_upd.items() if isinstance(c, dict) and not c.get("remover")}) \
+        - {i for i, c in pend_upd.items() if isinstance(c, dict) and c.get("remover")}
     for secao, nome_lista in LISTA_DO_LEDGER.items():
         bloco = upd.get(secao) or {}
         if not isinstance(bloco, dict):
             erros.append("ledger_updates.%s deve ser {id: {campos}}" % secao)
             continue
-        existentes = {x.get("id") for x in led.get(nome_lista) or []}
+        por_id = {x.get("id"): x for x in led.get(nome_lista) or []}
         for ident, campos in bloco.items():
             rot = "ledger_updates.%s.%s" % (secao, ident)
             if not isinstance(campos, dict):
@@ -262,14 +303,19 @@ def validar_ledger_updates(upd, led):
                 continue
             extras = set(campos) - CAMPOS_EDITAVEIS[secao]
             if extras:
-                erros.append("%s: campos nao editaveis %s (contadores sao mecanicos)" % (rot, sorted(extras)))
-            if ident not in existentes:
+                erros.append("%s: campos nao editaveis %s (contadores e carimbos sao mecanicos)" % (rot, sorted(extras)))
+            novo = ident not in por_id
+            if novo:
+                if campos.get("remover") and reaplicacao and campos.get("desfecho"):
+                    continue            # ja removido na 1a aplicacao desta mesma execucao
                 if secao == "fontes" or campos.get("remover"):
                     erros.append(rot + ": id inexistente no ledger")
                     continue
                 falta = [c for c in OBRIGATORIOS_NOVO[secao] if not campos.get(c)]
                 if falta:
                     erros.append("%s: id novo exige %s" % (rot, ", ".join(falta)))
+            if campos.get("remover") and secao in ("concursos", "pendencias") and not campos.get("desfecho"):
+                erros.append("%s: remover exige desfecho (o que aconteceu, dito na edição)" % rot)
             for c, lim in LIMITE.items():
                 v = campos.get(c)
                 if isinstance(v, str) and len(v) > lim:
@@ -283,13 +329,55 @@ def validar_ledger_updates(upd, led):
                 erros.append("%s.selo: %r fora da lista fechada" % (rot, campos["selo"]))
             if "bloco" in campos and campos["bloco"] not in BLOCOS:
                 erros.append("%s.bloco: %r fora de %s" % (rot, campos["bloco"], " | ".join(BLOCOS)))
-            if "verificado_em" in campos and not _data_iso(campos["verificado_em"]):
-                erros.append("%s.verificado_em: use AAAA-MM-DD" % rot)
+            if "verificado_em" in campos:
+                if not _data_iso(campos["verificado_em"]):
+                    erros.append("%s.verificado_em: use AAAA-MM-DD" % rot)
+                elif hoje and campos["verificado_em"] > hoje:
+                    erros.append("%s.verificado_em: %s depois da data da janela (%s)" % (rot, campos["verificado_em"], hoje))
             for n, p in enumerate(campos.get("prazos") or []):
                 if not (isinstance(p, dict) and _data_iso(p.get("data")) and p.get("evento")
                         and isinstance(p.get("confirmado"), bool)):
                     erros.append("%s.prazos[%d]: use {data: AAAA-MM-DD, evento, confirmado: "
                                  "true|false}" % (rot, n))
+                elif "tipo" in p and p["tipo"] not in selos.TIPOS_PRAZO:
+                    erros.append("%s.prazos[%d].tipo: %r fora de %s" % (rot, n, p["tipo"], "/".join(selos.TIPOS_PRAZO)))
+            if secao != "concursos" or campos.get("remover"):
+                continue
+            # ---- padrao de prova do concurso (so o que este update toca; o legado continua passando)
+            if "selo" in campos and campos["selo"] in SELOS and campos["selo"] not in selos.SELOS_CONCURSO:
+                erros.append("%s.selo: %r nao e selo de concurso (use %s)" % (rot, campos["selo"],
+                                                                         ", ".join(selos.SELOS_CONCURSO)))
+            mesclado = dict(por_id.get(ident) or {})
+            mesclado.update((carimbos or {}).get(ident) or {})
+            mesclado.update(campos)
+            promove = campos.get("selo") in selos.SELOS_EXIGEM_OFICIAL
+            confirma = any(isinstance(p, dict) and p.get("confirmado") is True for p in campos.get("prazos") or [])
+            if (promove or confirma) and not selos.fonte_oficial(mesclado.get("fonte"), mesclado.get("dominio_oficial")):
+                erros.append("%s: %s exige fonte oficial em `fonte` (órgão .jus/.gov/.leg/.mp/.def.br ou banca "
+                             "organizadora); fonte atual %r — fonte secundária: PENDÊNCIA DE VERIFICAÇÃO e "
+                             "confirmado: false" % (rot, ("selo " + campos["selo"]) if promove else "prazo confirmado",
+                                                    mesclado.get("fonte")))
+            if novo and not str(campos.get("fonte") or "").startswith("http"):
+                erros.append("%s: concurso novo exige `fonte` com a URL (http...) da evidência" % rot)
+            # E9: o dominio_oficial/url_oficial escritos hoje tambem sao padrao de prova (o paginas_oficiais.py
+            # rotula a url_oficial de PAGINA OFICIAL; o inicio.py manda o coletor ler o dominio_oficial)
+            uo = campos.get("url_oficial")
+            if uo and not (str(uo).startswith("http") and selos.fonte_oficial(str(uo))):
+                erros.append("%s.url_oficial: %r não é página oficial (http de órgão .jus/.gov/.leg/.mp/.def.br ou de "
+                             "banca de selos.BANCAS_OFICIAIS) — o paginas_oficiais.py a leria como PAGINA OFICIAL; "
+                             "deixe sem url_oficial" % (rot, uo))
+            do = campos.get("dominio_oficial")
+            if do and not selos.dominio_oficial(selos.host(str(do))):
+                erros.append("%s.dominio_oficial: %r não é domínio oficial (órgão .jus/.gov/.leg/.mp/.def.br ou banca "
+                             "de selos.BANCAS_OFICIAIS) — não sustenta selo nem prazo confirmado; deixe sem ou use o "
+                             "do órgão/banca" % (rot, do))
+            rel = selos.relativos(campos.get("linha"))
+            if rel:
+                erros.append("%s.linha: termo relativo %s envelhece no registro — escreva a data (DD/MM)"
+                             % (rot, "/".join(rel)))
+            if campos.get("pendencia") and campos["pendencia"] not in pend_ids:
+                erros.append("%s.pendencia: %r nao existe em pendencias_vivas (nem e criada neste update)"
+                             % (rot, campos["pendencia"]))
     ativas = {x.get("id") for x in led.get("armadilhas") or []}
     erros += pendencias_estouradas(upd, led)
     for ident in upd.get("armadilhas_detectadas") or []:
@@ -299,7 +387,8 @@ def validar_ledger_updates(upd, led):
         if not isinstance(x, dict) or not all(x.get(c) for c in ("id", "fonte", "sintoma", "regra")):
             erros.append("ledger_updates.armadilhas_novas[%d]: exige id, fonte, sintoma, regra" % n)
         elif x["id"] in ativas:
-            erros.append("ledger_updates.armadilhas_novas: %r ja existe — use armadilhas_detectadas" % x["id"])
+            if not reaplicacao:         # mesma execucao de novo (--refazer, finalizar repetido): ja gravada
+                erros.append("ledger_updates.armadilhas_novas: %r ja existe — use armadilhas_detectadas" % x["id"])
         else:
             for c in ("sintoma", "regra"):
                 if len(x[c]) > LIMITE[c]:
@@ -307,18 +396,173 @@ def validar_ledger_updates(upd, led):
     return erros
 
 
-def aplicar_updates(led, upd, hoje, add_log):
+def avisos_ledger_updates(upd, led, hoje, banca_res=None):
+    """Avisos (nao travam): nota de fonte usada como diario do dia; movimento da banca nao refletido."""
+    avisos = []
+    upd = upd if isinstance(upd, dict) else {}
+    try:
+        dm = date.fromisoformat(hoje).strftime("%d/%m") if hoje else ""
+    except ValueError:
+        dm = ""
+    fontes = {f.get("id"): f for f in led.get("fontes") or []}
+    for fid, campos in (upd.get("fontes") or {}).items():
+        if not isinstance(campos, dict) or not dm or dm not in str(campos.get("nota") or ""):
+            continue
+        if campos.get("status") in (None, (fontes.get(fid) or {}).get("status")):
+            avisos.append("ledger_updates.fontes.%s.nota: traz a data de hoje (%s) sem mudança de status — a nota é "
+                          "regra para a próxima execução, não diário (o resultado do dia vai para verification_notes; "
+                          "o status técnico dos scripts já vem do fontes_status.json)" % (fid, dm))
+    conc = upd.get("concursos") if isinstance(upd.get("concursos"), dict) else {}
+    por_id = {c.get("id"): c for c in led.get("concursos") or []}
+    avisos += avisos_selo_escrito(conc, por_id, hoje, banca_res)
+    avisos += avisos_tipo_prazo(conc, por_id, hoje, banca_res)
+    if banca_res:
+        import bancas
+        for ident, arqs in bancas.novos_por_registro(banca_res).items():
+            u = conc.get(ident) or {}
+            if not (any(k in u for k in ("linha", "prazos", "remover")) or selos.selo_escrito(u, por_id.get(ident))):
+                avisos.append("banca FGV com arquivo novo em %s (%s) e ledger_updates.concursos.%s não toca linha/"
+                              "prazos/selo — movimento oficial não refletido no registro%s" % (
+                                  ident, "; ".join("%s %s" % (bancas.dm(a.get("data_efetiva") or a["data"]),
+                                                              a["titulo"][:60]) for a in arqs[:3]), ident,
+                                  "" if bancas.base_dos_novos(banca_res, ident) == "urls_vistas" else
+                                  " (1ª leitura sem URLs vistas: se a linha já traz esse fato, ignore)"))
+        try:
+            pend = bancas.divergencias_pendentes(banca_res, list(por_id.values()), hoje, conc)
+        except (KeyError, ValueError, TypeError):
+            pend = {}
+        for ident, d in sorted(pend.items()):
+            avisos.append('DIVERGE DO REGISTRO em %s: edital "%s" × registro "%s" — corrija prazos/linha em '
+                          "ledger_updates.concursos.%s (movimento oficial não refletido no registro; sem o carimbo "
+                          "de verificação da banca hoje)" % (ident, d["edital"][:170], d["registro"][:120], ident))
+    return avisos
+
+
+def avisos_selo_escrito(conc, por_id, hoje, banca_res=None):
+    """Selo da familia de datas ESCRITO hoje (selos.selo_escrito: difere do selo do registro) que contradiz o
+    selo por data calculado sobre o registro mesclado: o escrito prevalece, entao avisa (acionavel)."""
+    out = []
+    if not hoje:
+        return out
+    import bancas
+    try:
+        car = bancas.carimbos(banca_res, list(por_id.values()), hoje, upd=conc) if banca_res else {}
+    except (KeyError, ValueError, TypeError):
+        car = {}
+    for ident, u in sorted(conc.items()):
+        if not selos.selo_escrito(u, por_id.get(ident)) or u["selo"] not in selos.FAMILIA_DATA:
+            continue
+        reg = dict(por_id.get(ident) or {})
+        reg.update({k: v for k, v in (car.get(ident) or {}).items() if k not in u})
+        reg.update({k: v for k, v in u.items() if k != "desfecho"})
+        try:
+            x = (bancas.contexto_selos(banca_res, [reg], hoje, {ident: u}) if banca_res else {}).get(ident) or {}
+        except (KeyError, ValueError, TypeError):
+            x = {}
+        novo, motivo = selos.selo_por_data(reg, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                           ultima_retificacao=x.get("ultima_retificacao"),
+                                           inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        if novo != u["selo"]:
+            out.append("ledger_updates.concursos.%s.selo: %r escrito hoje contradiz o selo por data %r (%s) — o "
+                       "escrito prevalece no e-mail e no registro; se não foi decisão, escreva %r ou tire o selo do "
+                       "update, ou corrija os prazos" % (ident, u["selo"], novo, (motivo or "").split(": ", 1)[-1],
+                                                         novo))
+    return out
+
+
+CLASSE_INSCRICAO = {"inscricoes_fim": "o fim das inscrições", "inscricoes_inicio": "o início das inscrições"}
+
+
+def avisos_tipo_prazo(conc, por_id, hoje, banca_res=None):
+    """`prazos[n].tipo` escrito hoje que esconde um prazo de inscricao (selos.tipo_contradiz_evento: o `evento`,
+    pelo texto, e o fim/inicio das inscricoes e o tipo diz outra classe, ex.: 'outro' em "fim das inscrições,
+    16h (prorrogado)"). O tipo prevalece: o selo por data, o rebaixamento e o DIVERGE ignoram o prazo, e o
+    leitor via INSCRIÇÕES ABERTAS para inscricao que acaba em 2 dias, sem aviso. Nao muda nada (o tipo pode ser
+    decisao: o regex do evento erra); diz o que a data daria com a classe do evento, sobre o registro mesclado
+    (atual + carimbo da banca + update). Mesmo texto e mesma chave (id, n) do montador (tipo_contra_evento),
+    que tira este AVISO do --validar quando da o seu para o mesmo prazo."""
+    out = []
+    if not hoje:
+        return out
+    import bancas
+    try:
+        car = bancas.carimbos(banca_res, list(por_id.values()), hoje, upd=conc) if banca_res else {}
+    except (KeyError, ValueError, TypeError):
+        car = {}
+    for ident, u in sorted(conc.items()):
+        if not isinstance(u, dict) or u.get("remover") or not isinstance(u.get("prazos"), list):
+            continue
+        for n, p in enumerate(u["prazos"]):
+            pelo_evento = selos.tipo_contradiz_evento(p)
+            if not pelo_evento:
+                continue
+            daria = ""
+            if ident in por_id:
+                reg = dict(por_id[ident])
+                reg.update({k: v for k, v in (car.get(ident) or {}).items() if k not in u})
+                reg.update({k: v for k, v in u.items() if k != "desfecho"})
+                alt = dict(reg, prazos=[dict(q, tipo=pelo_evento) if i == n and isinstance(q, dict) else q
+                                        for i, q in enumerate(u["prazos"])])
+                try:
+                    x = (bancas.contexto_selos(banca_res, [reg], hoje, {ident: u}) if banca_res else {}).get(ident) or {}
+                    novo, motivo = selos.selo_por_data(alt, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                                       ultima_retificacao=x.get("ultima_retificacao"),
+                                                       inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+                except (KeyError, ValueError, TypeError, AttributeError):
+                    novo, motivo = reg.get("selo"), None
+                if novo != reg.get("selo") and motivo:
+                    porque = motivo.split(": ", 1)[-1].split(": ")[0].split(" — ")[0]
+                    daria = " (com '%s', o selo por data daria '%s': %s)" % (pelo_evento, novo, porque)
+            out.append("ledger_updates.concursos.%s.prazos[%d].tipo: %r num prazo cujo evento é %s («%s») — com "
+                       "esse tipo o selo por data ignora o prazo%s; se é %s, escreva tipo '%s' ou omita o tipo; "
+                       "se não é, aceite o aviso" % (
+                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], str(p.get("evento") or "")[:80],
+                           daria, CLASSE_INSCRICAO[pelo_evento], pelo_evento))
+    return out
+
+
+def retirar_selos_copiados(upd, led):
+    """Selo do update IGUAL ao do registro (copia da linha, nao decisao) sai de ledger_updates.concursos, para o
+    selo por data valer no helper como no montador (selos.selo_escrito). Devolve os ids (None sem concursos).
+    O helper o faz uma vez por arquivo (marca `selos_copiados`): na reaplicacao da mesma entrada (finalizar
+    repetido) o registro ja traz o selo decidido, e compara-lo de novo apagaria a decisao."""
+    conc = upd.get("concursos") if isinstance(upd, dict) else None
+    if not isinstance(conc, dict):
+        return None
+    por_id = {c.get("id"): c for c in led.get("concursos") or []}
+    ids = []
+    for ident, u in conc.items():
+        if isinstance(u, dict) and "selo" in u and not u.get("remover") and ident in por_id \
+                and not selos.selo_escrito(u, por_id[ident]):
+            del u["selo"]
+            ids.append(ident)
+    return sorted(ids)
+
+
+def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
     """Aplica ledger_updates (ja validado). Antes dos contadores, para que
-    pendencia criada hoje ja conte a execucao e removida nao gere aviso."""
+    pendencia criada hoje ja conte a execucao e removida nao gere aviso.
+    Idempotente: aplicado de novo (--refazer, finalizar repetido) nao duplica nada.
+    Concursos: `mudou_em` = hoje quando linha/selo/prazos mudam (ou o registro nasce).
+    retirar_copias: antes de aplicar, tira de `upd` (no lugar) o selo igual ao do registro (copia, nao
+    decisao: o selo por data vale depois). False quando a entrada ja veio normalizada (marca
+    `selos_copiados`), porque o ledger ja traz o selo decidido e a comparacao apagaria a decisao."""
     if not upd:
         return
+    if retirar_copias:
+        retirar_selos_copiados(upd, led)
+    removidas = []
     for secao, nome_lista in LISTA_DO_LEDGER.items():
         for ident, campos in (upd.get(secao) or {}).items():
             lista = led.setdefault(nome_lista, [])
             if campos.get("remover"):
+                antes = len(lista)
                 led[nome_lista] = [x for x in lista if x.get("id") != ident]
-                add_log("Ledger: %s %s removida%s" % (secao, ident, (" — " + campos["desfecho"])
-                                                      if campos.get("desfecho") else ""))
+                if len(led[nome_lista]) != antes:
+                    add_log("Ledger: %s %s removida%s" % (secao, ident, (" — " + campos["desfecho"])
+                                                          if campos.get("desfecho") else ""))
+                if secao == "pendencias":
+                    removidas.append(ident)
                 continue
             alvo = next((x for x in lista if x.get("id") == ident), None)
             if alvo is None:
@@ -329,8 +573,16 @@ def aplicar_updates(led, upd, hoje, add_log):
                 acao = "criada"
             else:
                 acao = "atualizada"
+            antes = dict(alvo)
             alvo.update({c: v for c, v in campos.items() if c not in ("remover", "desfecho")})
+            if secao == "concursos" and (acao == "criada" or selos.mudou(antes, alvo)):
+                alvo["mudou_em"] = hoje
             add_log("Ledger: %s %s %s (%s)" % (secao, ident, acao, ", ".join(sorted(campos))))
+    for ident in removidas:              # vinculo do concurso com a pendencia removida
+        for c in led.get("concursos") or []:
+            if ident and c.get("pendencia") == ident:
+                del c["pendencia"]
+                add_log("Ledger: concurso %s sem a pendencia %s (removida)" % (c.get("id"), ident))
     ativas = {x.get("id"): x for x in led.get("armadilhas") or []}
     for ident in upd.get("armadilhas_detectadas") or []:
         x = ativas[ident]
@@ -346,14 +598,94 @@ def aplicar_updates(led, upd, hoje, add_log):
             x["detectado_em_ultimas"] = (ult + [hoje])[-3:]
             add_log("Ledger: armadilha %s detectada de novo (%d)" % (ident, x["detectado_em_qtd"]))
     for x in upd.get("armadilhas_novas") or []:
+        if x.get("id") in ativas:              # re-aplicacao da mesma execucao
+            continue
         novo = dict(x)
         novo.update({"detectado_em_qtd": 1, "detectado_em_primeira": hoje, "detectado_em_ultimas": [hoje]})
         led.setdefault("armadilhas", []).append(novo)
+        ativas[x["id"]] = novo
         add_log("Ledger: armadilha nova %s" % x["id"])
 
 
+def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
+    """Depois dos ledger_updates: carimbo da banca lida hoje e selo por data (nunca sobre selo
+    escrito hoje). Idempotente. Devolve o numero de registros alterados."""
+    import bancas
+    conc = (upd or {}).get("concursos") or {}
+    regs = led.get("concursos") or []
+    n = 0
+    hj = date.fromisoformat(hoje)
+    if banca_res:      # o registro que ainda DIVERGE DO REGISTRO (nao corrigido hoje) nao e carimbado
+        for ident, campos in bancas.carimbos(banca_res, regs, hj, upd=conc).items():
+            reg = next((c for c in regs if c.get("id") == ident), None)
+            u = conc.get(ident) or {}
+            campos = {k: v for k, v in campos.items() if k not in u}   # o julgamento de hoje prevalece
+            if reg is None or not campos:
+                continue
+            reg.update(campos)
+            n += 1
+            add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
+    ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
+    for reg in regs:
+        u = conc.get(reg.get("id")) or {}
+        if "selo" in u:
+            # selo escrito hoje pelo orquestrador: nunca sobrescrever. A copia do selo inalterado ja saiu do
+            # update em main() (retirar_selos_copiados, contra o registro de antes): o que sobra e decisao.
+            continue
+        x = ctx.get(reg.get("id")) or {}
+        selo, motivo = selos.selo_por_data(reg, hj, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                           ultima_retificacao=x.get("ultima_retificacao"),
+                                           inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        if selo != reg.get("selo"):
+            reg["selo"] = selo
+            reg["mudou_em"] = hoje
+            n += 1
+            add_log("AVISO: selo por data: %s %s" % (reg.get("id"), motivo))
+        elif motivo:
+            add_log("ALERTA: %s: %s" % (reg.get("id"), motivo))
+    return n
+
+
+def ler_banca(caminho, hoje):
+    """$ROBOZINHO_TMP/bancas.json de HOJE (o inicio.py grava `data`); outro dia ou ausente = None."""
+    try:
+        res = read_json(caminho)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(res, dict) or res.get("data") != hoje:
+        return None
+    return res
+
+
+DO_SCRIPT = set()          # ids de fonte cujo status veio do fontes_status.json nesta rodada
+
+
+def mesclar_fontes_status(ex, caminho, add_log):
+    """Status das fontes lidas por script ($ROBOZINHO_TMP/fontes_status.json, gravado por coleta_web,
+    informativos e versiculo): preenche o source_status; o do script prevalece sobre o escrito a mao.
+    Entradas de outra execucao (execution_id diferente) sao descartadas."""
+    try:
+        import aguardar_coleta
+        st = aguardar_coleta.ler_fontes_status(caminho, ex.get("execution_id"))
+    except Exception as e:  # noqa: BLE001 — acessorio
+        add_log("AVISO: fontes_status.json nao lido (%s)" % e)
+        return
+    if not st:
+        return
+    ss = ex.setdefault("source_status", {})
+    for fid, v in sorted(st.items()):
+        status = (v or {}).get("status")
+        if status not in STATUS_FONTE:
+            continue
+        DO_SCRIPT.add(fid)
+        if fid in ss and ss[fid] != status:
+            add_log("AVISO: source_status[%s]: %r escrito, %r do script (%s) — vale o do script"
+                    % (fid, ss[fid], status, (v or {}).get("detalhe", "")[:80]))
+        ss[fid] = status
+
+
 def medir_e_preencher(ex, add_log):
-    """Uso real (tokens processados, chamadas, modelo servido) do orquestrador
+    """Uso real (tokens por tipo, chamadas, modelo servido, custo relativo) do orquestrador
     e dos coletores, lido das transcricoes locais. Falha so gera aviso."""
     try:
         import medir_uso
@@ -369,10 +701,53 @@ def medir_e_preencher(ex, add_log):
         col.setdefault(nome, {}).update(u)
     if m.get("orquestrador"):
         ex["orquestrador"] = m["orquestrador"]
-    resumo = ["%s=%s/%dk" % (n, (u.get("modelo") or "?").replace("claude-", ""),
-                             (u.get("contexto_total") or 0) // 1000)
+    resumo = ["%s=%s/%dk/custo %s" % (n, (u.get("modelo") or "?").replace("claude-", ""),
+                                      (u.get("contexto_total") or 0) // 1000,
+                                      "%.0fk" % (u["custo_relativo"] / 1000) if u.get("custo_relativo") else "?")
               for n, u in [("orquestrador", m.get("orquestrador") or {})] + sorted(col.items())]
-    add_log("Uso medido (modelo/contexto processado): " + " ".join(resumo))
+    add_log("Uso medido (modelo/contexto processado/custo relativo em tokens de entrada): " + " ".join(resumo))
+
+
+# Migracao idempotente das regras de armadilha que o codigo tornou falsas (o LEDGER impresso pelo inicio.py e
+# "checklist antes de publicar" e vence o prompt mestre). So troca quando a regra atual e uma das antigas, texto
+# exato: regra reescrita depois por outra via fica como esta.
+REGRAS_ATUALIZADAS = {
+    "jota_link_wrapper_mismatch": {
+        "antigas": (
+            "Publicar o link so se o TITULO da pagina de destino bater com o anunciado. Em nuvem o WebFetch do "
+            "wrapper e bloqueado — usar so WebSearch site:jota.info; 1 tentativa por item, senao publicar sem link.",
+        ),
+        "regra": ("Link do JOTA só o que o coletor trouxe do work/resolver_jota.py (OK = título da página de destino "
+                  "conferido); SEM_MATCH, ERRO, SEM_LINK e RECUSADO → sem link, e RECUSADO nunca por outro caminho; "
+                  "JA_PUBLICADA só como desdobramento. Resolver BLOQUEADO → só a sondagem curta por WebSearch "
+                  "site:jota.info do prompt do coletor, com título igual ao anunciado; nada de WebSearch por item "
+                  "fora dela."),
+    },
+    "gmail_after_epoch": {
+        "antigas": (
+            "Corrigido na origem em 04/11: inicio.py gera GMAIL_APOS (dia anterior ao início da janela) e os prompts "
+            "usam after:AAAA/MM/DD + filtro pelo horário interno. Nunca voltar a epoch; vazio com epoch nunca vale "
+            "como ausência.",
+            "Usar after:AAAA/MM/DD (dia anterior ao início da janela) e filtrar pelo horário interno do e-mail; "
+            "vazio com epoch nunca vale como ausência.",
+        ),
+        "regra": ("Corrigido na origem: o inicio.py gera GMAIL_APOS = a data do início da janela (o dia anterior, se "
+                  "o início for antes das 06:00) e os prompts usam after:AAAA/MM/DD + filtro pelo horário interno. "
+                  "Nunca voltar a epoch; vazio com epoch nunca vale como ausência."),
+    },
+}
+
+
+def migrar_armadilhas(led):
+    """Reescreve a `regra` das armadilhas de REGRAS_ATUALIZADAS cujo texto atual e o antigo. Idempotente.
+    Devolve os ids migrados."""
+    feitos = []
+    for x in (led or {}).get("armadilhas") or []:
+        m = REGRAS_ATUALIZADAS.get(x.get("id")) if isinstance(x, dict) else None
+        if m and x.get("regra") in m["antigas"]:
+            x["regra"] = m["regra"]
+            feitos.append(x["id"])
+    return feitos
 
 
 def gravar_ledger(caminho, led):
@@ -390,18 +765,38 @@ def gravar_ledger(caminho, led):
         f.write(texto)
 
 
-def aplicar_ledger(caminho, ex, add_log):
+def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
+    """ledger_updates + mecanicos (sempre; idempotentes) e contadores (1 vez por execution_id).
+    Antes o guard por execution_id vinha primeiro e descartava em silencio os ledger_updates de
+    um --refazer (E14/F7)."""
     led = read_json(caminho)
-    if led.get("atualizado_por_execucao") == ex["execution_id"]:
-        add_log("Ledger: contadores ja aplicados para %s — nada a fazer." % ex["execution_id"])
-        return
     hoje = ex["date"]
-    aplicar_updates(led, ex.get("ledger_updates"), hoje, add_log)
+
+    def anteriores():           # a execucao de hoje ja esta no historico: nao conta na inicializacao
+        lista = execucoes() if callable(execucoes) else (execucoes or [])
+        return [e for e in lista if e.get("execution_id") != ex["execution_id"]]
+    n = selos.garantir_mudou_em(led.get("concursos") or [], anteriores)
+    if n:
+        add_log("Ledger: mudou_em inicializado em %d concursos (historico de ledger_updates)" % n)
+    migradas = migrar_armadilhas(led)
+    if migradas:
+        add_log("Ledger: regra da armadilha atualizada para o comportamento atual (migracao): %s"
+                % ", ".join(migradas))
+    aplicar_updates(led, ex.get("ledger_updates"), hoje, add_log, retirar_copias="selos_copiados" not in ex)
+    aplicar_mecanicos_concursos(led, ex.get("ledger_updates"), hoje, banca_res, add_log)
+    if led.get("licoes_de_processo") == []:         # E13: lista vazia, sem leitor
+        del led["licoes_de_processo"]
+    if led.get("atualizado_por_execucao") == ex["execution_id"]:
+        add_log("Ledger: contadores ja aplicados para %s — ledger_updates reaplicados, contadores nao."
+                % ex["execution_id"])
+        gravar_ledger(caminho, led)
+        return
     fontes = {f.get("id"): f for f in led.get("fontes") or []}
     for fid, v in (ex.get("source_status") or {}).items():
         f = fontes.get(fid)
         if f is None:
-            add_log("Ledger: fonte '%s' nao existe no ledger (criar so se mudar uma decisao)." % fid)
+            if fid not in DO_SCRIPT:     # status de script (ex.: informativos_docs) sem fonte no ledger: normal
+                add_log("Ledger: fonte '%s' nao existe no ledger (criar so se mudar uma decisao)." % fid)
             continue
         if v == "ok":
             f["ultimo_email" if "ultimo_email" in f else "ultimo_sucesso"] = hoje
@@ -433,12 +828,46 @@ def aplicar_ledger(caminho, ex, add_log):
                         % (p["id"], p["execucoes"]))
         else:
             add_log("Ledger: pendencia %s nao foi a edicao — se resolvida, remova-a." % p.get("id"))
-    for novo in sorted(ids - no_ledger):
+    # pendencia removida pelo ledger_updates desta mesma execucao (a errata herdada sai na edicao e e removida
+    # no mesmo resolvido): nao e inconsistencia
+    removidas_hoje = {i for i, c in (((ex.get("ledger_updates") or {}).get("pendencias")) or {}).items()
+                      if isinstance(c, dict) and c.get("remover")}
+    for novo in sorted(ids - no_ledger - removidas_hoje):
         add_log("Ledger: pendencia %s saiu na edicao mas nao existe no ledger." % novo)
     led["atualizado_em"] = now_iso_with_offset()
     led["atualizado_por_execucao"] = ex["execution_id"]
     gravar_ledger(caminho, led)
     add_log("Ledger: contadores aplicados e JSON validado.")
+
+
+def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=None):
+    """URLs vistas na banca e hash das paginas oficiais (work/concursos-estado.json): so avancam quando a
+    execucao e registrada (o inicio.py so le)."""
+    pags = None
+    if paginas_path:
+        try:
+            p = read_json(paginas_path)
+            pags = p.get("paginas") if isinstance(p, dict) and p.get("data") == hoje else None
+        except (OSError, ValueError):
+            pags = None
+    if not banca_res and not pags:
+        return
+    import bancas
+    estado = bancas.carregar_estado(caminho)
+    partes = []
+    if banca_res:
+        partes.append("%d arquivo(s) da banca marcados como vistos" % bancas.atualizar_estado(estado, banca_res, hoje))
+    if pags:
+        try:          # a pagina oficial e reforco: modulo ausente (merge parcial) nunca derruba a gravacao
+            import paginas_oficiais
+            partes.append("%d página(s) oficial(is) com trecho novo"
+                          % paginas_oficiais.atualizar_estado(estado, pags, hoje))
+        except Exception as e:  # noqa: BLE001
+            add_log("AVISO: paginas_oficiais nao gravadas no estado (%s)" % e)
+    if not partes:
+        return
+    bancas.gravar_estado(caminho, estado)
+    add_log("Estado de concursos: %s (%s)" % ("; ".join(partes), os.path.basename(caminho)))
 
 
 def read_json(path):
@@ -505,8 +934,9 @@ def metricas_derivadas(historico, execucoes_principal):
 
     orq = [int((e.get("orquestrador") or {}).get("contexto_total") or 0) for e in ult10
            if (e.get("orquestrador") or {}).get("contexto_total")]
+    custos = [c for c in (custo_relativo_execucao(e) for e in ult10) if c]
 
-    ultima = ult10[-1] if ult10 else {}
+    # E13: sem "coletores_ultima"/"orquestrador_ultima" (copias de executions[-1], sem leitor)
     return {
         "execucoes_registradas": len(execucoes_principal) + arquivadas,
         "itens_ultimas_10": itens,
@@ -515,11 +945,61 @@ def metricas_derivadas(historico, execucoes_principal):
         "itens_noticia_ultimas_10": noticia,
         "media_itens_noticia": round(sum(noticia) / len(noticia), 1) if noticia else 0,
         "itens_noticia_ultima": noticia[-1] if noticia else 0,
-        "coletores_ultima": ultima.get("coletores") or {},
         "coletores_ultimas_10": coletores,
-        "orquestrador_ultima": ultima.get("orquestrador") or {},
         "orquestrador_contexto_media": round(sum(orq) / len(orq)) if orq else None,
+        "orquestrador_custo_relativo_ultimas_10": custos,
+        "orquestrador_custo_relativo_mediana": round(mediana(custos)) if custos else None,
     }
+
+
+def mediana(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    if not n:
+        return None
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def custo_relativo_execucao(e):
+    """custo_relativo do orquestrador (medir_uso.py). Execucao antiga, sem o campo: estimado dos
+    agregados (leitura = contexto_total - cache_gravado; entrada desprezivel), mesmos pesos."""
+    o = e.get("orquestrador") or {}
+    if o.get("custo_relativo"):
+        return o["custo_relativo"]
+    if not o.get("contexto_total"):
+        return None
+    try:
+        import medir_uso
+        base = medir_uso.custo_relativo(0, max(0, int(o["contexto_total"]) - int(o.get("cache_gravado") or 0)),
+                                        int(o.get("cache_gravado") or 0), int(o.get("saida") or 0))
+        # mesma estimativa da chamada final que medir_uso soma as medicoes novas (comparavel com elas)
+        return base + medir_uso.custo_relativo(0, int(o.get("tokens") or 0), medir_uso.FECHAMENTO["cache_gravado"],
+                                               medir_uso.FECHAMENTO["saida"])
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def alertas_uso(execucoes, add_log):
+    """ALERTA_ECONOMIA (custo relativo do orquestrador > 1,3x a mediana das 10 anteriores) e ALERTA de
+    troca do modelo do orquestrador em relacao a execucao anterior (K5: a troca de 13/11 passou calada)."""
+    if not execucoes:
+        return
+    atual = execucoes[-1]
+    anteriores = [e for e in execucoes[:-1] if (e.get("orquestrador") or {}).get("contexto_total")][-10:]
+    o = atual.get("orquestrador") or {}
+    c = custo_relativo_execucao(atual)
+    base = [x for x in (custo_relativo_execucao(e) for e in anteriores) if x]
+    med = mediana(base)
+    if c and med and c > 1.3 * med:
+        add_log("ALERTA_ECONOMIA: custo relativo do orquestrador %.0fk = %.2fx a mediana das ultimas %d (%.0fk) — "
+                "chamadas_modelo %s, gravacao de cache %s, saida %s, modelo %s"
+                % (c / 1000, c / med, len(base), med / 1000, o.get("chamadas_modelo"), o.get("cache_gravado"),
+                   o.get("saida"), o.get("modelo")))
+    ant = next((e for e in reversed(execucoes[:-1]) if (e.get("orquestrador") or {}).get("modelo")), None)
+    if ant and o.get("modelo") and ant["orquestrador"]["modelo"] != o["modelo"]:
+        add_log("ALERTA: modelo do orquestrador mudou: %s (%s) -> %s (%s) — a escolha do modelo e do dono "
+                "(README); se nao foi decidida, avise na notificacao"
+                % (ant["orquestrador"]["modelo"], ant.get("execution_id"), o["modelo"], atual.get("execution_id")))
 
 
 NAO_NOTICIA = {"Concursos - Carreira", "Concursos - Apoio", "Versículo", "Munger"}
@@ -558,7 +1038,12 @@ def main():
                         help="so valida (inclusive ledger_updates e repeticao); nao grava nada")
     parser.add_argument("--draft-id", dest="draft_id", default="")
     parser.add_argument("--medir-uso", dest="medir_uso", action="store_true")
-    parser.add_argument("--janela", default="/tmp/janela.json")
+    parser.add_argument("--janela", default=os.path.join(TMP, "janela.json"))
+    parser.add_argument("--bancas", default=os.path.join(TMP, "bancas.json"),
+                        help="bancas.json do inicio.py (carimbo, selo por data, URLs vistas)")
+    parser.add_argument("--fontes-status", dest="fontes_status", default=os.path.join(TMP, "fontes_status.json"))
+    parser.add_argument("--estado-concursos", dest="estado_concursos", default="",
+                        help="padrao: concursos-estado.json ao lado do historico")
     args = parser.parse_args()
 
     log = []
@@ -607,6 +1092,7 @@ def main():
         raise SystemExit("A nova execucao nao possui execution_id.")
     add_log("Nova execucao: " + nova_exec["execution_id"] +
             (" (do inicio.py: %s)" % ", ".join(preenchidos) if preenchidos else ""))
+    mesclar_fontes_status(nova_exec, args.fontes_status, add_log)
 
     if args.draft_id:
         nova_exec["draft_id"] = args.draft_id
@@ -624,8 +1110,22 @@ def main():
         if it.get("chave")
     }
     erros, avisos = validar(nova_exec, chaves_anteriores, pre_rascunho=args.validar)
+    banca_res = ler_banca(args.bancas, nova_exec.get("date"))
+    led_atual = None
     if args.ledger_path and os.path.exists(args.ledger_path):
-        erros += validar_ledger_updates(nova_exec.get("ledger_updates"), read_json(args.ledger_path))
+        led_atual = read_json(args.ledger_path)
+        carimbos = {}
+        if banca_res:
+            import bancas
+            try:
+                carimbos = bancas.carimbos(banca_res, led_atual.get("concursos") or [],
+                                           date.fromisoformat(nova_exec["date"]),
+                                           upd=((nova_exec.get("ledger_updates") or {}).get("concursos") or {}))
+            except (KeyError, ValueError):
+                carimbos = {}
+        erros += validar_ledger_updates(nova_exec.get("ledger_updates"), led_atual, hoje=nova_exec.get("date"),
+                                        ex_id=nova_exec.get("execution_id"), carimbos=carimbos)
+        avisos += avisos_ledger_updates(nova_exec.get("ledger_updates"), led_atual, nova_exec.get("date"), banca_res)
     elif nova_exec.get("ledger_updates"):
         avisos.append("ledger_updates presente, mas --ledger nao informado: nao sera aplicado")
     if args.validar:
@@ -663,13 +1163,25 @@ def main():
         emitir("STATUS: OK — nada a gravar (duplicata; historico, estado e ledger intactos)")
         return
 
+    # Selo copiado sem mudanca nao e decisao: sai do update (vale o selo por data), contra o ledger de antes da
+    # gravacao. Uma vez por arquivo (`selos_copiados` marca): o finalizar repetido reaplica a entrada ja
+    # normalizada sobre o ledger ja atualizado, e la o selo decidido seria igual ao do registro.
+    if isinstance(led_atual, dict) and isinstance(nova_exec.get("ledger_updates"), dict) \
+            and "selos_copiados" not in nova_exec:
+        copiados = retirar_selos_copiados(nova_exec["ledger_updates"], led_atual)
+        if copiados is not None:
+            nova_exec["selos_copiados"] = copiados
+            if copiados:
+                add_log("Ledger: selo igual ao do registro retirado do update (copia, nao decisao; vale o selo por "
+                        "data): %s" % ", ".join(copiados))
     # O historico guarda o registro do que saiu, nao o texto do e-mail: os campos que so
     # servem a montagem (work/montar_email.py) ficam de fora para o arquivo nao inchar.
     nova_exec.pop("email", None)
     for it in nova_exec.get("items") or []:
         if it.get("nota") and not it.get("observacao"):
             it["observacao"] = it["nota"]
-        for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor"):
+        for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor",
+                      "impacto", "resenha", "desdobramento"):
             it.pop(campo, None)
     # grava a versao normalizada, para o historico ficar consistente
     write_json_no_bom(args.nova_execucao_path, nova_exec)
@@ -688,12 +1200,21 @@ def main():
         )
         if alvo is None:
             add_log("AVISO: execucao a reconciliar nao encontrada: " + args.reconciliar_id)
-        else:
+        elif args.reconciliar_message_id:
+            # "sent" so com prova: o message_id achado em in:sent no passo 2 (E2)
             alvo["delivery"] = "sent"
-            if args.reconciliar_message_id:
-                alvo["gmail_message_id"] = args.reconciliar_message_id
+            alvo["gmail_message_id"] = args.reconciliar_message_id
+            alvo.pop("delivery_check", None)
             alvo["delivery_reconciled_at"] = now_iso_with_offset()
             add_log("Reconciliado: " + args.reconciliar_id + " -> delivery=sent")
+        elif alvo.get("delivery") == "sent":
+            add_log("Reconciliacao: %s ja estava sent — nada a fazer." % args.reconciliar_id)
+        else:
+            alvo["delivery_check"] = "ausente_em_sent"
+            alvo["delivery_checked_at"] = now_iso_with_offset()
+            add_log("ALERTA: edicao anterior %s sem --message-id (nao achada em in:sent no passo 2): delivery "
+                    "segue %r e delivery_check=ausente_em_sent — conferir se o Apps Script enviou"
+                    % (args.reconciliar_id, alvo.get("delivery")))
 
     # -------------------------------------------------------------
     # 3. Anti-duplicata: nunca gravar a mesma execution_id duas vezes
@@ -769,6 +1290,13 @@ def main():
             if nome_arq not in lista_arq:
                 historico["archive_files"] = lista_arq + [nome_arq]
 
+    # E13: arquivo morto listado que nao existe (ex.: ...-2026-06.json) sai da lista
+    pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
+    sumidos = [a for a in historico["archive_files"] if a and not os.path.exists(os.path.join(pasta_hist, a))]
+    if sumidos:
+        historico["archive_files"] = [a for a in historico["archive_files"] if a and a not in sumidos]
+        add_log("archive_files: retirados %s (arquivo inexistente)" % ", ".join(sumidos))
+
     # -------------------------------------------------------------
     # 5. Gravar historico principal
     # -------------------------------------------------------------
@@ -813,23 +1341,9 @@ def main():
 
     ultima = verif["executions"][-1]
 
-    # Chaves apenas das 5 execucoes mais recentes: a janela elastica tem
-    # no maximo 7 dias (~5 dias uteis), entao chave mais antiga que isso
-    # nao pode reaparecer como "novidade de hoje". Mantem o arquivo enxuto.
+    # E13: o estado nao guarda mais chaves_publicadas nem pendencias_ultima (copias sem leitor:
+    # a repeticao e o resolver_jota leem o proprio historico).
     todas = verif["executions"]
-    corte = max(0, len(todas) - 5)
-    recentes = todas[corte:]
-
-    # Concursos (chave datada), versiculo e Munger repetem-se por desenho e
-    # nunca coincidem com nada: ficam fora (eram 36% das chaves).
-    chaves = []
-    for ex in recentes:
-        for it in ex.get("items", []) or []:
-            if it.get("chave") and not it["chave"].startswith(("concurso|", "versiculo|", "munger|")) \
-                    and it.get("categoria") not in NAO_NOTICIA:
-                chaves.append(it["chave"])
-
-    pend = [p for p in (ultima.get("pendencias") or []) if p]
 
     global historico_path_global
     historico_path_global = args.historico_path
@@ -852,17 +1366,11 @@ def main():
             "window_end": ultima.get("window_end"),
         },
         "total_execucoes_arquivo": len(verif["executions"]),
-        "pendencias_ultima": pend,
-        "chaves_publicadas": chaves,
-        "total_chaves": len(chaves),
         "metricas": metricas,
     }
 
     write_json_no_bom(estado_path, estado)
-    add_log(
-        f"Estado emitido: robozinho-estado.json ({len(chaves)} chaves, "
-        f"ultima execucao {ultima.get('execution_id')})"
-    )
+    add_log(f"Estado emitido: robozinho-estado.json (ultima execucao {ultima.get('execution_id')})")
     add_log(
         "Metricas: itens_ultima=%d (noticia=%d) media_itens_10=%s (noticia=%s) execucoes_registradas=%d"
         % (
@@ -873,17 +1381,35 @@ def main():
             metricas["execucoes_registradas"],
         )
     )
-    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")):
+    alertas_uso(todas, add_log)
+    feriado_janela = []
+    try:
+        feriado_janela = [f for f in (read_json(args.janela).get("feriados_na_janela") or [])
+                          if f.get("tipo") in ("nacional", "justica_federal")]
+    except Exception:  # noqa: BLE001
+        pass
+    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")) and not feriado_janela:
         add_log("ALERTA: so %d itens de noticia (fora concursos/versiculo/Munger) numa janela "
                 "fora do recesso — sinal de falha de fonte; conferir os coletores."
                 % metricas["itens_noticia_ultima"])
 
     # -------------------------------------------------------------
-    # 7. Contadores mecanicos do ledger (opcional)
+    # 7. Ledger: ledger_updates, mecanicos dos concursos e contadores (opcional)
     # -------------------------------------------------------------
     if args.ledger_path:
         if os.path.exists(args.ledger_path):
-            aplicar_ledger(args.ledger_path, nova_exec, add_log)
+            def todas_execucoes():
+                out = list(todas)
+                for nome in historico.get("archive_files") or []:
+                    try:
+                        out += read_json(os.path.join(pasta_hist, nome)).get("executions") or []
+                    except Exception:  # noqa: BLE001
+                        pass
+                return out
+            aplicar_ledger(args.ledger_path, nova_exec, add_log, todas_execucoes, banca_res)
+            atualizar_estado_concursos(args.estado_concursos or os.path.join(pasta_hist, "concursos-estado.json"),
+                                       banca_res, nova_exec["date"], add_log,
+                                       os.path.join(os.path.dirname(os.path.abspath(args.bancas)), "paginas_oficiais.json"))
         else:
             add_log("AVISO: ledger nao encontrado: " + args.ledger_path)
 

@@ -2,38 +2,74 @@
 
 Repositório de suporte para rodar a newsletter "Robozinho dos Momozis até Passar" como rotina de nuvem (cloud agent agendado), em vez de tarefa agendada local.
 
+## Fluxo de uma execução (desde 16/11/2026)
+
+Seis turnos do orquestrador; cada um é uma mensagem com todas as suas chamadas (`ROTINA.md`):
+
+1. **Âncora** — `work/inicio.py` (data, janela, feriados, assuntos, banca FGV, selos por data, alertas, ledger resumido, prompts dos coletores) já **dispara em segundo plano** `coleta_web.py`, `informativos.py` e `versiculo.py`; o orquestrador lê os três `/tmp/coletor-*.md` e carrega as ferramentas do Gmail e o WebSearch.
+2. **Conferência e coleta** — 3 buscas de anti-duplicata no Gmail + os 3 coletores (`.claude/agents/`) + `work/aguardar_coleta.py`, que espera os scripts (ou os roda, se o disparo não estiver lá) e imprime a linha `SOURCE_STATUS`.
+3. **Julgamento** (sem chamadas), escrito com a montagem e a leitura numa mensagem: Write de `/tmp/execucao.json` + `work/montar_email.py` (grava `/tmp/email.html` e imprime só `ASSUNTO`, `PARA`, avisos, `BYTES` e `SHA256`) + Read do e-mail.
+4. **Rascunho** — `create_draft` com o conteúdo do Read, do começo à sentinela `fim-<execution_id>`.
+5. **Conferência, persistência e aviso** — `list_drafts`/`search_threads` com `larger:` (0,9 × BYTES) para conferir o tamanho, `work/finalizar.sh` (helper + commit + push na `main`) e PushNotification.
+6. Uma linha final (ou a 2ª notificação, se algo falhou).
+
+Ramos de exceção (duplicata, coletor que falha, edição Extra, `--refazer`, rascunho menor que o esperado, `PUSH: FALHOU`): `docs/referencia-operacional.md` §R.
+
 ## Estrutura
 
-- `ROTINA.md` — prompt completo que a rotina de nuvem executa (cole o conteúdo deste arquivo no campo de prompt do routine, ou aponte o agente para lê-lo e segui-lo).
-- `robozinho-dos-momozis-prompt.md` — prompt mestre, núcleo lido todo dia (identidade visual, selos, status, regras editoriais).
-- `docs/referencia-operacional.md` — texto integral das seções operacionais do prompt mestre (rotas do DOU, protocolo do Gmail, contingência por fonte, delegação), consultado só quando a situação pede.
-- `.claude/agents/coletor-*.md` — coletores Gmail, JOTA e Concursos como subagentes próprios, só com as ferramentas de que precisam (base de contexto ~8× menor que a do `general-purpose`) e o modelo no frontmatter.
-- `work/montar_email.py` — passos 4/5: lê o julgamento do orquestrador (`/tmp/execucao.json`), resolve os `ref` com a evidência dos scripts, valida e monta o e-mail inteiro (template v4, inclusive as seções de Concursos a partir do registro do ledger). O orquestrador não escreve HTML: copia o corpo impresso para o `create_draft`.
-- `work/template-newsletter-referencia.html` — amostra do e-mail gerada pelo `montar_email.py` (conferência visual; a rotina não a lê).
-- `work/munger-quotes.json` — base de citações do Munger.
-- `work/robozinho-aprendizado.json` — ledger de aprendizado (fontes, armadilhas, pendências e o registro estruturado de concursos). Contadores aplicados pelo helper; julgamento só pelo campo `ledger_updates` da execução.
-- `work/robozinho-estado.json` — resumo de estado gerado automaticamente. Atualizado a cada execução.
-- `work/resumo-legislativo-historico.json` — histórico das últimas execuções. Atualizado a cada execução.
-- `work/resumo-legislativo-historico-arquivo-*.json` — arquivos mensais arquivados pelo helper (surgem com o tempo).
-- `work/Update-Historico.py` — porte em Python do helper `Update-Historico.ps1` (Windows), para rodar no ambiente Linux da rotina de nuvem. Merge, reconciliação, arquivamento (máx. 10), detecção de mojibake, emissão do estado e das métricas; valida categoria/selo/chave/URL de cada item antes de gravar e, com `--ledger`, aplica os contadores mecânicos e os `ledger_updates`. `--validar` confere tudo (inclusive matéria repetida entre fontes) antes do rascunho, sem gravar (é chamado pelo `montar_email.py`); numa re-execução sem rascunho novo preserva o registro existente; `--medir-uso` registra modelo e tokens reais do orquestrador e dos coletores; o cabeçalho da execução vem do `/tmp/janela.json`.
-- `work/inicio.py` — passo 1: âncora de data, janela, assuntos, rodapé, Munger, prazos de concursos, leitura da banca oficial, teste de rede das páginas oficiais e os prompts prontos dos coletores (`/tmp/coletor-*.md`). Em re-execução (a edição de hoje já existe), imprime só o anti-duplicata; `--refazer` reabre a janela quando o rascunho foi apagado sem envio.
-- `work/bancas.py` — leitura determinística da banca oficial FGV (listagem, situação, arquivos datados e trechos do edital de cada concurso jurídico): confirma em fonte oficial o que o registro tinha só por fonte secundária.
-- `work/finalizar.sh` — passo 7: helper + commit + push para `main` numa chamada, só com `STATUS: OK` (na branch local `main`, para o hook de parada não gerar branch órfã).
-- `work/medir_uso.py` — mede, sem custo de tokens, o uso real da sessão a partir das transcrições locais.
-- `work/repeticao.py` — detecção de matéria repetida entre fontes por semelhança de título (usada pelo `coleta_web.py` e pela validação).
-- `work/prompts/coletor-*.md` — modelos fixos dos prompts dos coletores Gmail, JOTA e Concursos (preenchidos pelo `inicio.py`).
-- `work/coleta_web.py` — coleta determinística de Congresso (leis e MPVs), ConJur e Migalhas, com hora exata por matéria, dedupe contra o histórico, marca `[REPETIDA?~chave]` e filtro de sorteios/eventos (`PROMO`). Cada item ganha um id curto (`lei15527`, `c7`, `m3`) que o orquestrador cita por `ref`.
-- `work/informativos.py` — conteúdo dos informativos (STF, Repercussão Geral em Pauta e STJ) direto do documento oficial: acha as edições novas, as atrasadas (anunciadas sem destaques) e as puladas, baixa e extrai os destaques, sem tokens.
-- `work/versiculo.py` — versículo do dia (YouVersion → DailyVerses.net), com conferência da data.
-- `work/resolver_jota.py` — resolve os links-wrapper do JOTA por curl; só funciona com `www.jota.info` e `t.rdsv2.net` no allowlist do ambiente (senão avisa `BLOQUEADO` e o coletor faz uma sondagem curta por WebSearch).
+- `ROTINA.md` — prompt que a rotina de nuvem executa (cole o conteúdo no campo de prompt do routine, ou aponte o agente para lê-lo e segui-lo).
+- `robozinho-dos-momozis-prompt.md` — prompt mestre: a doutrina editorial (identidade visual, selos, status, seções, autoaprendizagem). Lido só sob demanda, diante de dúvida editorial que a ROTINA não resolva.
+- `docs/referencia-operacional.md` — seções operacionais do prompt mestre que raramente decidem algo (rotas do DOU, protocolo do Gmail, contingência por fonte, delegação) e os ramos de exceção da ROTINA (§R).
+- `.claude/agents/coletor-*.md` — coletores Gmail (haiku), JOTA (sonnet) e Concursos (sonnet) como subagentes próprios, só com as ferramentas de que precisam e o contrato de evidência; entregam pelo SubagentHandback, quando existe.
+- `work/prompts/coletor-*.md` — modelos dos prompts dos coletores, preenchidos pelo `inicio.py` (janela, notas do ledger, pendências, prazos, rodízio, descoberta, ids dos concursos acompanhados).
+- `work/inicio.py` — passo 1: âncora de data, janela (teto de 7 dias), feriados, assuntos, Munger (`tipo` lição/aforismo), prazos e selo por data dos concursos, leitura da banca FGV, páginas oficiais com `url_oficial`, teste de rede, alertas (prazo vencido, candidato a remoção, dia útil sem execução registrada, pendência no limite), o LEDGER enxuto e os prompts prontos; dispara os scripts do passo 2. `--extra` (edição extraordinária), `--refazer` (rascunho apagado sem envio), `--sem-disparo` (ou `ROBOZINHO_DISPARO=0`).
+- `work/aguardar_coleta.py` — passo 2: espera os scripts disparados pelo `inicio.py` (sem flag: até 90 s por chamada, cabendo no timeout padrão do Bash, e no máximo 240 s desde o disparo; `--mais N`: N s a partir da chamada, para o script que ficou `AINDA RODANDO`, §R4; `--teto S`: compatibilidade, conta do disparo), dispara-os ali, destacados, se não houver disparo ou o processo morreu sem resultado (`--rodar` força) e imprime as saídas e a linha `SOURCE_STATUS`.
+- `work/coleta_web.py` — Congresso (leis e MPVs), ConJur e Migalhas, com hora exata, dedupe contra o histórico, `[REPETIDA?~chave]` e ids curtos (`lei15527`, `c7`, `m3`) que o orquestrador cita por `ref`; nova tentativa em falha transitória.
+- `work/informativos.py` — Informativo STF (com o RESUMO oficial de cada julgado), Repercussão Geral em Pauta (estágio de cada tema: tese, votação, pauta) e Informativo STJ (Repetitivo/RQF/órgão), direto do documento oficial; edições novas, atrasadas, puladas e as revisitas "em atraso", sem sondar edição impossível.
+- `work/versiculo.py` — versículo do dia (DailyVerses.net; o YouVersion só é sondado às segundas, e o anti-bot dele não é erro).
+- `work/jota_extrair.py` — texto compacto dos boletins do JOTA salvos em arquivo, sem as URLs de rastreio: cada link vira `[L<n>]` num índice; descadastro, rodapé ("Você recebeu este e-mail…", "Para sair, clique aqui") e propaganda ficam fora.
+- `work/resolver_jota.py` — resolve os links do JOTA (por índice ou wrapper) sem seguir redirecionamento às cegas, só no `jota.info`, recusa descadastro/preferências (inclusive a linha cujo título é o próprio rodapé, sem pedido nem ao wrapper), confere o título e marca `JA_PUBLICADA` o que já saiu; `BLOQUEADO` sem rede.
+- `work/montar_email.py` — passos 4/5: lê o julgamento (`/tmp/execucao.json`, que nunca sobrescreve), resolve os `ref`, deriva o mecânico (selo por data, carimbo da banca, linha de apoio, "sem link", `impacto`, grupo do Planalto, concursos compactos), descarta o repetido certo das seções de apoio, valida e grava o corpo em `/tmp/email.html` (ou `/tmp/email-com-avisos.html` com aviso acionável) e a versão resolvida em `/tmp/execucao.resolvido.json`. `--com-html` imprime o corpo, só para depuração.
+- `work/bancas.py` — leitura determinística da banca oficial FGV (situação, arquivos datados e retificações, trechos do edital, `DIVERGE DO REGISTRO`), com as URLs já vistas em `work/concursos-estado.json`; a página só cobre o registro do mesmo órgão **e** cargo (outro cargo = `SEM REGISTRO`; cargo não identificável = `registro incerto`, sem carimbo); `divergencias_pendentes` tira do carimbo e do selo por data o registro que o update de hoje ainda não corrigiu.
+- `work/selos.py` — regras dos concursos, as mesmas no montador e no helper: selo por data (só com prazo confirmado; inscrição vencida sem a banca lida no dia cai para `PENDÊNCIA DE VERIFICAÇÃO`, de onde só sai pelo orquestrador), `selo_escrito` (selo igual ao do registro é cópia; só o diferente é decisão), classe do prazo (o `tipo` escrito prevalece sobre o `evento`; `tipo_contradiz_evento` acusa `outro`/`prova` num fim ou início de inscrições, com AVISO acionável no montador e no helper), padrão de prova da validação (fonte oficial só pelo domínio da `fonte`: banca nova entra em `BANCAS_OFICIAIS`; o `dominio_oficial` do registro não vale como prova), candidato a remoção, `mudou_em`.
+- `work/feriados.py` — feriados nacionais, pontos facultativos e os da Justiça Federal (Lei 5.010/66, art. 62); `dia_de_edicao` (seg–sex, com feriado: a edição sai em feriado) conta o `gap` e o "dia útil sem execução registrada", e `dia_util` (sem feriado nacional) conta o rodízio.
+- `work/paginas_oficiais.py` — lê a página oficial profunda (`url_oficial`) dos concursos em foco e acusa mudança só nos trechos com palavras-chave.
+- `work/repeticao.py` — detecção de matéria repetida: identidade numérica (tipo + número) antes da semelhança de título.
+- `work/Update-Historico.py` — helper de gravação (porte em Python do antigo `Update-Historico.ps1` do Windows, que não faz parte deste repositório): merge, reconciliação (só vira `sent` com o message id), arquivamento (máx. 10), validação de itens e de `ledger_updates` (padrão de prova dos concursos), contadores, mecânico dos concursos, medição de uso e estado. `--validar` é chamado pelo montador.
+- `work/finalizar.sh` — passo 7: helper (a partir do `execucao.resolvido.json`; `execucao.json` editado depois da montagem → remonta antes e compara os itens com o rascunho, `REMONTAGEM`/`ALERTA`) + commit + push para `main`, só com `STATUS: OK`; se a `main` andou no remoto, reaplica o helper sobre ela (sem rebase textual dos JSON); em falha definitiva, cópia do estado em `/tmp/robozinho-estado-backup-<exec>.tar.gz` e a linha `ESTADO:` dizendo se ela serve ou se é preciso repetir o `finalizar.sh` (§R9, §R11).
+- `work/medir_uso.py` — uso real da sessão (orquestrador e coletores), a partir das transcrições locais, com `custo_relativo`.
+- `work/template-newsletter-referencia.html` — amostra do e-mail (conferência visual; a rotina não a lê).
+- `work/munger-quotes.json` — base de citações e lições do Munger.
+- Estado commitado pelo `finalizar.sh`: `work/robozinho-aprendizado.json` (ledger: fontes, armadilhas, pendências e o registro de concursos), `work/robozinho-estado.json` (resumo e métricas), `work/resumo-legislativo-historico.json` (últimas 10 execuções), `work/resumo-legislativo-historico-arquivo-*.json` (arquivos mensais) e `work/concursos-estado.json` (arquivos da banca já vistos e páginas oficiais; criado pelo helper na 1ª execução).
+- `work/testes/test_*.py` — testes sem rede e sem pytest (`python3 work/testes/test_<grupo>.py`): `test_informativos.py`, `test_web.py`, `test_est.py`, `test_mon.py` e `test_doc.py` (coerência da documentação com o código). Fixtures em `work/testes/fixtures/`. Temporários em `ROBOZINHO_TMP` (padrão `/tmp`).
+
+## Métricas de custo
+
+- **`custo_relativo`** (por execução, em `orquestrador` e `coletores` no histórico): o custo em unidades do preço do token de **entrada do próprio modelo** — entrada × 1 + cache lido × 0,1 + cache gravado × 1,25 + saída × 5 (`medir_uso.PESOS`). Substitui o antigo `contexto_total`, que media quase só a leitura de cache (cerca de 4% do custo) e escondeu a alta de 13/11. Execução antiga é estimada pelos agregados. O estado guarda `metricas.orquestrador_custo_relativo_ultimas_10` e `metricas.orquestrador_custo_relativo_mediana`.
+- **`ALERTA_ECONOMIA`** (no relatório do `finalizar.sh`): custo relativo do orquestrador acima de 1,3 × a mediana das 10 execuções anteriores com medição.
+- **`ALERTA: modelo do orquestrador mudou`**: o `custo_relativo` não enxerga troca de modelo (é relativo ao preço de cada um); este alerta, sim. Os dois vão para a notificação do dia.
+
+## Decisão pendente do dono: modelo do orquestrador
+
+O orquestrador rodou em `claude-sonnet-5-5` até 12/11 e em `claude-fable-5-2` desde 13/11 — troca feita na configuração da rotina agendada, fora deste repositório, sem registro; o `.claude/settings.json` continua dizendo `claude-sonnet-5-5`. O Fable custa cerca de 4 vezes mais por token, e o orquestrador é cerca de 85% do custo de uma execução. Recomendação da revisão de 16/11: um replay dos passos 3–5 (julgamento e montagem) em Sonnet 5.5 sobre um dia salvo, comparando o `execucao.json` e o e-mail com os do Fable; decidida a escolha, registrá-la aqui e na ROTINA e alinhar (ou remover) a chave `model` do `.claude/settings.json`. Até lá, nada foi mudado na configuração; o `ALERTA` acima avisa de qualquer nova troca.
+
+## Próximos passos (não implementados)
+
+- **Corpo por anexo de referência** (`sha256:<hex>:/tmp/email.html` no `create_draft`) com o Apps Script conferindo o SHA e fazendo `draft.update`/`send` — tiraria a cópia de ~60 mil caracteres do orquestrador (a maior despesa do dia). Exige mudar o `EnviarRobozinho.gs` (fora do repositório) e um teste prévio com rascunho de assunto diferente: o preenchimento do arquivo pode exigir aprovação numa execução agendada. Só se o anexo falhar: o Apps Script lendo o HTML do repositório (a entrega passaria a depender do push).
+- **`MAX_MCP_OUTPUT_TOKENS` para o JOTA** (`.claude/settings.json`): mandaria para arquivo todo boletim do JOTA, que então passaria sempre pelo `jota_extrair.py`. Vale para todas as chamadas MCP da sessão: exige uma execução real conferindo que as threads do Gmail oficial continuam inline.
+- **Pendências de concurso dentro do registro** (E5/E7): `movimento_em`, `expira_apos` e `fonte_id`, e as pendências de concurso migradas para o próprio registro numa só migração.
+- **Write-ahead contra queda** (F1): registro gravado antes do rascunho (`finalizar.sh --pre`), para que uma queda entre o `create_draft` e o push não faça a execução seguinte repetir a edição. Hoje há só o `ALERTA: dia útil sem execução registrada` e a busca em `in:sent`.
+- **`gmail_extrair.py`** (B8) e itens dos coletores por referência (B9): extração determinística das threads do Gmail a partir das transcrições, com ids citáveis por `ref`.
+- **Reescrever a regra de uma armadilha** por `ledger_updates` (hoje só `armadilhas_novas`, com id novo): as duas que tinham ficado para trás do código (`jota_link_wrapper_mismatch` e `gmail_after_epoch`) são migradas pelo helper e já saem atualizadas no LEDGER do `inicio.py`.
+- Outros: `precedentes.py` do STJ (consulta ainda não descoberta), "Tese fixada" do Informativo STF, paginação de ConJur/Migalhas às segundas, card "Para a prova" no resumo, corte automático do apoio acima de 90 KB, checagem de domínio por fonte no montador e guarda de integridade dos scripts antes do helper (K3).
 
 ## Por que este repositório existe
 
-Uma rotina de nuvem (cloud agent agendado) roda isolada: cada disparo clona o repositório do zero e não enxerga o disco do computador local. Para a rotina "lembrar" o que já foi publicado, o próprio agente precisa commitar e dar `git push` nos arquivos de `work/` ao final de cada execução (passo 7 de `ROTINA.md`, `work/finalizar.sh`) — isso é a única forma de persistência entre execuções nesse modelo.
+Uma rotina de nuvem (cloud agent agendado) roda isolada: cada disparo clona o repositório do zero e não enxerga o disco do computador local. Para a rotina "lembrar" o que já foi publicado, o próprio agente precisa commitar e dar `git push` nos arquivos de estado de `work/` ao final de cada execução (passo 7 de `ROTINA.md`, `work/finalizar.sh`) — essa é a única forma de persistência entre execuções nesse modelo.
 
 ## O que fica de fora
 
-- `EnviarRobozinho.gs` (Apps Script que localiza o rascunho pelo assunto e envia) continua vivendo no Google Apps Script da conta Gmail, associado à planilha/projeto onde já está implantado. Ele não muda com esta migração — a rotina de nuvem só passa a *criar o rascunho*; quem envia continua sendo o Apps Script, com o mesmo gatilho de horário.
+- `EnviarRobozinho.gs` (Apps Script que localiza o rascunho pelo assunto e envia, em varreduras a cada 15 minutos) continua vivendo no Google Apps Script da conta Gmail, associado à planilha/projeto onde já está implantado. A rotina de nuvem só *cria o rascunho*; quem envia é o Apps Script, com o mesmo gatilho de horário.
 - Arquivos de histórico mensal antigos e HTMLs de edições passadas não foram trazidos (não são lidos pela rotina).
 
 ## Pré-requisitos para a rotina de nuvem funcionar
