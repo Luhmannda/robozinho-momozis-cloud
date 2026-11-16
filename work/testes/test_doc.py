@@ -22,6 +22,9 @@
 #   - (volta 2) prazos[].tipo: a ROTINA lista os 4 valores; o AVISO acionavel de tipo x evento citado na ROTINA
 #     e na §R12 e o que montador e helper imprimem, e a correcao que eles pedem o resolve; PRAZO VENCIDO (sem
 #     ação) citado como o inicio.py imprime; rodape do JOTA recusado (titulo de descadastro) nao vira item.
+#   - (volta 3) selo por data suspenso e prazo escrito hoje contra o edital: os modelos da §R12 sao o que helper,
+#     montador e inicio imprimem, a correcao que a ROTINA manda resolve e as linhas de gravacao vao a 2a
+#     notificacao; linha-fina cortada (resumo_truncado) nao se completa nem se copia; README com as regras novas.
 # Opcional (rede): DOC_TESTE_INICIO=1 roda o inicio.py numa copia descartavel
 # e confere que nenhum placeholder sobra nos prompts gerados.
 #
@@ -46,7 +49,10 @@ ROTINA_ANTERIOR_BYTES = 19253          # ROTINA.md de b80a3bd (execucao de 16/11
 # Teto da ROTINA (lida inteira em toda execucao). A 2a rodada acrescentou o que ela tem de dizer na hora
 # (linhas novas do finalizar.sh, rebaixamento do selo, regras novas do montador) e levou o procedimento
 # para a referencia (§R10-§R12): +~1,5 KB sobre a de 16/11, ainda abaixo da de 10/11 (22.805).
-ROTINA_TETO_BYTES = 21000
+# Volta 3 (+~640 bytes, o procedimento na §R12): selo por data suspenso no passo 1, o que fazer com ele e com o
+# prazo escrito hoje contra o edital no passo 3, as duas linhas de gravacao na 2a notificacao e a linha-fina cortada
+# no passo 2. Era 21.000.
+ROTINA_TETO_BYTES = 21650
 DOCS = ["ROTINA.md", "README.md", "docs/referencia-operacional.md", "robozinho-dos-momozis-prompt.md"] + \
     sorted(os.path.relpath(p, RAIZ) for p in glob.glob(os.path.join(WORK, "prompts", "coletor-*.md"))) + \
     sorted(os.path.relpath(p, RAIZ) for p in glob.glob(os.path.join(RAIZ, ".claude", "agents", "coletor-*.md")))
@@ -172,6 +178,10 @@ def textos_contraditorios_antigos_sairam():
         # volta 2
         "inscrição definitiva: `outro`)": ["ROTINA.md"],               # lido como "'outro' para tudo menos a prova"
         "(`RECUSADO … titulo generico: …` = linha de rodapé": ["work/prompts/coletor-jota.md"],  # so o generico
+        # volta 3 (CORE P2/P3): o DIVERGE nao corrigido suspende o selo por data (antes: so tirava a "banca lida")
+        "corrija `prazos`/`linha` (senão: sem carimbo e AVISO ACIONÁVEL)": ["ROTINA.md"],
+        "não conta como banca lida no selo": ["docs/referencia-operacional.md"],
+        "tira do carimbo e do selo por data o registro": ["README.md"],
     }
     achados = ["%s em %s" % (t, rel) for t, onde in proibidos.items() for rel in onde if t in ler(rel)]
     assert not achados, "; ".join(achados)
@@ -805,6 +815,206 @@ def r6_r10_criterios_executaveis():
               "(feriado: a edição sai em feriado)"):
         assert t in r10, "§R10 sem %r" % t
     assert "get_thread" not in re.search(r"ToolSearch `select:([^`]+)`", r).group(1)   # nao e carregado no passo 1
+
+
+# ------------------------------------------------------------------ volta 3 (CORE P2/P3, WEB P5, INF P6)
+TRECHO_EDITAL = "das 16h do dia 19 de outubro de 2026 até às 16h do dia 26 de novembro de 2026"
+FONTE_TJSC = "https://conhecimento.fgv.br/concursos/tjscjuiz26"
+
+
+def helper():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("update_historico_test_doc", os.path.join(WORK, "Update-Historico.py"))
+    h = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(h)
+    return h
+
+
+def linha_tjsc(fim):
+    return "TJSC — Juiz Substituto: 50 vagas, FGV; inscrições de 19/10 até 16h de %s; prova em 24/01/2027" % fim
+
+
+def prazos_tjsc(fim, evento="fim das inscrições, 16h"):
+    return [{"data": fim, "evento": evento, "confirmado": True},
+            {"data": "2027-01-24", "evento": "prova objetiva", "confirmado": True, "tipo": "prova"}]
+
+
+def cenario_tjsc(hoje, fim_registro, selo):
+    """Registro com o fim das inscricoes em `fim_registro` e o bancas.json de `hoje` com o edital relido hoje (fim
+    26/11), como o bancas.analisar o grava (inscricoes.lido_em = hoje)."""
+    import bancas
+    reg = {"id": "tjsc_juiz", "bloco": "Magistratura", "selo": selo, "verificado_em": "2026-11-16",
+           "fonte": FONTE_TJSC, "linha": linha_tjsc(fim_registro[8:10] + "/11"), "prazos": prazos_tjsc(fim_registro)}
+    banca = {"banca": "FGV", "dominio": bancas.DOMINIO, "http": 200, "data": hoje, "concursos": [{
+        "slug": "tjscjuiz26", "url": FONTE_TJSC, "http": 200, "coberto": ["tjsc_juiz"], "registros": ["tjsc_juiz"],
+        "ultima_retificacao": None, "releitura": "prazo do registro", "divergencias": [],
+        "inscricoes": {"inicio": "2026-10-19", "fim": "2026-11-26", "trecho": TRECHO_EDITAL, "origem": "edital",
+                       "lido_em": hoje},
+        "arquivos": [{"data": "2026-10-01", "titulo": "Edital de abertura", "url": FONTE_TJSC + "/edital.pdf"}]}]}
+    return reg, banca
+
+
+def mecanico_do_helper(h, reg, banca, upd, hoje):
+    """O que a gravacao (finalizar.sh -> helper) faz com o registro: aplicar_updates + aplicar_mecanicos_concursos.
+    Devolve (registro gravado, linhas do relatorio)."""
+    import copy
+    led, u, log = {"concursos": [copy.deepcopy(reg)]}, {"concursos": copy.deepcopy(upd)}, []
+    h.aplicar_updates(led, u, hoje, log.append)
+    h.aplicar_mecanicos_concursos(led, u, hoje, banca, log.append)
+    return led["concursos"][0], log
+
+
+@teste
+def selo_suspenso_e_prazo_contra_edital_batem_com_o_codigo():
+    """(volta 3, CORE P2/P3) Com o edital lido hoje contestando o fim das inscricoes do registro (DIVERGE) ou o prazo
+    escrito hoje, o selo por data fica SUSPENSO (bancas.selo_do_dia, a regra unica de helper, montador e inicio) e
+    saem dois avisos acionaveis novos. Confere: os modelos citados na §R12 sao o que o codigo imprime; o que a ROTINA
+    manda fazer resolve (prazos E linha; so a linha nao basta; selo escrito so com ato oficial mais novo, e entao o
+    que a data da); as linhas de gravacao estao na 2a notificacao; o passo 1 as cita como o inicio.py imprime."""
+    import bancas
+    import montar_email as m
+    import selos
+    from datetime import date
+    h = helper()
+    r = ler("ROTINA.md")
+    r12 = secao("docs/referencia-operacional.md", "### R12.", None)
+    ultima = r[r.index("**Última mensagem: uma linha**"):r.index("## Regras editoriais")]
+    passo1 = r[r.index("- **`ALERTA:`**"):r.index("- **Ledger:**")]
+    concursos = r[r.index("**Concursos — a seção sai"):r.index("## 4 e 5. ")]
+
+    # 1) P2: DIVERGE da manha (registro 25/11, edital lido hoje 26/11): o selo por data sairia da data contestada
+    hoje = date(2026, 11, 18)
+    reg, b = cenario_tjsc("2026-11-18", "2026-11-25", "INSCRIÇÕES ABERTAS")
+    assert selos.selo_por_data(reg, hoje)[0] == "ENCERRA EM BREVE"          # o defeito que a suspensao evita
+    pend = bancas.divergencias_pendentes(b, [reg], hoje, {})
+    assert set(pend) == {"tjsc_juiz"} and not pend["tjsc_juiz"]["escrito_hoje"], pend
+    ctx = bancas.contexto_selos(b, [reg], hoje, {})
+    selo, motivo, susp = bancas.selo_do_dia(reg, hoje, ctx, pend)
+    assert (selo, motivo) == ("INSCRIÇÕES ABERTAS", None) and susp, (selo, motivo, susp)
+    assert m.ACIONAVEL.search(susp), susp
+    citado = re.search(r"`(selo por data suspenso em <id>: [^`]+)`", r12)
+    assert citado, "§R12 sem o modelo da linha do selo suspenso"
+    assert re.fullmatch(modelo_para_regex(citado.group(1)), susp), (citado.group(1), susp)
+    # a mesma linha nos tres scripts, com o prefixo que a doc diz
+    assert 'out.append("ALERTA: " + s)' in ler("work/inicio.py") and \
+        "bancas.selo_do_dia(c, hoje, ctx_selo, pend_selo)" in ler("work/inicio.py")
+    assert 'add_log("ALERTA: " + suspenso)' in ler("work/Update-Historico.py")
+    assert "bancas.selo_do_dia(c, hoje, ctx_banca, pendentes)" in ler("work/montar_email.py")
+    for t in ("`AVISO ACIONÁVEL: selo por data suspenso em <id>", "`ALERTA: selo por data suspenso em <id>"):
+        assert t in r12, "§R12 sem %r" % t
+    # passo 1: o ALERTA vem com o DIVERGE e no lugar do SELO POR DATA desse id
+    for t in ("`selo por data suspenso em <id>`", "`DIVERGE DO REGISTRO`", "`SELO POR DATA`"):
+        assert t in passo1, "ROTINA, passo 1 (ALERTA), sem %r" % t
+    # so a linha nao basta (os prazos prevalecem no fim das inscricoes do registro); prazos e linha resolvem
+    so_linha = {"tjsc_juiz": {"linha": linha_tjsc("26/11")}}
+    assert set(bancas.divergencias_pendentes(b, [reg], hoje, so_linha)) == {"tjsc_juiz"}
+    certo = {"tjsc_juiz": {"linha": linha_tjsc("26/11"), "prazos": prazos_tjsc("2026-11-26")}}
+    assert bancas.divergencias_pendentes(b, [reg], hoje, certo) == {}
+    gravado, log = mecanico_do_helper(h, reg, b, certo, "2026-11-18")
+    assert gravado["verificado_em"] == "2026-11-18" and gravado["selo"] == "INSCRIÇÕES ABERTAS" and \
+        not any("suspenso" in x for x in log), (gravado, log)                # carimbo e selo por data de volta
+    for t in ("corrija `prazos` **e** `linha`", "só a `linha` não basta"):
+        assert t in concursos, "ROTINA, concursos, sem %r" % t
+    # sem correcao: na gravacao, ALERTA (2a notificacao) e o registro fica sem carimbo, com o selo de antes
+    gravado, log = mecanico_do_helper(h, reg, b, {}, "2026-11-18")
+    assert any(x.startswith("ALERTA: selo por data suspenso em tjsc_juiz") for x in log), log
+    assert gravado["verificado_em"] == "2026-11-16" and gravado["selo"] == "INSCRIÇÕES ABERTAS", gravado
+    # data do registro vinda de ato oficial mais novo: o selo escrito (diferente do registro) prevalece e encerra a
+    # suspensao; a copia do selo atual nao conta (o aviso continua: aceite-o)
+    gravado, log = mecanico_do_helper(h, reg, b, {"tjsc_juiz": {"selo": "ENCERRA EM BREVE"}}, "2026-11-18")
+    assert gravado["selo"] == "ENCERRA EM BREVE" and not any("suspenso" in x for x in log), (gravado, log)
+    gravado, log = mecanico_do_helper(h, reg, b, {"tjsc_juiz": {"selo": "INSCRIÇÕES ABERTAS"}}, "2026-11-18")
+    assert any(x.startswith("ALERTA: selo por data suspenso") for x in log), log
+    assert "ato oficial mais novo que o edital" in concursos and "igual ao atual é cópia" in r12
+
+    # 2) P3: registro = edital (26/11); o update de hoje escreve 05/12 (retificacao que a leitura das 7h nao trazia)
+    hoje = date(2026, 11, 20)
+    reg, b = cenario_tjsc("2026-11-20", "2026-11-26", "ENCERRA EM BREVE")
+    assert bancas.divergencias_pendentes(b, [reg], hoje, {}) == {}, "pré-condição: registro igual ao edital"
+    novo = {"tjsc_juiz": {"prazos": prazos_tjsc("2026-12-05", "fim das inscrições, 16h (prorrogado)"),
+                          "linha": linha_tjsc("05/12"), "fonte": "https://conhecimento.fgv.br/concursos/tjscjuiz26"}}
+    pend = bancas.divergencias_pendentes(b, [reg], hoje, novo)
+    assert pend["tjsc_juiz"]["escrito_hoje"], pend
+    av = h.avisos_ledger_updates({"concursos": novo}, {"concursos": [reg]}, "2026-11-20", b)
+    p3 = [a for a in av if a.startswith(h.PRAZO_CONTRA_EDITAL)]
+    assert len(p3) == 1 and not any(a.startswith("DIVERGE DO REGISTRO em tjsc_juiz") for a in av), av
+    assert m.ACIONAVEL.search(p3[0]), p3[0]
+    citado = re.search(r"`(prazo escrito hoje difere do edital lido hoje: <id> [^`]+)`", r12)
+    assert citado, "§R12 sem o modelo da linha do prazo escrito hoje"
+    assert re.fullmatch(modelo_para_regex(citado.group(1)), p3[0]), (citado.group(1), p3[0])
+    assert "`prazo escrito hoje difere do edital lido hoje`" in concursos
+    # gravacao: o mesmo texto como ALERTA (o --validar fica AVISO, que o montador mostra como acionavel)
+    assert re.search(r'add_log\(\("ALERTA: " if not args\.validar and a\.startswith\(PRAZO_CONTRA_EDITAL\) '
+                     r'else "AVISO: "\) \+ a\)', ler("work/Update-Historico.py"))
+    # aceitar sem o selo deixa o selo da data antiga (ENCERRA EM BREVE para 05/12): a doc manda escrever o que a
+    # nova data da; escrito, prevalece, nao "contradiz o selo por data" e nao ha suspensao
+    gravado, log = mecanico_do_helper(h, reg, b, novo, "2026-11-20")
+    assert gravado["selo"] == "ENCERRA EM BREVE" and any("ALERTA: selo por data suspenso" in x for x in log), log
+    com_selo = {"tjsc_juiz": dict(novo["tjsc_juiz"], selo="INSCRIÇÕES ABERTAS")}
+    av = h.avisos_ledger_updates({"concursos": com_selo}, {"concursos": [reg]}, "2026-11-20", b)
+    assert not any("contradiz o selo por data" in a for a in av) and any(a.startswith(h.PRAZO_CONTRA_EDITAL)
+                                                                       for a in av), av
+    gravado, log = mecanico_do_helper(h, reg, b, com_selo, "2026-11-20")
+    assert gravado["selo"] == "INSCRIÇÕES ABERTAS" and not any("suspenso" in x for x in log), (gravado, log)
+    assert "retificação" in concursos and "o selo que a nova data dá" in secao(
+        "docs/referencia-operacional.md", "- **Selo por data suspenso", "- **Domínio oficial.")
+
+    # 3) 2a notificacao: as duas linhas de gravacao (o registro ficou contestado pela banca)
+    for t in ("ALERTA: prazo escrito hoje difere do edital lido hoje", "ALERTA: selo por data suspenso"):
+        assert t in ultima, "2a notificacao sem %r" % t
+
+
+@teste
+def resumo_cortado_nao_se_completa_nem_se_copia():
+    """(volta 3, WEB/CORE P5) A linha de noticia do coleta_web termina em "…" quando a linha-fina passa de 170
+    caracteres (so o indice e cortado; o JSON tem a inteira) ou veio cortada da fonte (resumo_truncado). Pelo `ref`, o
+    montador poe a inteira ou fecha a cortada com "…"; o texto copiado do indice para `resumo` sairia cortado."""
+    import coleta_web as cw
+    import montar_email as m
+    r = ler("ROTINA.md")
+    passo2 = r[r.index("- **`coleta_web`**"):r.index("- **`informativos`**")]
+    assert "Linha-fina terminada em `…`: não a complete nem a copie para o `resumo`" in passo2, passo2
+    inteira = ("A 2ª Turma do STJ decidiu que a busca domiciliar sem mandado exige fundadas razões, registradas antes "
+               "do ingresso, e anulou as provas obtidas quando os policiais fazem a invasão de domicílio sem elas.")
+    ev = {"c1": {"_fonte": "conjur", "titulo": "STJ anula provas de busca domiciliar", "resumo": inteira,
+                 "url": "https://www.conjur.com.br/2026-nov-17/stj-anula-provas/", "quando": "2026-11-17T10:00:00",
+                 "tipo": "noticia"}}
+    indice = cw.curto(inteira, 170)
+    assert indice.endswith("…") and len(indice) <= 170
+    assert m.resolver({"ref": "c1"}, ev, [])["resumo"] == inteira                   # pelo ref: a inteira
+    assert m.resolver({"ref": "c1", "resumo": indice}, ev, [])["resumo"] == indice  # copiado: sai cortado
+    cortada = dict(ev["c1"], resumo="O STJ vai avaliar se policiais que entram sem mandado fazem a invasão de",
+                   resumo_truncado=True)
+    assert m.resolver({"ref": "c1"}, {"c1": cortada}, [])["resumo"].endswith("invasão de…")
+    assert 'extra += "…"' in ler("work/coleta_web.py")
+
+
+@teste
+def readme_cita_as_regras_novas_da_volta_3():
+    """(volta 3) O README descreve a regra unica do selo por data e a origem do trecho de inscricoes (CORE), a
+    linha-fina cortada (WEB), a conferencia de temas da RG (INF) e a regra unica de descadastro do JOTA (WEB); e o
+    codigo tem cada nome citado."""
+    rd = ler("README.md")
+    linha = {nome: next(l for l in rd.splitlines() if l.startswith("- `work/%s`" % nome))
+             for nome in ("bancas.py", "selos.py", "coleta_web.py", "informativos.py", "jota_extrair.py",
+                          "montar_email.py")}
+    for nome, textos in (("bancas.py", ["`selo_do_dia`", "`inscricoes_do_dia`", "`inscricoes.lido_em`",
+                                        "`divergencias_pendentes`", "prazo escrito hoje"]),
+                         ("selos.py", ["`bancas.selo_do_dia`"]),
+                         ("coleta_web.py", ["`resumo_truncado`"]),
+                         ("montar_email.py", ["`…`"]),
+                         ("informativos.py", ["`temas de rg<m>=<http>`", "`TECNICO`"]),
+                         ("jota_extrair.py", ["`descadastro_no_texto`"])):
+        for t in textos:
+            assert t in linha[nome], "README, %s, sem %r" % (nome, t)
+    for script, textos in (("bancas.py", ["def selo_do_dia", "def inscricoes_do_dia", '["lido_em"]']),
+                           ("coleta_web.py", ['"resumo_truncado"']),
+                           ("montar_email.py", ["def resumo_cortado"]),
+                           ("informativos.py", ["temas de "]),
+                           ("jota_extrair.py", ["def descadastro_no_texto"])):
+        codigo = ler("work/" + script)
+        for t in textos:
+            assert t in codigo, "%s sem %r" % (script, t)
 
 
 def inicio_preenche_os_prompts():

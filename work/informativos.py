@@ -25,8 +25,12 @@
 #     "Pauta do Plenario 21/10 (resultado no proximo boletim)" depois de o
 #     julgamento ter saido no e-mail de 16/11). Idem o tema de uma edicao
 #     herdada que tambem esta numa edicao posterior aberta na mesma execucao,
-#     e o tema que ja saiu com uma RG posterior (campo opcional `temas` do
-#     item do historico; sem o campo, nada muda).
+#     e o tema que ja saiu com uma RG posterior: pelo campo `temas` do item
+#     do historico; sem ele, pelos temas citados no texto gravado do item de
+#     RG; e, no item do montador anterior a 17/11/2026 (so "k de M destaques
+#     publicados", sem a lista), conferindo no documento dessa RG posterior
+#     (no maximo MAX_CONSULTAS_TEMAS por execucao). Em 17/11/2026 o Tema
+#     1.483, publicado com a RG 397 em 16/11, voltava na revisita da RG 394.
 # Cada edicao ganha um id (stf1236, rg397, stj909): o orquestrador escolhe os
 # destaques pelo indice e o work/montar_email.py copia o texto oficial
 # (STF: titulo do sumario + RESUMO oficial; RG: tema, estagio, previsao, tese;
@@ -78,6 +82,7 @@ MAX_INDICE = 25               # linhas de destaque impressas por edicao (o JSON 
 JANELA_REVISITA = 8           # revisita edicoes sem conteudo ate base-8 (~2 meses no STF)
 MAX_REVISITAS_ANTIGAS = 2     # por execucao, somando os produtos (as mais recentes primeiro)
 MAX_RETENTATIVAS = 2          # novas tentativas apos 403/0, por execucao
+MAX_CONSULTAS_TEMAS = 2       # RGs posteriores baixadas so para conferir temas (item sem a lista), por processo
 RESUMO_MIN, RESUMO_MAX = 100, 900
 FONTE_ID = "informativos_docs"
 SCRIPT = "informativos.py"
@@ -360,10 +365,60 @@ def superados_por_historico(n, itens, h):
     ja = {}
     for m in sorted((m for m in h if m > n), reverse=True):       # vale a posterior mais proxima
         for t, quando in (h[m].get("temas") or {}).items():
-            ja[t] = (m, quando)
-    return {i: "tema já publicado com a RG %d%s" % (ja[it["tema"]][0], (" em " + ddmm(ja[it["tema"]][1]))
-                                                     if ddmm(ja[it["tema"]][1]) else "")
-            for i, it in enumerate(itens) if it.get("tema") in ja}
+            ja[normalizar_tema(t)] = (m, quando)
+    out = {}
+    for i, it in enumerate(itens):
+        m, quando = ja.get(normalizar_tema(it.get("tema")), (None, ""))
+        if m is not None:
+            out[i] = "tema já publicado com a RG %d%s" % (m, (" em " + ddmm(quando)) if ddmm(quando) else "")
+    return out
+
+
+TEMAS_DOC = {}                # {numero: (http, {temas} ou None)}: RGs baixadas so para conferir temas (cache do processo)
+
+
+def temas_do_documento(m, consultas=None):
+    """Temas (normalizados) do documento da RG m, baixado uma vez por processo e, no maximo,
+    MAX_CONSULTAS_TEMAS documentos. None: nao abriu, nao leu tema ou o teto acabou (nada e superado).
+    consultas (dict): recebe {"rg<m>": http} para a linha TECNICO."""
+    if m not in TEMAS_DOC:
+        if len(TEMAS_DOC) >= MAX_CONSULTAS_TEMAS:
+            return None
+        dormir(1.5)                     # sem rajada no mesmo servidor
+        codigo, dados = baixar(URL["rg"] % m)
+        temas = None
+        if codigo == 200 and dados and dados.startswith(b"%PDF"):
+            try:
+                temas = {normalizar_tema(it["tema"]) for it in rg_texto(pdf_texto(dados, layout=False))[1]} or None
+            except Exception:  # noqa: BLE001 — a conferencia e reforco, nunca derruba a coleta
+                temas = None
+        TEMAS_DOC[m] = (codigo, temas)
+    codigo, temas = TEMAS_DOC[m]
+    if consultas is not None:
+        consultas["rg%d" % m] = codigo
+    return temas
+
+
+def superados_por_documento(n, itens, h, ja=(), consultas=None):
+    """Tema da RG n que tambem esta numa RG posterior publicada com destaques cujo item do historico nao
+    gravou a lista (h[m]["temas_desconhecidos"]: o montador anterior a 17/11/2026 so escrevia "k de M
+    destaques publicados"). Confere no documento dessa RG (temas_do_documento), as mais recentes primeiro,
+    so para os indices que nao estao em `ja` (ja superados) e so enquanto sobrar algum. A situacao de la e a
+    mais recente; aqui seria repeticao. Documento que nao abre: nada sai. {indice: motivo}."""
+    resta = [i for i, it in enumerate(itens) if i not in ja and it.get("tema")]
+    out = {}
+    for m in sorted((m for m in h if m > n and h[m].get("temas_desconhecidos")), reverse=True):
+        if not resta:
+            break
+        temas = temas_do_documento(m, consultas)
+        if not temas:
+            continue
+        quando = ddmm(h[m]["temas_desconhecidos"])
+        motivo = "tema também na RG %d, publicada%s" % (m, (" em " + quando) if quando else "")
+        for i in [i for i in resta if normalizar_tema(itens[i]["tema"]) in temas]:
+            out[i] = motivo
+            resta.remove(i)
+    return out
 
 
 def aplicar_superados(r, motivos):
@@ -601,15 +656,53 @@ def stj_html(t, numero):
 # ------------------------------------------------------------------ historico
 SEM_CONTEUDO = re.compile(r"(?i)n[aã]o (foi |estava )?(acess|lid)|inacess|\b403\b|sem teses|link gen[eé]rico|"
                           r"s[oó] n[uú]mero")
+# tema citado no texto gravado de um item de RG: "Tema 1.483", "Tema 1483", "TEMA: 977", "Tema nº 118",
+# "Temas 1.493, 1.494 e 118" (nunca "nº 397" da edicao nem o numero de um processo)
+TEMA_NUM = r"\d{1,3}(?:\.\d{3})+|\d{1,5}"
+TEMAS_TEXTO = re.compile(r"(?i)\bTemas?\b:?\s*(?:n(?:º|°|o\.?|\.)\s*)?((?:%s)(?:(?:\s*,\s*|\s+e\s+)(?:%s))*)(?![\d.]*\d)"
+                         % (TEMA_NUM, TEMA_NUM))
+# observacao que o montador grava no item com destaques; antes de 17/11/2026 ele nao gravava `temas` junto
+PUBLICADOS_SEM_LISTA = re.compile(r"\b\d+ de \d+ destaques publicados\b")
+
+
+def normalizar_tema(t):
+    """'1483', '01.483', '1.483' -> '1.483' (formato do documento e do campo `temas`); o que nao for
+    numero volta so sem espacos."""
+    s = str(t or "").strip()
+    digitos = re.sub(r"\D", "", s)
+    if digitos and re.fullmatch(r"[\d.]+", s):
+        return "{:,}".format(int(digitos)).replace(",", ".")
+    return s
+
+
+def temas_do_texto(it):
+    """Temas citados no texto gravado de um item de RG sem o campo `temas` (destaques_texto, titulo, resumo,
+    observacao), normalizados e sem repeticao, na ordem do texto."""
+    partes = []
+    for k in ("destaques_texto", "titulo", "resumo", "observacao"):
+        v = it.get(k)
+        partes.extend(v if isinstance(v, list) else [v])
+    texto = html.unescape(re.sub(r"<[^>]+>", " ", " ".join(str(p) for p in partes if p)))
+    out = []
+    for m in TEMAS_TEXTO.finditer(texto):
+        for t in re.findall(TEMA_NUM, m.group(1)):
+            t = normalizar_tema(t)
+            if t not in out:
+                out.append(t)
+    return out
 
 
 def historico():
-    """{produto: {numero: {"vazio", "anunciada_em", "anunciada_na_edicao"[, "temas"]}}} do historico
-    principal e dos arquivos. vazio=True: a edicao saiu so com numero/data/link e os
+    """{produto: {numero: {"vazio", "anunciada_em", "anunciada_na_edicao"[, "temas"][, "temas_desconhecidos"]}}}
+    do historico principal e dos arquivos. vazio=True: a edicao saiu so com numero/data/link e os
     destaques ainda nao. anunciada_em: 5o campo da chave do anuncio (data do e-mail/edicao);
-    anunciada_na_edicao: data da execucao que a anunciou. temas (so RG, opcional): {tema: data
-    da execucao} dos temas que ja sairam no e-mail, lido do campo `temas` do item do historico
-    (lista gravada pelo montador; historico sem o campo = nada)."""
+    anunciada_na_edicao: data da execucao que a anunciou. So RG, opcionais, so de itens com conteudo:
+    temas = {tema normalizado: data da execucao} dos temas que ja sairam no e-mail, lidos do campo `temas`
+    do item (lista gravada pelo montador) ou, sem o campo, dos temas citados no texto gravado do item
+    (temas_do_texto); temas_desconhecidos = data da execucao (a mais antiga) de um item sem o campo cuja
+    observacao e a do montador ("k de M destaques publicados"): destaques publicados, lista nao gravada.
+    So itens da propria RG (chave stf|informativo|repercussao-geral-N): tema citado em item de outro tipo
+    (Midia, Opiniao, Informativo STF, STF Jurisprudencia) nao conta."""
     hist = {"stf": {}, "rg": {}, "stj": {}}
     ignorar = janela().get("ignorar_execucao") or ""
     for f in glob.glob(os.path.join(AQUI, "resumo-legislativo-historico*.json")):
@@ -638,10 +731,21 @@ def historico():
                 # um registro com conteudo (ou o "-conteudo" posterior) vence o anuncio vazio
                 info["vazio"] = info["vazio"] and vazio
                 edicao = str(e.get("date") or (e.get("execution_id") or "")[:10])
-                if tipo == "rg" and isinstance(it.get("temas"), list) and not vazio:
-                    for t in it["temas"]:
-                        if str(t).strip():
-                            info.setdefault("temas", {}).setdefault(str(t).strip(), edicao)
+                if tipo == "rg" and not vazio:
+                    if isinstance(it.get("temas"), list):
+                        lista = it["temas"]
+                    else:
+                        # item gravado sem o campo (orquestrador, ou montador anterior a 17/11/2026): os temas
+                        # citados no texto gravado; o montador que so diz "k de M destaques publicados" deixa a
+                        # lista para a conferencia no documento (superados_por_documento)
+                        lista = temas_do_texto(it)
+                        if PUBLICADOS_SEM_LISTA.search(str(it.get("observacao") or "")) and edicao and (
+                                not info.get("temas_desconhecidos") or edicao < info["temas_desconhecidos"]):
+                            info["temas_desconhecidos"] = edicao
+                    for t in lista:
+                        t = normalizar_tema(t)
+                        if t:
+                            info.setdefault("temas", {}).setdefault(t, edicao)
                 if not m.group(3):
                     if not info["anunciada_na_edicao"] or (edicao and edicao < info["anunciada_na_edicao"]):
                         info["anunciada_na_edicao"] = edicao
@@ -704,6 +808,10 @@ def obter(tipo, n, situacao="nova", anuncio=None, hist_produto=None):
                     hist_produto = {}
             motivos = superados_por_historico(n, itens, hist_produto)
             motivos.update(superados_por_data(n, itens, hist_produto))
+            consultas = {}
+            motivos.update(superados_por_documento(n, itens, hist_produto, motivos, consultas))
+            if consultas:
+                r["temas_consultados"] = consultas
             aplicar_superados(r, motivos)
     elif marcas:
         r.update(estado="parser", motivo="documento abriu, mas nenhum destaque foi lido (layout mudou?)")
@@ -988,6 +1096,8 @@ def imprimir(resultados):
             extra.append("2 tentativas, 1a=%s" % r.get("http_1a_tentativa"))
         if r.get("revisita"):
             extra.append("revisita")
+        for rid, cod in (r.get("temas_consultados") or {}).items():
+            extra.append("temas de %s=%s" % (rid, cod))
         tecnico.append("%s=%s%s" % (r["id"], r.get("http"), ("(%s)" % ", ".join(extra)) if extra else ""))
     print("TECNICO informativos: " + (" · ".join(tecnico) or "nenhum pedido"))
 

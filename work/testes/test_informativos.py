@@ -679,6 +679,205 @@ def t_temas_do_montador():
            and sup.get("1.483") == "tema já publicado com a RG 397 em 16/11", sup)
 
 
+# ------------------------------------------------------------------ 7c. P6: tema ja publicado por item SEM o campo `temas`
+def limpar_consultas():
+    getattr(I, "TEMAS_DOC", {}).clear()     # conferencias de documento ficam em cache por processo
+
+
+def hist_real_ate_397():
+    """historico() do repositorio de verdade (work/resumo-legislativo-historico*.json, so leitura), RG ate a 397:
+    o estado de 16/11 (a execucao de 17/11 nao conta; RGs posteriores nao mudam o teste quando o arquivo crescer)."""
+    json.dump(JANELA_1711, open(os.path.join(TMP, "janela.json"), "w"))
+    aqui = I.AQUI
+    I.AQUI = WORK
+    try:
+        h = I.historico()
+    finally:
+        I.AQUI = aqui
+    return {"stf": {}, "rg": {m: v for m, v in h["rg"].items() if m <= 397}, "stj": {}}
+
+
+def t_p6_historico_real():
+    """P6: o registro da RG 397 de 16/11 foi gravado pelo montador antigo, sem `temas` ("6 de 10 destaques
+    publicados"); na revisita da RG 394 o Tema 1.483 (saído em 16/11) voltava. O texto gravado não traz o número
+    do tema: a lista é conferida no documento da RG 397 (1 pedido), e o tema sai da revisita."""
+    if not os.path.isfile(os.path.join(WORK, "resumo-legislativo-historico.json")):
+        checar("P6 histórico real: work/resumo-legislativo-historico.json presente", False)
+        return
+    h = hist_real_ate_397()
+    r397 = h["rg"].get(397) or {}
+    checar("P6 histórico real: RG 397 de 16/11 reconhecida como publicada com destaques, lista não gravada",
+           r397.get("vazio") is False and (r397.get("temas_desconhecidos") == "2026-11-16"
+                                           or "1.483" in (r397.get("temas") or {})), r397)
+    checar("P6 histórico real: RG 394 segue sem conteúdo (é revisitada)", (h["rg"].get(394) or {}).get("vazio") is True,
+           h["rg"].get(394))
+    PDF_ANTES = dict(PDF)
+    PDF["rg394"] = "rg394.txt"
+    PDF["rg397"] = "rg397.txt"
+    limpar_consultas()
+    try:
+        rede = Rede({"rg394": [(200, "pdf")], "rg397": [(200, "pdf")]})
+        I.baixar = rede.baixar
+        r = I.obter("rg", 394, "atrasada", h["rg"].get(394), h["rg"])
+    finally:
+        PDF.clear(); PDF.update(PDF_ANTES)
+        limpar_consultas()
+    temas = [it["tema"] for it in r.get("itens") or []]
+    sup = {it["tema"]: it["superado_motivo"] for it in r.get("itens_superados") or []}
+    checar("P6 histórico real: revisita da RG 394 sem o Tema 1.483 (saiu com a RG 397 em 16/11)",
+           r.get("ok") and "1.483" not in temas and sup.get("1.483") == "tema também na RG 397, publicada em 16/11",
+           (temas, sup))
+    checar("P6 histórico real: ficam 7 temas; os 5 em votação/pauta continuam fora pela data",
+           temas == ["1.016", "106", "1.479", "1.480", "1.490", "1.491", "1.492"]
+           and sorted(t for t, v in sup.items() if "boletins seguintes" in v) == sorted(["1.493", "1.494", "118", "488", "1.308"]),
+           (temas, sup))
+    checar("P6 histórico real: 1 pedido a mais (o documento da RG 397), registrado em temas_consultados",
+           rede.pedidos == ["rg394", "rg397"] and r.get("temas_consultados") == {"rg397": 200},
+           (rede.pedidos, r.get("temas_consultados")))
+    # execucao automatica de 17/11 (so a RG, historico real congelado ate a 397)
+    PDF["rg394"] = "rg394.txt"
+    PDF["rg397"] = "rg397.txt"
+    limpar_consultas()
+    try:
+        rede = Rede({"rg394": [(200, "pdf")], "rg397": [(200, "pdf")]})
+        I.baixar = rede.baixar
+        res = I.coletar(h)
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            I.imprimir(res)
+    finally:
+        PDF.clear(); PDF.update(PDF_ANTES)
+        limpar_consultas()
+        os.unlink(os.path.join(TMP, "janela.json"))
+    out = saida.getvalue()
+    checar("P6 replay 17/11 (histórico real): RG 394 no EM ATRASO com 7 destaques, sem o Tema 1.483 no índice",
+           "REPERCUSSAO GERAL EM PAUTA 394 [id rg394] (14 a 19 de outubro de 2026) — ATRASADA, revisita (anunciada em 21/10) "
+           "— 7 destaques" in out and not re.search(r"(?m)^  \d+ \[.*\] Tema 1\.483 ", out), out)
+    checar("P6 replay 17/11: linha 'fora do e-mail' do Tema 1.483 e TECNICO com a conferência",
+           "  fora do e-mail — tema também na RG 397, publicada em 16/11: Tema 1.483" in out.splitlines()
+           and "rg394=200(6 superados, revisita, temas de rg397=200)" in out
+           and rede.pedidos == ["rg398", "rg399", "rg394", "rg397"], (rede.pedidos, out))
+
+
+def t_p6_temas_do_texto():
+    """P6: item de RG gravado sem `temas` (orquestrador, ou montador antigo): os temas citados no texto gravado
+    (destaques_texto, titulo, resumo, observacao) contam como publicados. Tema citado de passagem em item de outro
+    tipo (Mídia, Opinião, Informativo STF, STF Jurisprudência) ou em anúncio vazio não bloqueia."""
+    hdir = tempfile.mkdtemp(prefix="hist-p6-", dir=TMP)
+    rg = "stf|informativo|repercussao-geral-%s|2026|%s"
+    execs = [
+        {"execution_id": "2026-10-22-7h", "date": "2026-10-22", "items": [
+            {"chave": rg % ("394", "2026-10-21"), "observacao": "conteudo nao acessivel nesta execucao (http 403)"}]},
+        {"execution_id": "2026-11-05-7h", "date": "2026-11-05", "items": [
+            {"chave": rg % ("396", "2026-11-03"), "titulo": "Repercussão Geral em Pauta nº 396 (27/10 a 03/11/2026)",
+             "observacao": "Temas 1.258 e 1.486 publicados; TEMA: 488 com acórdão"},
+            {"chave": "stf|tese|tema-1490|2026|2026-11-03", "categoria": "STF Jurisprudência",
+             "titulo": "Tema 1.490 (RE 1.555.476): gratificação — repercussão geral negada"},
+            {"chave": "midia|jota|stf-julga-tema-1016|2026|2026-11-05", "categoria": "Mídia",
+             "titulo": "STF conclui o Tema 1.016 dos expurgos inflacionários"},
+            {"chave": "conjur|opiniao|tema-1479|2026|2026-11-05", "categoria": "Opinião/Análise",
+             "titulo": "O que muda com o Tema 1.479"}]},
+        {"execution_id": "2026-11-12-7h", "date": "2026-11-12", "items": [
+            {"chave": rg % ("397", "2026-11-11"), "sem_conteudo": True,
+             "titulo": "Repercussão Geral em Pauta nº 397 — Tema 1.491"},
+            {"chave": "stf|informativo|1236-conteudo|2026|2026-11-10", "titulo": "Informativo STF nº 1236",
+             "observacao": "ISS na base do PIS/COFINS (Tema 118 RG); Tema 1.480"}]},
+        {"execution_id": "2026-11-16-7h", "date": "2026-11-16", "items": [
+            {"chave": rg % ("397-conteudo", "2026-11-09"), "titulo": "Repercussão Geral em Pauta nº 397",
+             "resumo": "Tema 1483: redução da validade do CR e do CRAF.",
+             "destaques_texto": ["<b>Tema 977</b> (RE 1.234.567) · <i>Pauta</i> — x"]}]},
+    ]
+    json.dump({"executions": execs}, open(os.path.join(hdir, "resumo-legislativo-historico.json"), "w", encoding="utf-8"),
+              ensure_ascii=False)
+    aqui = I.AQUI
+    I.AQUI = hdir
+    try:
+        h = I.historico()
+    finally:
+        I.AQUI = aqui
+    checar("P6 texto: temas da RG derivados do texto gravado e normalizados como o campo novo ('1483' → '1.483')",
+           h["rg"][397].get("temas") == {"1.483": "2026-11-16", "977": "2026-11-16"}
+           and h["rg"][396].get("temas") == {"1.258": "2026-11-05", "1.486": "2026-11-05", "488": "2026-11-05"},
+           (h["rg"][397].get("temas"), h["rg"][396].get("temas")))
+    checar("P6 texto: 'nº 397' não é tema; anúncio vazio ('Tema 1.491') não conta; RG 394 sem conteúdo segue vazia",
+           "397" not in h["rg"][397].get("temas", {}) and "1.491" not in h["rg"][397].get("temas", {})
+           and h["rg"][394]["vazio"] is True and "temas" not in h["rg"][394], h["rg"])
+    checar("P6 texto: item de outro tipo não cria nem completa RG (Informativo STF, STF Jurisprudência, Mídia, Opinião)",
+           sorted(h["rg"]) == [394, 396, 397] and "temas" not in h["stf"].get(1236, {}), (sorted(h["rg"]), h["stf"].get(1236)))
+    _, i394 = I.rg_texto(fx("rg394.txt"))
+    m = I.superados_por_historico(394, i394, h["rg"])
+    sup = {i394[i]["tema"]: v for i, v in m.items()}
+    checar("P6 texto: na RG 394 saem só 1.483 (RG 397 em 16/11) e 488 (RG 396 em 05/11)",
+           sup == {"1.483": "tema já publicado com a RG 397 em 16/11", "488": "tema já publicado com a RG 396 em 05/11"}, sup)
+    checar("P6 texto: Temas 1.016, 1.479, 1.480 e 1.490 (citados só em itens de outro tipo) e 1.491 (anúncio) ficam",
+           not {"1.016", "1.479", "1.480", "1.490", "1.491"} & set(sup), sup)
+    checar("P6 texto: registro sem a marca do montador ('k de M destaques publicados') não pede conferência no documento",
+           not any(v.get("temas_desconhecidos") for v in h["rg"].values()), h["rg"])
+
+
+def t_p6_conferencia():
+    """P6: conferência no documento da RG posterior — cache por processo, teto de documentos, falha permissiva."""
+    if not hasattr(I, "superados_por_documento"):
+        checar("P6 conferência: informativos.superados_por_documento existe", False)
+        return
+    checar("P6 normalizar_tema: '1483' / '01.483' / '1.483' → '1.483'; '977' e '118' iguais",
+           [I.normalizar_tema(x) for x in ("1483", "01.483", "1.483", "977", "118", " 1.016 ")] ==
+           ["1.483", "1.483", "1.483", "977", "118", "1.016"])
+    checar("P6 temas_do_texto: plural, 'TEMA:', 'nº', HTML; sem número de edição nem processo",
+           I.temas_do_texto({"titulo": "Repercussão Geral em Pauta nº 397 — RE 1.616.922",
+                             "observacao": "Temas 1.493, 1.494 e 118; TEMA: 977; Tema nº 1483.",
+                             "destaques_texto": ["<b>Tema 1.016</b> (RE 1) — x"]})
+           == ["1.016", "1.493", "1.494", "118", "977", "1.483"])
+    _, i394 = I.rg_texto(fx("rg394.txt"))
+    h = {394: {"vazio": True}, 395: {"vazio": False, "temas_desconhecidos": "2026-10-29"},
+         396: {"vazio": False, "temas_desconhecidos": "2026-11-05"}, 397: {"vazio": False, "temas_desconhecidos": "2026-11-16"}}
+    PDF_ANTES = dict(PDF)
+    PDF.update({"rg396": "rg396.txt", "rg397": "rg397.txt"})
+    limpar_consultas()
+    try:
+        rede = Rede({"rg395": [(200, "pdf")], "rg396": [(200, "pdf")], "rg397": [(200, "pdf")]})
+        I.baixar = rede.baixar
+        cons = {}
+        m = I.superados_por_documento(394, i394, h, {}, cons)
+        sup = {i394[i]["tema"]: v for i, v in m.items()}
+        checar("P6 conferência: as posteriores mais recentes primeiro, até MAX_CONSULTAS_TEMAS (%d) documentos"
+               % I.MAX_CONSULTAS_TEMAS,
+               I.MAX_CONSULTAS_TEMAS == 2 and rede.pedidos == ["rg397", "rg396"] and cons == {"rg397": 200, "rg396": 200}
+               and sup == {"1.483": "tema também na RG 397, publicada em 16/11",
+                           "488": "tema também na RG 396, publicada em 05/11"}, (rede.pedidos, cons, sup))
+        m2 = I.superados_por_documento(394, i394, h, {i: "x" for i in m}, {})
+        checar("P6 conferência: documento já conferido não é baixado de novo; índice já superado não é refeito",
+               rede.pedidos == ["rg397", "rg396"] and m2 == {}, (rede.pedidos, m2))
+        limpar_consultas()
+        rede = Rede({"rg397": [(403, b"")]})
+        I.baixar = rede.baixar
+        cons = {}
+        m3 = I.superados_por_documento(394, i394, {397: h[397]}, {}, cons)
+        checar("P6 conferência: documento que não abre não tira tema nenhum (fica como antes) e fica registrado",
+               m3 == {} and cons == {"rg397": 403} and rede.pedidos == ["rg397"], (m3, cons, rede.pedidos))
+        limpar_consultas()
+        rede = Rede({})
+        I.baixar = rede.baixar
+        checar("P6 conferência: sem tema a conferir (todos já superados) nada é baixado",
+               I.superados_por_documento(394, i394, h, {i: "x" for i in range(len(i394))}, {}) == {} and rede.pedidos == [],
+               rede.pedidos)
+        checar("P6 conferência: histórico sem a marca (registros novos, com `temas`) não baixa nada",
+               I.superados_por_documento(394, i394, {397: {"vazio": False, "temas": {"1.483": "2026-11-16"}}}, {}, {}) == {}
+               and rede.pedidos == [], rede.pedidos)
+    finally:
+        PDF.clear(); PDF.update(PDF_ANTES)
+        limpar_consultas()
+    # TECNICO com a conferencia que falhou; a fonte nao cai por ela
+    r = {"tipo": "rg", "numero": 394, "id": "rg394", "http": 200, "situacao": "atrasada", "ok": True, "revisita": True,
+         "data": "14 a 19 de outubro de 2026", "itens": i394[:1], "temas_consultados": {"rg397": 403}}
+    saida = io.StringIO()
+    with contextlib.redirect_stdout(saida):
+        I.imprimir([r])
+    checar("P6 conferência: TECNICO mostra 'temas de rg397=403'; fonte ok",
+           "rg394=200(revisita, temas de rg397=403)" in saida.getvalue() and I.status_fonte([r])["status"] == "ok",
+           saida.getvalue())
+
+
 # ------------------------------------------------------------------ 8. modo manual, indice e compatibilidade
 def t_manual_e_compat():
     try:
@@ -719,7 +918,7 @@ def t_manual_e_compat():
 def main():
     try:
         for t in (t_fixtures, t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_parser_e_404, t_superados,
-                  t_temas_do_montador, t_manual_e_compat):
+                  t_temas_do_montador, t_p6_historico_real, t_p6_temas_do_texto, t_p6_conferencia, t_manual_e_compat):
             try:
                 t()
             except Exception as e:  # noqa: BLE001
