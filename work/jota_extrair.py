@@ -48,7 +48,7 @@ VALIDADE_INDICE = 12 * 3600
 CORPOS = ("plaintextBody", "plainTextBody", "textBody", "bodyText", "body")
 URL = re.compile(r"\[\s*((?:https?|mailto):[^\s\]]+)\s*\]|(?<![\w/\[])((?:https?)://[^\s<>\[\]\"']+)")
 DESCADASTRO = re.compile(
-    r"parar de receber|deixar de receber|n[aã]o (?:quer|deseja) mais receber|descadastr|"
+    r"parar de receber|deixar de receber|n[aã]o (?:qu[ei]\w*|desej\w*) mais receber|descadastr|"
     r"cancel(?:ar|e) (?:a |sua |o )?(?:inscri|assinatura|envio)|unsubscri|prefer[eê]ncias|"
     r"gerenci(?:ar|e) (?:seus |os |suas )?(?:e-?mails|inscri|prefer|assinatura)|sair da lista|"
     r"remover (?:meu|seu|o) e-?mail|opt-?out", re.I)

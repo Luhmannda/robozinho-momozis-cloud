@@ -1,0 +1,283 @@
+[
+ {
+  "tipo": "stf",
+  "numero": 1237,
+  "id": "stf1237",
+  "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1237.pdf",
+  "http": 404,
+  "situacao": "nova",
+  "ok": false,
+  "estado": "inexistente",
+  "motivo": "ainda não publicada (404)",
+  "tentativas": 1
+ },
+ {
+  "tipo": "stf",
+  "numero": 1238,
+  "id": "stf1238",
+  "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1238.pdf",
+  "http": 404,
+  "situacao": "nova",
+  "ok": false,
+  "estado": "inexistente",
+  "motivo": "ainda não publicada (404)",
+  "tentativas": 1
+ },
+ {
+  "tipo": "rg",
+  "numero": 398,
+  "id": "rg398",
+  "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio398.pdf",
+  "http": 404,
+  "situacao": "nova",
+  "ok": false,
+  "estado": "inexistente",
+  "motivo": "ainda não publicada (404)",
+  "tentativas": 1
+ },
+ {
+  "tipo": "rg",
+  "numero": 399,
+  "id": "rg399",
+  "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio399.pdf",
+  "http": 404,
+  "situacao": "nova",
+  "ok": false,
+  "estado": "inexistente",
+  "motivo": "ainda não publicada (404)",
+  "tentativas": 1
+ },
+ {
+  "tipo": "stj",
+  "numero": 910,
+  "id": "stj910",
+  "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0910.cod.",
+  "http": 200,
+  "situacao": "nova",
+  "ok": false,
+  "estado": "inexistente",
+  "data": "",
+  "itens": [],
+  "motivo": "ainda não publicada (página sem o cabeçalho do número)",
+  "tentativas": 1
+ },
+ {
+  "tipo": "stj",
+  "numero": 911,
+  "id": "stj911",
+  "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0911.cod.",
+  "http": 200,
+  "situacao": "nova",
+  "ok": false,
+  "estado": "inexistente",
+  "data": "",
+  "itens": [],
+  "motivo": "ainda não publicada (página sem o cabeçalho do número)",
+  "tentativas": 1
+ },
+ {
+  "tipo": "rg",
+  "numero": 394,
+  "id": "rg394",
+  "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio394.pdf",
+  "http": 200,
+  "situacao": "atrasada",
+  "ok": true,
+  "anunciada_em": "2026-10-21",
+  "anunciada_na_edicao": "2026-10-22",
+  "data": "14 a 19 de outubro de 2026",
+  "itens": [
+   {
+    "secao": "Julgamentos",
+    "tema": "1.016",
+    "processo": "RE 1.141.156",
+    "titulo": "Constitucionalidade da inclusão dos expurgos inflacionários na correção monetária incidente sobre valores depositados judicialmente.",
+    "tese": "“1. O depósito judicial é figura processual de direito público, e a relação entre o depositante e a instituição depositária tem natureza estatutária, e não contratual. Dessa natureza estatutária decorre que não há direito adquirido a determinado índice ou padrão monetário e que não se estendem aos depósitos judiciais os critérios de correção reconhecidos às cadernetas de poupança em razão da natureza contratual destas. 2. A correção monetária dos depósitos judiciais é a prevista na legislação de regência vigente ao longo da custódia. Reconhecida a constitucionalidade dos planos econômicos na ADPF 165, e inexistindo direito constitucional à recomposição integral da inflação, é indevida a inclusão dos expurgos inflacionários na correção dos depósitos judiciais, e não cabe ao Poder Judiciário substituir o índice legal por outro que considere mais representativo da inflação do período. 3. Reafirma-se o contido no tema 881 da repercussão geral e o assentado na Questão de Ordem na AR 2.876, preservados os valores já levantados e as situações consolidadas.”",
+    "estagio": "tese fixada",
+    "previsao": "",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Temas Cancelados",
+    "tema": "106",
+    "processo": "RE 590.880",
+    "titulo": "a) Competência para, após o advento da Lei nº 8.112/90, julgar os efeitos de decisão anteriormente proferida pela Justiça do Trabalho. b) Extensão do reajuste de 84,32%, relativo ao IPC do mês de março de 1990 (Plano Collor), concedido pela Justiça Federal em decisão transitada em julgado, a outros servidores.",
+    "tese": "",
+    "estagio": "tema cancelado",
+    "previsao": "",
+    "decisao": "O Tribunal, por unanimidade e nos termos do voto da Ministra Cármen Lúcia, cancelou o tema 106 da repercussão geral e manteve o julgamento de mérito já concluído na sessão virtual de 7.8.2020 a 17.8.2020, no seguinte sentido: \"O Tribunal, por maioria, conheceu e deu provimento ao recurso extraordinário para declarar a incompetência da Justiça Trabalhista em relação ao período posterior à instituição do regime jurídico único (Lei nº 8.112/90) e, em relação ao período anterior, declarar a insubsistência do título executivo judicial, tal como previsto no artigo 884, § 5º, da CLT, nos termos do voto da Ministra Ellen Gracie (Relatora), vencidos os Ministros Eros Grau, Ayres Britto, Cezar Peluso, Marco Aurélio e Celso de Mello.",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Acórdãos Publicados",
+    "tema": "1.479",
+    "processo": "RE 1.577.069",
+    "titulo": "Composição da base de cálculo da contribuição facultativa para o custeio da assistência à saúde na hipótese de acumulação lícita de cargos públicos.",
+    "tese": "“É infraconstitucional, a ela se aplicando os efeitos da ausência de repercussão geral, a controvérsia relativa ao valor da contribuição facultativa instituída pelo Poder Público para o custeio de serviços de assistência à saúde ao servidor público, inclusive quanto à incidência, ou não, de percentual de desconto sobre a remuneração de um ou dois cargos públicos licitamente acumuláveis.”",
+    "estagio": "tese publicada",
+    "previsao": "",
+    "decisao": "",
+    "sem_repercussao_geral": true
+   },
+   {
+    "secao": "Acórdãos Publicados",
+    "tema": "1.480",
+    "processo": "RE 1.586.626",
+    "titulo": "Suspensão do prazo prescricional da obrigação de pagar quantia certa pela Fazenda Pública durante o cumprimento de obrigação de fazer imposta na mesma sentença.",
+    "tese": "“É infraconstitucional, a ela aplicando-se os efeitos de ausência da repercussão geral, a controvérsia sobre a suspensão do prazo prescricional da obrigação de pagar quantia certa pela Fazenda Pública durante o cumprimento da obrigação implantar parcela remuneratória.”",
+    "estagio": "tese publicada",
+    "previsao": "",
+    "decisao": "",
+    "sem_repercussao_geral": true
+   },
+   {
+    "secao": "Acórdãos Publicados",
+    "tema": "1.483",
+    "processo": "RE 1.616.922; RE 1.616.090",
+    "titulo": "Redução dos prazos de validade do Certificado de Registro (CR) e do Certificado de Registro de Arma de Fogo (CRAF) pelo Decreto nº 11.615/2023.",
+    "tese": "“É constitucional a redução dos prazos de validade do Certificado de Registro (CR) e do Certificado de Registro de Arma de Fogo (CRAF) prevista no Decreto nº 11.615/2023, aplicável também aos certificados expedidos sob a égide da disciplina regulamentar anterior, observadas as regras de transição pertinentes.”",
+    "estagio": "tese publicada",
+    "previsao": "",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Temas em Julgamento",
+    "tema": "1.493",
+    "processo": "RE 1.621.821; RE 1.621.362",
+    "titulo": "Possibilidade de restringir a incidência do art. 62 do Código Florestal à consolidação de ocupações antrópicas anteriores a 22 de julho de 2008.",
+    "tese": "",
+    "estagio": "em votação no PV até 23/10",
+    "previsao": "2026-10-23",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Temas em Julgamento",
+    "tema": "1.494",
+    "processo": "ARE 1.619.165",
+    "titulo": "Presunção de hipossuficiência econômica decorrente do patrocínio da causa pela Defensoria Pública.",
+    "tese": "",
+    "estagio": "em votação no PV até 23/10",
+    "previsao": "2026-10-23",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Temas Finalizados",
+    "tema": "1.490",
+    "processo": "RE 1.620.936",
+    "titulo": "Concessão da Gratificação de Movimentação (GMOV) a servidores públicos residentes fora do Distrito Federal e cancelamento administrativo da vantagem.",
+    "tese": "",
+    "estagio": "repercussão geral negada",
+    "previsao": "",
+    "decisao": "O Tribunal, por unanimidade, reconheceu a inexistência de repercussão geral da questão, por não se tratar de matéria constitucional.",
+    "sem_repercussao_geral": true
+   },
+   {
+    "secao": "Temas Finalizados",
+    "tema": "1.491",
+    "processo": "RE 1.612.904",
+    "titulo": "Legitimidade da União e dos entes subnacionais para figurar no polo passivo de ações nas quais entidades privadas prestadoras de serviços de saúde, em caráter complementar ao SUS, pleiteiam o reajuste da Tabela SUS, mediante sua equiparação aos valores da TUNEP/IVR. (Provisório)",
+    "tese": "",
+    "estagio": "repercussão geral reconhecida",
+    "previsao": "",
+    "decisao": "O Tribunal, por maioria, reputou constitucional a questão, vencido o Ministro Luiz Fux. O Tribunal, por maioria, reconheceu a existência de repercussão geral da questão constitucional suscitada, vencido o Ministro Luiz Fux. No mérito, o Tribunal, por maioria, não reafirmou a jurisprudência dominante sobre a matéria. Não se manifestaram os Ministros Luiz Fux, Nunes Marques e André Mendonça.",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Temas Finalizados",
+    "tema": "1.492",
+    "processo": "RE 1.626.168",
+    "titulo": "Inclusão do auxílio-refeição na base de cálculo das férias e do terço constitucional de servidores públicos estaduais.",
+    "tese": "",
+    "estagio": "repercussão geral negada",
+    "previsao": "",
+    "decisao": "O Tribunal, por unanimidade, reconheceu a inexistência de repercussão geral da questão, por não se tratar de matéria constitucional.",
+    "sem_repercussao_geral": true
+   },
+   {
+    "secao": "Pauta do Plenário",
+    "tema": "118",
+    "processo": "RE 592.616",
+    "titulo": "Inclusão do ISS na base de cálculo do PIS e da COFINS.",
+    "tese": "",
+    "estagio": "pauta do Plenário 21/10",
+    "previsao": "2026-10-21",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Pauta da sessão virtual",
+    "tema": "488",
+    "processo": "RE 646.104ED-ED-ED",
+    "titulo": "Representatividade sindical de micro e pequenas indústrias artesanais.",
+    "tese": "",
+    "estagio": "pauta da sessão virtual de 16/10 a 23/10",
+    "previsao": "2026-10-23",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   },
+   {
+    "secao": "Pauta da sessão virtual",
+    "tema": "1.308",
+    "processo": "ARE 1.487.739-",
+    "titulo": "Incidência do piso salarial para os profissionais do magistério público da educação básica aos servidores contratados temporariamente.",
+    "tese": "",
+    "estagio": "pauta da sessão virtual de 16/10 a 23/10",
+    "previsao": "2026-10-23",
+    "decisao": "",
+    "sem_repercussao_geral": false
+   }
+  ],
+  "estado": "ok",
+  "motivo": "",
+  "chave": "stf|informativo|repercussao-geral-394-conteudo|2026|2026-10-19",
+  "tentativas": 1,
+  "revisita": true
+ },
+ {
+  "tipo": "stf",
+  "numero": 1233,
+  "id": "stf1233",
+  "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1233.pdf",
+  "http": 200,
+  "situacao": "atrasada",
+  "ok": true,
+  "anunciada_em": "2026-10-19",
+  "anunciada_na_edicao": "2026-10-20",
+  "data": "19 de outubro de 2026",
+  "itens": [
+   {
+    "secao": "Plenário",
+    "ramo": "DIREITO ADMINISTRATIVO",
+    "titulo": "Percentual mínimo de servidores de carreira para cargos comissionados – ADI 7.512/AM",
+    "resumo": "É constitucional norma estadual que reserva aos servidores efetivos o percentual mínimo de 10% dos cargos em comissão, pois a Constituição Federal não estabelece proporção obrigatória e atribui ao legislador a definição dos casos, das condições e dos percentuais aplicáveis, observados os princípios da razoabilidade e da proporcionalidade (CF/1988, art. 37, V)."
+   },
+   {
+    "secao": "Plenário",
+    "ramo": "DIREITO CONSTITUCIONAL",
+    "titulo": "Período mínimo de gratuidade em estacionamentos privados para pessoas com deficiência",
+    "resumo": "É constitucional – por se inserir na competência legislativa concorrente dos estados para dispor sobre proteção e integração social das pessoas com deficiência – a norma estadual que assegura às pessoas com deficiência período mínimo de gratuidade em estacionamentos privados equivalente ao dobro do concedido aos demais usuários ou de trinta minutos na ausência de carência geral."
+   },
+   {
+    "secao": "Plenário",
+    "ramo": "DIREITO TRIBUTÁRIO",
+    "titulo": "Incompatibilidade da inclusão de créditos presumidos de ICMS na base de cálculo do PIS e da COFINS – RE 835.818/PR (Tema 843 RG)",
+    "resumo": "É inconstitucional a inclusão dos valores correspondentes a créditos presumidos de ICMS, decorrentes de incentivos fiscais concedidos pelos estados e pelo Distrito Federal, na base de cálculo da contribuição ao Programa de Integração Social (PIS) e da Contribuição para o Financiamento da Seguridade Social (COFINS), porquanto constituem mera redução ou ressarcimento de custos, sem representar ingresso de riqueza nova ou receita tributável."
+   },
+   {
+    "secao": "Plenário",
+    "ramo": "DIREITO TRIBUTÁRIO",
+    "titulo": "Inconstitucionalidade da fixação de alíquotas de IPTU em razão da área do imóvel por lei municipal posterior à EC nº 29/2000: modulação dos efeitos da decisão – ARE 1.593.784 ED/SC (Tema 1.455 RG)",
+    "resumo": "O entendimento fixado por esta Corte ao apreciar o Tema 1.455 da repercussão geral – no sentido da inconstitucionalidade de lei municipal posterior à EC nº 29/2000 que fixa alíquota do IPTU em razão da área do imóvel – deve ser aplicado, com efeitos ex nunc, a partir da publicação da ata do julgamento do mérito (12.08.2026), excluídos da modulação dos efeitos: (i) os fatos geradores anteriores a 12.08.2026 em relação aos quais não tenha havido o pagamento da tributação; e (ii) os processos administrativos e as ações judiciais pendentes de conclusão até 12.08.2026."
+   }
+  ],
+  "estado": "ok",
+  "motivo": "",
+  "chave": "stf|informativo|1233-conteudo|2026|2026-10-19",
+  "tentativas": 1,
+  "revisita": true
+ }
+]

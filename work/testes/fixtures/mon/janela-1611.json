@@ -1,0 +1,25 @@
+{
+ "data": "2026-11-16",
+ "doy": 320,
+ "execution_id": "2026-11-16-7h",
+ "gmail_apos": "2026/11/12",
+ "inicio": "2026-11-13T07:05:50-03:00",
+ "fim": "2026-11-16T07:07:30-03:00",
+ "epoch_inicio": 1794564350,
+ "primeira_semana": true,
+ "recesso": false,
+ "assunto": "Robozinho dos Momozis até Passar - 16/11/2026 - 7h",
+ "assunto_anterior": "Robozinho dos Momozis até Passar - 13/11/2026 - 7h",
+ "execucao_anterior": "2026-11-13-7h",
+ "draft_id_anterior": "r-7592758786679225943",
+ "ignorar_execucao": "",
+ "hoje_br": "16/11/2026",
+ "dia_semana": "segunda-feira",
+ "rodape": "amanhã",
+ "munger": {
+  "texto": "Saiba defender a posição contrária melhor que seus adversários antes de confiar na sua.",
+  "fonte": "Aforismos públicos amplamente atribuídos a Charlie Munger",
+  "obs": "",
+  "idx": 120
+ }
+}

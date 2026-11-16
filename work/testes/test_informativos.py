@@ -420,6 +420,121 @@ def t_parser_e_404():
            and "SEM EDICAO NOVA REPERCUSSAO GERAL EM PAUTA (nenhuma edição no histórico" in out, out)
 
 
+# ------------------------------------------------------------------ 7b. revisita: temas em votacao/pauta superados
+JANELA_1711 = {"ignorar_execucao": "2026-11-17-7h", "execution_id": "2026-11-17-7h"}
+
+
+def t_superados():
+    json.dump(JANELA_1711, open(os.path.join(TMP, "janela.json"), "w"))
+    h = I.historico()["rg"]
+    _, itens = I.rg_texto(fx("rg394.txt"))
+    m = I.superados_por_data(394, itens, h)
+    checar("superados: RG 394 com 3 boletins posteriores — os 5 em votação/pauta (até 23/10) saem",
+           sorted(itens[i]["tema"] for i in m) == sorted(["1.493", "1.494", "118", "488", "1.308"])
+           and all("boletins seguintes (395 a 397)" in v for v in m.values()), {itens[i]["tema"]: v for i, v in m.items()})
+    checar("superados: com 1 só boletim posterior nada sai (o resultado pode não ter saído ainda)",
+           I.superados_por_data(396, I.rg_texto(fx("rg396.txt"))[1], h) == {}
+           and I.superados_por_data(397, I.rg_texto(fx("rg397.txt"))[1], h) == {})
+    tardio = dict(itens[5], previsao="2026-11-05", estagio="em votação no PV até 05/11")
+    checar("superados: previsão depois do anúncio da penúltima posterior (03/11) fica",
+           I.superados_por_data(394, [tardio, dict(itens[5], previsao="")], h) == {1: m[5]})
+    checar("superados: tema com tese ou com desfecho nunca é superado",
+           not any(itens[i]["tese"] or not I.PENDENTE_RG.match(itens[i]["estagio"]) for i in m))
+    # replay de 17/11: historico com a execucao de 16/11, revisitas rg394 (texto real) e stf1233
+    PDF_ANTES = dict(PDF)
+    PDF["rg394"] = "rg394.txt"
+    try:
+        rede = Rede({"rg394": [(200, "pdf")], "stf1233": [(200, "pdf")]})
+        out, js, st = rodar(rede, janela=JANELA_1711)
+    finally:
+        PDF.clear(); PDF.update(PDF_ANTES)
+    r = por_id(js)
+    rg = r.get("rg394") or {}
+    checar("replay 17/11: RG 394 sai com 8 destaques; os 5 superados fora do índice, numa linha só",
+           "REPERCUSSAO GERAL EM PAUTA 394 [id rg394] (14 a 19 de outubro de 2026) — ATRASADA, revisita (anunciada em 21/10) — 8 destaques" in out
+           and "  fora do e-mail — em votação/pauta nesta edição; situação superada pelos boletins seguintes (395 a 397): "
+               "Temas 1.493, 1.494, 118, 488, 1.308" in out.splitlines()
+           and not re.search(r"(?m)^  \d+ \[(em votação|pauta)", out), out)
+    checar("replay 17/11: JSON — itens sem os superados; itens_superados com superado/superado_motivo; chave -conteudo",
+           rg.get("ok") and len(rg["itens"]) == 8 and [it["tema"] for it in rg.get("itens_superados", [])] ==
+           ["1.493", "1.494", "118", "488", "1.308"] and all(it["superado"] is True and it["superado_motivo"]
+                                                           for it in rg["itens_superados"])
+           and rg["chave"] == "stf|informativo|repercussao-geral-394-conteudo|2026|2026-10-19"
+           and not any(I.pendente_rg(it) for it in rg["itens"]), rg.get("chave"))
+    checar("replay 17/11: TECNICO conta os superados; fonte ok",
+           "rg394=200(5 superados, revisita)" in out and st["informativos_docs"]["status"] == "ok", out)
+    try:
+        import montar_email
+        import datetime
+        html_rg = " ".join(montar_email.destaques_html("rg", rg["itens"], datetime.date(2026, 11, 17)))
+        checar("replay 17/11: o montador não escreve 'resultado no próximo boletim' na RG 394",
+               "próximo boletim" not in html_rg and "Tema 118" not in html_rg and "Tema 1.016" in html_rg, html_rg[:300])
+    except ImportError as e:
+        print("AVISO   montar_email não importou (%s) — conferência do HTML pulada" % e)
+    # obter() sem historico (segunda_tentativa do montador, modo manual): le o historico sozinho
+    PDF["rg394"] = "rg394.txt"
+    try:
+        I.baixar = Rede({"rg394": [(200, "pdf")]}).baixar
+        r1 = I.obter("rg", 394, "atrasada")
+    finally:
+        PDF.clear(); PDF.update(PDF_ANTES)
+    checar("obter() sem hist_produto também separa os superados", r1["ok"] and len(r1["itens"]) == 8
+           and len(r1["itens_superados"]) == 5, (len(r1.get("itens") or []), r1.get("estado")))
+    # todos superados: estado 'superada', sem chave, so na linha TECNICO, nao derruba a fonte
+    r2 = I.aplicar_superados(dict(r1, itens=list(r1["itens"]), itens_superados=[], chave="x", revisita=True),
+                             {i: "teste" for i in range(len(r1["itens"]))})
+    saida = io.StringIO()
+    with contextlib.redirect_stdout(saida):
+        I.imprimir([r2])
+    out2 = saida.getvalue()
+    checar("todos superados: estado superada, sem chave, só na linha TECNICO, fonte ok",
+           (r2["ok"], r2["estado"], "chave" in r2, len(r2["itens"]), len(r2["itens_superados"])) == (False, "superada", False, 0, 8)
+           and [l for l in out2.splitlines() if "rg394" in l] == ["TECNICO informativos: rg394=200(superada, 8 superados, revisita)"]
+           and I.status_fonte([r2])["status"] == "ok" and "superadas: rg394" in I.status_fonte([r2])["detalhe"], out2)
+    # mesma execucao: tema da RG herdada que tambem esta numa RG posterior aberta agora
+    _, i397 = I.rg_texto(fx("rg397.txt"))
+    _, i394 = I.rg_texto(fx("rg394.txt"))
+    res = [{"tipo": "rg", "numero": 397, "id": "rg397", "ok": True, "situacao": "atrasada", "itens": list(i397)},
+           {"tipo": "rg", "numero": 394, "id": "rg394", "ok": True, "situacao": "atrasada", "revisita": True,
+            "itens": list(i394)},
+           {"tipo": "rg", "numero": 398, "id": "rg398", "ok": True, "situacao": "nova", "itens": [dict(i397[0])]}]
+    I.deduplicar_temas(res)
+    a, b, c = res[0], res[1], res[2]
+    checar("mesma execução: Tema 1.483 só na RG mais recente (398 > 397 > 394); a nova fica inteira",
+           [it["tema"] for it in a.get("itens_superados", [])] == ["1.483"]
+           and "1.483" not in [it["tema"] for it in b["itens"]] and len(c["itens"]) == 1
+           and b["itens_superados"][0]["superado_motivo"] == "tema também na RG 398, aberta nesta execução",
+           (a.get("itens_superados"), b.get("itens_superados")))
+    # campo opcional `temas` no item do historico (gravado pelo montador): tema ja publicado com RG posterior
+    hdir = tempfile.mkdtemp(prefix="hist-", dir=TMP)
+    base_h = json.load(open(os.path.join(FIX, "historico", "resumo-legislativo-historico.json"), encoding="utf-8"))
+    for e in base_h["executions"]:
+        for it in e.get("items") or []:
+            if it.get("chave", "").startswith("stf|informativo|repercussao-geral-397-conteudo"):
+                it["temas"] = ["1.483", "1.487"]
+            if it.get("chave", "").startswith("stf|informativo|repercussao-geral-397|"):
+                it["temas"] = ["9.999"]              # anuncio vazio: nao conta
+    json.dump(base_h, open(os.path.join(hdir, "resumo-legislativo-historico.json"), "w", encoding="utf-8"))
+    aqui = I.AQUI
+    I.AQUI = hdir
+    try:
+        h2 = I.historico()["rg"]
+        PDF["rg394"] = "rg394.txt"
+        I.baixar = Rede({"rg394": [(200, "pdf")]}).baixar
+        r3 = I.obter("rg", 394, "atrasada")
+    finally:
+        I.AQUI = aqui
+        PDF.clear(); PDF.update(PDF_ANTES)
+    checar("historico: campo `temas` lido só do registro com conteúdo", h2[397].get("temas") == {
+        "1.483": "2026-11-16", "1.487": "2026-11-16"} and "temas" not in h2[396], h2[397])
+    checar("histórico com `temas`: Tema 1.483 (saiu com a RG 397 em 16/11) fica fora da RG 394",
+           len(r3["itens"]) == 7 and "1.483" not in [it["tema"] for it in r3["itens"]]
+           and {it["tema"]: it["superado_motivo"] for it in r3["itens_superados"]}.get("1.483")
+           == "tema já publicado com a RG 397 em 16/11", [(it["tema"], it["superado_motivo"]) for it in r3["itens_superados"]])
+    checar("histórico sem `temas` (formato atual): nada muda", I.superados_por_historico(394, i394, h) == {})
+    os.unlink(os.path.join(TMP, "janela.json"))
+
+
 # ------------------------------------------------------------------ 8. modo manual, indice e compatibilidade
 def t_manual_e_compat():
     try:
@@ -459,7 +574,8 @@ def t_manual_e_compat():
 
 def main():
     try:
-        for t in (t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_parser_e_404, t_manual_e_compat):
+        for t in (t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_parser_e_404, t_superados,
+                  t_manual_e_compat):
             try:
                 t()
             except Exception as e:  # noqa: BLE001

@@ -19,7 +19,10 @@
 #      edicao de informativo (stf|informativo|1236|..., ...-repercussao-
 #      geral-397) tem identidade (tipo, numero) tirada da CHAVE ("forte").
 #      Dois itens com identidade forte: mesma identidade = mesma materia;
-#      identidade diferente = materias diferentes, sem olhar o titulo.
+#      identidade diferente = materias diferentes, sem olhar o titulo (so o
+#      mesmo numero com especie de ato diferente cai no titulo). O tipo da
+#      chave e canonico (tipo_canonico: lc/lcp -> lei-complementar, ec/emc ->
+#      emenda-constitucional, dl -> decreto-lei, mp -> mpv...).
 #      Identidade tirada so do comeco do TITULO ("Lei 15.530 altera...",
 #      "fraca"): numero diferente do mesmo tipo nunca e parecido; numero
 #      igual cai na comparacao de titulo (noticia SOBRE a lei nao e a lei).
@@ -36,7 +39,8 @@
 #   procurar(tok, idx, excluir=None) -> chave | None
 #   ignorar(it)
 # Novas: mesma_identidade(a, b) -> True|False|None, identidade(chave,
-#   titulo="") -> (tipo, numero, forte) | None, carregar_historico(caminho=None),
+#   titulo="") -> (tipo, numero, forte) | None, tipo_canonico(tipo) -> str,
+#   carregar_historico(caminho=None),
 #   urls_publicadas(execucoes, ignorar_exec_id=None) -> {url_normalizada: chave},
 #   normalizar_url(url).
 # Tokens e um set comum (len, &, in funcionam como antes) com os atributos
@@ -91,9 +95,34 @@ TIPOS_ATO = [("lei complementar", "lei-complementar"), ("decreto-lei", "decreto-
              ("decreto lei", "decreto-lei"), ("decreto legislativo", "decreto-legislativo"),
              ("emenda constitucional", "emenda-constitucional"), ("medida provisoria", "mpv"),
              ("lei", "lei"), ("decreto", "decreto"), ("mpv", "mpv"), ("mp", "mpv"),
-             ("ec", "emenda-constitucional")]
+             ("ec", "emenda-constitucional"), ("lcp", "lei-complementar"), ("lc", "lei-complementar")]
 _ATO_TITULO = re.compile(r"^\W*(%s)\s*(?:n[o°.]*\s*)?(\d{1,3}(?:\.\d{3})+|\d+)\b"
                          % "|".join(re.escape(t) for t, _ in TIPOS_ATO))
+# Tipo canonico do ato na CHAVE. O historico tem a mesma especie com varias
+# grafias (planalto|lc|234, planalto|lcp|238, planalto|lei-complementar|237),
+# e o coleta_web/montador gravam "lei-complementar": sem isso, a LC do PUSH
+# ("lc") e a ref do Congresso ("lei-complementar") viravam "materias
+# diferentes" e o --validar deixava de avisar a duplicata/repeticao.
+TIPO_CANONICO = {
+    "lc": "lei-complementar", "lcp": "lei-complementar", "lei-complementar": "lei-complementar",
+    "ec": "emenda-constitucional", "emc": "emenda-constitucional", "emenda": "emenda-constitucional",
+    "emenda-constitucional": "emenda-constitucional",
+    "dl": "decreto-lei", "del": "decreto-lei", "decreto-lei": "decreto-lei",
+    "dlg": "decreto-legislativo", "pdl": "decreto-legislativo", "decreto-legislativo": "decreto-legislativo",
+    "lei-ordinaria": "lei", "lei": "lei", "decreto": "decreto", "dec": "decreto",
+}
+TIPOS_INFORMATIVO = {"stf-informativo", "stf-rg", "stj-informativo"}
+
+
+def tipo_canonico(tipo):
+    """Grafia unica do tipo de ato da chave ('lc'/'lcp' -> 'lei-complementar',
+    'mp'/'medida-provisoria' -> 'mpv'...); tipo desconhecido volta como veio."""
+    t = (tipo or "").strip().lower().replace("_", "-").replace(" ", "-")
+    if t.startswith(("medida-prov", "mp")):
+        return "mpv"
+    return TIPO_CANONICO.get(t, t)
+
+
 _INF_TITULO = re.compile(r"^\W*(?:informativo (stf|stj)|(repercussao geral em pauta))\s*"
                          r"(?:n[o°.]*\s*)?(\d+)\b")
 
@@ -135,7 +164,7 @@ def _ident_chave(chave):
             return ("stf-rg" if m.group(1) else "%s-informativo" % fonte, str(int(m.group(2))))
         return None
     if fonte == "planalto" and slug.isdigit():
-        return ("mpv" if tipo.startswith(("medida-prov", "mp")) else tipo, str(int(slug)))
+        return (tipo_canonico(tipo), str(int(slug)))
     return None
 
 
@@ -162,7 +191,14 @@ def mesma_identidade(a, b):
         # 5 anos, define nova lei" x Lei 15.509, 23/09): decide o titulo
         return None
     if getattr(a, "forte", False) and getattr(b, "forte", False):
-        return ia == ib and cont_a == cont_b
+        if ia == ib:
+            return cont_a == cont_b
+        if ia[1] == ib[1] and not ({ia[0], ib[0]} & TIPOS_INFORMATIVO):
+            # mesmo numero, tipo de ato diferente: grafia que o TIPO_CANONICO
+            # ainda nao conhece (ex.: "planalto|lcomp|239") ou coincidencia
+            # entre especies; decide o titulo, como antes da identidade
+            return None
+        return False
     if ia[0] == ib[0] and ia[1] != ib[1]:
         return False                       # mesmo tipo, numero diferente: nunca pelo titulo
     return None

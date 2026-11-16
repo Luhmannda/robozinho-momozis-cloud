@@ -168,6 +168,60 @@ def repeticao_regras():
     assert repeticao.normalizar_url("https://www.jota.info/a/b/?utm_source=x#c") == "jota.info/a/b"
 
 
+def _update_historico():
+    caminho = os.path.join(WORK, "Update-Historico.py")
+    spec = importlib.util.spec_from_file_location("update_historico", caminho)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@teste
+def repeticao_sinonimos_de_tipo():
+    """17/11: lc/lcp/lei-complementar (historico real: lc|234, lc|235, lcp|238,
+    lei-complementar|237), ec/emc, dl: a mesma especie com grafias diferentes na
+    chave nao pode virar 'materias diferentes' (matava POSSIVEL_REPETIDA/DUPLICATA)."""
+    ti, p = repeticao.tokens_item, repeticao.parecidas
+    lc = ti("planalto|lc|239|2026|2026-11-14", "LC 239/2026 - regime de recuperação fiscal dos estados")
+    lcc = ti("planalto|lei-complementar|239|2026|2026-11-14",
+             "Lei Complementar nº 239, de 14/11/2026 — regime de recuperação fiscal dos estados")
+    lcp = ti("planalto|lcp|239|2026|2026-11-14", "Lei Complementar nº 239/2026 (recuperação fiscal)")
+    assert lc.ident == lcc.ident == lcp.ident == ("lei-complementar", "239")
+    assert p(lc, lcc) and p(lcp, lcc) and p(lc, lcp)
+    assert not p(lc, ti("planalto|lei-complementar|240|2026|2026-11-14",
+                        "Lei Complementar nº 240 — regime de recuperação fiscal dos estados"))
+    assert p(ti("planalto|ec|137|2026|2026-11-14", "EC 137"),
+             ti("planalto|emenda-constitucional|137|2026|2026-11-14", "Emenda Constitucional nº 137"))
+    assert p(ti("planalto|emc|137|2026|2026-11-14", "x"), ti("planalto|ec|137|2026|2026-11-13", "y"))
+    assert p(ti("planalto|dl|3689|1941|1941-10-03", "a"), ti("planalto|decreto-lei|3689|1941|1941-10-03", "b"))
+    assert p(ti("planalto|medida-provisoria|1401|2026|x", "a"), ti("planalto|mp|1401|2026|x", "b"))
+    assert repeticao.tipo_canonico("LCP") == "lei-complementar" and repeticao.tipo_canonico("xyz") == "xyz"
+    # grafia desconhecida, mesmo numero: o titulo decide (antes: False sem olhar o titulo)
+    t = "Lei Complementar nº 239 regime de recuperação fiscal dos estados"
+    assert repeticao.mesma_identidade(ti("planalto|lcomp|239|2026|x", t), lcc) is None
+    assert p(ti("planalto|lcomp|239|2026|x", t), lcc)
+    assert not p(ti("planalto|decreto|239|2026|x", "Decreto nº 239 dispõe sobre vigilância sanitária"), lcc)
+    # edicoes de informativo continuam estritas (tipos gerados pelo codigo)
+    assert repeticao.mesma_identidade(ti("stj|informativo|870|2026|x", "Informativo STJ nº 870"),
+                                      ti("stf|informativo|870|2026|x", "Informativo STJ nº 870")) is False
+    # titulo "LC 235/2026 - ..." ganha identidade fraca
+    assert repeticao.tokens("LC 235/2026 - redução de tributos").ident == ("lei-complementar", "235")
+    # o checar_repeticao real (Update-Historico --validar): repetida e duplicata voltam
+    mod = _update_historico()
+    h = [{"execution_id": "2026-11-14-7h", "items": [
+        {"categoria": "Planalto/Legislação", "chave": "planalto|lc|239|2026|2026-11-14",
+         "titulo": "LC 239/2026 - regime de recuperação fiscal dos estados"}]}]
+    ex = {"execution_id": "2026-11-17-7h", "items": [
+        {"categoria": "Planalto/Legislação", "chave": "planalto|lei-complementar|239|2026|2026-11-14",
+         "titulo": "Lei Complementar nº 239, de 14/11/2026 — regime de recuperação fiscal dos estados"},
+        {"categoria": "Planalto/Legislação", "chave": "planalto|lcp|239|2026|2026-11-14",
+         "titulo": "Lei Complementar nº 239/2026 (recuperação fiscal)"}]}
+    ca = {it["chave"] for e in h for it in e["items"]}
+    avisos = mod.checar_repeticao(ex, h, ca)
+    assert len([a for a in avisos if a.startswith("POSSIVEL_REPETIDA")]) == 2, avisos
+    assert [a for a in avisos if a.startswith("POSSIVEL_DUPLICATA_NA_EDICAO: planalto|lcp|239")], avisos
+
+
 # ------------------------------------------------------------ coleta_web
 def coleta_fixture():
     """coleta_web.json de 16/11 com datas de volta a date/datetime."""
@@ -257,6 +311,31 @@ def coleta_conjur_pelo_dia():
     sit = {i["url"].rsplit("/", 1)[1]: i["situacao"] for i in out["itens"]}
     assert sit == {"a-antes": "FORA", "b-cedo": "FORA", "c-tarde": "HERDADA", "d-meio": "HERDADA",
                    "e-cedo": "HERDADA", "f-tarde": "NOVA", "g-hoje": "NOVA", "h-artigo-meio": "HERDADA"}, sit
+
+
+@teste
+def coleta_ato_ja_publicado_com_outra_grafia():
+    """planalto|lc|239 no historico = 'Lei Complementar nº 239' da listagem do Congresso."""
+    h = [{"execution_id": "2026-11-14-7h", "items": [
+        {"chave": "planalto|lc|239|2026|2026-11-14", "titulo": "LC 239/2026"},
+        {"chave": "planalto|medida-provisoria|1401|2026|2026-11-14", "titulo": "MPV 1401"}]}]
+    atos, _ = coleta_web.carregar_publicados(h)
+    assert ("lei-complementar", "239") in atos and ("mpv", "1401") in atos, atos
+    bloco = ('<div class="sf-lista-resumos__resumo"><dt>Norma:</dt><dd><a href="https://x/lcp239">'
+             'Lei Complementar nº 239 de 14/11/2026</a> (<a href="#">DOU de 14/11/2026</a>)</dd>'
+             '<dt>Ementa:</dt><dd>Regime de recuperação fiscal.</dd></div>'
+             '<div class="sf-lista-resumos__resumo"><dt>Norma:</dt><dd><a href="https://x/l15540">'
+             'Lei nº 15.540 de 14/11/2026</a> (<a href="#">DOU de 17/11/2026</a>)</dd></div>')
+    antigo = coleta_web.fetch
+    coleta_web.fetch = lambda url, *a, **k: (200, bloco)
+    try:
+        inicio = datetime.fromisoformat("2026-11-14T07:05:00-03:00")
+        fim = datetime.fromisoformat("2026-11-17T07:05:00-03:00")
+        out = coleta_web.leis(inicio, fim, fim.replace(day=16), atos)
+    finally:
+        coleta_web.fetch = antigo
+    sit = {i["numero"]: i["situacao"] for i in out["itens"]}
+    assert sit == {"239": "JA_PUBLICADA", "15540": "NOVA"}, sit
 
 
 @teste
@@ -385,6 +464,73 @@ def resolver_seguranca():
 
 
 @teste
+def resolver_lista_de_permitidos():
+    """17/11: lista de PERMITIDOS no lugar da lista de palavras; titulo de
+    descadastro recusado antes de qualquer pedido (via inline titulo<TAB>wrapper)."""
+    mp = resolver_jota.motivo_proibido
+    furos = ["https://www.jota.info/newsletter/cancelar-inscricao-em-todas-as-newsletters",
+             "https://www.jota.info/conta/preferencias-de-envio-de-newsletters-do-jota",
+             "https://www.jota.info/newsletter/remover-meu-email-de-todas-as-listas",
+             "https://www.jota.info/newsletter/cancelamento", "https://www.jota.info/newsletter/sair-da-lista",
+             "https://www.jota.info/minha-conta/newsletters", "https://www.jota.info/newsletters/cancelar",
+             "https://www.jota.info/newsletters/jota-principal/cancelar-inscricao-em-todas-as-newsletters",
+             "https://www.jota.info/justica/cancelar-inscricao-em-todas-as-newsletters-do-jota",
+             "https://www.jota.info/justica/materia-qualquer?email=a@b.c",
+             "https://www.jota.info/justica/preferencias", "https://www.jota.info/stf/conta/x-y-z-w",
+             "https://www.jota.info/justica/sair-da-lista", "https://www.jota.info/justica/index.php",
+             "https://t.rdsv2.net/wf/unsubscribe?upn=x", "https://t.rdsv2.net/wf/open?upn=x",
+             "https://conta.jota.info/x", "https://www.jota.info/", "https://www.jota.info/tudo-sobre/stf"]
+    assert not [u for u in furos if not mp(u)], [u for u in furos if not mp(u)]
+    # as URLs reais de materia do historico continuam permitidas (176 em 16/11; amostra)
+    reais = ["https://t.rdsv2.net/ls/click?upn=u001.abc",
+             "https://www.jota.info/eleicoes/eleicoes-2026/nunes-marques-manda-remover-em-24h-postagens-oficiais-"
+             "que-destaquem-figura-de-lula",
+             "https://www.jota.info/newsletters/jota-principal/moraes-deve-definir-criterios-para-uso-da-imagem-de-"
+             "bolsonaro",
+             "https://www.jota.info/opiniao-e-analise/colunas/defensor-legis/a-psv-150-e-seus-efeitos-no-"
+             "comportamento-do-legislativo-e-do-stf",
+             "https://www.jota.info/executivo/perfil-da-polymarket-no-instagram-sai-do-ar-apos-atuacao-do-governo-lula",
+             "https://www.jota.info/coberturas-especiais/contas-publicas/tcu-aprova-contas-do-governo",
+             "https://www.jota.info/justica/materia-boa-sobre-o-stf?utm_source=newsletter&utm_medium=email"
+             "&utm_campaign=principal"]
+    assert not [u for u in reais if mp(u)], [(u, mp(u)) for u in reais if mp(u)]
+    # destino proibido nao recebe pedido nenhum (nem sem corpo)
+    mapa = {W % (30 + i): (302, u, "") for i, u in enumerate(furos[:5])}
+    codigo, out, rede = rodar_resolver(["Matéria %d qualquer com título\t%s" % (i, W % (30 + i)) for i in range(5)],
+                                       mapa, ["--sem-historico"])
+    assert [l.split("\t")[0] for l in out] == ["RECUSADO"] * 5, out
+    assert not [p for p in rede.pedidos if "jota.info" in p], rede.pedidos
+    # titulo de rodape (inline): RECUSADO sem tocar o wrapper; manchete parecida passa
+    rodapes = ["Caso não queira mais receber estes e-mails, cancele sua inscrição",
+               "Caso não queira mais receber estes e-mails, clique aqui",
+               "Se quer parar de receber esta newsletter, clique aqui", "Sair da lista", "Preferências"]
+    destino = J % "aposentados-podem-deixar-de-receber-beneficio-apos-revisao"
+    manchete = "Aposentados podem deixar de receber benefício após revisão"
+    mapa = {W % 40: (302, destino, ""), destino: (200, "", pagina(manchete))}
+    linhas = ["%s\t%s" % (t, W % (41 + i)) for i, t in enumerate(rodapes)] + ["%s\t%s" % (manchete, W % 40)]
+    codigo, out, rede = rodar_resolver(linhas, mapa, ["--sem-historico"])
+    assert [l.split("\t")[0] for l in out] == ["RECUSADO"] * 5 + ["OK"], out
+    assert all("titulo de descadastro" in l for l in out[:5]), out
+    assert rede.pedidos == [W % 40, destino], rede.pedidos
+    # so rodape com link: nem a sondagem de bloqueio roda; com BLOQUEADO, o RECUSADO ainda sai
+    sondou = []
+    antigo = resolver_jota.sondar
+    tsv = os.path.join(TMPDIR, "jota_links.tsv")
+    with open(tsv, "w", encoding="utf-8") as f:
+        f.write("%s\n" % linhas[0])
+    resolver_jota.sondar = lambda: sondou.append(1) or ("https://t.rdsv2.net/", "000")
+    try:
+        codigo, saida = saida_de(resolver_jota.main, [tsv, "--sem-historico"])
+        assert codigo == 0 and not sondou and saida.startswith("RECUSADO\tCaso não queira"), saida
+        with open(tsv, "w", encoding="utf-8") as f:
+            f.write("%s\n%s\t%s\n" % (linhas[0], manchete, W % 40))
+        codigo, saida = saida_de(resolver_jota.main, [tsv, "--sem-historico"])
+    finally:
+        resolver_jota.sondar = antigo
+    assert codigo == 3 and sondou and saida.splitlines()[1].startswith("RECUSADO\tCaso não queira"), saida
+
+
+@teste
 def resolver_historico_e_indice():
     titulos = [l.split("\t")[0] for l in open(os.path.join(FIX, "jota_links.tsv"), encoding="utf-8")]
     mapa = {}
@@ -473,6 +619,22 @@ def jota_extrair_formatos():
     assert indice2[:6] == indice and len(indice2) == 10, indice2   # +3 wrappers da prosa +1 materia direta
     assert "Leia mais. [L8]" in out2 and "TESTE-36" not in open(urls).read() and "TESTE-99" not in open(urls).read()
     assert "Matéria direta: [L10]" in out2
+
+
+@teste
+def jota_extrair_rodape_clique_aqui():
+    """'Caso nao queira mais receber estes e-mails, clique aqui [url]': antes o
+    link entrava no indice (so 'cancele sua inscri' era reconhecido)."""
+    arq = os.path.join(TMPDIR, "rodape.txt")
+    with open(arq, "w", encoding="utf-8") as f:
+        f.write("STF | Matéria boa sobre o STF [ https://t.rdsv2.net/ls/click?upn=u001.MATERIA ]\n\n"
+                "Caso não queira mais receber estes e-mails, clique aqui "
+                "[ https://t.rdsv2.net/ls/click?upn=u001.RODAPE ]\n"
+                "Se não quiser mais receber, toque aqui [ https://t.rdsv2.net/ls/click?upn=u001.RODAPE2 ]\n")
+    urls = os.path.join(TMPDIR, "jota_urls_rodape.tsv")
+    codigo, out = saida_de(jota_extrair.main, ["--novo", "--urls", urls, arq])
+    assert codigo == 0 and "2 descadastro/preferencias" in out.splitlines()[0], out
+    assert open(urls, encoding="utf-8").read() == "1\thttps://t.rdsv2.net/ls/click?upn=u001.MATERIA\n"
 
 
 @teste

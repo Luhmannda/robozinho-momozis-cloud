@@ -21,11 +21,21 @@
 #       PROVA EM BREVE > INSCRICOES ABERTAS > INSCRICOES ENCERRADAS;
 #     - INSCRICOES ABERTAS so com data de inicio conhecida <= hoje;
 #     - INSCRICOES ENCERRADAS automatica so com a banca lida hoje E o fim das
-#       inscricoes posterior a ultima retificacao; senao, selo mantido + ALERTA
-#       "confirmar prorrogacao" (inscricao e prorrogada com frequencia: TJAP);
-#     - quem chama nunca aplica sobre selo escrito hoje nos ledger_updates e
-#       deriva ANTES de podar prazos vencidos (prazos_podados = os que o
-#       update de hoje retirou).
+#       inscricoes posterior a ultima retificacao (inscricao e prorrogada com
+#       frequencia: TJAP). Fora disso, o fim ja passou e o selo dizia ENCERRA
+#       HOJE / ENCERRA EM BREVE / INSCRICOES ABERTAS: o selo cai para PENDENCIA
+#       DE VERIFICACAO (SELO_SEM_CONFIRMACAO), com o motivo "prorrogação não
+#       confirmada" dizendo o que fazer. Antes o selo ficava e o leitor lia
+#       "ENCERRA HOJE" dias depois do prazo (DPE-SP, TJAP de 13 a 16/11);
+#     - quem chama nunca aplica sobre selo ESCRITO hoje nos ledger_updates
+#       (selo_escrito: so conta o que difere do selo do registro antes do
+#       update; copiar o selo inalterado nao e decisao) e deriva ANTES de podar
+#       prazos vencidos (prazos_podados = os que o update de hoje retirou).
+#   classe_prazo: "inscricao definitiva" (2a fase da magistratura) e eventos
+#     acessorios da prova (resultado, gabarito, recurso, locais, convocacao...)
+#     sao "outro" — nao abrem inscricao nem viram PROVA EM BREVE.
+#   fonte_oficial: so o que passa em DOMINIOS_OFICIAIS; o dominio_oficial do
+#     registro nao vale como prova (era contornavel no mesmo update: E9).
 # =====================================================================
 
 import re
@@ -35,6 +45,8 @@ from urllib.parse import urlparse
 FAMILIA_DATA = ("ENCERRA HOJE", "ENCERRA EM BREVE", "PROVA EM BREVE", "INSCRIÇÕES ABERTAS",
                 "INSCRIÇÕES ENCERRADAS")
 PRECEDENCIA = FAMILIA_DATA          # ordem de prioridade quando mais de um selo se aplica
+# fim das inscricoes vencido sem confirmacao (encerramento ou prorrogacao): selo neutro, fora da familia
+SELO_SEM_CONFIRMACAO = "PENDÊNCIA DE VERIFICAÇÃO"
 EM_BREVE_DIAS = 7
 PROVA_BREVE_DIAS = 14
 # selos que um concurso pode ter (lista propria; a lista geral de SELOS do helper vale para noticias)
@@ -71,6 +83,11 @@ RE_FIM = re.compile(r"(fim|t[ée]rmino|encerramento|[úu]ltimo dia|prazo final|e
 RE_INICIO = re.compile(r"(in[íi]cio|abertura).{0,25}inscri", re.I)
 RE_PROVA = re.compile(r"\bprova", re.I)
 RE_PAGAMENTO = re.compile(r"pagamento|boleto|taxa|isen", re.I)
+# inscricao DEFINITIVA (2a fase da magistratura: TJRS, TJSC, TJAP, TRF5 em 2027) nao reabre o concurso
+RE_DEFINITIVA = re.compile(r"definitiv", re.I)
+# evento acessorio da prova (depois dela ou sobre ela): nao e a prova
+RE_NAO_PROVA = re.compile(r"resultado|gabarito|recurso|\bloca(?:l|is)\b|convoca|\bvista\b|homolog|edital\s+de|"
+                          r"cart[ãa]o|divulga|publica[çc]", re.I)
 
 
 # ------------------------------------------------------------------ fontes
@@ -93,17 +110,12 @@ def dominio_oficial(h):
 
 
 def fonte_oficial(fonte, dominio_registro=None):
-    """A `fonte` do registro e oficial? Regex compartilhada; aceita tambem o dominio_oficial
-    do proprio registro (banca nao listada), desde que nao seja site secundario conhecido."""
+    """A `fonte` do registro e oficial? So pela regex compartilhada (DOMINIOS_OFICIAIS).
+    `dominio_registro` fica na assinatura por compatibilidade e NAO vale como prova: o
+    dominio_oficial podia ser escrito no mesmo update que promove (ex.: www.dgabc.com.br) e
+    a lista SECUNDARIOS nunca cobre todos os sites. Banca nova entra em BANCAS_OFICIAIS."""
     h = host(fonte)
-    if not h:
-        return False
-    if dominio_oficial(h):
-        return True
-    d = (dominio_registro or "").lower().strip().lstrip(".")
-    if d and not SECUNDARIOS.search(d) and (h == d or h.endswith("." + d)):
-        return True
-    return False
+    return bool(h) and dominio_oficial(h)
 
 
 # ------------------------------------------------------------------ prazos
@@ -122,11 +134,16 @@ def classe_prazo(pz):
     if t in TIPOS_PRAZO:
         return t
     ev = pz.get("evento") or ""
+    if RE_DEFINITIVA.search(ev):
+        return "outro"          # inscricao definitiva: etapa de quem ja passou, nao reabre inscricao
     if RE_INICIO.search(ev):
         return "inscricoes_inicio"
     if RE_FIM.search(ev) and not RE_PAGAMENTO.search(ev.split("inscri")[0]):
         return "inscricoes_fim"
-    if RE_PROVA.search(ev):
+    m = RE_PROVA.search(ev)
+    # so o que vem ANTES de "prova" decide: "resultado preliminar da prova" e outro; "prova objetiva
+    # (data divulgada pela banca)" continua prova
+    if m and not RE_NAO_PROVA.search(ev[:m.start()]):
         return "prova"
     return "outro"
 
@@ -213,7 +230,7 @@ def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, ini
     prova, prova_passada = proxima_prova(reg, hoje, extras=prazos_podados)
     ini = _data(inicio_inscricoes_banca) or inicio_inscricoes(reg, hoje)
     ret = _data(ultima_retificacao)
-    cands, porque, alerta = [], {}, None
+    cands, porque = [], {}
     if fim:
         d = (fim - hoje).days
         if d == 0:
@@ -236,12 +253,18 @@ def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, ini
                     fim.strftime("%d/%m"), ", banca oficial lida hoje" + (
                         " (última retificação %s)" % ret.strftime("%d/%m") if ret else "") if seguro else "")
             elif atual in ("ENCERRA HOJE", "ENCERRA EM BREVE", "INSCRIÇÕES ABERTAS"):
+                # o selo dizia "abertas/encerra" e o prazo passou sem confirmacao: nao fica mais (o leitor lia
+                # ENCERRA HOJE dias depois); tambem nao vira ENCERRADAS sozinho (a prorrogacao e frequente)
                 if not banca_lida_hoje:
                     razao = "a banca oficial não foi lida hoje"
                 else:
                     razao = "a banca publicou retificação em %s, no dia do prazo ou depois" % ret.strftime("%d/%m")
-                alerta = ("confirmar prorrogação: o fim das inscrições (%s) já passou e %s — o selo %s fica "
-                          "até a confirmação" % (fim.strftime("%d/%m"), razao, atual))
+                cands.append(SELO_SEM_CONFIRMACAO)
+                porque[SELO_SEM_CONFIRMACAO] = (
+                    "o fim das inscrições (%s) já passou e %s: prorrogação não confirmada — confirme na fonte "
+                    "oficial e escreva em ledger_updates.concursos: encerradas → selo INSCRIÇÕES ENCERRADAS; "
+                    "prorrogadas → prazos com a data nova (confirmado, fonte oficial) e selo INSCRIÇÕES ABERTAS"
+                    % (fim.strftime("%d/%m"), razao))
     if prova is not None and (prova - hoje).days <= PROVA_BREVE_DIAS:
         cands.append("PROVA EM BREVE")
         porque["PROVA EM BREVE"] = "prova em %s" % prova.strftime("%d/%m")
@@ -249,11 +272,20 @@ def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, ini
         if atual == "PROVA EM BREVE" and prova_passada and prova is None:
             return atual, ("confirmar: a prova de %s já passou — atualize o selo (PROVA REALIZADA?)"
                            % prova_passada.strftime("%d/%m"))
-        return atual, alerta
-    novo = min(cands, key=PRECEDENCIA.index)
+        return atual, None
+    novo = min(cands, key=(PRECEDENCIA + (SELO_SEM_CONFIRMACAO,)).index)
     if novo == atual:
         return atual, None
     return novo, "%s → %s: %s" % (atual, novo, porque[novo])
+
+
+def selo_escrito(u, antes):
+    """O orquestrador DECIDIU o selo hoje? `u` = ledger_updates.concursos[id]; `antes` = o registro antes
+    do update (None = concurso novo). Copiar o selo inalterado (a maioria dos updates de concurso traz o
+    selo do registro) nao e decisao: o selo por data vale. Mesma regra no helper e no montador."""
+    if not isinstance(u, dict) or "selo" not in u or u.get("remover"):
+        return False
+    return antes is None or u["selo"] != (antes or {}).get("selo")
 
 
 def relativos(texto):

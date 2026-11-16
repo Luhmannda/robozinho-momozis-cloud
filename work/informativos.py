@@ -18,6 +18,15 @@
 #   - as REVISITAS: ate MAX_REVISITAS_ANTIGAS edicoes mais antigas (ate
 #     JANELA_REVISITA numeros para tras) anunciadas sem conteudo, as mais
 #     recentes primeiro, parando no 404 — saem no sub-bloco EM ATRASO.
+#     Na RG em Pauta, o tema "em votacao"/"em pauta" de uma edicao que ja tem
+#     dois boletins posteriores publicados sai de "itens" (vai para
+#     "itens_superados"): a situacao dele e de semanas atras e o resultado ja
+#     saiu (em 17/11/2026 a RG 394, de 14 a 19/10, ia ao leitor com o Tema 118
+#     "Pauta do Plenario 21/10 (resultado no proximo boletim)" depois de o
+#     julgamento ter saido no e-mail de 16/11). Idem o tema de uma edicao
+#     herdada que tambem esta numa edicao posterior aberta na mesma execucao,
+#     e o tema que ja saiu com uma RG posterior (campo opcional `temas` do
+#     item do historico; sem o campo, nada muda).
 # Cada edicao ganha um id (stf1236, rg397, stj909): o orquestrador escolhe os
 # destaques pelo indice e o work/montar_email.py copia o texto oficial
 # (STF: titulo do sumario + RESUMO oficial; RG: tema, estagio, previsao, tese;
@@ -305,6 +314,82 @@ PROCESSO_RG = re.compile(r"^(?:RE|ARE|AI|Rcl|RCL|ADI|ADPF|ADC|ADO|MS|MI|HC|RHC|S
 RELATOR_RG = re.compile(r"\s+(RELATORA?|RED\. ACÓRD\.):.*$")       # "PROCESSOS: RE 1.163.774-ED RELATORA: Min. ..." na mesma linha
 RG_RECONHECIDA = re.compile(r"(?i)reconheceu a exist[êe]ncia de repercuss[ãa]o geral")
 RG_NEGADA = re.compile(r"(?i)(recusou|n[ãa]o reconheceu|negou)\b.{0,40}repercuss[ãa]o geral")
+PENDENTE_RG = re.compile(r"(?i)^(em votação|pauta)\b")     # estagio sem resultado ainda (mesma regra do montador)
+
+
+def pendente_rg(it):
+    return bool(PENDENTE_RG.match(it.get("estagio") or "")) and not it.get("tese")
+
+
+def faixa(nums):
+    nums = sorted(nums)
+    return ("%d a %d" % (nums[0], nums[-1])) if len(nums) > 1 else "%d" % nums[0]
+
+
+def superados_por_data(n, itens, h):
+    """Temas 'em votacao'/'em pauta' da RG n cuja situacao os boletins posteriores ja superaram.
+    h = historico do produto ({numero: {"anunciada_em", "anunciada_na_edicao", ...}}). Exige DUAS
+    edicoes posteriores anunciadas: o periodo da ultima comeca logo depois do da penultima, entao tudo
+    o que estava previsto antes do anuncio da penultima ja teve o resultado num boletim publicado.
+    Supera o tema com previsao anterior a essa data, ou sem previsao (a pauta e de semanas atras).
+    Devolve {indice: motivo}."""
+    pend = [i for i, it in enumerate(itens) if pendente_rg(it)]
+    if not pend:
+        return {}
+    posteriores = sorted(m for m in h if m > n)
+    datas = sorted(d for d in (h[m].get("anunciada_em") or h[m].get("anunciada_na_edicao") or ""
+                               for m in posteriores) if d)
+    if len(datas) < 2:
+        return {}
+    limite = datas[-2]
+    motivo = "em votação/pauta nesta edição; situação superada pelos boletins seguintes (%s)" % faixa(posteriores)
+    return {i: motivo for i in pend if not itens[i].get("previsao") or itens[i]["previsao"] < limite}
+
+
+def superados_por_historico(n, itens, h):
+    """Tema da RG n que ja saiu no e-mail com uma RG posterior (h[m]["temas"], ver historico()):
+    a situacao de la e a mais recente; aqui seria repeticao. {indice: motivo}."""
+    ja = {}
+    for m in sorted((m for m in h if m > n), reverse=True):       # vale a posterior mais proxima
+        for t, quando in (h[m].get("temas") or {}).items():
+            ja[t] = (m, quando)
+    return {i: "tema já publicado com a RG %d%s" % (ja[it["tema"]][0], (" em " + ddmm(ja[it["tema"]][1]))
+                                                     if ddmm(ja[it["tema"]][1]) else "")
+            for i, it in enumerate(itens) if it.get("tema") in ja}
+
+
+def aplicar_superados(r, motivos):
+    """Tira de r["itens"] os indices de motivos ({indice: motivo}) e os guarda em r["itens_superados"]
+    (superado: true, superado_motivo). Sem nenhum item restante, a edicao vira estado 'superada'
+    (ok False, sem chave): nada a publicar."""
+    if not motivos:
+        return r
+    ficam = [it for i, it in enumerate(r["itens"]) if i not in motivos]
+    r["itens_superados"] = (r.get("itens_superados") or []) + [
+        dict(it, superado=True, superado_motivo=motivos[i]) for i, it in enumerate(r["itens"]) if i in motivos]
+    r["itens"] = ficam
+    if not ficam:
+        r.pop("chave", None)
+        r.update(ok=False, estado="superada",
+                 motivo="todos os temas já superados por boletins posteriores (nada a publicar)")
+    return r
+
+
+def deduplicar_temas(resultados):
+    """Tema de uma RG herdada (atrasada/pulada) que tambem esta numa RG posterior aberta nesta execucao:
+    fica so na mais recente (a situacao dela e a atual)."""
+    rgs = [r for r in resultados if r.get("tipo") == "rg" and r.get("ok")]
+    for r in sorted(rgs, key=lambda x: x["numero"], reverse=True):   # as posteriores ja estao resolvidas
+        if r.get("situacao") not in ("atrasada", "pulada"):
+            continue
+        depois = {}
+        for o in sorted(rgs, key=lambda x: x["numero"], reverse=True):
+            if o["numero"] > r["numero"] and o.get("ok"):
+                for it in o["itens"]:
+                    depois[it["tema"]] = o["numero"]
+        aplicar_superados(r, {i: "tema também na RG %d, aberta nesta execução" % depois[it["tema"]]
+                              for i, it in enumerate(r["itens"]) if it["tema"] in depois})
+    return resultados
 
 
 def contexto_rg(l):
@@ -505,10 +590,12 @@ SEM_CONTEUDO = re.compile(r"(?i)n[aã]o (foi |estava )?(acess|lid)|inacess|\b403
 
 
 def historico():
-    """{produto: {numero: {"vazio", "anunciada_em", "anunciada_na_edicao"}}} do historico
+    """{produto: {numero: {"vazio", "anunciada_em", "anunciada_na_edicao"[, "temas"]}}} do historico
     principal e dos arquivos. vazio=True: a edicao saiu so com numero/data/link e os
     destaques ainda nao. anunciada_em: 5o campo da chave do anuncio (data do e-mail/edicao);
-    anunciada_na_edicao: data da execucao que a anunciou."""
+    anunciada_na_edicao: data da execucao que a anunciou. temas (so RG, opcional): {tema: data
+    da execucao} dos temas que ja sairam no e-mail, lido do campo `temas` do item do historico
+    (lista gravada pelo montador; historico sem o campo = nada)."""
     hist = {"stf": {}, "rg": {}, "stj": {}}
     ignorar = janela().get("ignorar_execucao") or ""
     for f in glob.glob(os.path.join(AQUI, "resumo-legislativo-historico*.json")):
@@ -536,8 +623,12 @@ def historico():
                 info = hist[tipo].setdefault(n, {"vazio": True, "anunciada_em": "", "anunciada_na_edicao": ""})
                 # um registro com conteudo (ou o "-conteudo" posterior) vence o anuncio vazio
                 info["vazio"] = info["vazio"] and vazio
+                edicao = str(e.get("date") or (e.get("execution_id") or "")[:10])
+                if tipo == "rg" and isinstance(it.get("temas"), list) and not vazio:
+                    for t in it["temas"]:
+                        if str(t).strip():
+                            info.setdefault("temas", {}).setdefault(str(t).strip(), edicao)
                 if not m.group(3):
-                    edicao = str(e.get("date") or (e.get("execution_id") or "")[:10])
                     if not info["anunciada_na_edicao"] or (edicao and edicao < info["anunciada_na_edicao"]):
                         info["anunciada_na_edicao"] = edicao
                         info["anunciada_em"] = p[4] if len(p) > 4 and re.fullmatch(r"\d{4}-\d\d-\d\d", p[4]) else ""
@@ -550,10 +641,12 @@ def publicados():
 
 
 # ------------------------------------------------------------------ obtencao
-def obter(tipo, n, situacao="nova", anuncio=None):
+def obter(tipo, n, situacao="nova", anuncio=None, hist_produto=None):
     """Baixa e le uma edicao (uma tentativa). estado: ok | inexistente (404; STJ sem o
     cabecalho do numero) | parser (abriu, tem marcas de destaque, 0 lidos) | sem_temas
-    (abriu, sem nenhum destaque) | indeterminado (403, 0, outro codigo, nao e PDF)."""
+    (abriu, sem nenhum destaque) | indeterminado (403, 0, outro codigo, nao e PDF) |
+    superada (RG aberta cujos temas os boletins posteriores ja superaram todos).
+    hist_produto: historico() do produto (None = le o historico quando precisar)."""
     url = URL[tipo] % n
     codigo, dados = baixar(url)
     r = {"tipo": tipo, "numero": n, "id": "%s%d" % (tipo, n), "url": url, "http": codigo,
@@ -589,6 +682,15 @@ def obter(tipo, n, situacao="nova", anuncio=None):
         if situacao == "atrasada":      # a chave do anuncio ja existe no historico: o conteudo ganha a sua
             p = r["chave"].split("|")
             r["chave"] = "|".join(p[:2] + [p[2] + "-conteudo"] + p[3:])
+        if tipo == "rg":
+            if hist_produto is None:
+                try:
+                    hist_produto = historico()["rg"]
+                except Exception:  # noqa: BLE001 — sem historico, nada a superar
+                    hist_produto = {}
+            motivos = superados_por_historico(n, itens, hist_produto)
+            motivos.update(superados_por_data(n, itens, hist_produto))
+            aplicar_superados(r, motivos)
     elif marcas:
         r.update(estado="parser", motivo="documento abriu, mas nenhum destaque foi lido (layout mudou?)")
     else:
@@ -603,22 +705,22 @@ class Coleta:
         self.pedidos = 0
         self.retentativas = MAX_RETENTATIVAS
 
-    def pedir(self, tipo, n, situacao, anuncio=None):
+    def pedir(self, tipo, n, situacao, anuncio=None, hist_produto=None):
         if self.pedidos:
             dormir(1.5)                     # sem rajada no mesmo servidor
         self.pedidos += 1
-        r = obter(tipo, n, situacao, anuncio)
+        r = obter(tipo, n, situacao, anuncio, hist_produto)
         r["tentativas"] = 1
         return r
 
-    def com_retentativa(self, r, anuncio=None):
+    def com_retentativa(self, r, anuncio=None, hist_produto=None):
         """403/0 sem 404 antes: espera curta e 1 nova tentativa (o WAF do STF limita rajadas)."""
         if r.get("estado") != "indeterminado" or self.retentativas <= 0:
             return r
         self.retentativas -= 1
         dormir(espera_retentativa())
         self.pedidos += 1
-        r2 = obter(r["tipo"], r["numero"], r["situacao"], anuncio)
+        r2 = obter(r["tipo"], r["numero"], r["situacao"], anuncio, hist_produto)
         r2["tentativas"] = 2
         r2["http_1a_tentativa"] = r["http"]
         return r2
@@ -626,7 +728,9 @@ class Coleta:
 
 def coletar(hist):
     """Plano completo da execucao automatica: por produto, as revisitas recentes (base e
-    base-1), as novas e, no fim, ate MAX_REVISITAS_ANTIGAS revisitas antigas."""
+    base-1), as novas e, no fim, ate MAX_REVISITAS_ANTIGAS revisitas antigas. Uma revisita
+    'superada' (aberta, todos os temas superados) conta como feita. No fim, o tema de RG herdada
+    que tambem esta numa RG posterior aberta agora fica so na posterior (deduplicar_temas)."""
     c, resultados, antigas, parado = Coleta(), [], [], set()
     for tipo in ("stf", "rg", "stj"):
         h = hist.get(tipo) or {}
@@ -644,7 +748,7 @@ def coletar(hist):
                 continue
             if tipo in parado:
                 break
-            r = c.pedir(tipo, n, situacao, h.get(n))
+            r = c.pedir(tipo, n, situacao, h.get(n), h)
             resultados.append(r)
             if r["estado"] == "inexistente":
                 parado.add(tipo)            # parar no 404
@@ -652,13 +756,13 @@ def coletar(hist):
         for n in range(base + 1, base + 4):
             if falhas >= 2:
                 break                       # dois numeros novos seguidos sem edicao: parar
-            r = c.pedir(tipo, n, "nova")
+            r = c.pedir(tipo, n, "nova", None, h)
             if r["estado"] == "indeterminado":
                 if inexistente is not None:
                     r["estado"] = "nao_verificavel"
                     r["motivo"] = "%d ainda não publicada; %d não verificável" % (inexistente, n)
                 else:
-                    r = c.com_retentativa(r)
+                    r = c.com_retentativa(r, None, h)
                 if not r["ok"] and r["estado"] in ("indeterminado", "nao_verificavel"):
                     resultados.append(r)
                     break                   # servidor recusou: nao insistir nos numeros seguintes
@@ -679,12 +783,12 @@ def coletar(hist):
         if tipo in parado:
             continue
         feitas += 1
-        r = c.pedir(tipo, n, "atrasada", hist[tipo].get(n))
+        r = c.pedir(tipo, n, "atrasada", hist[tipo].get(n), hist[tipo])
         r["revisita"] = True
         resultados.append(r)
         if r["estado"] == "inexistente":
             parado.add(tipo)
-    return resultados
+    return deduplicar_temas(resultados)
 
 
 # ------------------------------------------------------------------ saida
@@ -726,6 +830,16 @@ def imprimir_edicao(r):
     if len(r["itens"]) > MAX_INDICE:
         print("  … +%d destaques só no JSON (índices %d a %d)" % (len(r["itens"]) - MAX_INDICE, MAX_INDICE,
                                                                  len(r["itens"]) - 1))
+    for motivo, temas in superados_por_motivo(r):
+        print("  fora do e-mail — %s: %s %s" % (motivo, "Temas" if len(temas) > 1 else "Tema", ", ".join(temas)))
+
+
+def superados_por_motivo(r):
+    """[(motivo, [temas])] dos itens_superados, na ordem do documento."""
+    grupos = {}
+    for it in r.get("itens_superados") or []:
+        grupos.setdefault(it.get("superado_motivo") or "superado", []).append(str(it.get("tema") or "?"))
+    return list(grupos.items())
 
 
 def ref_email(r):
@@ -763,11 +877,13 @@ def janela():
 def status_fonte(resultados):
     """{"status", "detalhe", "script", "execution_id"} do id informativos_docs (contrato de
     fontes_status.json; execution_id do janela.json, para descartar entrada velha)."""
-    falhas, abertas, revisitas = [], [], []
+    falhas, abertas, revisitas, superadas = [], [], [], []
     for r in resultados:
         e = r.get("estado")
         if r.get("ok"):
             abertas.append(r["id"])
+        elif e == "superada":
+            superadas.append(r["id"])                                     # abriu; nada novo a publicar
         elif e == "sem_historico":
             falhas.append("%s sem histórico" % r["tipo"])
         elif e == "parser":
@@ -781,6 +897,8 @@ def status_fonte(resultados):
         partes.append("não abriu: " + ", ".join(falhas))
     partes.append(("abertas: " + ", ".join(abertas)) if abertas else "sem edição aberta" if falhas
                   else "sem edição nova")
+    if superadas:
+        partes.append("superadas: " + ", ".join(superadas))
     if revisitas:
         partes.append("revisita sem abrir: " + ", ".join(revisitas))
     return {"status": "falha" if falhas else "ok", "detalhe": "; ".join(partes)[:200], "script": SCRIPT,
@@ -824,8 +942,8 @@ def imprimir(resultados):
         if r.get("ok"):
             continue
         nome, sit, e = NOME[r["tipo"]], r.get("situacao"), r.get("estado")
-        if sit == "atrasada" and r.get("revisita"):
-            continue                        # revisita antiga que nao abriu: so na linha TECNICO
+        if (sit == "atrasada" and r.get("revisita")) or e == "superada":
+            continue                        # revisita antiga que nao abriu / edicao ja superada: so na linha TECNICO
         if e == "parser":
             print("ERRO PARSER %s %d [id %s]: %s — %s" % (
                 nome, r["numero"], r["id"], r["motivo"],
@@ -850,6 +968,8 @@ def imprimir(resultados):
             tecnico.append("%s: %s" % (r["tipo"], r.get("motivo")))
             continue
         extra = [] if r.get("ok") else [r.get("estado") or "?"]
+        if r.get("itens_superados"):
+            extra.append("%d superados" % len(r["itens_superados"]))
         if r.get("tentativas") == 2:
             extra.append("2 tentativas, 1a=%s" % r.get("http_1a_tentativa"))
         if r.get("revisita"):

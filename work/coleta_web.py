@@ -159,11 +159,12 @@ def carregar_publicados(h=None):
             chaves.add((it.get("chave") or "").lower())
             if it.get("url"):
                 urls.add(chave_url(it["url"]))
-    atos = set()
+    import repeticao
+    atos = set()          # (tipo canonico, numero): "planalto|lc|239" = Lei Complementar 239
     for k in chaves:
         p = k.split("|")
         if len(p) >= 4 and p[0] == "planalto" and p[2].isdigit():
-            atos.add((p[1], p[2]))
+            atos.add((repeticao.tipo_canonico(p[1]), p[2].lstrip("0") or p[2]))
     return atos, urls
 
 
@@ -185,6 +186,7 @@ def classifica(quando, inicio, fim, recorte):
 
 # ------------------------------------------------------------ Congresso
 def leis(inicio, fim, recorte, atos_pub):
+    import repeticao
     cod, t = fetch(URL_LEIS)
     # listadas/mais_recente: pagina lida sem norma na janela (ex.: periodo
     # eleitoral, out/2026) nao e erro da fonte; em 16/10 isso virou "ERRO",
@@ -207,7 +209,7 @@ def leis(inicio, fim, recorte, atos_pub):
         ementa = re.search(r"<dt>Ementa:</dt>\s*<dd>(.*?)</dd>", bloco, re.S)
         materia = re.search(r"<dt>Mat[ée]ria:</dt>\s*<dd>\s*<a[^>]*>([^<]+)</a>", bloco)
         veto = re.search(r"<dt>Veto aposto:</dt>\s*<dd>\s*<a[^>]*>([^<]+)</a>", bloco)
-        if (slug, numero) in atos_pub:
+        if (repeticao.tipo_canonico(slug), numero.lstrip("0") or numero) in atos_pub:
             sit = "JA_PUBLICADA"
         elif dou < inicio.date() - timedelta(days=7):
             continue
@@ -245,7 +247,7 @@ def mpvs(inicio, fim, recorte, atos_pub):
         c2, p = paginas[url]
         d = re.search(r"Publicada no DOU de (\d\d/\d\d/\d{4})", p)
         dou = dmy(d.group(1)) if d else None
-        if ("mpv", numero) in atos_pub:
+        if ("mpv", numero.lstrip("0") or numero) in atos_pub:
             sit = "JA_PUBLICADA"
         else:
             sit = classifica(dou, inicio, fim, recorte) if dou else "SEM_DATA_OFICIAL"

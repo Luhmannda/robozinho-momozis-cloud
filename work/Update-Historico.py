@@ -46,10 +46,16 @@
 #                    selo de concurso da lista propria; selo que promove ou
 #                    prazo confirmado so com fonte oficial (selos.py); remover
 #                    exige desfecho; concurso novo exige fonte http; linha sem
-#                    "hoje/amanha/ontem"; verificado_em ate a data da janela.
+#                    "hoje/amanha/ontem"; verificado_em ate a data da janela;
+#                    url_oficial e dominio_oficial escritos so oficiais. AVISOs:
+#                    DIVERGE DO REGISTRO nao corrigido; selo escrito que
+#                    contradiz o selo por data.
 #   Mecanico (o orquestrador nao escreve): carimbo da banca lida hoje
-#                    (verificado_em/fonte/dominio_oficial, bancas.carimbos), selo
-#                    por data (selos.selo_por_data, nunca sobre selo escrito hoje),
+#                    (verificado_em/fonte/dominio_oficial, bancas.carimbos; nunca
+#                    no registro que ainda DIVERGE DO REGISTRO), selo por data
+#                    (selos.selo_por_data, nunca sobre selo escrito hoje; o selo
+#                    copiado igual ao do registro sai do update antes: nao e
+#                    decisao — marca `selos_copiados` na execucao),
 #                    mudou_em dos concursos, URLs vistas na banca
 #                    (work/concursos-estado.json), status das fontes lidas por
 #                    script ($ROBOZINHO_TMP/fontes_status.json).
@@ -296,6 +302,8 @@ def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
                 erros.append("%s: campos nao editaveis %s (contadores e carimbos sao mecanicos)" % (rot, sorted(extras)))
             novo = ident not in por_id
             if novo:
+                if campos.get("remover") and reaplicacao and campos.get("desfecho"):
+                    continue            # ja removido na 1a aplicacao desta mesma execucao
                 if secao == "fontes" or campos.get("remover"):
                     erros.append(rot + ": id inexistente no ledger")
                     continue
@@ -347,6 +355,18 @@ def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
                                                     mesclado.get("fonte")))
             if novo and not str(campos.get("fonte") or "").startswith("http"):
                 erros.append("%s: concurso novo exige `fonte` com a URL (http...) da evidência" % rot)
+            # E9: o dominio_oficial/url_oficial escritos hoje tambem sao padrao de prova (o paginas_oficiais.py
+            # rotula a url_oficial de PAGINA OFICIAL; o inicio.py manda o coletor ler o dominio_oficial)
+            uo = campos.get("url_oficial")
+            if uo and not (str(uo).startswith("http") and selos.fonte_oficial(str(uo))):
+                erros.append("%s.url_oficial: %r não é página oficial (http de órgão .jus/.gov/.leg/.mp/.def.br ou de "
+                             "banca de selos.BANCAS_OFICIAIS) — o paginas_oficiais.py a leria como PAGINA OFICIAL; "
+                             "deixe sem url_oficial" % (rot, uo))
+            do = campos.get("dominio_oficial")
+            if do and not selos.dominio_oficial(selos.host(str(do))):
+                erros.append("%s.dominio_oficial: %r não é domínio oficial (órgão .jus/.gov/.leg/.mp/.def.br ou banca "
+                             "de selos.BANCAS_OFICIAIS) — não sustenta selo nem prazo confirmado; deixe sem ou use o "
+                             "do órgão/banca" % (rot, do))
             rel = selos.relativos(campos.get("linha"))
             if rel:
                 erros.append("%s.linha: termo relativo %s envelhece no registro — escreva a data (DD/MM)"
@@ -388,26 +408,93 @@ def avisos_ledger_updates(upd, led, hoje, banca_res=None):
             avisos.append("ledger_updates.fontes.%s.nota: traz a data de hoje (%s) sem mudança de status — a nota é "
                           "regra para a próxima execução, não diário (o resultado do dia vai para verification_notes; "
                           "o status técnico dos scripts já vem do fontes_status.json)" % (fid, dm))
+    conc = upd.get("concursos") if isinstance(upd.get("concursos"), dict) else {}
+    por_id = {c.get("id"): c for c in led.get("concursos") or []}
+    avisos += avisos_selo_escrito(conc, por_id, hoje, banca_res)
     if banca_res:
         import bancas
-        conc = upd.get("concursos") or {}
         for ident, arqs in bancas.novos_por_registro(banca_res).items():
             u = conc.get(ident) or {}
-            if not any(k in u for k in ("linha", "prazos", "selo", "remover")):
+            if not (any(k in u for k in ("linha", "prazos", "remover")) or selos.selo_escrito(u, por_id.get(ident))):
                 avisos.append("banca FGV com arquivo novo em %s (%s) e ledger_updates.concursos.%s não toca linha/"
-                              "prazos/selo — movimento oficial não refletido no registro" % (
+                              "prazos/selo — movimento oficial não refletido no registro%s" % (
                                   ident, "; ".join("%s %s" % (bancas.dm(a.get("data_efetiva") or a["data"]),
-                                                              a["titulo"][:60]) for a in arqs[:3]), ident))
+                                                              a["titulo"][:60]) for a in arqs[:3]), ident,
+                                  "" if bancas.base_dos_novos(banca_res, ident) == "urls_vistas" else
+                                  " (1ª leitura sem URLs vistas: se a linha já traz esse fato, ignore)"))
+        try:
+            pend = bancas.divergencias_pendentes(banca_res, list(por_id.values()), hoje, conc)
+        except (KeyError, ValueError, TypeError):
+            pend = {}
+        for ident, d in sorted(pend.items()):
+            avisos.append('DIVERGE DO REGISTRO em %s: edital "%s" × registro "%s" — corrija prazos/linha em '
+                          "ledger_updates.concursos.%s (movimento oficial não refletido no registro; sem o carimbo "
+                          "de verificação da banca hoje)" % (ident, d["edital"][:170], d["registro"][:120], ident))
     return avisos
 
 
-def aplicar_updates(led, upd, hoje, add_log):
+def avisos_selo_escrito(conc, por_id, hoje, banca_res=None):
+    """Selo da familia de datas ESCRITO hoje (selos.selo_escrito: difere do selo do registro) que contradiz o
+    selo por data calculado sobre o registro mesclado: o escrito prevalece, entao avisa (acionavel)."""
+    out = []
+    if not hoje:
+        return out
+    import bancas
+    try:
+        car = bancas.carimbos(banca_res, list(por_id.values()), hoje, upd=conc) if banca_res else {}
+    except (KeyError, ValueError, TypeError):
+        car = {}
+    for ident, u in sorted(conc.items()):
+        if not selos.selo_escrito(u, por_id.get(ident)) or u["selo"] not in selos.FAMILIA_DATA:
+            continue
+        reg = dict(por_id.get(ident) or {})
+        reg.update({k: v for k, v in (car.get(ident) or {}).items() if k not in u})
+        reg.update({k: v for k, v in u.items() if k != "desfecho"})
+        try:
+            x = (bancas.contexto_selos(banca_res, [reg], hoje, {ident: u}) if banca_res else {}).get(ident) or {}
+        except (KeyError, ValueError, TypeError):
+            x = {}
+        novo, motivo = selos.selo_por_data(reg, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                           ultima_retificacao=x.get("ultima_retificacao"),
+                                           inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        if novo != u["selo"]:
+            out.append("ledger_updates.concursos.%s.selo: %r escrito hoje contradiz o selo por data %r (%s) — o "
+                       "escrito prevalece no e-mail e no registro; se não foi decisão, escreva %r ou tire o selo do "
+                       "update, ou corrija os prazos" % (ident, u["selo"], novo, (motivo or "").split(": ", 1)[-1],
+                                                         novo))
+    return out
+
+
+def retirar_selos_copiados(upd, led):
+    """Selo do update IGUAL ao do registro (copia da linha, nao decisao) sai de ledger_updates.concursos, para o
+    selo por data valer no helper como no montador (selos.selo_escrito). Devolve os ids (None sem concursos).
+    O helper o faz uma vez por arquivo (marca `selos_copiados`): na reaplicacao da mesma entrada (finalizar
+    repetido) o registro ja traz o selo decidido, e compara-lo de novo apagaria a decisao."""
+    conc = upd.get("concursos") if isinstance(upd, dict) else None
+    if not isinstance(conc, dict):
+        return None
+    por_id = {c.get("id"): c for c in led.get("concursos") or []}
+    ids = []
+    for ident, u in conc.items():
+        if isinstance(u, dict) and "selo" in u and not u.get("remover") and ident in por_id \
+                and not selos.selo_escrito(u, por_id[ident]):
+            del u["selo"]
+            ids.append(ident)
+    return sorted(ids)
+
+
+def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
     """Aplica ledger_updates (ja validado). Antes dos contadores, para que
     pendencia criada hoje ja conte a execucao e removida nao gere aviso.
     Idempotente: aplicado de novo (--refazer, finalizar repetido) nao duplica nada.
-    Concursos: `mudou_em` = hoje quando linha/selo/prazos mudam (ou o registro nasce)."""
+    Concursos: `mudou_em` = hoje quando linha/selo/prazos mudam (ou o registro nasce).
+    retirar_copias: antes de aplicar, tira de `upd` (no lugar) o selo igual ao do registro (copia, nao
+    decisao: o selo por data vale depois). False quando a entrada ja veio normalizada (marca
+    `selos_copiados`), porque o ledger ja traz o selo decidido e a comparacao apagaria a decisao."""
     if not upd:
         return
+    if retirar_copias:
+        retirar_selos_copiados(upd, led)
     removidas = []
     for secao, nome_lista in LISTA_DO_LEDGER.items():
         for ident, campos in (upd.get(secao) or {}).items():
@@ -472,8 +559,8 @@ def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
     regs = led.get("concursos") or []
     n = 0
     hj = date.fromisoformat(hoje)
-    if banca_res:
-        for ident, campos in bancas.carimbos(banca_res, regs, hj).items():
+    if banca_res:      # o registro que ainda DIVERGE DO REGISTRO (nao corrigido hoje) nao e carimbado
+        for ident, campos in bancas.carimbos(banca_res, regs, hj, upd=conc).items():
             reg = next((c for c in regs if c.get("id") == ident), None)
             u = conc.get(ident) or {}
             campos = {k: v for k, v in campos.items() if k not in u}   # o julgamento de hoje prevalece
@@ -482,11 +569,13 @@ def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
             reg.update(campos)
             n += 1
             add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
-    ctx = bancas.contexto_selos(banca_res) if banca_res else {}
+    ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
     for reg in regs:
         u = conc.get(reg.get("id")) or {}
         if "selo" in u:
-            continue                      # selo escrito hoje pelo orquestrador: nunca sobrescrever
+            # selo escrito hoje pelo orquestrador: nunca sobrescrever. A copia do selo inalterado ja saiu do
+            # update em main() (retirar_selos_copiados, contra o registro de antes): o que sobra e decisao.
+            continue
         x = ctx.get(reg.get("id")) or {}
         selo, motivo = selos.selo_por_data(reg, hj, banca_lida_hoje=x.get("banca_lida_hoje", False),
                                            ultima_retificacao=x.get("ultima_retificacao"),
@@ -512,6 +601,9 @@ def ler_banca(caminho, hoje):
     return res
 
 
+DO_SCRIPT = set()          # ids de fonte cujo status veio do fontes_status.json nesta rodada
+
+
 def mesclar_fontes_status(ex, caminho, add_log):
     """Status das fontes lidas por script ($ROBOZINHO_TMP/fontes_status.json, gravado por coleta_web,
     informativos e versiculo): preenche o source_status; o do script prevalece sobre o escrito a mao.
@@ -529,6 +621,7 @@ def mesclar_fontes_status(ex, caminho, add_log):
         status = (v or {}).get("status")
         if status not in STATUS_FONTE:
             continue
+        DO_SCRIPT.add(fid)
         if fid in ss and ss[fid] != status:
             add_log("AVISO: source_status[%s]: %r escrito, %r do script (%s) — vale o do script"
                     % (fid, ss[fid], status, (v or {}).get("detalhe", "")[:80]))
@@ -580,10 +673,14 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     um --refazer (E14/F7)."""
     led = read_json(caminho)
     hoje = ex["date"]
-    n = selos.garantir_mudou_em(led.get("concursos") or [], execucoes or [])
+
+    def anteriores():           # a execucao de hoje ja esta no historico: nao conta na inicializacao
+        lista = execucoes() if callable(execucoes) else (execucoes or [])
+        return [e for e in lista if e.get("execution_id") != ex["execution_id"]]
+    n = selos.garantir_mudou_em(led.get("concursos") or [], anteriores)
     if n:
         add_log("Ledger: mudou_em inicializado em %d concursos (historico de ledger_updates)" % n)
-    aplicar_updates(led, ex.get("ledger_updates"), hoje, add_log)
+    aplicar_updates(led, ex.get("ledger_updates"), hoje, add_log, retirar_copias="selos_copiados" not in ex)
     aplicar_mecanicos_concursos(led, ex.get("ledger_updates"), hoje, banca_res, add_log)
     if led.get("licoes_de_processo") == []:         # E13: lista vazia, sem leitor
         del led["licoes_de_processo"]
@@ -596,7 +693,8 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     for fid, v in (ex.get("source_status") or {}).items():
         f = fontes.get(fid)
         if f is None:
-            add_log("Ledger: fonte '%s' nao existe no ledger (criar so se mudar uma decisao)." % fid)
+            if fid not in DO_SCRIPT:     # status de script (ex.: informativos_docs) sem fonte no ledger: normal
+                add_log("Ledger: fonte '%s' nao existe no ledger (criar so se mudar uma decisao)." % fid)
             continue
         if v == "ok":
             f["ultimo_email" if "ultimo_email" in f else "ultimo_sucesso"] = hoje
@@ -636,15 +734,34 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     add_log("Ledger: contadores aplicados e JSON validado.")
 
 
-def atualizar_estado_concursos(caminho, banca_res, hoje, add_log):
-    """URLs vistas na banca (work/concursos-estado.json): so avanca quando a execucao e registrada."""
-    if not banca_res:
+def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=None):
+    """URLs vistas na banca e hash das paginas oficiais (work/concursos-estado.json): so avancam quando a
+    execucao e registrada (o inicio.py so le)."""
+    pags = None
+    if paginas_path:
+        try:
+            p = read_json(paginas_path)
+            pags = p.get("paginas") if isinstance(p, dict) and p.get("data") == hoje else None
+        except (OSError, ValueError):
+            pags = None
+    if not banca_res and not pags:
         return
     import bancas
     estado = bancas.carregar_estado(caminho)
-    n = bancas.atualizar_estado(estado, banca_res, hoje)
+    partes = []
+    if banca_res:
+        partes.append("%d arquivo(s) da banca marcados como vistos" % bancas.atualizar_estado(estado, banca_res, hoje))
+    if pags:
+        try:          # a pagina oficial e reforco: modulo ausente (merge parcial) nunca derruba a gravacao
+            import paginas_oficiais
+            partes.append("%d página(s) oficial(is) com trecho novo"
+                          % paginas_oficiais.atualizar_estado(estado, pags, hoje))
+        except Exception as e:  # noqa: BLE001
+            add_log("AVISO: paginas_oficiais nao gravadas no estado (%s)" % e)
+    if not partes:
+        return
     bancas.gravar_estado(caminho, estado)
-    add_log("Estado de concursos: %d arquivo(s) da banca marcados como vistos (%s)" % (n, os.path.basename(caminho)))
+    add_log("Estado de concursos: %s (%s)" % ("; ".join(partes), os.path.basename(caminho)))
 
 
 def read_json(path):
@@ -747,8 +864,11 @@ def custo_relativo_execucao(e):
         return None
     try:
         import medir_uso
-        return medir_uso.custo_relativo(0, max(0, int(o["contexto_total"]) - int(o.get("cache_gravado") or 0)),
+        base = medir_uso.custo_relativo(0, max(0, int(o["contexto_total"]) - int(o.get("cache_gravado") or 0)),
                                         int(o.get("cache_gravado") or 0), int(o.get("saida") or 0))
+        # mesma estimativa da chamada final que medir_uso soma as medicoes novas (comparavel com elas)
+        return base + medir_uso.custo_relativo(0, int(o.get("tokens") or 0), medir_uso.FECHAMENTO["cache_gravado"],
+                                               medir_uso.FECHAMENTO["saida"])
     except Exception:  # noqa: BLE001
         return None
 
@@ -861,12 +981,12 @@ def main():
     for campo in ("verification_notes", "errors"):   # texto solto (16/10) vira lista
         if isinstance(nova_exec.get(campo), str):
             nova_exec[campo] = [nova_exec[campo]] if nova_exec[campo].strip() else []
-    mesclar_fontes_status(nova_exec, args.fontes_status, add_log)
 
     if not nova_exec.get("execution_id"):
         raise SystemExit("A nova execucao nao possui execution_id.")
     add_log("Nova execucao: " + nova_exec["execution_id"] +
             (" (do inicio.py: %s)" % ", ".join(preenchidos) if preenchidos else ""))
+    mesclar_fontes_status(nova_exec, args.fontes_status, add_log)
 
     if args.draft_id:
         nova_exec["draft_id"] = args.draft_id
@@ -885,6 +1005,7 @@ def main():
     }
     erros, avisos = validar(nova_exec, chaves_anteriores, pre_rascunho=args.validar)
     banca_res = ler_banca(args.bancas, nova_exec.get("date"))
+    led_atual = None
     if args.ledger_path and os.path.exists(args.ledger_path):
         led_atual = read_json(args.ledger_path)
         carimbos = {}
@@ -892,7 +1013,8 @@ def main():
             import bancas
             try:
                 carimbos = bancas.carimbos(banca_res, led_atual.get("concursos") or [],
-                                           date.fromisoformat(nova_exec["date"]))
+                                           date.fromisoformat(nova_exec["date"]),
+                                           upd=((nova_exec.get("ledger_updates") or {}).get("concursos") or {}))
             except (KeyError, ValueError):
                 carimbos = {}
         erros += validar_ledger_updates(nova_exec.get("ledger_updates"), led_atual, hoje=nova_exec.get("date"),
@@ -935,6 +1057,17 @@ def main():
         emitir("STATUS: OK — nada a gravar (duplicata; historico, estado e ledger intactos)")
         return
 
+    # Selo copiado sem mudanca nao e decisao: sai do update (vale o selo por data), contra o ledger de antes da
+    # gravacao. Uma vez por arquivo (`selos_copiados` marca): o finalizar repetido reaplica a entrada ja
+    # normalizada sobre o ledger ja atualizado, e la o selo decidido seria igual ao do registro.
+    if isinstance(led_atual, dict) and isinstance(nova_exec.get("ledger_updates"), dict) \
+            and "selos_copiados" not in nova_exec:
+        copiados = retirar_selos_copiados(nova_exec["ledger_updates"], led_atual)
+        if copiados is not None:
+            nova_exec["selos_copiados"] = copiados
+            if copiados:
+                add_log("Ledger: selo igual ao do registro retirado do update (copia, nao decisao; vale o selo por "
+                        "data): %s" % ", ".join(copiados))
     # O historico guarda o registro do que saiu, nao o texto do e-mail: os campos que so
     # servem a montagem (work/montar_email.py) ficam de fora para o arquivo nao inchar.
     nova_exec.pop("email", None)
@@ -1168,7 +1301,8 @@ def main():
                 return out
             aplicar_ledger(args.ledger_path, nova_exec, add_log, todas_execucoes, banca_res)
             atualizar_estado_concursos(args.estado_concursos or os.path.join(pasta_hist, "concursos-estado.json"),
-                                       banca_res, nova_exec["date"], add_log)
+                                       banca_res, nova_exec["date"], add_log,
+                                       os.path.join(os.path.dirname(os.path.abspath(args.bancas)), "paginas_oficiais.json"))
         else:
             add_log("AVISO: ledger nao encontrado: " + args.ledger_path)
 

@@ -35,8 +35,11 @@
 #     inscricoes, taxa, remuneracao e prova objetiva.
 #
 # Funcoes usadas por outros scripts (mesmo JSON de $ROBOZINHO_TMP/bancas.json):
-#   carimbos(res, concursos, hoje)  -> {id: {verificado_em, fonte?, dominio_oficial?}}
-#   contexto_selos(res)             -> {id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}}
+#   carimbos(res, concursos, hoje, upd=None) -> {id: {verificado_em, fonte?, dominio_oficial?}}
+#   contexto_selos(res, concursos=None, hoje=None, upd=None)
+#                                   -> {id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}}
+#     (com upd/concursos: o registro que ainda DIVERGE DO REGISTRO fica sem carimbo e sem "banca lida")
+#   divergencias_pendentes(res, concursos, hoje, upd=None) -> {id: {edital, registro}}
 #   novos_por_registro(res)         -> {id: [arquivos novos]}
 #   atualizar_estado(estado, res)   -> quantos arquivos passaram a "vistos"
 #
@@ -394,30 +397,61 @@ def _concursos_lidos(res):
     return [c for c in res.get("concursos") or [] if c.get("http") == 200 and c.get("arquivos")]
 
 
-def contexto_selos(res):
-    """{id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}} para selos.selo_por_data."""
+def divergencias_pendentes(res, concursos, hoje, upd=None):
+    """{id: {"edital", "registro"}} dos registros lidos hoje na banca cujo fim das inscricoes AINDA difere
+    do edital depois do update de hoje (registro + ledger_updates.concursos[id]). Sem `upd`, vale o
+    registro como esta (o DIVERGE DO REGISTRO do inicio.py). Remocao no update resolve."""
+    hj = hoje if isinstance(hoje, date) else date.fromisoformat(str(hoje)[:10])
+    por_id = {c.get("id"): c for c in concursos or []}
+    out = {}
+    for c in _concursos_lidos(res):
+        if not c.get("divergencias"):
+            continue
+        for ident in c.get("coberto") or []:
+            u = (upd or {}).get(ident) or {}
+            if ident not in por_id or u.get("remover"):
+                continue
+            reg = dict(por_id[ident])
+            reg.update({k: v for k, v in u.items() if k != "desfecho"})
+            for d in divergencias(c, [reg], hj):
+                out[ident] = {"edital": d["edital"], "registro": d["registro"]}
+    return out
+
+
+def contexto_selos(res, concursos=None, hoje=None, upd=None):
+    """{id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}} para selos.selo_por_data.
+    Com `concursos` e `hoje`: o registro que AINDA diverge do edital (divergencias_pendentes, com o
+    `upd` de hoje) fica de fora — a banca lida hoje contradiz o registro e nao sustenta o selo."""
+    fora = divergencias_pendentes(res, concursos, hoje, upd) if concursos is not None and hoje else {}
     out = {}
     for c in _concursos_lidos(res):
         ret = c.get("ultima_retificacao")
         if ret is None and "ultima_retificacao" not in c:      # bancas.json antigo
             ret = ultima_retificacao(c)
         for ident in c.get("coberto") or []:
+            if ident in fora:
+                continue
             out[ident] = {"banca_lida_hoje": True, "ultima_retificacao": ret,
                           "inicio_inscricoes": (c.get("inscricoes") or {}).get("inicio")}
     return out
 
 
-def carimbos(res, concursos, hoje):
+def carimbos(res, concursos, hoje, upd=None):
     """Campos mecanicos dos registros lidos hoje na banca: verificado_em = hoje; fonte = pagina da
     banca so quando a fonte atual nao e oficial (nunca troca fonte oficial, de nenhum dominio);
-    dominio_oficial quando falta ou quando a fonte passou a ser a da banca."""
+    dominio_oficial quando falta ou quando a fonte passou a ser a da banca.
+    Com `upd` (ledger_updates.concursos de hoje; {} = nenhum): o registro que AINDA diverge do edital
+    (DIVERGE DO REGISTRO nao corrigido em linha/prazos) nao e carimbado — senao o leitor o veria como
+    "verificado hoje na banca oficial" com o dado que a banca contradiz (TJAP de b80a3bd). Sem `upd`
+    (None), o comportamento antigo, sem esse filtro."""
     hj = hoje.isoformat() if isinstance(hoje, date) else str(hoje)
     por_id = {c.get("id"): c for c in concursos or []}
+    fora = divergencias_pendentes(res, concursos, hoje, upd) if upd is not None else {}
     out = {}
     for c in _concursos_lidos(res):
         for ident in c.get("coberto") or []:
             reg = por_id.get(ident)
-            if reg is None:
+            if reg is None or ident in fora:
                 continue
             campos = {}
             if (reg.get("verificado_em") or "") < hj:
@@ -441,6 +475,14 @@ def novos_por_registro(res):
             for ident in c.get("coberto") or []:
                 out[ident] = c["novos_arquivos"]
     return out
+
+
+def base_dos_novos(res, ident):
+    """'urls_vistas' | 'data (sem estado)' | 'sem_registro' do concurso da banca ligado ao registro."""
+    for c in _concursos_lidos(res):
+        if ident in (c.get("coberto") or []):
+            return c.get("base_novos")
+    return None
 
 
 def atualizar_estado(estado, res, hoje):

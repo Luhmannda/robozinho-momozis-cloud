@@ -7,7 +7,8 @@
 #     1a execucao da semana/gap, recesso forense, FERIADOS (work/feriados.py:
 #     nacionais, pontos facultativos e Lei 5.010/66 art. 62) — a edicao sai
 #     em feriado; o calendario informa o julgamento e desconta os feriados
-#     nacionais dos dias uteis (gap, rodizio, dia util sem registro);
+#     nacionais dos dias uteis do rodizio; gap e "dia util sem execucao
+#     registrada" contam seg-sex COM feriado (dia de edicao);
 #   - assuntos de hoje e da edicao anterior, cabecalho e rodape;
 #   - citacao do Munger (indice = dia do ano mod total, contado agora; +1 na Extra),
 #     com tipo (licao|aforismo) e obs para o montador;
@@ -347,15 +348,19 @@ def main():
         inicio = agora - timedelta(days=7)
     horas = (agora - inicio).total_seconds() / 3600
     ult_data = datetime.fromisoformat(ult["date"]).date() if ult.get("date") else hoje - timedelta(days=1)
-    gap = dias_uteis_entre(ult_data, hoje) > 1
+    # gap e "dia sem registro" contam dias de EDICAO (seg-sex, feriado incluido: a edicao sai em feriado);
+    # o desconto do feriado nacional fica so onde mede trabalho das fontes (rodizio)
+    gap = feriados.dias_de_edicao_entre(ult_data, hoje) > 1
     primeira = agora.weekday() == 0 or ult_data.isocalendar()[1] != hoje.isocalendar()[1] or gap
     recesso = em_recesso(hoje)
-    # E4/F1: dia util (sem feriado nacional) entre a ultima execucao registrada e hoje, sem registro
+    # E4/F1: dia de edicao (seg-sex, feriado incluido) entre a ultima execucao registrada e hoje, sem registro
     sem_registro = feriados.uteis_sem_registro(ult_data, hoje) if ult.get("date") else []
     if sem_registro:
         alertas.append("dia útil sem execução registrada: %s (última registrada: %s) — antes de coletar, confira "
                        "in:sent: uma edição enviada sem registro (queda ou PUSH: FALHOU) seria repetida"
-                       % (", ".join(d.strftime("%d/%m") for d in sem_registro), ult_data.strftime("%d/%m")))
+                       % (", ".join(d.strftime("%d/%m") + (" (feriado: a edição sai em feriado)"
+                                                           if feriados.eh_feriado_nacional(d) else "")
+                                    for d in sem_registro), ult_data.strftime("%d/%m")))
     fer_hoje = feriados.feriado(hoje)
     fer_janela = feriados.no_intervalo(inicio.date(), hoje)
     fer_txt = "; ".join(feriados.agrupar(fer_janela))
@@ -422,7 +427,8 @@ def main():
     cobertos = {i for c in banca["concursos"] for i in c.get("coberto") or []}
     na_banca = {i for c in banca["concursos"] for i in c.get("registros") or []}
     divergentes = {d["id"] for c in banca["concursos"] for d in c.get("divergencias") or []}
-    ctx_selo = bancas.contexto_selos(banca) if bancas else {}
+    # DIVERGE DO REGISTRO: a banca lida hoje contradiz o registro -> nao conta como "banca lida" no selo
+    ctx_selo = bancas.contexto_selos(banca, concursos, hoje, upd={}) if bancas else {}
     pend_coberta = {c.get("pendencia") for c in concursos if c.get("id") in cobertos and c.get("pendencia")}
     linhas = []
     for p in pend_conc:
@@ -494,7 +500,9 @@ def main():
         s, m = selos.selo_por_data(c, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
                                    ultima_retificacao=x.get("ultima_retificacao"),
                                    inicio_inscricoes_banca=x.get("inicio_inscricoes"))
-        if s != c.get("selo"):
+        if s == selos.SELO_SEM_CONFIRMACAO and s != c.get("selo"):
+            selo_alerta.append("%s %s" % (c["id"], m))      # prazo vencido sem confirmacao: decisao do orquestrador
+        elif s != c.get("selo"):
             selo_auto.append("%s %s" % (c["id"], m))
         elif m:
             selo_alerta.append("%s: %s" % (c["id"], m))
@@ -524,6 +532,19 @@ def main():
         motivos.setdefault(c["id"], []).append("rodízio")
     motivos = {k: list(dict.fromkeys(v)) for k, v in motivos.items() if v}
     foco = set(motivos)
+    # B10: pagina oficial (url_oficial) dos concursos em foco, lida por script; so-JavaScript sai do "acessivel"
+    paginas = []
+    if any(c.get("url_oficial") and c["id"] in foco for c in concursos):
+        try:
+            import paginas_oficiais
+            paginas = paginas_oficiais.verificar(concursos, bancas.carregar_estado() if bancas else {},
+                                                 hoje.isoformat(), ids=foco)
+        except Exception as e:  # noqa: BLE001 — reforco, nunca bloqueia
+            paginas = [{"id": "-", "url": "", "http": 0, "situacao": "HTTP", "erro": str(e)}]
+        for r in paginas:
+            if r.get("situacao") == "SEM_TEXTO":
+                rede[selos.host(r["url"])] = False
+    gravar_json(tmp("paginas_oficiais.json"), {"data": hoje.isoformat(), "execution_id": exec_id, "paginas": paginas})
 
     vars_ = {
         "HOJE_BR": hoje_br, "DIA_SEMANA": DIAS[agora.weekday()],
@@ -627,6 +648,13 @@ def main():
     else:
         print("BANCA FGV: não lida (%s) — concursos da FGV seguem pelo coletor."
               % (banca.get("erro") or "http %s" % banca.get("http")))
+    if paginas:
+        try:              # a pagina oficial e reforco: nunca derruba o passo 1 (modulo ausente num merge parcial)
+            import paginas_oficiais
+            print("\n".join(paginas_oficiais.linhas_saida(paginas)))
+        except Exception as e:  # noqa: BLE001
+            print("PAGINA OFICIAL: não lida (%s) — os concursos com url_oficial seguem pelo coletor"
+                  % (next((r.get("erro") for r in paginas if r.get("erro")), None) or e))
     print("\n".join(resumo_ledger(ledger, foco, motivos, pend_no_coletor)))
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, coletor-jota e "

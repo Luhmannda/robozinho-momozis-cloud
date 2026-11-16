@@ -6,20 +6,23 @@
 # www.jota.info estiverem no allowlist do ambiente; senao imprime
 # BLOQUEADO e sai com 3 (o coletor cai no fallback por WebSearch).
 #
-# SEGURANCA (16/11/2026): o rodape do e-mail traz "parar de receber esta
-# newsletter" no mesmo wrapper t.rdsv2.net das materias. Nada aqui segue
-# redirecionamento as cegas (antes: curl -L, um GET no destino que fosse):
+# SEGURANCA (16/11/2026; lista de permitidos em 17/11): o rodape do e-mail
+# traz "parar de receber esta newsletter" no mesmo wrapper t.rdsv2.net das
+# materias. Nada aqui segue redirecionamento as cegas (antes: curl -L):
+#   - linha cujo TITULO e de descadastro ("Caso nao queira mais receber estes
+#     e-mails...", "cancele sua inscricao", "Sair da lista") -> RECUSADO antes de
+#     qualquer pedido, nem o wrapper e tocado (via inline titulo<TAB>wrapper);
 #   - cada salto e resolvido SEM seguir (-o /dev/null -w redirect_url), no
-#     maximo 5, e so em host de rastreio conhecido (t.rdsv2.net);
-#   - antes de QUALQUER pedido, a URL e conferida: host www.jota.info (ou
-#     jota.info) ou rastreio conhecido, e caminho/consulta sem sinal de
-#     descadastro ou preferencias (unsubscribe, descadastr, optout, opt-out,
-#     preferenc, manage, remover, cancelar). "preferenc", "manage", "remover"
-#     e "cancelar" no slug final de uma materia do jota.info (>= 6 palavras,
-#     ex.: .../nunes-marques-manda-remover-em-24h-...) nao contam; os demais
-#     valem em qualquer parte, inclusive no slug;
+#     maximo 5, e so no caminho de clique do rastreio (t.rdsv2.net/ls/click);
+#   - antes de QUALQUER pedido, a URL passa pela LISTA DE PERMITIDOS
+#     (motivo_proibido): jota.info so com o 1o segmento numa editoria
+#     (stf, justica, tributos, opiniao-e-analise...), slug de materia, nenhum
+#     segmento de conta/newsletter/preferencias e nenhuma palavra de
+#     descadastro fora do slug; no slug da materia so "remover"/"cancelar"
+#     soltos passam (.../nunes-marques-manda-remover-em-24h-...), "preferenc"
+#     e frase de descadastro nunca;
 #   - so o GET final, no jota.info, baixa a pagina (para conferir o titulo).
-#   Destino proibido -> RECUSADO, sem pedido nenhum a ele.
+#   Destino fora da lista -> RECUSADO, sem pedido nenhum a ele.
 #   Links que o work/jota_extrair.py reconheceu como descadastro nem entram
 #   no indice $ROBOZINHO_TMP/jota_urls.tsv.
 #
@@ -62,6 +65,7 @@ from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlun
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
+import jota_extrair  # noqa: E402
 import repeticao  # noqa: E402
 
 TMP = os.environ.get("ROBOZINHO_TMP", "/tmp")
@@ -70,8 +74,45 @@ HOSTS_JOTA = {"www.jota.info", "jota.info"}
 RASTREIO = {"t.rdsv2.net"}        # wrappers resolvidos salto a salto (sem baixar nada)
 MAX_SALTOS = 5
 REDIRECIONA = {301, 302, 303, 307, 308}
-PROIBIDO = re.compile(r"unsub|descadastr|opt-?out|opt_out")              # em qualquer parte
-PROIBIDO_FORA_DO_SLUG = re.compile(r"preferenc|manage|remover|cancelar")   # fora do slug de materia
+# LISTA DE PERMITIDOS (17/11/2026; antes era so uma lista de palavras proibidas,
+# e "/newsletter/cancelamento", "/newsletter/sair-da-lista" ou "/conta/
+# preferencias-..." passavam e recebiam GET com corpo). Recebe pedido so:
+#   - o wrapper de clique do rastreio (t.rdsv2.net/ls/click ou /wf/click);
+#   - pagina do jota.info cujo 1o segmento e uma editoria (EDITORIAS), com pelo
+#     menos 2 segmentos, slug final de materia (>= 3 palavras, so [a-z0-9-]),
+#     nenhum segmento de conta/newsletter (SEGMENTOS_CONTA) e
+#     "/newsletters/<nome>/<slug de materia>" so nesse formato exato.
+# Palavras: PROIBIDO (unsub, descadastr, opt-out, preferenc) vale em qualquer
+# parte, inclusive slug e utm_*; PROIBIDO_FORA_DO_SLUG vale nos segmentos antes
+# do slug e na consulta sem utm_/rd_, e tambem no slug curto (<= 5 palavras); no
+# slug longo, "remover"/"cancelar" soltos sao isentos (".../manda-remover-em-
+# 24h-postagens..."), nunca quando formam frase de descadastro
+# (FRASE_DESCADASTRO: "cancelar-inscricao...", "remover-meu-email").
+EDITORIAS = {
+    "stf", "justica", "tributos", "tributos-e-empresas", "opiniao-e-analise", "legislativo", "executivo",
+    "trabalho", "saude", "eleicoes", "coberturas-especiais", "poder", "energia", "internacional",
+    "tecnologia", "advocacia", "carreira", "regulacao", "mercado", "infraestrutura", "meio-ambiente",
+    "educacao", "dados", "especiais", "podcasts", "videos", "pro", "newsletters"}
+SEGMENTOS_CONTA = {
+    "newsletter", "conta", "contas", "minha-conta", "minhaconta", "my-account", "account", "email", "e-mail",
+    "emails", "perfil", "assinatura", "assinaturas", "assine", "preferencias", "preferencia", "login", "logout",
+    "entrar", "sair", "cadastro", "cadastre-se", "registro", "inscricao", "inscricoes", "wp-admin",
+    "wp-login.php", "wp-json", "api", "cancelamento", "cancelar", "remover"}
+PROIBIDO = re.compile(r"unsub|descadastr|opt-?out|opt_out|preferenc")       # em qualquer parte
+# fora do slug (no slug sao manchete: ".../aposentados-podem-deixar-de-receber-...")
+PROIBIDO_FORA_DO_SLUG = re.compile(r"manage|remov|cancel|inscri|assinatura|newsletter|e-?mail|"
+                                   r"sa(?:ir|ia)-d[aeo]s?-lista|(?:parar|deixar)-de-receber|"
+                                   r"nao-(?:qu[ei]\w*|desej\w*)-mais-receber")   # conta/perfil/login: SEGMENTOS_CONTA
+FRASE_DESCADASTRO = re.compile(r"(?:^|-)(?:cancel|remov|sair|desinscrev|desativ)[a-z]*"
+                               r"(?:-[a-z0-9]+){0,3}?-(?:inscri|assinatura|e-?mail|newsletter)")
+# Titulo da linha (via inline "titulo<TAB>wrapper"): os trechos do DESCADASTRO
+# que tambem aparecem em manchete ("Aposentados podem deixar de receber...",
+# "Brasil pode sair da lista suja...", "TSE manda cancelar inscricao...") so
+# contam com contexto de e-mail ou em texto curto de link (<= 6 palavras).
+TRECHO_FRACO = re.compile(r"prefer|cancelar|sair da|deixar de|parar de|n[aã]o |remover o ", re.I)
+CONTEXTO_EMAIL = re.compile(r"e-?mails?\b|newsletter|clique|voc[eê]|\bsua inscri|\bseu e-?mail|"
+                            r"\best[ae]s? (?:mensage|comunica)|\bnoss[ao]s? (?:mensage|comunica|e-?mail)", re.I)
+CAMINHOS_RASTREIO = {"/ls/click", "/wf/click"}
 
 
 def curl(url, corpo=False, timeout=20):
@@ -108,26 +149,62 @@ def sem_rastreio(url):
 
 
 def motivo_proibido(url):
-    """'' se a URL pode receber um pedido; senao o motivo da recusa."""
+    """'' se a URL pode receber um pedido; senao o motivo da recusa (lista de permitidos)."""
     u = urlsplit(url)
     host = (u.hostname or "").lower()
     if u.scheme not in ("http", "https"):
         return "esquema nao permitido: %s" % (u.scheme or "?")
-    jota = host in HOSTS_JOTA
     caminho, consulta = unquote(u.path or "").lower(), unquote(u.query or "").lower()
     m = PROIBIDO.search(caminho + "?" + consulta)
     if m:
         return "caminho/consulta de descadastro ou preferencias (%s)" % m.group(0)
-    segs = [s for s in caminho.split("/") if s]
-    if jota and len(segs) >= 2 and segs[-1].count("-") >= 5:
-        resto = "/".join(segs[:-1]) + "?" + consulta     # slug de materia: palavra do titulo
+    if host in RASTREIO:
+        # o upn e cifrado: as palavras so valem no caminho, que tem de ser o clique
+        if caminho.rstrip("/") not in CAMINHOS_RASTREIO:
+            return "caminho de rastreio fora da lista (%s%s)" % (host, caminho or "/")
+        return ""
+    if host not in HOSTS_JOTA:
+        return "destino fora do jota.info: %s" % (host or "?")
+    segs = [x for x in caminho.split("/") if x]
+    if len(segs) < 2 or segs[0] not in EDITORIAS:
+        return "caminho fora das editorias do jota.info (/%s)" % "/".join(segs[:2])
+    conta = next((x for x in segs if x in SEGMENTOS_CONTA), None)
+    if conta:
+        return "caminho/consulta de descadastro ou preferencias (/%s)" % conta
+    slug = segs[-1]
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+){2,}", slug):
+        # materia do JOTA tem slug de >= 3 palavras (176 URLs reais: 4 a 19)
+        return "caminho do jota.info que nao e materia (/%s)" % "/".join(segs)
+    if segs[0] == "newsletters":
+        # so /newsletters/<nome>/<slug de materia>, como as do JOTA Principal no historico
+        if len(segs) != 3 or slug.count("-") < 5:
+            return "caminho de newsletter que nao e materia (/%s)" % "/".join(segs)
+        antes = segs[1]
     else:
-        resto = caminho + "?" + consulta
-    m = PROIBIDO_FORA_DO_SLUG.search(resto)
+        antes = "/".join(segs[:-1])
+    util = urlencode([(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True)
+                      if not k.lower().startswith(("utm_", "rd_"))]).lower()
+    m = PROIBIDO_FORA_DO_SLUG.search(antes + "?" + unquote(util))
     if m:
         return "caminho/consulta de descadastro ou preferencias (%s)" % m.group(0)
-    if not jota and host not in RASTREIO:
-        return "destino fora do jota.info: %s" % (host or "?")
+    m = FRASE_DESCADASTRO.search(slug) or re.search(r"manage", slug)
+    if not m and slug.count("-") < 5:
+        # slug curto (<= 5 palavras: "sair-da-lista", "cancelar-envio") e mais
+        # pagina de rodape que manchete: sem isencao nenhuma
+        m = PROIBIDO_FORA_DO_SLUG.search(slug)
+    if m:
+        return "caminho/consulta de descadastro ou preferencias (%s)" % m.group(0).strip("-")
+    return ""
+
+
+def titulo_de_descadastro(titulo):
+    """Trecho de descadastro no titulo da linha ('Caso nao queira mais receber
+    estes e-mails', 'cancele sua inscricao', 'Sair da lista'), ou ''."""
+    titulo = titulo or ""
+    curto = len(re.findall(r"\w+", titulo)) <= 6
+    for m in jota_extrair.DESCADASTRO.finditer(titulo):
+        if not TRECHO_FRACO.match(m.group(0)) or curto or CONTEXTO_EMAIL.search(titulo):
+            return m.group(0)
     return ""
 
 
@@ -213,6 +290,9 @@ class Contexto:
 def resolve(item, ctx):
     titulo, alvo = item
     t = limpo(titulo)
+    desc = titulo_de_descadastro(titulo)
+    if desc:                              # rodape copiado com o wrapper: nem o wrapper recebe pedido
+        return "RECUSADO\t%s\ttitulo de descadastro ou preferencias (%s)" % (t, limpo(desc))
     ja = ctx.repetida(titulo)
     if ja:
         return "JA_PUBLICADA\t%s\t%s" % (t, ja)
@@ -282,7 +362,7 @@ def main(argv=None):
     ctx, avisos = carregar_contexto(a)
     for av in avisos:
         print(av)
-    precisa_rede = [it for it in itens if it[1] and not ctx.repetida(it[0])]
+    precisa_rede = [it for it in itens if it[1] and not titulo_de_descadastro(it[0]) and not ctx.repetida(it[0])]
     bloqueio = sondar() if precisa_rede else None
     if bloqueio:
         print("BLOQUEADO\t%s http=%s — usar o fallback por WebSearch" % bloqueio)

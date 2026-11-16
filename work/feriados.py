@@ -9,11 +9,14 @@
 #
 # A edicao SAI em feriado (decisao do dono, 16/11/2026): o calendario so
 # informa o julgamento (janela.json: feriado_hoje, feriados_na_janela) e
-# corrige a contagem de dias uteis.
+# corrige a contagem de dias uteis do TRABALHO DAS FONTES (rodizio,
+# dormencia). Edicao faltante e gap contam dias de EDICAO (seg-sex, com
+# feriado: dia_de_edicao / dias_de_edicao_entre / uteis_sem_registro).
 #
 # Tipos:
 #   nacional          — feriado nacional por lei (fixos + Sexta-feira Santa).
-#                       E o unico tipo que deixa de contar como dia util.
+#                       E o unico tipo que deixa de contar como dia util
+#                       (mas segue dia de edicao).
 #   ponto_facultativo — Carnaval (seg/ter) e Corpus Christi (federal).
 #   justica_federal   — Lei 5.010/1966, art. 62 (Justica Federal e tribunais
 #                       superiores): 20/12 a 06/01; quarta-feira santa a
@@ -129,11 +132,29 @@ def dias_uteis_entre(a, b):
     return n
 
 
+def dia_de_edicao(d):
+    """Segunda a sexta, INCLUSIVE feriado: a edicao sai em feriado (decisao 10; saiu em 12/10 e 02/11).
+    Para contar edicoes (dia sem registro, gap); dia_util (sem feriado nacional) mede trabalho das fontes."""
+    return d.weekday() < 5
+
+
+def dias_de_edicao_entre(a, b):
+    """Dias de edicao (seg-sex, feriado incluido) em (a, b], datas."""
+    n, d = 0, a
+    while d < b:
+        d += timedelta(days=1)
+        if dia_de_edicao(d):
+            n += 1
+    return n
+
+
 def uteis_sem_registro(ultima, hoje):
-    """Dias uteis estritamente entre `ultima` e `hoje` (exclusivos): edicoes que deveriam existir."""
+    """Dias de EDICAO (seg-sex, feriado incluido) estritamente entre `ultima` e `hoje`: edicoes que
+    deveriam existir. Antes pulava o feriado nacional, e uma edicao de feriado enviada sem registro
+    (queda, PUSH: FALHOU) passava calada e era repetida no dia seguinte (20/11/2026, sexta)."""
     out, d = [], ultima + timedelta(days=1)
     while d < hoje:
-        if dia_util(d):
+        if dia_de_edicao(d):
             out.append(d)
         d += timedelta(days=1)
     return out
