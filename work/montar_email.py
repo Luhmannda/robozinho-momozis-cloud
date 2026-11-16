@@ -171,9 +171,13 @@ de da do das dos e o a em no na
 # o selo ou os prazos certos: sem isso o e-mail saia "INSCRIÇÕES ABERTAS" para inscricao que acaba em 2 dias.
 # "prazos[n].tipo" (montador, tipo_contra_evento; e o do helper com o mesmo prefixo): `tipo` 'outro'/'prova' num
 # prazo que o evento diz ser de inscricao desligava o selo por data sem alerta (INSCRIÇÕES ABERTAS a 2 dias do fim).
+# "selo por data suspenso" (bancas.selo_do_dia: o edital lido hoje contesta a data do registro; o selo nao foi
+# recalculado) e "prazo escrito hoje difere do edital" (helper: o update de hoje contradiz o edital lido hoje)
+# pedem prazos/linha certos ou a decisao do selo.
 ACIONAVEL = re.compile(r"REPUBLICADA|POSSIVEL_REPETIDA|POSSIVEL_DUPLICATA|movimento oficial não refletido|"
                        r"relacionado a |nenhum card do resumo|citam? item descartado|contradiz o selo por data|"
-                       r"prorrogação não confirmada|\.prazos\[\d+\]\.tipo\b")
+                       r"prorrogação não confirmada|\.prazos\[\d+\]\.tipo\b|selo por data suspenso|"
+                       r"prazo escrito hoje difere do edital")
 
 # G7: atos de rotina do Planalto (agrupados no fim da secao; nada e omitido)
 ROTINA_ATO = re.compile(
@@ -530,7 +534,18 @@ def selecionar(spec, n, ref, erros, avisos):
 
 # temas (so RG): os temas que sairam no e-mail, gravados no historico; o informativos.py tira da revisita de
 # uma RG anterior o tema ja publicado com uma RG posterior (INF-rev-1c: o Tema 1.483 da RG 397 voltava na 394)
-DERIVADOS = {"destaques_texto", "observacao", "herdada", "chave", "sem_conteudo", "temas"}
+# resumo_truncado (coleta_web.json, P5): a coleta marca o resumo que veio cortado; so o script decide (o escrito
+# pelo orquestrador e ignorado) e nao vai ao resolvido nem ao historico
+DERIVADOS = {"destaques_texto", "observacao", "herdada", "chave", "sem_conteudo", "temas", "resumo_truncado"}
+RESUMO_TRUNCADO_MIN = 40     # resumo cortado mais curto que isto (sem as reticencias) e omitido
+FIM_CORTADO = re.compile(r"(?:\[\s*(?:…|\.\.\.)\s*\]|…|[\s,;:.\-–—(])+$")
+
+
+def resumo_cortado(s):
+    """Resumo que a coleta marcou como cortado: sem a pontuacao/reticencias soltas do fim e terminado em "…" (o
+    ponto() nao acrescenta ponto depois dele); com menos de RESUMO_TRUNCADO_MIN caracteres, "" (omitido)."""
+    t = FIM_CORTADO.sub("", str(s or "").strip())
+    return t + "…" if len(t) >= RESUMO_TRUNCADO_MIN else ""
 
 
 def resolver(it, ev, erros, avisos=None, hoje=None):
@@ -612,6 +627,14 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
     novo = dict(base)
     novo.update({k: v for k, v in it.items()
                  if k != "destaques" and k not in DERIVADOS and not k.startswith("_") and v not in (None, "")})
+    # P5: resumo que a coleta marcou como cortado (ConJur): "…" no fim, ou nada se ficar curto. Vale tambem quando o
+    # orquestrador copiou o mesmo texto no item; resumo proprio dele fica como escrito. coleta_web.json antigo (sem o
+    # campo): nada muda
+    if e and e.get("resumo_truncado") and novo.get("resumo") \
+            and str(novo["resumo"]).strip() == str(e.get("resumo") or "").strip():
+        novo["resumo"] = resumo_cortado(novo["resumo"])
+        if not novo["resumo"]:
+            del novo["resumo"]
     return novo
 
 
@@ -885,7 +908,9 @@ def estado_concursos(ex, j, led, op, avisos):
     Mesma regra do helper (aplicar_mecanicos_concursos), para o e-mail e o ledger nao divergirem:
     - selo ESCRITO hoje = selos.selo_escrito (difere do registro de antes); a copia do selo nao e decisao;
     - carimbo e contexto da banca com o update de hoje: o registro que AINDA diverge do edital nao e
-      carimbado nem conta como banca lida (bancas.divergencias_pendentes)."""
+      carimbado nem conta como banca lida (bancas.divergencias_pendentes);
+    - selo por data por bancas.selo_do_dia (a regra unica): com divergencia pendente — inclusive o prazo escrito
+      hoje que contradiz o edital lido hoje — fica SUSPENSO (o selo do registro) e sai AVISO ACIONÁVEL."""
     hoje = date.fromisoformat(j["data"])
     upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
     antes = {c.get("id"): c for c in led.get("concursos") or []}
@@ -902,17 +927,20 @@ def estado_concursos(ex, j, led, op, avisos):
                 por_id[ident].update({k: v for k, v in campos.items() if k not in (upd.get(ident) or {})})
     try:
         ctx_banca = bancas.contexto_selos(banca, regs, hoje, upd) if banca else {}
+        pendentes = bancas.divergencias_pendentes(banca, regs, hoje, upd) if banca else {}
     except (KeyError, ValueError, TypeError):
-        ctx_banca = {}
+        ctx_banca, pendentes = {}, {}
     avisos += tipo_contra_evento(upd, por_id, hoje, ctx_banca)
     selo_mudou = set()
     for c in regs:
         if selos.selo_escrito(upd.get(c["id"]), antes.get(c["id"])):
             continue
-        x = ctx_banca.get(c["id"]) or {}
-        novo, motivo = selos.selo_por_data(c, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
-                                           ultima_retificacao=x.get("ultima_retificacao"),
-                                           inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        # a mesma regra do helper (bancas.selo_do_dia): com divergencia pendente (o edital lido hoje contesta a data
+        # do registro ou o prazo escrito hoje) o selo por data fica SUSPENSO, com aviso acionavel
+        novo, motivo, suspenso = bancas.selo_do_dia(c, hoje, ctx_banca, pendentes)
+        if suspenso:
+            avisos.append(suspenso)
+            continue
         if novo != c.get("selo"):
             if novo == selos.SELO_SEM_CONFIRMACAO:
                 # o motivo pede ao orquestrador o selo/os prazos (encerradas ou prorrogadas): nada de
@@ -932,7 +960,7 @@ def estado_concursos(ex, j, led, op, avisos):
     for ident in novos | alterados:
         por_id[ident]["mudou_em"] = j["data"]
     return {"regs": regs, "novos": novos, "alterados": alterados, "selo_mudou": selo_mudou,
-            "banca": banca or {}}
+            "banca": banca or {}, "pendentes": set(pendentes)}
 
 
 # ------------------------------------------------------------------ 3. secoes do e-mail
@@ -1488,7 +1516,8 @@ def montar(ex, j, led, ev, v, agora, ctx=None):
             secoes.append((cat, sec_itens(cat, titulo, vazio, por_cat.get(cat, []), ex)))
     compacto = criterio_compacto(j, hoje, novos, alterados, ctx.get("selo_mudou") or set())
     secoes.append(("Concursos", sec_concursos(regs, hoje, novos, alterados, compacto,
-                                              com_divergencia(regs, pend, ctx.get("banca")))))
+                                              com_divergencia(regs, pend, ctx.get("banca"))
+                                              | set(ctx.get("pendentes") or ()))))
     secoes.append(("Mídia e Opinião", sec_midia(por_cat.get("Mídia", []), por_cat.get("Opinião/Análise", []), ex, ev)))
     secoes.append(("Fofoquinha", sec_itens("Fofoquinha", "🤫 FOFOQUINHA JURÍDICA",
                                            "Nenhuma fofoquinha jurídica relevante localizada nesta execução.",
@@ -1936,7 +1965,7 @@ def limpar_para_gravar(ex):
     out = copy.deepcopy(ex)
     out.pop("_refs_descartadas", None)
     for it in out.get("items") or []:
-        for k in [k for k in it if k.startswith("_") or k in ("resenha", "impacto", "desdobramento")]:
+        for k in [k for k in it if k.startswith("_") or k in ("resenha", "impacto", "desdobramento", "resumo_truncado")]:
             del it[k]
     return out
 

@@ -16,6 +16,9 @@
 #   ignorado, limitacoes tecnicas, meta preservado, feriado sem parenteses aninhados.
 #   Volta 2: prazos[n].tipo 'outro'/'prova' num prazo cujo evento e de inscricao vira AVISO ACIONÁVEL
 #   (com o selo que a data daria), sem duplicar o do helper com o mesmo prefixo.
+#   CORE volta 1: selo por data suspenso com divergencia pendente (TJSC 25/11 x edital 26/11, tambem com so a
+#   linha corrigida) igual no e-mail e no ledger; prazo escrito hoje contra o edital lido hoje (AVISO ACIONÁVEL,
+#   ALERTA no helper, sem falso positivo); resumo_truncado do ConJur termina em "…" ou some (< 40 caracteres).
 # Replay real: execucao do orquestrador de 16/11/2026 (1a rodada) e uma
 # simulacao de 17/11 (terca: compactacao e errata do TJAP).
 # USO: python3 work/testes/test_mon.py   (imprime OK/FALHOU; sai != 0 em falha)
@@ -746,10 +749,14 @@ def pasta_dia(dia, upd, ledger=None, banca=None):
     return t
 
 
+HELPER_OUT = [""]          # relatorio do helper (persistencia) da ultima chamada de montador_e_helper
+
+
 def montador_e_helper(t):
     """Roda os dois sobre a MESMA entrada: o montador (CLI e estado_concursos, que e o que o e-mail mostra) e o
     helper persistindo o execucao.resolvido.json do montador (o que o finalizar.sh faz). Devolve
-    (stdout do montador, html, {id: (selo, verificado_em)} do e-mail, idem do ledger gravado pelo helper)."""
+    (stdout do montador, html, {id: (selo, verificado_em)} do e-mail, idem do ledger gravado pelo helper).
+    O relatorio do helper fica em HELPER_OUT[0]."""
     env = dict(os.environ, ROBOZINHO_TMP=t)
     led, hist = os.path.join(t, "led.json"), os.path.join(t, "hist.json")
     r = subprocess.run([sys.executable, os.path.join(WORK, "montar_email.py"), "--ledger", led, "--historico", hist],
@@ -767,6 +774,7 @@ def montador_e_helper(t):
                         "--fontes-status", os.path.join(t, "fontes_status.json"), "--draft-id", "r-teste"],
                        capture_output=True, text=True, env=env, cwd=WORK)
     ok(h.returncode == 0 and "STATUS: OK" in h.stdout, "helper persistiu: %s" % (h.stdout + h.stderr)[-300:])
+    HELPER_OUT[0] = h.stdout + h.stderr
     no_ledger = {c["id"]: (c.get("selo"), c.get("verificado_em"))
                  for c in json.load(open(led, encoding="utf-8"))["concursos"]}
     return out, html, no_email, no_ledger
@@ -783,10 +791,40 @@ def selo_no_html(html, cabeca):
     return m.group(1) if m else None
 
 
+TRECHO_TJSC = "das 16h do dia 19 de outubro de 2026 até às 16h do dia 26 de novembro de 2026"
+TRECHO_TJAP = "das 16h do dia 13 de outubro de 2026 até às 16h do dia 18 de novembro de 2026"
+
+
+def tjsc_com_fim(led, dia):
+    """Registro do TJSC com o fim das inscricoes em `dia`/11 (prazos e linha; o edital da FGV diz 26/11)."""
+    for c in led["concursos"]:
+        if c["id"] == "tjsc_juiz":
+            c["linha"] = c["linha"].replace("até 16h de 26/11", "até 16h de %s/11" % dia)
+            c["prazos"][0]["data"] = "2026-11-%s" % dia
+    return led
+
+
+def edital_relido(ident, fim, trecho, inicio, motivo, registro=None):
+    """bancas.json com o edital de `ident` relido hoje (o que o bancas.py grava: releitura, edital, inscricoes e,
+    se o registro da manha divergia, `divergencias` com o texto `registro`)."""
+    def f(b):
+        for c in b["concursos"]:
+            if ident in c["coberto"]:
+                c["releitura"] = motivo
+                c["edital"] = {"inscrições": trecho}
+                c["inscricoes"] = {"inicio": inicio, "fim": fim, "trecho": trecho, "origem": "edital"}
+                c["divergencias"] = ([{"id": ident, "edital": trecho, "registro": registro, "origem": "edital"}]
+                                     if registro else [])
+    return f
+
+
 @teste
 def t_r2_montador_e_helper_mesma_entrada():
     """P3 (selo copiado x decidido) e P9 (carimbo com o update de hoje): para a mesma entrada, o e-mail e o ledger
-    gravado pelo helper tem o mesmo selo e o mesmo verificado_em em todos os concursos."""
+    gravado pelo helper tem o mesmo selo e o mesmo verificado_em em todos os concursos.
+    CORE P2: registro que o edital lido hoje contesta (TJSC com fim 25/11 x edital 26/11) fica com o selo por data
+    SUSPENSO nos dois (o selo do registro fica; AVISO ACIONÁVEL com as duas datas), tambem quando o orquestrador
+    corrige so a linha e nao os prazos."""
     led = fx("ledger-1611.json")
     linha_tjpb = next(c for c in led["concursos"] if c["id"] == "tjpb_apoio")["linha"]
     # 18/11: copia (tjpb com a linha reescrita e o selo do registro; tjsc so o selo) e decisao (tjap)
@@ -860,6 +898,41 @@ def t_r2_montador_e_helper_mesma_entrada():
         concordam(em, lg, "entrada do test_est")
         ok(em["tjpb_apoio"][0] == "ENCERRA HOJE" and em["tjap_juiz"][0] == "INSCRIÇÕES ENCERRADAS",
            "entrada do test_est: copia -> selo por data, decisao mantida (%r, %r)" % (em["tjpb_apoio"], em["tjap_juiz"]))
+    # CORE P2: TJSC com fim 25/11 no registro e 26/11 no edital relido em 18/11. Antes: o selo por data usava a data
+    # contestada (ENCERRA EM BREVE, 7 dias) quando a oficial ainda dava INSCRIÇÕES ABERTAS (8 dias)
+    led25 = tjsc_com_fim(copy.deepcopy(led), "25")
+    banca25 = edital_relido("tjsc_juiz", "2026-11-26", TRECHO_TJSC, "2026-10-19", "prazo do registro em 25/11",
+                            registro="prazo 25/11/2026 fim das inscrições, 16h")
+    linha26 = next(c for c in led["concursos"] if c["id"] == "tjsc_juiz")["linha"]
+    for rotulo, upd in (("sem update", {}), ("so a linha corrigida", {"tjsc_juiz": {"linha": linha26}})):
+        t = pasta_dia("2026-11-18", upd, ledger=led25, banca=banca25)
+        out, html, em, lg = montador_e_helper(t)
+        concordam(em, lg, "P2 %s" % rotulo)
+        av = linha(out, "AVISO ACIONÁVEL: selo por data suspenso em tjsc_juiz")
+        ok(em["tjsc_juiz"] == ("INSCRIÇÕES ABERTAS", "2026-11-16")
+           and selo_no_html(html, "TJSC — Juiz Substituto") == "INSCRIÇÕES ABERTAS",
+           "P2 %s: selo do registro mantido, sem carimbo (%r)" % (rotulo, em["tjsc_juiz"]))
+        ok("25/11" in av and "26/11" in av and "INSCRIÇÕES ABERTAS" in av and " … " not in av,
+           "P2 %s: AVISO ACIONÁVEL com as duas datas: %s" % (rotulo, av or out))
+        ok("selo por data: tjsc_juiz" not in out and "MONTAGEM: OK COM AVISOS" in out
+           and linha(out, "CAMINHO: ").endswith("email-com-avisos.html"), "P2 %s: sem recalculo, corpo com avisos" % rotulo)
+        ok("ALERTA: selo por data suspenso em tjsc_juiz" in HELPER_OUT[0]
+           and "selo por data: tjsc_juiz" not in HELPER_OUT[0], "P2 %s: o helper suspende igual e avisa: %s"
+           % (rotulo, HELPER_OUT[0][-600:]))
+        ok(len(out.encode("utf-8")) < 3000, "P2 %s: stdout < 3 KB (%d)" % (rotulo, len(out.encode("utf-8"))))
+    # prazos (e linha) corrigidos hoje: sem divergencia, carimbo e selo por data pela data oficial (8 dias: ABERTAS)
+    t = pasta_dia("2026-11-18", {"tjsc_juiz": {"linha": linha26, "prazos": next(
+        c for c in led["concursos"] if c["id"] == "tjsc_juiz")["prazos"]}}, ledger=led25, banca=banca25)
+    out, html, em, lg = montador_e_helper(t)
+    concordam(em, lg, "P2 prazos corrigidos")
+    ok(em["tjsc_juiz"] == ("INSCRIÇÕES ABERTAS", "2026-11-18") and "suspenso" not in out
+       and "suspenso" not in HELPER_OUT[0], "P2 corrigido: carimbo, sem suspensao (%r)" % (em["tjsc_juiz"],))
+    # 19/11 sem update: pelo registro seria ENCERRA EM BREVE (6 dias); suspenso, fica o selo do registro
+    t = pasta_dia("2026-11-19", {}, ledger=led25, banca=banca25)
+    out, html, em, lg = montador_e_helper(t)
+    concordam(em, lg, "P2 19/11")
+    ok(em["tjsc_juiz"][0] == "INSCRIÇÕES ABERTAS" and linha(out, "AVISO ACIONÁVEL: selo por data suspenso em tjsc_juiz"),
+       "P2 19/11: suspenso (%r)" % (em["tjsc_juiz"],))
 
 
 @teste
@@ -1065,6 +1138,111 @@ def t_v2_tipo_contra_evento():
     ok(not M.ACIONAVEL.search("ledger_updates.concursos.x.prazos: 'linha' fala em 21/11") and
        not M.ACIONAVEL.search("selo por data: x INSCRIÇÕES ABERTAS → ENCERRA EM BREVE: fim das inscrições em 7 dias "
                               "(26/11) (automático; não escreva o selo)"), "regex nao pega outros avisos de concurso")
+
+
+# ------------------------------------------------------------------ CORE volta 1
+@teste
+def t_core_prazo_escrito_contra_edital():
+    """P3: prazo escrito hoje que contradiz o edital lido hoje (banca de 19/11 com fim 18/11, igual ao registro; o
+    orquestrador grava prorrogacao para 21/11 com fonte FGV). Antes passava sem aviso, com o carimbo da banca e o selo
+    por data da data escrita. Agora: AVISO ACIONÁVEL no montador, ALERTA no relatorio do helper, sem carimbo e com o
+    selo por data suspenso (regra do P2). Sem falso positivo com o update igual ao edital nem sem edital relido."""
+    relido = edital_relido("tjap_juiz", "2026-11-18", TRECHO_TJAP, "2026-10-13", "prazo do registro em 18/11")
+    prorrog = {"tjap_juiz": {"prazos": prazos_tjap("2026-11-21"), "fonte": "https://conhecimento.fgv.br/concursos/tjap26"}}
+    t = pasta_dia("2026-11-19", copy.deepcopy(prorrog), banca=relido)
+    out, html, em, lg = montador_e_helper(t)
+    concordam(em, lg, "P3 prorrogacao contra o edital")
+    av = linha(out, "AVISO ACIONÁVEL: prazo escrito hoje difere do edital lido hoje: tjap_juiz")
+    ok(av and "18 de novembro de 2026" in av and "21/11/2026" in av and " × update " in av and " … " not in av,
+       "P3: aviso acionavel com edital x update: %s" % (av or out))
+    ok("DIVERGE DO REGISTRO em tjap_juiz" not in out, "P3: um aviso so (sem o DIVERGE generico)")
+    ok(em["tjap_juiz"] == ("ENCERRA EM BREVE", "2026-11-16") and linha(out, "AVISO ACIONÁVEL: selo por data suspenso "
+                                                                            "em tjap_juiz"),
+       "P3: sem carimbo e selo por data suspenso (%r)" % (em["tjap_juiz"],))
+    ok("ALERTA: prazo escrito hoje difere do edital lido hoje: tjap_juiz" in HELPER_OUT[0]
+       and "AVISO: prazo escrito hoje" not in HELPER_OUT[0], "P3: ALERTA no relatorio do helper: %s" % HELPER_OUT[0][-800:])
+    ok("MONTAGEM: OK COM AVISOS" in out and len(out.encode("utf-8")) < 3000, "P3: corpo com avisos, stdout < 3 KB")
+    # update igual ao edital (18/11): nada de aviso; carimbo e selo por data (banca lida: ENCERRADAS)
+    t = pasta_dia("2026-11-19", {"tjap_juiz": {"prazos": prazos_tjap("2026-11-18")}}, banca=relido)
+    out, html, em, lg = montador_e_helper(t)
+    concordam(em, lg, "P3 update igual ao edital")
+    ok("prazo escrito hoje" not in out + HELPER_OUT[0] and "suspenso" not in out + HELPER_OUT[0]
+       and "DIVERGE" not in out and em["tjap_juiz"] == ("INSCRIÇÕES ENCERRADAS", "2026-11-19"),
+       "P3 sem falso positivo (update = edital): %r" % (em["tjap_juiz"],))
+    # edital NAO relido hoje (releitura vazia, sem inscricoes; ou inscricoes de uma releitura que nao e de hoje)
+    def sem_releitura(b):
+        for c in b["concursos"]:
+            if "tjap_juiz" in c["coberto"]:
+                c["releitura"] = ""
+                c.pop("inscricoes", None)
+
+    def velha(b):
+        relido(b)
+        for c in b["concursos"]:
+            if "tjap_juiz" in c["coberto"]:
+                c["releitura"] = ""
+    for rotulo, banca in (("sem releitura", sem_releitura), ("inscricoes sem releitura hoje", velha)):
+        t = pasta_dia("2026-11-19", copy.deepcopy(prorrog), banca=banca)
+        out, html, em, lg = montador_e_helper(t)
+        concordam(em, lg, "P3 %s" % rotulo)
+        ok("prazo escrito hoje" not in out + HELPER_OUT[0] and "suspenso" not in out + HELPER_OUT[0]
+           and em["tjap_juiz"] == ("ENCERRA EM BREVE", "2026-11-19"),
+           "P3 %s: sem aviso, carimbo e selo pela data escrita (%r)" % (rotulo, em["tjap_juiz"]))
+    ok(M.ACIONAVEL.search("prazo escrito hoje difere do edital lido hoje: x edital \"a\" × update \"b\"")
+       and M.ACIONAVEL.search("selo por data suspenso em x: o registro diz"), "regex ACIONAVEL")
+
+
+@teste
+def t_core_resumo_truncado():
+    """P5: item do ConJur com "resumo_truncado" (coleta_web.json novo): o resumo termina em "…" (sem ponto) ou e
+    omitido se ficar com menos de 40 caracteres. O campo e DERIVADO (o escrito pelo orquestrador e ignorado) e nao
+    vai ao resolvido nem ao historico. coleta_web.json antigo (sem o campo): como antes."""
+    col = fx("coleta_web-1711.json")
+    for b in col:
+        for x in b["itens"]:
+            if x.get("id") == "c1":
+                x["resumo"] = x["resumo"] + " e o"
+                x["resumo_truncado"] = True
+            elif x.get("id") == "c7":
+                x["resumo"] = "TJ-SP absolveu um homem acusado de..."
+                x["resumo_truncado"] = True
+    ex = fx("execucao-1711.json")
+    for it in ex["items"]:
+        if it.get("ref") == "c1":
+            it["resumo_truncado"] = False          # o orquestrador nao decide isto
+    t = preparar_pasta("1711", execucao=ex)
+    json.dump(col, open(os.path.join(t, "coleta_web.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    rc, out, err = rodar("1711", t)
+    html = corpo(out)
+    ok(rc == 0, "montagem: %s %s" % (out[-400:], err[-400:]))
+    ok("é inconstitucional e o…" in html and "é inconstitucional e o." not in html and "e o….</" not in html,
+       "c1: termina em reticencias, sem ponto")
+    ok("TJ-SP absolveu" not in html and "Condenação por embriaguez ao volante exige prova" in html,
+       "c7: resumo curto truncado omitido (o item fica)")
+    ok("pendências fiscais ou financeiras." in html, "c8 (sem o campo): ponto final como antes")
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
+    ok(not any("resumo_truncado" in it for it in res["items"]), "resumo_truncado fora do resolvido (e do historico)")
+    # o orquestrador copiou o resumo cortado no item: tambem sai com reticencias; texto proprio: o dele, com ponto
+    ex = fx("execucao-1711.json")
+    for it in ex["items"]:
+        if it.get("ref") == "c1":
+            it["resumo"] = next(x for b in col for x in b["itens"] if x.get("id") == "c1")["resumo"]
+        elif it.get("ref") == "c7":
+            it["resumo"] = "TJ-SP absolveu motociclista por falta de prova de que ele conduzia"
+    t = preparar_pasta("1711", execucao=ex)
+    json.dump(col, open(os.path.join(t, "coleta_web.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    rc, out, err = rodar("1711", t)
+    html = corpo(out)
+    ok("é inconstitucional e o…" in html and "TJ-SP absolveu motociclista por falta de prova de que ele conduzia." in html,
+       "copia do resumo cortado: reticencias; resumo proprio: o dele")
+    ev = {"c9": {"_fonte": "conjur", "id": "c9", "tipo": "noticia", "titulo": "T", "url": "https://conjur.com.br/x/",
+                 "data": "2026-11-16", "quando": "2026-11-16T10:00:00-03:00", "situacao": "NOVA",
+                 "resumo": "Texto qualquer com mais de quarenta caracteres, cortado no meio,", "resumo_truncado": True}}
+    r = M.resolver({"ref": "c9"}, ev, [], [], None)
+    ok(r["resumo"] == "Texto qualquer com mais de quarenta caracteres, cortado no meio…" and "resumo_truncado" not in r,
+       "pontuacao final tirada antes das reticencias: %r" % r.get("resumo"))
+    ev["c9"]["resumo_truncado"] = False
+    ok(M.resolver({"ref": "c9"}, ev, [], [], None)["resumo"].endswith("no meio,"), "sem o campo: intacto")
 
 
 def main():

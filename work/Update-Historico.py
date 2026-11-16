@@ -49,15 +49,18 @@
 #                    exige desfecho; concurso novo exige fonte http; linha sem
 #                    "hoje/amanha/ontem"; verificado_em ate a data da janela;
 #                    url_oficial e dominio_oficial escritos so oficiais. AVISOs:
-#                    DIVERGE DO REGISTRO nao corrigido; selo escrito que
-#                    contradiz o selo por data.
+#                    DIVERGE DO REGISTRO nao corrigido; prazo escrito hoje que
+#                    difere do edital lido hoje (ALERTA na gravacao); selo
+#                    escrito que contradiz o selo por data.
 #   Migracao     : regra de armadilha que o codigo tornou falsa e reescrita
 #                    (REGRAS_ATUALIZADAS; so se o texto atual for o antigo,
 #                    idempotente; o inicio.py aplica o mesmo em memoria).
 #   Mecanico (o orquestrador nao escreve): carimbo da banca lida hoje
 #                    (verificado_em/fonte/dominio_oficial, bancas.carimbos; nunca
 #                    no registro que ainda DIVERGE DO REGISTRO), selo por data
-#                    (selos.selo_por_data, nunca sobre selo escrito hoje; o selo
+#                    (bancas.selo_do_dia, a mesma regra do montador: suspenso,
+#                    com ALERTA, enquanto o edital lido hoje contestar a data do
+#                    registro; nunca sobre selo escrito hoje; o selo
 #                    copiado igual ao do registro sai do update antes: nao e
 #                    decisao — marca `selos_copiados` na execucao),
 #                    mudou_em dos concursos, URLs vistas na banca
@@ -432,10 +435,23 @@ def avisos_ledger_updates(upd, led, hoje, banca_res=None):
         except (KeyError, ValueError, TypeError):
             pend = {}
         for ident, d in sorted(pend.items()):
+            if d.get("escrito_hoje"):
+                # o prazo ESCRITO hoje contradiz o edital lido hoje (antes passava sem aviso, com carimbo da banca)
+                avisos.append('%s %s edital "%s" × update "%s" — confira a fonte da data escrita: se o edital lido '
+                              "hoje está certo, corrija prazos/linha em ledger_updates.concursos.%s; se a data vem "
+                              "de ato oficial que o edital lido hoje não traz (retificação nova), cite-o na fonte e "
+                              "aceite (até lá: sem carimbo da banca e selo por data suspenso)" % (
+                                  PRAZO_CONTRA_EDITAL, ident, d["edital"][:170], d["registro"][:120], ident))
+                continue
             avisos.append('DIVERGE DO REGISTRO em %s: edital "%s" × registro "%s" — corrija prazos/linha em '
                           "ledger_updates.concursos.%s (movimento oficial não refletido no registro; sem o carimbo "
                           "de verificação da banca hoje)" % (ident, d["edital"][:170], d["registro"][:120], ident))
     return avisos
+
+
+# prazo escrito hoje que contradiz o edital lido hoje: AVISO no --validar (o montador o mostra como AVISO
+# ACIONÁVEL) e ALERTA no relatorio da gravacao (finalizar.sh)
+PRAZO_CONTRA_EDITAL = "prazo escrito hoje difere do edital lido hoje:"
 
 
 def avisos_selo_escrito(conc, por_id, hoje, banca_res=None):
@@ -565,6 +581,8 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
                     removidas.append(ident)
                 continue
             alvo = next((x for x in lista if x.get("id") == ident), None)
+            if alvo is not None and not [c for c in campos if c not in ("remover", "desfecho")]:
+                continue        # nada a aplicar (ex.: o update so copiava o selo, ja retirado): sem "atualizada ()"
             if alvo is None:
                 alvo = {"id": ident}
                 if secao == "pendencias":
@@ -609,7 +627,8 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
 
 def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
     """Depois dos ledger_updates: carimbo da banca lida hoje e selo por data (nunca sobre selo
-    escrito hoje). Idempotente. Devolve o numero de registros alterados."""
+    escrito hoje; bancas.selo_do_dia, a regra do montador: suspenso, com ALERTA, enquanto o edital lido hoje
+    contestar a data do registro). Idempotente. Devolve o numero de registros alterados."""
     import bancas
     conc = (upd or {}).get("concursos") or {}
     regs = led.get("concursos") or []
@@ -626,16 +645,18 @@ def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
             n += 1
             add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
     ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
+    pend = bancas.divergencias_pendentes(banca_res, regs, hj, conc) if banca_res else {}
     for reg in regs:
         u = conc.get(reg.get("id")) or {}
         if "selo" in u:
             # selo escrito hoje pelo orquestrador: nunca sobrescrever. A copia do selo inalterado ja saiu do
             # update em main() (retirar_selos_copiados, contra o registro de antes): o que sobra e decisao.
             continue
-        x = ctx.get(reg.get("id")) or {}
-        selo, motivo = selos.selo_por_data(reg, hj, banca_lida_hoje=x.get("banca_lida_hoje", False),
-                                           ultima_retificacao=x.get("ultima_retificacao"),
-                                           inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        # a mesma regra do montador (bancas.selo_do_dia): com divergencia pendente o selo por data fica suspenso
+        selo, motivo, suspenso = bancas.selo_do_dia(reg, hj, ctx, pend)
+        if suspenso:
+            add_log("ALERTA: " + suspenso)
+            continue
         if selo != reg.get("selo"):
             reg["selo"] = selo
             reg["mudou_em"] = hoje
@@ -818,6 +839,9 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
                 add_log("Ledger: fonte %s REBAIXADA -> mudo (%d execucoes sem sucesso; revise a nota)."
                         % (fid, f["sem_sucesso"]))
     ids = {p.get("id") for p in ex.get("pendencias") or [] if p.get("id")}
+    # re-execucao sem rascunho novo (draft_ja_existente) e sem a lista do que foi a edicao: nao ha como saber quais
+    # pendencias foram — o aviso "nao foi a edicao" sairia para todas (ruido no relatorio)
+    sem_edicao = ex.get("delivery") == "draft_ja_existente" and not (ex.get("items") or ex.get("pendencias"))
     no_ledger = set()
     for p in led.get("pendencias_vivas") or []:
         no_ledger.add(p.get("id"))
@@ -826,7 +850,7 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
             if p.get("faixa") == "ativa" and p["execucoes"] > LIMITE_ATIVA:
                 add_log("Ledger: pendencia %s ativa ha %d execucoes (>21) — rebaixar ou aposentar."
                         % (p["id"], p["execucoes"]))
-        else:
+        elif not sem_edicao:
             add_log("Ledger: pendencia %s nao foi a edicao — se resolvida, remova-a." % p.get("id"))
     # pendencia removida pelo ledger_updates desta mesma execucao (a errata herdada sai na edicao e e removida
     # no mesmo resolvido): nao e inconsistencia
@@ -1131,7 +1155,9 @@ def main():
     if args.validar:
         avisos += checar_repeticao(nova_exec, historico["executions"], chaves_anteriores)
     for a in avisos:
-        add_log("AVISO: " + a)
+        # na gravacao, o prazo escrito hoje contra o edital lido hoje e ALERTA (vai a notificacao); no --validar
+        # fica AVISO (o montador o le assim e o mostra como AVISO ACIONÁVEL)
+        add_log(("ALERTA: " if not args.validar and a.startswith(PRAZO_CONTRA_EDITAL) else "AVISO: ") + a)
     if erros:
         for e in erros:
             add_log("ERRO: " + e)
@@ -1181,7 +1207,7 @@ def main():
         if it.get("nota") and not it.get("observacao"):
             it["observacao"] = it["nota"]
         for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor",
-                      "impacto", "resenha", "desdobramento"):
+                      "impacto", "resenha", "desdobramento", "resumo_truncado"):
             it.pop(campo, None)
     # grava a versao normalizada, para o historico ficar consistente
     write_json_no_bom(args.nova_execucao_path, nova_exec)

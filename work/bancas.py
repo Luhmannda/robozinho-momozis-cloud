@@ -47,7 +47,12 @@
 #   contexto_selos(res, concursos=None, hoje=None, upd=None)
 #                                   -> {id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}}
 #     (com upd/concursos: o registro que ainda DIVERGE DO REGISTRO fica sem carimbo e sem "banca lida")
-#   divergencias_pendentes(res, concursos, hoje, upd=None) -> {id: {edital, registro}}
+#   divergencias_pendentes(res, concursos, hoje, upd=None)
+#                                   -> {id: {edital, registro, fim_edital, fim_registro, escrito_hoje}}
+#     (todo concurso com o trecho de inscricoes lido HOJE, inscricoes_do_dia; inclui o prazo escrito hoje que
+#     contradiz o edital — antes so o registro que ja divergia de manha)
+#   selo_do_dia(reg, hoje, ctx, pendentes) -> (selo, motivo, suspenso): a regra unica do selo por data para
+#     helper, montador e inicio; com divergencia pendente o selo por data fica SUSPENSO (aviso acionavel)
 #   novos_por_registro(res)         -> {id: [arquivos novos]}
 #   atualizar_estado(estado, res)   -> quantos arquivos passaram a "vistos"
 #
@@ -375,6 +380,8 @@ def analisar(alvo, hoje, concursos, estado=None, ler=texto_pdf):
         c["releitura"] = motivo_releitura(c, regs, hoje)
         if c["releitura"]:
             edital(c, ler)
+            if c.get("inscricoes"):
+                c["inscricoes"]["lido_em"] = hoje.isoformat()     # trecho lido HOJE (nao ha cache entre dias)
         if not certo:
             regs, certo = desambiguar(c, regs, usar_edital=True)
         # dois ou mais candidatos sem cargo: como antes ("registro X ou Y", sem cobrir); um so sem cargo: incerto
@@ -466,25 +473,83 @@ def _concursos_lidos(res):
     return [c for c in res.get("concursos") or [] if c.get("http") == 200 and c.get("arquivos")]
 
 
+def inscricoes_do_dia(res, c, hoje):
+    """O trecho de inscricoes do edital/retificacao LIDO HOJE ({"inicio","fim","trecho","origem"[,"lido_em"]}) ou
+    None. `inscricoes` so existe quando analisar() releu o PDF nesta execucao (nao ha cache entre dias); por
+    seguranca recusa: bancas.json de outro dia, concurso com releitura vazia ou erro no edital, trecho com
+    `lido_em` de outro dia. Base de toda comparacao registro x edital (divergencias_pendentes)."""
+    hj = hoje.isoformat() if isinstance(hoje, date) else str(hoje)[:10]
+    ins = c.get("inscricoes") or {}
+    if not isinstance(ins, dict) or not ins.get("fim") or c.get("edital_erro"):
+        return None
+    if (res or {}).get("data") not in (None, hj) or ("releitura" in c and not c["releitura"]):
+        return None
+    if ins.get("lido_em") not in (None, hj):
+        return None
+    return ins
+
+
 def divergencias_pendentes(res, concursos, hoje, upd=None):
-    """{id: {"edital", "registro"}} dos registros lidos hoje na banca cujo fim das inscricoes AINDA difere
-    do edital depois do update de hoje (registro + ledger_updates.concursos[id]). Sem `upd`, vale o
-    registro como esta (o DIVERGE DO REGISTRO do inicio.py). Remocao no update resolve."""
+    """{id: {"edital", "registro", "fim_edital", "fim_registro", "escrito_hoje"}} dos registros lidos hoje na banca
+    cujo fim das inscricoes difere do edital/retificacao lido HOJE (inscricoes_do_dia) depois do update de hoje
+    (registro + ledger_updates.concursos[id]). Examina todo concurso com o trecho lido hoje, nao so o que ja
+    divergia de manha: um prazo ESCRITO hoje que contradiz o edital (registro igual ao edital, update com outra
+    data) tambem fica pendente — `escrito_hoje` = o update mudou o fim das inscricoes que o registro diz (so e
+    exato quando `concursos` e o registro de ANTES do update, como no --validar do helper). Sem `upd`, vale o
+    registro como esta (o DIVERGE DO REGISTRO do inicio.py). Remocao no update resolve; edital nao relido hoje,
+    nada (sem comparacao)."""
     hj = hoje if isinstance(hoje, date) else date.fromisoformat(str(hoje)[:10])
     por_id = {c.get("id"): c for c in concursos or []}
     out = {}
     for c in _concursos_lidos(res):
-        if not c.get("divergencias"):
+        ins = inscricoes_do_dia(res, c, hj)
+        if not ins:
             continue
         for ident in c.get("coberto") or []:
             u = (upd or {}).get(ident) or {}
-            if ident not in por_id or u.get("remover"):
+            if ident not in por_id or not isinstance(u, dict) or u.get("remover"):
                 continue
             reg = dict(por_id[ident])
             reg.update({k: v for k, v in u.items() if k != "desfecho"})
-            for d in divergencias(c, [reg], hj):
-                out[ident] = {"edital": d["edital"], "registro": d["registro"]}
+            for d in divergencias(dict(c, inscricoes=ins), [reg], hj):
+                fim_reg, _ = selos.fim_inscricoes_registro(reg, hj)
+                fim_antes, _ = selos.fim_inscricoes_registro(por_id[ident], hj)
+                out[ident] = {"edital": d["edital"], "registro": d["registro"], "fim_edital": ins["fim"],
+                              "fim_registro": fim_reg.isoformat() if fim_reg else None,
+                              "escrito_hoje": bool(u) and fim_reg != fim_antes}
     return out
+
+
+def aviso_selo_suspenso(ident, selo, pend):
+    """Texto (acionavel) do selo por data SUSPENSO: as duas datas e o que fazer. Mesmo texto no helper (ALERTA),
+    no montador (AVISO ACIONÁVEL) e no inicio (ALERTA)."""
+    fr = pend.get("fim_registro")
+    fe = pend.get("fim_edital") or ""
+    reg = ("o registro diz fim das inscrições em %s" % dm(fr)) if fr else "o registro não traz o fim das inscrições"
+    return ("selo por data suspenso em %s: %s e o edital lido hoje, %s — o selo %s fica como está (sem recálculo nem "
+            "carimbo da banca) até prazos/linha baterem com o edital: corrija-os em ledger_updates.concursos.%s ou "
+            "escreva o selo" % (ident, reg, dm(fe) if fe else "outra data", selo, ident))
+
+
+def selo_do_dia(reg, hoje, ctx=None, pendentes=None):
+    """A regra UNICA do selo por data com a banca lida hoje, usada pelo helper (aplicar_mecanicos_concursos), pelo
+    montador (estado_concursos) e pelo inicio.py: (selo, motivo|None, suspenso|None).
+    - `ctx` = contexto_selos(...) e `pendentes` = divergencias_pendentes(...), os dois com o update de hoje;
+    - registro com divergencia pendente (o edital lido hoje contesta o fim das inscricoes do registro, inclusive o
+      prazo escrito hoje) e selo da familia de datas: o selo por data fica SUSPENSO — devolve o selo atual, motivo
+      None e, em `suspenso`, o aviso (aviso_selo_suspenso). Antes so se tirava o "banca lida" do contexto e o selo
+      saia da data contestada (TJSC fim 25/11 x edital 26/11: ENCERRA EM BREVE em 18/11, a oficial dava ABERTAS);
+    - senao: selos.selo_por_data com o contexto da banca (motivo como la) e suspenso None.
+    Quem chama continua sem aplicar sobre selo ESCRITO hoje (selos.selo_escrito)."""
+    ident = reg.get("id")
+    p = (pendentes or {}).get(ident)
+    if p and reg.get("selo") in selos.FAMILIA_DATA:
+        return reg.get("selo"), None, aviso_selo_suspenso(ident, reg.get("selo"), p)
+    x = (ctx or {}).get(ident) or {}
+    novo, motivo = selos.selo_por_data(reg, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                       ultima_retificacao=x.get("ultima_retificacao"),
+                                       inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+    return novo, motivo, None
 
 
 def contexto_selos(res, concursos=None, hoje=None, upd=None):

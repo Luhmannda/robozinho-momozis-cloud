@@ -28,6 +28,11 @@
 #   AVISO de prazos[n].tipo que contradiz o evento (chave do montador); prazo vencido
 #   com encerramento confirmado pela banca lida hoje nao e ALERTA; errata removida no
 #   mesmo resolvido nao gera "saiu na edicao mas nao existe no ledger".
+#   CORE volta 1: selo por data SUSPENSO com divergencia pendente (bancas.selo_do_dia, a mesma regra no
+#   helper, no montador e no inicio; comparador montador x helper em memoria, inclusive so a linha
+#   corrigida); prazo escrito hoje contra o edital lido hoje (AVISO no --validar, ALERTA na gravacao; sem
+#   falso positivo com update igual ao edital, edital nao relido hoje ou bancas.json de outro dia);
+#   relatorio do helper sem "atualizada ()" e sem "nao foi a edicao" no draft_ja_existente sem itens.
 # USO: python3 work/testes/test_est.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda em pastas temporarias (ROBOZINHO_TMP proprio); rede simulada.
 # =====================================================================
@@ -1333,6 +1338,181 @@ def helper_errata_removida_sem_falso_indicio():
     ok(any("errata_2026_11_16 removida" in l for l in log), log)
     ok(not any("errata_2026_11_16 saiu na edicao" in l for l in log), "falso indício: %r" % log)
     ok(any("outra_fora saiu na edicao mas nao existe no ledger" in l for l in log), "o indício real continua")
+
+
+# ------------------------------------------------------------------ CORE volta 1 (P2, P3, P4)
+TRECHO_TJSC = "das 16h do dia 19 de outubro de 2026 até às 16h do dia 26 de novembro de 2026"
+TRECHO_TJAP = "das 16h do dia 13 de outubro de 2026 até às 16h do dia 18 de novembro de 2026"
+
+
+def com_fim_tjsc(rs, dia):
+    for c in rs:
+        if c["id"] == "tjsc_juiz":
+            c["linha"] = c["linha"].replace("até 16h de 26/11", "até 16h de %s/11" % dia)
+            c["prazos"][0]["data"] = "2026-11-%s" % dia
+    return rs
+
+
+def banca_relida(dia, slug, ident, fim, trecho, inicio, rs, releitura="prazo do registro", lido_em=None):
+    """bancas.json de `dia` (bancas-1611 reaproveitada) com o edital de `slug` relido hoje e o DIVERGE da manhã
+    calculado como o bancas.analisar o faz (contra o registro `rs`)."""
+    b = json.loads(fx("bancas-1611.json"))
+    b.update(data=dia, dominio=bancas.DOMINIO)
+    for c in b["concursos"]:
+        if c["slug"] == slug:
+            c["releitura"] = releitura
+            c["edital"] = {"inscrições": trecho}
+            c["inscricoes"] = {"inicio": inicio, "fim": fim, "trecho": trecho, "origem": "edital"}
+            if lido_em:
+                c["inscricoes"]["lido_em"] = lido_em
+            c["divergencias"] = bancas.divergencias(c, [r for r in rs if r["id"] == ident], D(dia))
+    return b
+
+
+def montador_e_helper_em_memoria(led, upd, banca, dia):
+    """O comparador: o MESMO estado (selo, verificado_em) no e-mail (montar_email.estado_concursos) e no ledger
+    (helper: aplicar_updates + aplicar_mecanicos_concursos) para a mesma entrada. Devolve (email, ledger, avisos do
+    montador, log do helper)."""
+    import montar_email
+    d = tempfile.mkdtemp(dir=TMPDIR)
+    bp = os.path.join(d, "bancas.json")
+    json.dump(banca, open(bp, "w"), ensure_ascii=False)
+    avisos = []
+    ctx = montar_email.estado_concursos({"ledger_updates": {"concursos": copy.deepcopy(upd)}},
+                                        {"data": dia, "execution_id": dia + "-7h"}, copy.deepcopy(led),
+                                        {"bancas": bp, "historico": os.path.join(d, "sem-historico.json")}, avisos)
+    em = {c["id"]: (c.get("selo"), c.get("verificado_em")) for c in ctx["regs"]}
+    l2, u2, log = copy.deepcopy(led), {"concursos": copy.deepcopy(upd)}, []
+    uh.aplicar_updates(l2, u2, dia, log.append)
+    uh.aplicar_mecanicos_concursos(l2, u2, dia, banca, log.append)
+    lg = {c["id"]: (c.get("selo"), c.get("verificado_em")) for c in l2["concursos"]}
+    dif = {k: (em.get(k), lg.get(k)) for k in set(em) | set(lg) if em.get(k) != lg.get(k)}
+    ok(not dif, "montador e helper divergem: %r" % dif)
+    return em, lg, avisos, log
+
+
+@teste
+def selo_suspenso_com_divergencia():
+    """P2: com divergência pendente (o edital lido hoje contesta a data do registro, já com o update de hoje), o selo
+    por data fica SUSPENSO no helper, no montador e no inicio (fica o selo do registro; aviso com as duas datas).
+    TJSC com fim 25/11 no registro e 26/11 no edital: em 18/11 virava ENCERRA EM BREVE (a data oficial dá ABERTAS)."""
+    rs = com_fim_tjsc(regs("2a9eac9"), "25")
+    b = banca_relida("2026-11-18", "tjscjuiz26", "tjsc_juiz", "2026-11-26", TRECHO_TJSC, "2026-10-19", rs)
+    ok(b["concursos"][1]["divergencias"], "pré-condição: DIVERGE da manhã")
+    pend = bancas.divergencias_pendentes(b, rs, D("2026-11-18"), {})
+    ok(set(pend) == {"tjsc_juiz"} and pend["tjsc_juiz"]["fim_edital"] == "2026-11-26"
+       and pend["tjsc_juiz"]["fim_registro"] == "2026-11-25" and not pend["tjsc_juiz"]["escrito_hoje"], pend)
+    tjsc = next(c for c in rs if c["id"] == "tjsc_juiz")
+    ctx = bancas.contexto_selos(b, rs, D("2026-11-18"), {})
+    selo, motivo, susp = bancas.selo_do_dia(tjsc, D("2026-11-18"), ctx, pend)
+    ok(selo == "INSCRIÇÕES ABERTAS" and motivo is None and susp.startswith("selo por data suspenso em tjsc_juiz: ")
+       and "25/11" in susp and "26/11" in susp and "ledger_updates.concursos.tjsc_juiz" in susp, susp)
+    ok(bancas.selo_do_dia(tjsc, D("2026-11-18"), ctx, {})[:2] == selos.selo_por_data(tjsc, D("2026-11-18"))
+       == ("ENCERRA EM BREVE", "INSCRIÇÕES ABERTAS → ENCERRA EM BREVE: fim das inscrições em 7 dias (25/11)"),
+       "sem divergência: o selo por data de sempre")
+    fora = dict(tjsc, selo="EM ANDAMENTO")
+    ok(bancas.selo_do_dia(fora, D("2026-11-18"), ctx, pend) == ("EM ANDAMENTO", None, None), "fora da família: nada")
+    led = {"concursos": rs}
+    linha26 = reg("2a9eac9", "tjsc_juiz")["linha"]
+    for rotulo, upd in (("sem update", {}), ("só a linha", {"tjsc_juiz": {"linha": linha26}})):
+        em, lg, av, log = montador_e_helper_em_memoria(led, upd, b, "2026-11-18")
+        ok(em["tjsc_juiz"] == ("INSCRIÇÕES ABERTAS", "2026-11-16"), "%s: suspenso e sem carimbo: %r" % (rotulo, em))
+        ok(any(a.startswith("selo por data suspenso em tjsc_juiz") for a in av)
+           and not any(a.startswith("selo por data: tjsc_juiz") for a in av), "%s: aviso do montador %r" % (rotulo, av))
+        ok("ALERTA: selo por data suspenso em tjsc_juiz" in "\n".join(log)
+           and not any(l.startswith("AVISO: selo por data: tjsc_juiz") for l in log), "%s: log %r" % (rotulo, log))
+        ok(em["tjpb_apoio"] == ("ENCERRA HOJE", "2026-11-18"), "os outros seguem a regra de sempre: %r" % em)
+    em, lg, av, log = montador_e_helper_em_memoria(led, {"tjsc_juiz": {"linha": linha26, "prazos": reg(
+        "2a9eac9", "tjsc_juiz")["prazos"]}}, b, "2026-11-18")
+    ok(em["tjsc_juiz"] == ("INSCRIÇÕES ABERTAS", "2026-11-18") and not any("suspenso" in a for a in av + log),
+       "prazos corrigidos: carimbo e selo por data: %r" % (em["tjsc_juiz"],))
+    # inicio.py (manhã de 18/11, a mesma banca): nada de "SELO POR DATA … automático" com a data contestada
+    out, _, _ = rodar_inicio("2026-11-18T07:05:00-03:00", estado_data="2026-11-17",
+                             banca_mod=lambda x: x.update(copy.deepcopy(b)), mod_concursos=lambda cs: com_fim_tjsc(cs, "25"))
+    ok("SELO POR DATA: tjsc_juiz" not in out and "ALERTA: selo por data suspenso em tjsc_juiz" in out
+       and "DIVERGE DO REGISTRO: tjsc_juiz" in out, [l for l in out.splitlines() if "tjsc" in l][:6])
+
+
+@teste
+def prazo_escrito_hoje_contra_edital():
+    """P3: o prazo escrito hoje em ledger_updates que contradiz o edital lido hoje (registro igual ao edital) vira
+    divergência pendente (sem carimbo, selo suspenso), AVISO no --validar e ALERTA no relatório do helper; nada com
+    o update igual ao edital, sem edital relido hoje ou com bancas.json de outro dia."""
+    rs = regs("2a9eac9")
+    b = banca_relida("2026-11-19", "tjap26", "tjap_juiz", "2026-11-18", TRECHO_TJAP, "2026-10-13", rs)
+    ok(not b["concursos"][2]["divergencias"], "pré-condição: o registro (18/11) bate com o edital")
+    prorrog = {"tjap_juiz": {"prazos": [{"data": "2026-11-21", "evento": "fim das inscrições, 16h (prorrogado)",
+                                         "confirmado": True}],
+                             "fonte": "https://conhecimento.fgv.br/concursos/tjap26"}}
+    pend = bancas.divergencias_pendentes(b, rs, D("2026-11-19"), prorrog)
+    ok(set(pend) == {"tjap_juiz"} and pend["tjap_juiz"]["escrito_hoje"] and pend["tjap_juiz"]["fim_registro"]
+       == "2026-11-21", "antes passava sem aviso: %r" % pend)
+    av = uh.avisos_ledger_updates({"concursos": prorrog}, {"concursos": rs}, "2026-11-19", b)
+    p3 = [a for a in av if a.startswith("prazo escrito hoje difere do edital lido hoje: tjap_juiz")]
+    ok(len(p3) == 1 and "18 de novembro de 2026" in p3[0] and "× update \"prazo 21/11/2026" in p3[0]
+       and not any(a.startswith("DIVERGE DO REGISTRO em tjap_juiz") for a in av), av)
+    ok("tjap_juiz" not in bancas.carimbos(b, rs, D("2026-11-19"), upd=prorrog)
+       and "tjap_juiz" not in bancas.contexto_selos(b, rs, D("2026-11-19"), prorrog), "regra do P2: sem carimbo/banca")
+    em, lg, avm, log = montador_e_helper_em_memoria({"concursos": rs}, prorrog, b, "2026-11-19")
+    ok(em["tjap_juiz"] == ("ENCERRA EM BREVE", "2026-11-16") and any(a.startswith("selo por data suspenso em tjap_juiz")
+                                                                      for a in avm), "selo suspenso: %r" % (em,))
+    # sem falso positivo
+    igual = {"tjap_juiz": {"prazos": [{"data": "2026-11-18", "evento": "fim das inscrições, 16h (prorrogado)",
+                                       "confirmado": True}]}}
+    ok(bancas.divergencias_pendentes(b, rs, D("2026-11-19"), igual) == {}, "update igual ao edital")
+    ok(bancas.divergencias_pendentes(b, rs, D("2026-11-19"), {}) == {}, "sem update")
+    b_sem = banca_relida("2026-11-19", "tjap26", "tjap_juiz", "2026-11-18", TRECHO_TJAP, "2026-10-13", rs, releitura="")
+    ok(bancas.divergencias_pendentes(b_sem, rs, D("2026-11-19"), prorrog) == {}, "inscrições sem releitura hoje")
+    b_velho = banca_relida("2026-11-19", "tjap26", "tjap_juiz", "2026-11-18", TRECHO_TJAP, "2026-10-13", rs,
+                           lido_em="2026-11-18")
+    ok(bancas.divergencias_pendentes(b_velho, rs, D("2026-11-19"), prorrog) == {}, "trecho lido noutro dia")
+    ok(bancas.divergencias_pendentes(dict(b, data="2026-11-18"), rs, D("2026-11-19"), prorrog) == {},
+       "bancas.json de outro dia")
+    b_err = copy.deepcopy(b)
+    b_err["concursos"][2]["edital_erro"] = "http 503"
+    ok(bancas.divergencias_pendentes(b_err, rs, D("2026-11-19"), prorrog) == {}, "edital não lido")
+    # o bancas.analisar marca o dia da leitura do trecho
+    res = tjap("2a9eac9", hoje="2026-11-17")
+    ok(res["concursos"][0]["inscricoes"]["lido_em"] == "2026-11-17", res["concursos"][0].get("inscricoes"))
+    # helper (gravação): ALERTA no relatório (AVISO no --validar, que o montador mostra como acionável)
+    d = pasta_helper()
+    json.dump(dict(b, execution_id="2026-11-18-7h", data="2026-11-18"), open(os.path.join(d, "bancas.json"), "w"),
+              ensure_ascii=False)
+    ex = {"delivery": "draft", "items": [], "source_status": {}, "ledger_updates": {"concursos": {"tjap_juiz": {
+        "prazos": [{"data": "2026-11-25", "evento": "fim das inscrições, 16h (prorrogado)", "confirmado": True}],
+        "fonte": "https://conhecimento.fgv.br/concursos/tjap26"}}}}
+    rc, out = rodar_helper(d, ex, "--validar")
+    ok(rc == 0 and "AVISO: prazo escrito hoje difere do edital lido hoje: tjap_juiz" in out, out)
+    rc, out = rodar_helper(d, ex, "--draft-id", "r1")
+    ok(rc == 0 and "ALERTA: prazo escrito hoje difere do edital lido hoje: tjap_juiz" in out
+       and "AVISO: prazo escrito hoje" not in out and "ALERTA: selo por data suspenso em tjap_juiz" in out, out)
+    cs = {c["id"]: c for c in json.load(open(os.path.join(d, "led.json")))["concursos"]}
+    ok(cs["tjap_juiz"]["verificado_em"] == "2026-11-16" and cs["tjap_juiz"]["selo"] == "ENCERRA EM BREVE",
+       "gravado sem carimbo e com o selo do registro: %r" % {k: cs["tjap_juiz"][k] for k in ("selo", "verificado_em")})
+
+
+@teste
+def helper_relatorio_sem_ruido():
+    """P4: sem "Ledger: concursos <id> atualizada ()" quando o update só copiava o selo; com delivery
+    draft_ja_existente e sem itens, sem "pendencia X nao foi a edicao"."""
+    d = pasta_helper()
+    ex = {"delivery": "draft", "items": [], "source_status": {},
+          "ledger_updates": {"concursos": {"tjpb_apoio": {"selo": "ENCERRA EM BREVE"},
+                                           "tjsc_juiz": {"selo": "INSCRIÇÕES ABERTAS", "verificado_em": "2026-11-18"}}}}
+    rc, out = rodar_helper(d, ex, "--draft-id", "r1")
+    ok(rc == 0 and "selo igual ao do registro retirado do update" in out, out)
+    ok("atualizada ()" not in out and "Ledger: concursos tjpb_apoio atualizada" not in out
+       and "Ledger: concursos tjsc_juiz atualizada (verificado_em)" in out, out)
+    log = []
+    led = copy.deepcopy(LED)
+    uh.aplicar_updates(led, {"concursos": {"ofi": {}}, "pendencias": {"ofi_verificar": {}}}, "2026-11-17", log.append)
+    ok(log == [], "update vazio não é registrado: %r" % log)
+    d = pasta_helper()
+    rc, out = rodar_helper(d, {"delivery": "draft_ja_existente", "items": [], "source_status": {}}, "--draft-id", "r1")
+    ok(rc == 0 and "STATUS: OK" in out and "nao foi a edicao" not in out, out)
+    d = pasta_helper()
+    rc, out = rodar_helper(d, {"delivery": "draft", "items": [], "source_status": {}}, "--draft-id", "r1")
+    ok("Ledger: pendencia ofi_verificar nao foi a edicao" in out, "rascunho novo: o aviso continua")
 
 
 def main():

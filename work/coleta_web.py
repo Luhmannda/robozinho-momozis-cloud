@@ -23,6 +23,11 @@
 # - Rede: 1 nova tentativa apos ~3 s em http 0/429/5xx (16/11: um http 0
 #   transitorio nas MPVs custou ToolSearch + WebSearch inuteis). Em tempo
 #   esgotado (curl -m 20) so a listagem tenta de novo; as paginas de materia nao.
+# - Linha-fina (ConJur: og:description da materia; Migalhas: listagem) sem
+#   propaganda ("(clique aqui para garantir o seu exemplar)", Anuario) e sem o
+#   "[…]" do WordPress; frase cortada e completada pela propria pagina (ja
+#   baixada) ou o item ganha "resumo_truncado": true (17/11: "... invasao de
+#   domic." no e-mail). Nenhum pedido a mais.
 # - Saida compacta: noticias com linha-fina; artigos/colunas do ConJur so o
 #   titulo (ate ~90 caracteres) e no maximo 10 no indice — escolhidos pelos
 #   termos de prova no titulo, nao pela recencia; o resto so contado (id no JSON).
@@ -280,6 +285,121 @@ def descricao(pagina):
     return limpa(m.group(1)) if m else ""
 
 
+# Linha-fina cortada ou com propaganda (volta 3). Em 17/11 a og:description do
+# ConJur veio cortada no meio da palavra ("... fazem a invasao de domic"; o e-mail
+# saiu com "domic.") e outra era o resumo automatico do WordPress, com a
+# propaganda do Anuario e o "[…]" no fim ("... Livraria ConJur (clique aqui para
+# garantir o seu exemplar). Capa da edicao ... criou 13 varas regionais das […]").
+# resumo_da_pagina() tira a propaganda, completa a frase cortada pela propria
+# pagina (ja baixada: nenhum pedido a mais) e, sem como completar, devolve o
+# texto sem o pedaco de palavra e truncado=True ("resumo_truncado" no JSON; o
+# montador termina o resumo em "…", nunca em ".").
+MARCADOR_CORTE = re.compile(r"\s*(?:\[\s*(?:…|\.\.\.|&hellip;)\s*\]|…|\.\.\.)\s*$")
+CTA_RESUMO = re.compile(r"\s*\(\s*clique aqui para [^)]*\)", re.I)       # "(clique aqui para garantir o seu exemplar)"
+PROPAGANDA_RESUMO = re.compile(r"clique aqui para (?:garantir|comprar|adquirir|reservar|assinar)|livraria conjur|"
+                               r"reportagem publicada no anu[aá]rio", re.I)          # frase de propaganda: sai
+LEGENDA_RESUMO = re.compile(r"^\s*capa d[ao] (?:edi[cç][aã]o|anu[aá]rio)", re.I)  # paragrafo-legenda do comeco: sai
+FIM_FRASE = re.compile(r"[.!?…][\"”’»)]*(?=\s+[\"“«(]?[A-ZÀ-Ý0-9]|\s*$)")
+MAX_COMPLEMENTO = 300     # no maximo isto de texto vem da pagina para fechar a frase
+
+
+def _sem_acento(s):
+    s = unicodedata.normalize("NFKD", (s or "").lower())
+    return "".join(c for c in s if not unicodedata.combining(c))
+
+
+def _chave(s):
+    """So letras e digitos, minusculos e sem acento (compara texto com espacamento diferente)."""
+    return re.sub(r"[\W_]+", "", _sem_acento(s))
+
+
+def _depois_de(texto, chave):
+    """Posicao em texto logo depois de consumir os caracteres de chave (_chave), ou -1."""
+    j = 0
+    for i, c in enumerate(texto):
+        if j == len(chave):
+            return i
+        k = _chave(c)
+        if not k:
+            continue
+        if not chave.startswith(k, j):
+            return -1
+        j += len(k)
+    return len(texto) if j == len(chave) else -1
+
+
+def paragrafos(pagina):
+    """Textos dos <p> da pagina, sem tags, na ordem."""
+    out = []
+    for m in re.finditer(r"<p\b[^>]*>(.*?)</p>", pagina or "", re.S | re.I):
+        t = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()
+        if t:
+            out.append(t)
+    return out
+
+
+def palavra_cortada(texto, referencia):
+    """Pedaco de palavra no fim do texto ('... invasao de domic'), ou ''. So
+    conta sem pontuacao final e quando o pedaco NAO e palavra na referencia
+    (titulo, slug, paragrafos), mas comeca uma palavra mais longa dela
+    ('domicilio'); plural e flexao curta (s/es/as/os) nao valem."""
+    if re.search(r"[.!?…:;)\]\"”’»]\s*$", texto or ""):
+        return ""
+    m = re.search(r"([^\W\d_]{2,})$", texto or "")
+    if not m:
+        return ""
+    w = _sem_acento(m.group(1))
+    ref = set(re.findall(r"[^\W\d_]+", _sem_acento(referencia)))
+    if w in ref:
+        return ""
+    return m.group(1) if any(p.startswith(w) and len(p) - len(w) >= 2 and p[len(w):] not in ("es", "as", "os")
+                             for p in ref) else ""
+
+
+def resumo_da_pagina(pagina, titulo="", url="", texto=None):
+    """(resumo, truncado) da linha-fina: texto (padrao: og:description/description
+    da pagina) sem propaganda e sem o '[…]' do fim; frase cortada completada pelo
+    paragrafo da pagina que comeca com ela (no maximo MAX_COMPLEMENTO caracteres);
+    sem paragrafo que complete, truncado=True e o pedaco de palavra do fim sai."""
+    d = descricao(pagina) if texto is None else limpa(texto)
+    if not d:
+        return "", False
+    m = MARCADOR_CORTE.search(d)
+    marcado = bool(m)
+    if m:
+        d = d[:m.start()].rstrip()
+    pars = paragrafos(pagina)
+    # resumo automatico (paragrafos do comeco da materia): os paragrafos de
+    # propaganda/legenda do comeco saem; o que sobra e o paragrafo cortado
+    for p in pars:
+        if not _chave(d).startswith(_chave(p)) or not (PROPAGANDA_RESUMO.search(p) or LEGENDA_RESUMO.search(p)):
+            break
+        fim = _depois_de(d, _chave(p))
+        if fim < 0:
+            break
+        d = d[fim:].lstrip(" .,;:)-")
+    d = CTA_RESUMO.sub("", d)
+    d = " ".join(f for f in re.split(r"(?<=[.!?])\s+", d) if not PROPAGANDA_RESUMO.search(f)).strip()
+    if not d:                 # so propaganda/marcador: sem linha-fina
+        return "", False
+    cortada = palavra_cortada(d, " ".join([titulo or "", (url or "").rstrip("/").rsplit("/", 1)[-1].replace("-", " ")]
+                                          + pars))
+    if not (marcado or cortada):
+        return d, False
+    # completar pela propria pagina: paragrafo que comeca com a frase cortada
+    frases = re.split(r"(?<=[.!?])\s+", d)
+    ultima = frases[-1]
+    for p in pars:
+        if _chave(p).startswith(_chave(ultima)) and len(_chave(p)) > len(_chave(ultima)):
+            i = _depois_de(p, _chave(ultima))
+            f = FIM_FRASE.search(p, i) if i >= 0 else None
+            if f and f.end() - i <= MAX_COMPLEMENTO:
+                return " ".join(frases[:-1] + [p[:f.end()]]).strip(), False
+    if cortada:
+        d = d[:len(d) - len(cortada)].rstrip(" ,;:-–—(")
+    return d.rstrip(" ,;:-–—("), True
+
+
 def conjur(inicio, fim, recorte, urls_pub):
     pags = fetch_many(list(URLS_CONJUR.values()))
     out = {"fonte": "conjur", "http": {k: pags[u][0] for k, u in URLS_CONJUR.items()},
@@ -322,7 +442,10 @@ def conjur(inicio, fim, recorte, urls_pub):
     abertas.update(fetch_many([u for u in publicaveis if u not in abertas]))
     for it in out["itens"]:
         if it["url"] in publicaveis:
-            it["resumo"] = descricao(abertas[it["url"]][1])
+            # sem propaganda; frase cortada completada pela pagina ou marcada (volta 3)
+            it["resumo"], truncado = resumo_da_pagina(abertas[it["url"]][1], it["titulo"], it["url"])
+            if truncado:
+                it["resumo_truncado"] = True
     return out
 
 
@@ -342,6 +465,10 @@ def migalhas(inicio, fim, recorte, urls_pub):
     unicos = {i["url"]: i for i in lista}
     paginas = fetch_many(list(unicos))
     for url, it in unicos.items():
+        if it["resumo"]:          # mesma limpeza da linha-fina do ConJur, com a pagina ja baixada (volta 3)
+            it["resumo"], truncado = resumo_da_pagina(paginas[url][1], it["titulo"], url, texto=it["resumo"])
+            if truncado:
+                it["resumo_truncado"] = True
         quando = publicado_em(paginas[url][1])
         it["quando"] = quando
         it["situacao"] = ("JA_PUBLICADA" if chave_url(url) in urls_pub
@@ -485,6 +612,8 @@ def imprimir(res, inicio, fim, recorte):
                                                            curto(i["titulo"], MAX_TIT_OPINIAO), rep))
                     continue
                 extra = (" — " + curto(i["resumo"], 170)) if i.get("resumo") and tag == "NOT" else ""
+                if extra and i.get("resumo_truncado") and not extra.endswith("…"):
+                    extra += "…"              # linha-fina cortada na fonte (volta 3)
                 out.append("[%s|%s] %s | %s | %s%s%s" % (s, tag, i["id"], hm(i), i["titulo"], extra, rep))
         if fora:
             out.append("(+%d artigos/colunas fora do indice: titulos com menos termos de prova; "
