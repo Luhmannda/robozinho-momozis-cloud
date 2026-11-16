@@ -30,7 +30,11 @@
 #     - quem chama nunca aplica sobre selo ESCRITO hoje nos ledger_updates
 #       (selo_escrito: so conta o que difere do selo do registro antes do
 #       update; copiar o selo inalterado nao e decisao) e deriva ANTES de podar
-#       prazos vencidos (prazos_podados = os que o update de hoje retirou).
+#       prazos vencidos (prazos_podados = os que o update de hoje retirou);
+#     - helper, montador e inicio chamam esta funcao por bancas.selo_do_dia
+#       (contexto da banca lida hoje): com divergencia pendente (o edital lido
+#       hoje contesta o fim das inscricoes do registro ou o prazo escrito hoje)
+#       o selo por data fica SUSPENSO, com aviso acionavel.
 #   classe_prazo: "inscricao definitiva" (2a fase da magistratura) e eventos
 #     acessorios da prova (resultado, gabarito, recurso, locais, convocacao...)
 #     sao "outro" — nao abrem inscricao nem viram PROVA EM BREVE. O `tipo` escrito

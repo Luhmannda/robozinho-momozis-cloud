@@ -16,7 +16,11 @@
 #     link que nao diz nada sozinho ("clique aqui", "aqui", imagem) olha a frase
 #     anterior, mesmo depois de quebra de linha (trecho_descadastro); frase de
 #     rodape ("Você recebeu este e-mail porque...") e ultima oracao so de saida
-#     ("... no JOTA. Para sair, clique aqui") tambem. Na duvida, fora;
+#     ("... no JOTA. Para sair, clique aqui") tambem. Na duvida, fora. Mas o
+#     trecho que tambem e manchete ("Aposentados podem deixar de receber
+#     beneficio em 2027", "Brasil pode sair da lista suja da OIT") so conta com
+#     contexto de rodape ou em texto curto — a MESMA regra do resolver
+#     (descadastro_no_texto; volta 3: antes essas manchetes perdiam o link);
 #   - link sem texto proprio (imagem, logo, rede social), link de propaganda do
 #     proprio JOTA e mailto: tambem saem; "| Leia mais [link]" de um bloco que
 #     ja tem o link do titulo sai (e o mesmo destino);
@@ -72,6 +76,38 @@ DESCADASTRO = re.compile(
     r"\bsa(?:ir|ia)\s+d[aeo]s?\s+(?:\w+\s+)?lista|"
     r"\bremov\w*\s+(?:(?:o|meu|seu|sua|minha|este|esse)\s+)?(?:e-?mail|endere[cç]o|cadastro|inscri)", re.I)
 URL_DESCADASTRO = re.compile(r"unsub|descadastr|opt-?out|opt_out|preferenc", re.I)
+# Trechos do DESCADASTRO que tambem aparecem em manchete ("Aposentados podem
+# deixar de receber beneficio em 2027", "Brasil pode sair da lista suja da OIT",
+# "TSE manda cancelar inscricao de candidato", "...nao precisa mais receber...",
+# "Caso nao queira depor, ..."): so contam com contexto de e-mail (CONTEXTO_EMAIL)
+# ou em texto curto (ate MAX_PALAVRAS_CURTO palavras). REGRA UNICA do extrator
+# (texto do link) e do resolver_jota.py (titulo da linha): descadastro_no_texto().
+# Antes da volta 3 o extrator nao tinha a isencao, e as manchetes acima perdiam o
+# link. Sem isencao (qualquer trecho conta): a frase anterior a link generico
+# ("... 2027.\n clique aqui") e a zona de rodape (ZONA_RODAPE).
+TRECHO_FRACO = re.compile(r"prefer|cancel|sa(?:ir|ia)\s+d|(?:deix|par)\w*\s+de|n[aã]o\s|caso\s|remov", re.I)
+# Contexto de rodape (casa sobre o texto DOBRADO): e-mail, newsletter, boletim,
+# chamada para clicar ("clique aqui", "basta clicar", "acesse", "link"), "voce",
+# primeira pessoa ("meu e-mail", "Nao quero..."), canal ("nossos alertas", "lista
+# de distribuicao", "caixa de entrada", "receber o JOTA...") e, no INICIO da
+# oracao, o imperativo ou o infinitivo ("Deixe de receber...", "Pare de...", "Sair
+# da lista de...") ou a abertura de rodape ("Caso nao queira mais receber", "Se
+# quer parar de", "Para deixar de", "Para sair da", "Nao quer/deseja mais...").
+# O subjuntivo de manchete ("TCU determina que estado deixe de receber") e "Caso
+# nao queira depor, ..." nao casam.
+_INICIO = r"(?:^|[|:.!?;])\s*"
+CONTEXTO_EMAIL = re.compile(
+    r"e-?mails?\b|newsletter|\bboletin|\bboletim\b|\bcli(?:que|ques|quem|ca|car|cando|ck|cks)\b|\btoque\b|\baqui\b|"
+    r"\blink\b|\bacesse\b|"
+    r"voc[eê]|\b(?:sua|minha)\s+inscri|\b(?:seu|meu)\s+(?:e-?mail|endere[cç]o|cadastro)|"
+    r"\b(?:(?:est|ess)[ae]s?|noss[ao]s?)\s+(?:mensage|comunica|e-?mail|alerta|informativ|envio|conte[uú]do)|"
+    r"\blista\s+de\s+(?:e-?mails?|envios?|distribui|contatos?|assinantes|leitores|transmiss)|"
+    r"\bcaixa\s+de\s+entrada|\breceber\s+(?:\w+\s+){0,3}?jota\b|"
+    + _INICIO + r"(?:pare|deixe|saia|cancele|remova|desative|descadastre|parar|deixar|sair|cancelar|remover|desativar)\b|"
+    + _INICIO + r"n[aã]o\s+(?:quero|quer|queira|deseja|desejo)\b|"
+    + _INICIO + r"(?:caso|se|para)\s+(?:voc[eê]\s+)?(?:(?:n[aã]o|prefira|preferir|quiser|quer|queira|deseja|desejar|"
+    r"deseje)\s+){0,3}(?:mais\s+)?(?:receber|deixar|parar|sair|cancelar|remover)\b", re.I)
+MAX_PALAVRAS_CURTO = 6
 # Frase de rodape que explica o envio ("Você recebeu este e-mail porque se
 # cadastrou no JOTA. Para sair, clique aqui [url]"; "Este e-mail foi enviado
 # para..."; "Enviamos este e-mail para: ..."): link na mesma linha e rodape, e
@@ -88,7 +124,9 @@ RODAPE = re.compile(
 # de diagramacao
 GENERICAS = {"clique", "clica", "clicar", "click", "toque", "tocar", "here", "aqui", "acesse", "acessar", "neste",
              "nesse", "deste", "desse", "este", "esse", "link", "no", "na", "em", "o", "a", "e", "ou", "para", "pelo",
-             "pela", "botao", "abaixo", "agora", "ja", "me", "se"}
+             "pela", "botao", "abaixo", "agora", "ja", "me", "se",
+             # volta 3: "basta clicar", "use este link", "clicando aqui"
+             "basta", "use", "usar", "utilize", "clicando", "tocando", "acessando", "pressione", "selecione"}
 # so verbo de saida, sem materia ("Sair", "Cancelar aqui", "Para sair, clique aqui",
 # "Gerencie aqui"); vale para o texto todo ou para a sua ULTIMA oracao (v2)
 SAIDA = re.compile(r"sair|cancel\w*|remov\w*|descadastr\w*|desinscrev\w*|unsubscribe|desativ\w*|opt-?out|gerenci\w*",
@@ -96,6 +134,10 @@ SAIDA = re.compile(r"sair|cancel\w*|remov\w*|descadastr\w*|desinscrev\w*|unsubsc
 # fim de oracao: ". ", "? ", "! ", "… ", "; ", ": " ("15.123" e "e-mail:x" nao cortam; "|" de
 # editoria tambem nao)
 FIM_ORACAO = re.compile(r"[.?!…;:](?=\s)")
+# Zona de rodape: depois da frase de rodape (RODAPE, sobre o texto dobrado) ou de
+# "Todos os direitos reservados" / linha "Enviado por ...", nenhum link da mensagem
+# tem a isencao de manchete (volta 3; e o fim do e-mail, nao ha materia ali)
+ZONA_RODAPE = re.compile(r"\btodos\s+os\s+direitos\s+reservados\b|^[^\S\n]*enviado\s+por\s", re.I | re.M)
 PROPAGANDA = re.compile(r"antecipe mudan[çc]as e decida melhor|inscreva-se aqui|entrar no canal|"
                         r"siga o jota|baixe o app", re.I)
 LEIA_MAIS = re.compile(r"\|\s*Leia mais\s*$", re.I)
@@ -160,26 +202,43 @@ def saida(texto):
     return ""
 
 
-def _descadastro_ou_rodape(t):
+def descadastro_no_texto(texto, isencao=True):
+    """Trecho (no texto original) de DESCADASTRO ou da frase de rodape (RODAPE), ou ''.
+    REGRA UNICA do texto do link (aqui) e do titulo da linha (resolver_jota.py):
+    com isencao, os trechos fracos (TRECHO_FRACO: 'deixar de receber', 'sair da
+    lista', 'cancelar inscricao', 'nao ... mais receber', 'caso nao queira'...) so
+    contam com contexto de e-mail (CONTEXTO_EMAIL) ou em texto de ate
+    MAX_PALAVRAS_CURTO palavras: 'Brasil pode sair da lista suja da OIT' e manchete,
+    'Sair da lista' e 'Caso nao queira mais receber estes e-mails' nao.
+    isencao=False: qualquer trecho conta (frase anterior a 'clique aqui', zona de rodape)."""
+    t = unicodedata.normalize("NFC", texto or "")
     d = dobrar(t)
-    m = DESCADASTRO.search(d) or RODAPE.search(d)
+    fraco_conta = (not isencao or len(re.findall(r"\w+", d)) <= MAX_PALAVRAS_CURTO
+                   or CONTEXTO_EMAIL.search(d))
+    for m in DESCADASTRO.finditer(d):
+        if fraco_conta or not TRECHO_FRACO.match(m.group(0)):
+            return t[m.start():m.end()]
+    m = RODAPE.search(d)                      # frase de rodape: nunca e manchete (v2)
     return t[m.start():m.end()] if m else ""
 
 
-def trecho_descadastro(texto, antes=""):
+def trecho_descadastro(texto, antes="", isencao=True):
     """Trecho de descadastro/preferencias do link (no texto original), ou ''.
     texto: o texto do link; antes: a frase que o precede (sem atravessar outro
     link). 'antes' so conta quando o texto do link nao diz nada sozinho ('clique
     aqui', 'aqui', imagem): 'Caso não queira mais receber estes e-mails,\\n clique aqui'.
     Tambem e descadastro (v2): frase de rodape (RODAPE: 'Você recebeu este e-mail
-    porque...') e ultima oracao so de saida ('... no JOTA. Para sair, clique aqui')."""
+    porque...') e ultima oracao so de saida ('... no JOTA. Para sair, clique aqui').
+    O texto do link tem a isencao de manchete do resolver (descadastro_no_texto,
+    volta 3); a frase anterior a link generico nunca tem; isencao=False (zona de
+    rodape) tira a isencao tambem do texto do link."""
     t = unicodedata.normalize("NFC", texto or "")
-    achado = _descadastro_ou_rodape(t) or saida(t)
+    achado = descadastro_no_texto(t, isencao) or saida(t)
     if achado:
         return achado
     if antes and generico(t):
         a = unicodedata.normalize("NFC", antes)
-        return _descadastro_ou_rodape(a) or saida(a)
+        return descadastro_no_texto(a, isencao=False) or saida(a)
     return ""
 
 
@@ -306,12 +365,16 @@ class Indice:
 def compactar(corpo, indice, conta):
     """Texto com [L<n>] no lugar das URLs (e sem os links omitidos)."""
     corpo = INVISIVEIS.sub("", ESPACOS.sub(" ", corpo.replace("\r", "")))
-    partes, pos, bloco_com_link = [], 0, False
+    partes, pos, bloco_com_link, zona_rodape = [], 0, False, False
     for m in URL.finditer(corpo):
         antes = corpo[pos:m.start()]
         pos = m.end()
         if "\n" in antes:
             bloco_com_link = False
+        # fim do e-mail (frase de rodape, "Todos os direitos reservados"): dali em
+        # diante, nenhum link tem a isencao de manchete
+        zona_rodape = zona_rodape or bool(ZONA_RODAPE.search(antes) or
+                                           RODAPE.search(dobrar(unicodedata.normalize("NFC", antes))))
         partes.append(antes)
         url = m.group(1) or m.group(2).rstrip(".,;:)")
         trecho = LIMITE.split("".join(partes[-3:]))[-1]      # texto do link: desde o ultimo limite
@@ -321,7 +384,8 @@ def compactar(corpo, indice, conta):
         if url.lower().startswith("mailto:"):
             conta["mailto"] += 1
             continue
-        if trecho_descadastro(trecho, " ".join(anterior)[-300:]) or URL_DESCADASTRO.search(url):
+        if trecho_descadastro(trecho, " ".join(anterior)[-300:], isencao=not zona_rodape) \
+                or URL_DESCADASTRO.search(url):
             conta["descadastro"] += 1
             continue
         if not re.search(r"\w", trecho):

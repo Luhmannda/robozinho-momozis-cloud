@@ -3,9 +3,11 @@
 # test_web.py — testes do grupo WEB (sem pytest, sem rede):
 #   repeticao.py (identidade numerica, "-conteudo", datas/milhar; execucao de
 #   16/11 contra o historico ate 13/11), coleta_web.py (nova tentativa, C7,
-#   saida compacta, PROMO/REPETIDA?, SOURCE_STATUS), resolver_jota.py (saltos
-#   sem -L, RECUSADO, JA_PUBLICADA, L<n>, BLOQUEADO), jota_extrair.py e
-#   versiculo.py (sonda do YouVersion, linha unica, SOURCE_STATUS).
+#   saida compacta, PROMO/REPETIDA?, SOURCE_STATUS; linha-fina cortada ou com
+#   propaganda -> resumo_truncado, volta 3), resolver_jota.py (saltos sem -L,
+#   RECUSADO, JA_PUBLICADA, L<n>, BLOQUEADO), jota_extrair.py (descadastro x
+#   manchete: regra unica com o resolver, volta 3) e versiculo.py (sonda do
+#   YouVersion, linha unica, SOURCE_STATUS).
 # USO: python3 work/testes/test_web.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -349,6 +351,119 @@ def coleta_conjur_pelo_dia():
     sit = {i["url"].rsplit("/", 1)[1]: i["situacao"] for i in out["itens"]}
     assert sit == {"a-antes": "FORA", "b-cedo": "FORA", "c-tarde": "HERDADA", "d-meio": "HERDADA",
                    "e-cedo": "HERDADA", "f-tarde": "NOVA", "g-hoje": "NOVA", "h-artigo-meio": "HERDADA"}, sit
+
+
+def pagina_fixture(nome):
+    assert os.path.exists(os.path.join(FIX, nome)), "fixture ausente: git add work/testes/fixtures/web/%s" % nome
+    with open(os.path.join(FIX, nome), encoding="utf-8") as f:
+        return f.read()
+
+
+C1_URL = "https://conjur.com.br/2026-nov-16/stj-busca-esclarecer-limites-para-invasao-de-domicilio-por-guardas-municipais/"
+C1_TIT = "STJ busca esclarecer limites para invasão de domicílio por guardas municipais"
+C15_URL = "https://conjur.com.br/2026-nov-16/varas-das-garantias-ja-alcancam-todo-o-estado-de-sao-paulo/"
+C15_TIT = "Varas das Garantias já alcançam todo o estado de São Paulo"
+
+
+@teste
+def coleta_resumo_truncado_e_propaganda():
+    """Volta 3 (P5): a linha-fina do ConJur (og:description da propria materia)
+    veio cortada no meio da palavra (c1 de 17/11: '... fazem a invasão de
+    domic', e o e-mail saiu com 'domic.') ou com propaganda e o '[…]' do
+    WordPress (c15: '... (clique aqui para garantir o seu exemplar). Capa da
+    edição ... das […]'). Agora: propaganda fora; resumo cortado completado pela
+    propria pagina (ja baixada; nenhum pedido a mais) ou, sem como completar,
+    marcado com resumo_truncado (e sem o pedaco de palavra)."""
+    rp = coleta_web.resumo_da_pagina
+    # c1 real: a pagina nao tem o texto completo -> sem o pedaco "domic", marcado
+    r, trunc = rp(pagina_fixture("conjur-c1-1711.html"), C1_TIT, C1_URL)
+    assert trunc is True, (r, trunc)
+    assert r == ("STJ vai avaliar quais limites devem ser observados para casos em que guardas municipais "
+                 "fazem a invasão de"), r
+    # c15 real: propaganda e legenda fora; a frase cortada e completada pelo paragrafo da pagina
+    r, trunc = rp(pagina_fixture("conjur-c15-1711.html"), C15_TIT, C15_URL)
+    assert (r, trunc) == ("Em pouco mais de um ano, o Judiciário paulista criou 13 varas regionais das garantias, "
+                          "distribuídas pelas dez regiões administrativas judiciárias (RAJs).", False), (r, trunc)
+
+    def pag(desc, *pars):
+        return ('<meta property="og:description" content="%s" />' % desc
+                + "".join("<p>%s</p>" % p for p in pars))
+    # linha-fina normal do ConJur (sem ponto final, palavra inteira): nao muda
+    for desc, tit in [("TST reconheceu que a atividade do agente de inspeção não se enquadra nas funções de "
+                       "segurança patrimonial ou pessoal da NR-16", "Agente de inspeção não tem direito a adicional"),
+                      ("Ministro viu atividade política e proibiu visitas de senadores Rogério Marinho (PL-RN)",
+                       "Alexandre nega pedido de Bolsonaro"),
+                      ("STF decidiu que lei de Nova Serrana (MG) é inconstitucional", "STF anula lei"),
+                      ("Tribunal avalia se benefícios fiscais valem quando o voto de qualidade decidiu decadência",
+                       "STJ julga alcance de benefício do Carf em voto de qualidade sobre decadência")]:
+        assert rp(pag(desc, "Corpo da matéria com decadências e pagamentos diversos."), tit,
+                  "https://conjur.com.br/2026-nov-16/x/") == (desc, False), desc
+    # palavra cortada que a pagina completa (o paragrafo comeca com a linha-fina)
+    assert rp(pag("O STF decidiu que a lei é inconstitucional e mandou o caso de volta ao tribu",
+                  "O STF decidiu que a lei é inconstitucional e mandou o caso de volta ao tribunal de origem. "
+                  "Outro trecho."), "STF anula lei", "https://conjur.com.br/2026-nov-16/stf-anula-lei-municipal/") \
+        == ("O STF decidiu que a lei é inconstitucional e mandou o caso de volta ao tribunal de origem.", False)
+    # "[…]", "[...]", "..." do fim sem paragrafo que complete: marcado, sem o marcador
+    for fim in (" […]", " [&hellip;]", " [...]", "...", "…"):
+        r, trunc = rp(pag("Tribunal manteve a condenação dos réus pelos crimes de" + fim), "Tribunal mantém",
+                      "https://conjur.com.br/2026-nov-16/tribunal-mantem-condenacao/")
+        assert (r, trunc) == ("Tribunal manteve a condenação dos réus pelos crimes de", True), (fim, r, trunc)
+    # propaganda conhecida no meio da linha-fina: sai
+    r, trunc = rp(pag("Livro analisa a reforma tributária (clique aqui para garantir o seu exemplar). "
+                      "Autores debatem o IBS"), "Livro analisa reforma", "https://conjur.com.br/2026-nov-16/livro/")
+    assert (r, trunc) == ("Livro analisa a reforma tributária. Autores debatem o IBS", False), (r, trunc)
+    # sem pagina (ou sem og:description): vazio, como antes; so propaganda/marcador: vazio
+    assert rp("", "Qualquer", "https://conjur.com.br/2026-nov-16/q/") == ("", False)
+    assert rp(pag("[…]", "Primeiro parágrafo da matéria. Outro."), "Q", "https://conjur.com.br/2026-nov-16/q/") == ("", False)
+    assert rp(pag("A versão impressa está à venda na Livraria ConJur (clique aqui para garantir o seu exemplar)."),
+              "Q", "https://conjur.com.br/2026-nov-16/q/") == ("", False)
+    # pela coleta: o c1 e o c15 no JSON e no indice
+    paginas = {u: (200, "") for u in coleta_web.URLS_CONJUR.values()}
+    paginas[coleta_web.URLS_CONJUR["noticia"]] = (200, "".join(
+        '<h2 class="conjur-posts-tipo-titulo"><a href="%s">%s</a></h2>' % x
+        for x in ((C1_URL, C1_TIT), (C15_URL, C15_TIT))))
+    paginas[C1_URL] = (200, pagina_fixture("conjur-c1-1711.html"))
+    paginas[C15_URL] = (200, pagina_fixture("conjur-c15-1711.html"))
+    pedidos = []
+    antigo = coleta_web.fetch_many
+
+    def falso(urls):
+        pedidos.extend(urls)
+        return {u: paginas[u] for u in urls}
+    coleta_web.fetch_many = falso
+    try:
+        inicio = datetime.fromisoformat("2026-11-16T07:05:00-03:00")
+        fim = datetime.fromisoformat("2026-11-17T07:05:00-03:00")
+        out = coleta_web.conjur(inicio, fim, fim.replace(day=16, hour=7), set())
+    finally:
+        coleta_web.fetch_many = antigo
+    assert sorted(pedidos) == sorted(list(coleta_web.URLS_CONJUR.values()) + [C1_URL, C15_URL]), pedidos  # 1 por pagina
+    it = {i["url"]: i for i in out["itens"]}
+    assert it[C1_URL]["resumo_truncado"] is True and it[C1_URL]["resumo"].endswith("fazem a invasão de")
+    assert "resumo_truncado" not in it[C15_URL] and "clique aqui" not in it[C15_URL]["resumo"]
+    linhas = coleta_web.imprimir([out], inicio, fim, fim.replace(day=16, hour=7))
+    c1 = [l for l in linhas if "| " + C1_TIT in l]
+    assert c1 and c1[0].endswith("fazem a invasão de…"), c1
+    # Migalhas: a linha-fina da listagem passa pela mesma limpeza (pagina ja baixada)
+    mu = "https://www.migalhas.com.br/quentes/445566/stj-julga-tema"
+    mu2 = "https://www.migalhas.com.br/quentes/445567/tst-mantem-multa"
+    listagem = "".join('<article><a href="%s"></a><h2 class="topico__header">%s</h2><h3 class="topico__body">%s</h3>'
+                       '</article>' % x for x in (
+                           (mu, "STJ julga tema", "A 2ª seção do STJ decidiu que o prazo prescricional conta da..."),
+                           (mu2, "TST mantém multa", "Para o colegiado, a multa é devida.")))
+    pag_m = ('<meta property="article:published_time" content="2026-11-16T10:00:00-03:00">'
+             "<p>A 2ª seção do STJ decidiu que o prazo prescricional conta da ciência do dano. Outro parágrafo.</p>")
+    antigo_n, antigo_m = coleta_web.fetch_n, coleta_web.fetch_many
+    coleta_web.fetch_n = lambda url, *a, **k: (200, listagem, 1)
+    coleta_web.fetch_many = lambda urls: {u: (200, pag_m) for u in urls}
+    try:
+        out = coleta_web.migalhas(inicio, fim, fim.replace(day=16, hour=7), set())
+    finally:
+        coleta_web.fetch_n, coleta_web.fetch_many = antigo_n, antigo_m
+    it = {i["url"]: i for i in out["itens"]}
+    assert it[mu]["resumo"] == "A 2ª seção do STJ decidiu que o prazo prescricional conta da ciência do dano." \
+        and "resumo_truncado" not in it[mu], it[mu]
+    assert it[mu2]["resumo"] == "Para o colegiado, a multa é devida." and "resumo_truncado" not in it[mu2], it[mu2]
 
 
 @teste
@@ -822,6 +937,75 @@ def jota_rodape_frase_e_ultima_oracao():
     for t in manchetes:
         assert resolver_jota.titulo_de_descadastro(t) == "", t
         assert jota_extrair.trecho_descadastro(t) == "", t
+
+
+MANCHETES_FRACAS = [        # trecho de descadastro "fraco", sem contexto de e-mail: e manchete (volta 3)
+    "Aposentados podem deixar de receber benefício em 2027",
+    "Brasil pode sair da lista suja da OIT",
+    "PREVIDÊNCIA | Aposentados podem deixar de receber benefício em 2027",
+    "TRABALHO | Brasil pode sair da lista suja da OIT",
+    "Aposentados podem deixar de receber benefício após revisão. Entenda",
+    "TSE manda cancelar inscrição de candidato por fraude em domicílio eleitoral",
+    "STF decide que contribuinte não precisa mais receber notificação por carta",
+    "Caso não queira depor, Bolsonaro pode ser conduzido pela PF",
+    "TCU determina que estado deixe de receber repasses do fundo",
+    "'Não quero mais receber visitas de políticos', diz Bolsonaro ao STF",
+    "Lei garante preferência a idosos no pagamento de precatórios"]
+RODAPES_FRACOS = [          # o mesmo trecho fraco, com contexto de rodape (ou curto): sempre descadastro
+    "Caso não queira mais receber nossos boletins, acesse",
+    "Se não deseja mais receber nossos informativos diários, use o endereço",
+    "Para parar de receber o JOTA Principal diariamente na sua caixa de entrada",
+    "Sair da lista de distribuição do JOTA Principal",
+    "Deixe de receber os alertas do JOTA PRO Tributos",
+    "Não quero mais receber o JOTA Principal todas as manhãs",
+    "Pare de receber o boletim do JOTA Principal",
+    "Remover meu endereço da lista de envio do JOTA",
+    "Para cancelar sua assinatura de alertas, responda a esta mensagem",
+    "Brasil pode sair da lista",                                       # curto (<= 6 palavras)
+    "Deixar de receber"]
+
+
+@teste
+def jota_manchete_com_trecho_fraco():
+    """Volta 3 (P1): o extrator tratava como descadastro manchetes legitimas
+    ("Aposentados podem deixar de receber beneficio em 2027", "Brasil pode sair da
+    lista suja da OIT"): o link saia do indice e a noticia ia ao leitor sem link.
+    Agora vale a MESMA regra do resolver (uma funcao so, descadastro_no_texto):
+    trecho fraco so conta com contexto de e-mail ou em texto curto; a frase
+    anterior a 'clique aqui' e a zona de rodape continuam sem isencao."""
+    # uma regra so: as listas sao as do extrator, nao copias
+    assert resolver_jota.TRECHO_FRACO is jota_extrair.TRECHO_FRACO
+    assert resolver_jota.CONTEXTO_EMAIL is jota_extrair.CONTEXTO_EMAIL
+    for t in MANCHETES_FRACAS:
+        assert jota_extrair.trecho_descadastro(t) == "", (t, jota_extrair.trecho_descadastro(t))
+        assert resolver_jota.titulo_de_descadastro(t) == "", (t, resolver_jota.titulo_de_descadastro(t))
+    for t in RODAPES_FRACOS + [unicodedata.normalize("NFD", r) for r in RODAPES_FRACOS] + \
+            [r.upper() for r in RODAPES_FRACOS]:
+        assert jota_extrair.trecho_descadastro(t), t
+        assert resolver_jota.titulo_de_descadastro(t), t
+    # extrator: as manchetes ficam com link; os rodapes, fora do indice
+    partes = []
+    for i, t in enumerate(MANCHETES_FRACAS):
+        partes.append("%s [ https://t.rdsv2.net/ls/click?upn=u001.MAN-%02d ]\n Linha-fina qualquer." % (t, i))
+    for i, t in enumerate(RODAPES_FRACOS):
+        partes.append("%s [ https://t.rdsv2.net/ls/click?upn=u001.ROD-%02d ]." % (t, i))
+    # frase anterior a "clique aqui" (sem isencao) e zona de rodape (sem isencao)
+    partes.append("Aposentados podem deixar de receber benefício em 2027.\n clique aqui "
+                  "[ https://t.rdsv2.net/ls/click?upn=u001.ROD-90 ]")
+    partes.append("JOTA Jornalismo · Todos os direitos reservados.\n Brasil pode sair da lista suja da OIT "
+                  "[ https://t.rdsv2.net/ls/click?upn=u001.ROD-91 ]")
+    arq = os.path.join(TMPDIR, "manchetes_fracas.txt")
+    with open(arq, "w", encoding="utf-8") as f:
+        f.write("\n\n".join(partes) + "\n")
+    urls = os.path.join(TMPDIR, "jota_urls_fracas.tsv")
+    codigo, out = saida_de(jota_extrair.main, ["--novo", "--urls", urls, arq])
+    indice = open(urls, encoding="utf-8").read()
+    assert codigo == 0 and "ROD-" not in indice, [l for l in indice.splitlines() if "ROD-" in l]
+    faltam = [t for i, t in enumerate(MANCHETES_FRACAS) if "MAN-%02d" % i not in indice]
+    assert not faltam, faltam
+    assert "Aposentados podem deixar de receber benefício em 2027 [L1]" in out, out
+    assert "Brasil pode sair da lista suja da OIT [L2]" in out, out
+    assert "%d descadastro/preferencias" % (len(RODAPES_FRACOS) + 2) in out.splitlines()[0], out.splitlines()[0]
 
 
 @teste

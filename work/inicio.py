@@ -459,6 +459,7 @@ def main():
     divergentes = {d["id"] for c in banca["concursos"] for d in c.get("divergencias") or []}
     # DIVERGE DO REGISTRO: a banca lida hoje contradiz o registro -> nao conta como "banca lida" no selo
     ctx_selo = bancas.contexto_selos(banca, concursos, hoje, upd={}) if bancas else {}
+    pend_selo = bancas.divergencias_pendentes(banca, concursos, hoje, {}) if bancas else {}
     pend_coberta = {c.get("pendencia") for c in concursos if c.get("id") in cobertos and c.get("pendencia")}
     linhas = []
     for p in pend_conc:
@@ -524,13 +525,17 @@ def main():
              "da carreira do dia; nas longo_prazo, só movimento NOVO.")
 
     # selo por data (work/selos.py) — o montador e o helper aplicam sozinhos; aqui so se avisa
-    selo_auto, selo_alerta = [], []
+    selo_auto, selo_alerta, selo_suspenso = [], [], []
     encerrada_pela_banca = {}       # id -> (fim, ultima retificacao): o desfecho do prazo vencido ja esta confirmado
     for c in concursos:
         x = ctx_selo.get(c.get("id")) or {}
-        s, m = selos.selo_por_data(c, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
-                                   ultima_retificacao=x.get("ultima_retificacao"),
-                                   inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        if bancas:      # a regra do helper e do montador: DIVERGE DO REGISTRO suspende o selo por data
+            s, m, suspenso = bancas.selo_do_dia(c, hoje, ctx_selo, pend_selo)
+        else:
+            (s, m), suspenso = selos.selo_por_data(c, hoje), None
+        if suspenso:
+            selo_suspenso.append(suspenso)
+            continue
         fim, _ = selos.fim_inscricoes(c)
         ret = selos._data(x.get("ultima_retificacao"))
         if (s == "INSCRIÇÕES ENCERRADAS" and x.get("banca_lida_hoje") and fim and fim < hoje
@@ -673,6 +678,8 @@ def main():
         out.append("SELO POR DATA: %s (automático no e-mail e no registro; não escreva o selo)" % s)
     for s in selo_alerta:
         out.append("ALERTA: selo por data — %s" % s)
+    for s in selo_suspenso:
+        out.append("ALERTA: " + s)
     for i in candidatos:
         out.append("ALERTA: candidato a remoção (%s) — todos os prazos confirmados venceram há mais de %d dias e "
                    "não há etapa futura: confirme o desfecho e remova (remover + desfecho) ou atualize"

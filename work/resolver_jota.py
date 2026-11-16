@@ -118,10 +118,11 @@ FRASE_DESCADASTRO = re.compile(r"(?:^|-)(?:cancel|remov|sair|desinscrev|desativ)
 # so contam com contexto de e-mail ou em texto curto de link (<= 6 palavras).
 # Titulo que nao diz nada ("clique aqui", "aqui", vazio) ou so verbo de saida
 # ("Sair", "Cancelar") e rodape copiado sem contexto: RECUSADO tambem.
-TRECHO_FRACO = re.compile(r"prefer|cancel|sa(?:ir|ia)\s+d|(?:deix|par)\w*\s+de|n[aã]o\s|caso\s|remov", re.I)
-CONTEXTO_EMAIL = re.compile(r"e-?mails?\b|newsletter|clique|\btoque\b|\baqui\b|\blink\b|voc[eê]|\bsua\s+inscri|"
-                            r"\bseu\s+e-?mail|\best[ae]s?\s+(?:mensage|comunica)|"
-                            r"\bnoss[ao]s?\s+(?:mensage|comunica|e-?mail)", re.I)
+# A regra (TRECHO_FRACO, CONTEXTO_EMAIL, ate 6 palavras) e UMA SO, a do
+# jota_extrair.descadastro_no_texto (volta 3): o texto do link no extrator e o
+# titulo aqui sao julgados do mesmo jeito. Nomes mantidos por compatibilidade.
+TRECHO_FRACO = jota_extrair.TRECHO_FRACO
+CONTEXTO_EMAIL = jota_extrair.CONTEXTO_EMAIL
 CAMINHOS_RASTREIO = {"/ls/click", "/wf/click"}
 
 
@@ -219,14 +220,9 @@ def titulo_de_descadastro(titulo):
     aqui', 'aqui', 'Sair'; a ultima oracao so de saida ('... no JOTA. Para sair,
     clique aqui'); ou ''."""
     titulo = unicodedata.normalize("NFC", titulo or "")
-    dob = jota_extrair.dobrar(titulo)
-    curto = len(re.findall(r"\w+", dob)) <= 6
-    for m in jota_extrair.DESCADASTRO.finditer(dob):
-        if not TRECHO_FRACO.match(m.group(0)) or curto or CONTEXTO_EMAIL.search(dob):
-            return titulo[m.start():m.end()]
-    m = jota_extrair.RODAPE.search(dob)       # frase de rodape: nunca e manchete (v2)
-    if m:
-        return titulo[m.start():m.end()]
+    achado = jota_extrair.descadastro_no_texto(titulo)    # DESCADASTRO (com a isencao) ou RODAPE
+    if achado:
+        return achado
     if jota_extrair.generico(titulo) or jota_extrair.so_saida(titulo):
         return "titulo generico: %s" % (" ".join(titulo.split()) or "vazio")
     return jota_extrair.saida(titulo)         # "... no JOTA. Para sair, clique aqui" (v2)
