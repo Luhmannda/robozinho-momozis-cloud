@@ -10,8 +10,13 @@
 #   - cada URL vira um marcador [L<n>] e vai para o indice
 #     $ROBOZINHO_TMP/jota_urls.tsv (n<TAB>url); a mesma URL tem sempre o mesmo n;
 #   - link de descadastro/preferencias ("parar de receber esta newsletter",
+#     "Caso não queira mais receber estes e-mails, cancele sua inscrição",
 #     "descadastr", "preferencias"...) e OMITIDO: nao recebe marcador nem entra
-#     no indice, de modo que nada o resolve por engano;
+#     no indice, de modo que nada o resolve por engano. Com ou sem acento; e
+#     link que nao diz nada sozinho ("clique aqui", "aqui", imagem) olha a frase
+#     anterior, mesmo depois de quebra de linha (trecho_descadastro); frase de
+#     rodape ("Você recebeu este e-mail porque...") e ultima oracao so de saida
+#     ("... no JOTA. Para sair, clique aqui") tambem. Na duvida, fora;
 #   - link sem texto proprio (imagem, logo, rede social), link de propaganda do
 #     proprio JOTA e mailto: tambem saem; "| Leia mais [link]" de um bloco que
 #     ja tem o link do titulo sai (e o mesmo destino);
@@ -38,6 +43,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -47,18 +53,134 @@ VALIDADE_INDICE = 12 * 3600
 
 CORPOS = ("plaintextBody", "plainTextBody", "textBody", "bodyText", "body")
 URL = re.compile(r"\[\s*((?:https?|mailto):[^\s\]]+)\s*\]|(?<![\w/\[])((?:https?)://[^\s<>\[\]\"']+)")
+# Descadastro/preferencias no texto do link. Casa sobre o texto DOBRADO (dobrar():
+# sem acento, qualquer espaco), entao "nao", "não" e "não" decomposto (NFD), "inscricao"/"inscrição"
+# e "preferencias"/"preferências" sao a mesma coisa; os [aã]/[eê] ficam para quem
+# usar a regex direto no texto cru. Rodape real do JOTA (16/11): "Caso não queira
+# mais receber estes e-mails,  cancele sua inscrição [url]" e "Se quer parar de
+# receber esta newsletter, clique aqui [url]". Na duvida, o link fica FORA.
+_OBJ = r"(?:inscri|assinatura|envio|recebimento|cadastro|newsletter|e-?mail)"
 DESCADASTRO = re.compile(
-    r"parar de receber|deixar de receber|n[aã]o (?:qu[ei]\w*|desej\w*) mais receber|descadastr|"
-    r"cancel(?:ar|e) (?:a |sua |o )?(?:inscri|assinatura|envio)|unsubscri|prefer[eê]ncias|"
-    r"gerenci(?:ar|e) (?:seus |os |suas )?(?:e-?mails|inscri|prefer|assinatura)|sair da lista|"
-    r"remover (?:meu|seu|o) e-?mail|opt-?out", re.I)
+    r"\b(?:parar|pare|deixar|deixe)\s+de\s+receber|"
+    r"\bn[aã]o\s+(?:\w+\s+){0,2}?(?:mais\s+receber|receber\s+mais)|"          # nao queira/quer/deseja mais receber
+    r"\bcaso\s+n[aã]o\s+(?:queira|quiser|deseje|desejar)|"
+    r"descadastr|desinscrev|unsubscri|opt-?out|"
+    r"\bcancel\w*\s+(?:(?:a|o|as|os|sua|seu|suas|seus|minha|meu|da|do|de|desta|deste)\s+){0,2}" + _OBJ + "|"
+    r"\bprefer[eê]ncias|\bprefer[eê]ncia\s+(?:de\s+)?(?:e-?mail|envio|comunica|newsletter|contato)|"
+    r"\bgerenci\w*\s+(?:(?:as|os|sua|seu|suas|seus|minha|meu|minhas|meus)\s+)?"
+    r"(?:e-?mails?|inscri|prefer|assinatura|newsletter|comunica)|"
+    r"\bsa(?:ir|ia)\s+d[aeo]s?\s+(?:\w+\s+)?lista|"
+    r"\bremov\w*\s+(?:(?:o|meu|seu|sua|minha|este|esse)\s+)?(?:e-?mail|endere[cç]o|cadastro|inscri)", re.I)
 URL_DESCADASTRO = re.compile(r"unsub|descadastr|opt-?out|opt_out|preferenc", re.I)
+# Frase de rodape que explica o envio ("Você recebeu este e-mail porque se
+# cadastrou no JOTA. Para sair, clique aqui [url]"; "Este e-mail foi enviado
+# para..."; "Enviamos este e-mail para: ..."): link na mesma linha e rodape, e
+# conta como descadastro (v2). A pergunta ("Você recebeu este e-mail? Golpe...")
+# e manchete e nao casa. Tambem casa sobre o texto DOBRADO.
+_MSG = r"(?:e-?mails?|mensage\w*|newsletters?|boletins?|boletim|comunica\w*|informativos?)"
+RODAPE = re.compile(
+    r"\bvoc[eê]\s+(?:est[aá]\s+)?receb(?:eu|e|endo)\s+(?:(?:est|ess)[ae]s?|noss[ao]s?)\s+" + _MSG + r"\b(?!\s*\?)|"
+    r"\b(?:est|ess)[ae]\s+(?:e-?mail|mensagem|newsletter)\s+foi\s+enviad[ao]\s+(?:a|ao|para)\b|"
+    r"\benviamos\s+(?:est|ess)[ae]\s+(?:e-?mail|mensagem|newsletter)\s+(?:a|ao|para)\b", re.I)
+# texto de link que nao diz nada sozinho ("clique aqui", "aqui", "Clique neste link",
+# imagem): o contexto e a frase ANTERIOR ("Caso nao queira mais receber estes
+# e-mails,\n clique aqui"), que pode estar depois de quebra de linha ou de espacos
+# de diagramacao
+GENERICAS = {"clique", "clica", "clicar", "click", "toque", "tocar", "here", "aqui", "acesse", "acessar", "neste",
+             "nesse", "deste", "desse", "este", "esse", "link", "no", "na", "em", "o", "a", "e", "ou", "para", "pelo",
+             "pela", "botao", "abaixo", "agora", "ja", "me", "se"}
+# so verbo de saida, sem materia ("Sair", "Cancelar aqui", "Para sair, clique aqui",
+# "Gerencie aqui"); vale para o texto todo ou para a sua ULTIMA oracao (v2)
+SAIDA = re.compile(r"sair|cancel\w*|remov\w*|descadastr\w*|desinscrev\w*|unsubscribe|desativ\w*|opt-?out|gerenci\w*",
+                   re.I)
+# fim de oracao: ". ", "? ", "! ", "… ", "; ", ": " ("15.123" e "e-mail:x" nao cortam; "|" de
+# editoria tambem nao)
+FIM_ORACAO = re.compile(r"[.?!…;:](?=\s)")
 PROPAGANDA = re.compile(r"antecipe mudan[çc]as e decida melhor|inscreva-se aqui|entrar no canal|"
                         r"siga o jota|baixe o app", re.I)
 LEIA_MAIS = re.compile(r"\|\s*Leia mais\s*$", re.I)
 LIMITE = re.compile(r"\n| {3,}|\[L\d+\]")
 ESPACOS = re.compile(r"[\t\xa0\u2000-\u200a\u202f\u205f\u3000]")      # diagramacao: \xa0 entre blocos
 INVISIVEIS = re.compile(r"[\u00ad\u034f\u200b-\u200d\u2060\ufeff]")      # enchimento do preheader
+
+
+# ------------------------------------------------------------ descadastro
+def dobrar(s):
+    """Texto do MESMO comprimento de s (passe s ja em NFC), para casar regex sem
+    acento: 'não' -> 'nao', 'inscrição' -> 'inscricao'; espaco de qualquer tipo e
+    caractere invisivel viram ' '. As posicoes de um match valem para s."""
+    out = []
+    for c in s:
+        if c.isspace() or INVISIVEIS.match(c):
+            out.append(" ")
+        elif c < "\x80":
+            out.append(c)
+        else:
+            b = unicodedata.normalize("NFKD", c)[:1]
+            out.append(b if b and not unicodedata.combining(b) else c)
+    return "".join(out)
+
+
+def _palavras(dobrado):
+    return re.findall(r"[a-z0-9]+(?:-[a-z0-9]+)*", dobrado.lower())
+
+
+def generico(texto):
+    """Texto de link que nao diz nada sozinho: vazio, 'clique aqui', 'aqui', 'Clique neste link'."""
+    return all(p in GENERICAS for p in _palavras(dobrar(unicodedata.normalize("NFC", texto or ""))))
+
+
+def so_saida(texto):
+    """So verbo de saida, sem materia: 'Sair', 'Cancelar aqui', 'Para sair, clique aqui'."""
+    resto = [p for p in _palavras(dobrar(unicodedata.normalize("NFC", texto or ""))) if p not in GENERICAS]
+    return bool(resto) and all(SAIDA.fullmatch(p) for p in resto)
+
+
+def ultima_oracao(texto):
+    """(previo, ultima): a ultima oracao do texto, depois do ultimo '.', '?', '!',
+    '…', ';' ou ':' seguido de espaco, e o que vem antes dela. Pontuacao no
+    fim do texto nao conta. Com uma oracao so: ('', texto)."""
+    texto = texto or ""
+    cortes = [m.end() for m in FIM_ORACAO.finditer(texto.rstrip(" \t\r\n.,;:|!?…"))]
+    if not cortes:
+        return "", texto
+    return texto[:cortes[-1]], texto[cortes[-1]:]
+
+
+def saida(texto):
+    """Trecho so de saida, sem materia, no texto original: o texto todo ('Sair',
+    'Cancelar aqui') ou a sua ultima oracao ('... no JOTA. Para sair, clique
+    aqui'); ou ''."""
+    t = unicodedata.normalize("NFC", texto or "")
+    if so_saida(t):
+        return t.strip(" .,;:|!?…")
+    previo, ultima = ultima_oracao(t)
+    if previo and so_saida(ultima):
+        return ultima.strip(" .,;:|!?…")
+    return ""
+
+
+def _descadastro_ou_rodape(t):
+    d = dobrar(t)
+    m = DESCADASTRO.search(d) or RODAPE.search(d)
+    return t[m.start():m.end()] if m else ""
+
+
+def trecho_descadastro(texto, antes=""):
+    """Trecho de descadastro/preferencias do link (no texto original), ou ''.
+    texto: o texto do link; antes: a frase que o precede (sem atravessar outro
+    link). 'antes' so conta quando o texto do link nao diz nada sozinho ('clique
+    aqui', 'aqui', imagem): 'Caso não queira mais receber estes e-mails,\\n clique aqui'.
+    Tambem e descadastro (v2): frase de rodape (RODAPE: 'Você recebeu este e-mail
+    porque...') e ultima oracao so de saida ('... no JOTA. Para sair, clique aqui')."""
+    t = unicodedata.normalize("NFC", texto or "")
+    achado = _descadastro_ou_rodape(t) or saida(t)
+    if achado:
+        return achado
+    if antes and generico(t):
+        a = unicodedata.normalize("NFC", antes)
+        return _descadastro_ou_rodape(a) or saida(a)
+    return ""
 
 
 # ------------------------------------------------------------ leitura
@@ -193,10 +315,13 @@ def compactar(corpo, indice, conta):
         partes.append(antes)
         url = m.group(1) or m.group(2).rstrip(".,;:)")
         trecho = LIMITE.split("".join(partes[-3:]))[-1]      # texto do link: desde o ultimo limite
+        # frase anterior (ate 2 blocos, sem atravessar link mantido): contexto de
+        # "clique aqui" depois de quebra de linha ou de espacos de diagramacao
+        anterior = LIMITE.split(re.split(r"\[L\d+\]", "".join(partes[-8:]))[-1])[-3:-1]
         if url.lower().startswith("mailto:"):
             conta["mailto"] += 1
             continue
-        if DESCADASTRO.search(trecho) or URL_DESCADASTRO.search(url):
+        if trecho_descadastro(trecho, " ".join(anterior)[-300:]) or URL_DESCADASTRO.search(url):
             conta["descadastro"] += 1
             continue
         if not re.search(r"\w", trecho):

@@ -4,6 +4,7 @@
 #   python3 work/testes/test_informativos.py      -> OK/FALHOU por teste; codigo != 0 em falha
 # Fixtures (texto, extraidos dos documentos oficiais reais, em fixtures/informativos/):
 #   stf1236/1233/1234-layout.txt          pdftotext -layout do Informativo STF (sumario + caixas RESUMO)
+#   stf1231-layout.txt                      idem, edicao 1231 (titulos cuja ultima linha e so o processo)
 #   rg397/396/394.txt                       pdftotext da RG em Pauta 397 (11 temas), 396 (9) e 394 (13)
 #   stj909.html                             pagina do Informativo STJ 909 (inteiro teor reduzido)
 #   stj910.html                             pagina de edicao inexistente (sem o cabecalho do numero)
@@ -11,6 +12,9 @@
 #   historico/resumo-legislativo-historico.json  sintetico, com as edicoes vazias reais de set-nov/2026
 # Os downloads sao simulados (informativos.baixar/pdf_texto trocados); tudo o que o script grava vai
 # para um ROBOZINHO_TMP temporario.
+# Fixture nova nesta pasta precisa de `git add` explicito no commit: um `git commit -a` deixa de fora
+# o que o git ainda nao conhece. O 1o teste confere a presenca de todas (FIXTURES) e, num clone com
+# .git, imprime "AVISO   fixture fora do git: ..." (aviso, nao falha) para cada uma ainda nao versionada.
 # =====================================================================
 
 import contextlib
@@ -19,6 +23,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -52,6 +57,34 @@ def fx(nome, modo="r"):
     if "b" in modo:
         return open(os.path.join(FIX, nome), "rb").read()
     return open(os.path.join(FIX, nome), encoding="utf-8").read()
+
+
+# todas as fixtures usadas neste arquivo (caminhos relativos a FIX)
+FIXTURES = ("stf1231-layout.txt", "stf1233-layout.txt", "stf1234-layout.txt", "stf1236-layout.txt",
+            "rg394.txt", "rg396.txt", "rg397.txt", "stj909.html", "stj910.html", "stj912-layout-novo.html",
+            os.path.join("historico", "resumo-legislativo-historico.json"))
+
+
+def t_fixtures():
+    faltam = [n for n in FIXTURES if not os.path.isfile(os.path.join(FIX, n))]
+    checar("fixtures: todas presentes em work/testes/fixtures/informativos/", not faltam,
+           "faltam %s (arquivo novo que ficou fora do commit? `git add work/testes/fixtures/informativos/`)"
+           % ", ".join(faltam))
+    # aviso, nao falha: fixture que o git ainda nao conhece some num `git commit -a`
+    repo = os.path.dirname(WORK)
+    if not os.path.exists(os.path.join(repo, ".git")):
+        return   # copia sem .git (sandbox): nada a conferir
+    try:
+        r = subprocess.run(["git", "-C", repo, "ls-files", "--others", "--exclude-standard", "--",
+                            os.path.relpath(FIX, repo)], capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return
+    if r.returncode != 0:
+        return
+    for caminho in (l.strip() for l in r.stdout.splitlines()):
+        if caminho:
+            print("AVISO   fixture fora do git: %s (um `git commit -a` a deixa de fora; `git add %s` no commit)"
+                  % (caminho, caminho))
 
 
 # ------------------------------------------------------------------ downloads simulados
@@ -190,6 +223,41 @@ def t_stf_resumo():
                                "penal (PIS e COFINS), inclusive quanto à subordinação."))
     checar("juntar: hífen de palavra composta mantido (ED-segundos)",
            I.juntar(["RE 1.042.075 ED-", "segundos e tempora-", "riamente"]) == "RE 1.042.075 ED-segundos e temporariamente")
+    _, itens = I.stf_texto(fx("stf1233-layout.txt"))
+    checar("stf1233[1]: continuação '– ADI 7.901/PR ....7' (travessão + processo) entra no título",
+           itens[1]["titulo"] == "Período mínimo de gratuidade em estacionamentos privados para pessoas com deficiência "
+                                 "– ADI 7.901/PR", itens[1]["titulo"])
+    checar("PROCESSO_STF: classe processual + número (com travessão opcional); palavra-chave 'LEI 8.112/1990' não",
+           all(I.PROCESSO_STF.match(s) for s in ("ADI 7.069/GO ....7", "– ADI 7.901/PR ....7", "RE 990.115/SP",
+                                                "ADPF 1.234/DF", "HC 245.678/SP"))
+           and not any(I.PROCESSO_STF.match(s) for s in ("LEI 8.112/1990; SERVIDOR PÚBLICO", "IMPOSTOS; ICMS",
+                                                        "EC Nº 29/2000", "REPARTIÇÃO DE COMPETÊNCIAS")))
+    sint = ("SUMÁRIO\n\nDIREITO TRIBUTÁRIO\n IMPOSTOS; ICMS\n\n » Título que acaba no travessão –\n"
+            "   ADI 1.234/SP ..........5\n IMPOSTOS; IPTU\n\nEdição 1/2026\n")
+    _, itens = I.stf_texto(sint)
+    checar("stf: palavra-chave em maiúsculas logo depois do título continua fora dele",
+           [it["titulo"] for it in itens] == ["Título que acaba no travessão – ADI 1.234/SP"], itens)
+    t_stf_titulo_processo_1231()
+
+
+def t_stf_titulo_processo_1231():
+    # funcao propria: se a fixture faltar, so estas verificacoes caem (as demais do STF rodam)
+    try:
+        texto = fx("stf1231-layout.txt")
+    except OSError as e:
+        checar("stf1231: fixture legível", False, e)
+        return
+    # linha de continuacao so com o processo, toda em maiusculas (antes descartada: "Polícia Penal –.")
+    data, itens = I.stf_texto(texto)
+    tit = [it["titulo"] for it in itens]
+    checar("stf1231: título que termina em '–' ganha o processo da linha seguinte (ADI 7.069/GO, ADI 7.935/ES)",
+           data == "05 de outubro de 2026" and len(itens) == 6
+           and tit[1] == "Contratação de agentes temporários para o desempenho de atribuições da Polícia Penal – ADI 7.069/GO"
+           and tit[5] == "Majoração de custas judiciais no Estado do Espírito Santo e anterioridade nonagesimal – ADI 7.935/ES"
+           and not any(t.rstrip().endswith(("–", "-")) for t in tit), tit)
+    checar("stf1231: lista de processos com minúscula ('e') e resumos inalterados (5 de 6; o 1º cruza a página)",
+           tit[3].endswith("– ADI 7.822/SP, ADI 7.830/SP, ADI 7.844/SP e ADI 7.848/SP")
+           and [bool(it.get("resumo")) for it in itens] == [False, True, True, True, True, True], tit[3])
 
 
 # ------------------------------------------------------------------ 2. RG em Pauta
@@ -247,6 +315,28 @@ def t_rg():
     checar("rg394: tese de mérito (Tema 1.016) inteira e 'RED. ACÓRD.' fora do processo",
            t["1.016"]["estagio"] == "tese fixada" and t["1.016"]["tese"].endswith("e as situações consolidadas.”")
            and t["1.016"]["processo"] == "RE 1.141.156", t["1.016"]["processo"])
+    checar("rg394: número quebrado em duas linhas ('ARE 1.487.739-' + 'ED-segundos') reunido; os outros iguais",
+           t["1.308"]["processo"] == "ARE 1.487.739-ED-segundos" and t["488"]["processo"] == "RE 646.104ED-ED-ED"
+           and t["1.483"]["processo"] == "RE 1.616.922; RE 1.616.090"
+           and t["1.308"]["titulo"].startswith("Incidência do piso salarial"), t["1.308"]["processo"])
+    try:
+        import montar_email
+        checar("rg394: o montador mostra o processo inteiro do Tema 1.308",
+               montar_email._tema_rg(t["1.308"]) == "<b>Tema 1.308</b> (ARE 1.487.739-ED-segundos)",
+               montar_email._tema_rg(t["1.308"]))
+    except (ImportError, AttributeError) as e:
+        print("AVISO   montar_email._tema_rg indisponível (%s) — conferência pulada" % e)
+    sint = ("PAUTA DO PLENÁRIO\nTEMA: 1 PROCESSOS: RE 1.000.001- RELATOR: Min. Fulano\nED-ED-ED\nTítulo: Um.\n"
+            "TEMA: 2 PROCESSOS: RE 1.000.002/\nSP RELATORA: Min. Fulana\nRE 1.000.003\nTítulo: Dois.\n"
+            "TEMA: 3 PROCESSOS: RE 1.000.004-\nRELATOR: Min. Beltrano\nTítulo: Três.\n"
+            "TEMA: 4 PROCESSOS: RE 1.000.005-\nTítulo: Quatro.\n")
+    _, it = I.rg_texto(sint)
+    checar("rg: sufixo quebrado em maiúsculas não vira seção; RELATOR e 'Título:' depois do '-' não entram no processo",
+           [(x["tema"], x["processo"], x["estagio"], x["titulo"]) for x in it] ==
+           [("1", "RE 1.000.001-ED-ED-ED", "pauta do Plenário", "Um."),
+            ("2", "RE 1.000.002/SP; RE 1.000.003", "pauta do Plenário", "Dois."),
+            ("3", "RE 1.000.004-", "pauta do Plenário", "Três."), ("4", "RE 1.000.005-", "pauta do Plenário", "Quatro.")],
+           [(x["tema"], x["processo"], x["estagio"], x["titulo"]) for x in it])
     checar("rg: cabeçalho de sessão virtual que cruza o mês",
            I.contexto_rg("TRIBUNAL PLENO – SESSÃO VIRTUAL DE 27.11 A 4.12.2026") ==
            ("Pauta da sessão virtual", "pauta da sessão virtual de 27/11 a 04/12", "2026-12-04"))
@@ -535,6 +625,60 @@ def t_superados():
     os.unlink(os.path.join(TMP, "janela.json"))
 
 
+# ------------------------------------------------------------------ 7b. `temas` gravado pelo montador (INF-rev-1c)
+def t_temas_do_montador():
+    """O item RG que o montador resolve (e grava no histórico) traz `temas`; o historico() o lê como contratado e
+    a revisita de uma RG anterior tira o tema já publicado. O helper não mexe no campo (conferido na sandbox
+    ponta a ponta e no test_mon); aqui vale a passagem montador -> limpar_para_gravar -> historico() -> obter()."""
+    try:
+        import montar_email as M
+        M.resolver, M.limpar_para_gravar  # noqa: B018
+    except Exception as e:  # noqa: BLE001
+        print("AVISO   montar_email indisponível (%s) — conferência do `temas` pulada" % e)
+        return
+    PDF_ANTES = dict(PDF)
+    I.baixar = Rede({"rg397": [(200, "pdf")]}).baixar
+    r397 = I.obter("rg", 397, "atrasada", anuncio={"anunciada_em": "2026-11-11", "anunciada_na_edicao": "2026-11-12"},
+                   hist_produto={})
+    ev = {"rg397": dict(r397, _fonte="informativo")}
+    erros, avisos = [], []
+    item = M.resolver({"ref": "rg397", "destaques": {"excluir": [1]}, "temas": ["9.999"]}, ev, erros, avisos, None)
+    grav = M.limpar_para_gravar({"items": [item]})["items"][0]
+    esperado = [it["tema"] for i, it in enumerate(r397["itens"]) if i != 1]
+    checar("montador: item RG resolvido grava `temas` (strings do documento, sem o excluído; o escrito à mão é ignorado)",
+           not erros and grav.get("temas") == esperado and "1.487" not in grav["temas"] and "9.999" not in grav["temas"]
+           and all(isinstance(t, str) for t in grav["temas"])
+           and grav["chave"] == "stf|informativo|repercussao-geral-397-conteudo|2026|2026-11-09"
+           and not grav.get("sem_conteudo"), (erros, grav.get("temas"), grav.get("chave")))
+    # historico com o item de 16/11 como o montador o resolveu (no lugar do registro sintetico)
+    hdir = tempfile.mkdtemp(prefix="hist-mon-", dir=TMP)
+    base_h = json.load(open(os.path.join(FIX, "historico", "resumo-legislativo-historico.json"), encoding="utf-8"))
+    for e in base_h["executions"]:
+        if e["execution_id"] == "2026-11-16-7h":
+            e["items"] = [grav if it.get("chave", "").startswith("stf|informativo|repercussao-geral-397-conteudo")
+                          else it for it in e["items"]]
+    json.dump(base_h, open(os.path.join(hdir, "resumo-legislativo-historico.json"), "w", encoding="utf-8"),
+              ensure_ascii=False)
+    json.dump(JANELA_1711, open(os.path.join(TMP, "janela.json"), "w"))
+    aqui = I.AQUI
+    I.AQUI = hdir
+    try:
+        h = I.historico()["rg"]
+        PDF["rg394"] = "rg394.txt"
+        I.baixar = Rede({"rg394": [(200, "pdf")]}).baixar
+        r394 = I.obter("rg", 394, "atrasada")
+    finally:
+        I.AQUI = aqui
+        PDF.clear(); PDF.update(PDF_ANTES)
+        os.unlink(os.path.join(TMP, "janela.json"))
+    checar("historico(): `temas` do montador vira {tema: data da execução} na RG 397",
+           h[397].get("temas") == {t: "2026-11-16" for t in esperado} and h[397]["vazio"] is False, h[397])
+    sup = {it["tema"]: it["superado_motivo"] for it in r394.get("itens_superados", [])}
+    checar("revisita da RG 394 em 17/11: Tema 1.483 fora ('já publicado com a RG 397 em 16/11'); ficam 7",
+           r394["ok"] and len(r394["itens"]) == 7 and "1.483" not in [it["tema"] for it in r394["itens"]]
+           and sup.get("1.483") == "tema já publicado com a RG 397 em 16/11", sup)
+
+
 # ------------------------------------------------------------------ 8. modo manual, indice e compatibilidade
 def t_manual_e_compat():
     try:
@@ -574,8 +718,8 @@ def t_manual_e_compat():
 
 def main():
     try:
-        for t in (t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_parser_e_404, t_superados,
-                  t_manual_e_compat):
+        for t in (t_fixtures, t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_parser_e_404, t_superados,
+                  t_temas_do_montador, t_manual_e_compat):
             try:
                 t()
             except Exception as e:  # noqa: BLE001

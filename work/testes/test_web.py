@@ -19,6 +19,7 @@ import shutil
 import sys
 import tempfile
 import traceback
+import unicodedata
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -282,6 +283,43 @@ def coleta_nova_tentativa():
 
 
 @teste
+def coleta_tentativas_reais():
+    """Rodada 2: o texto dizia sempre '(2 tentativas)', mas 403/404 nao tenta de
+    novo. Agora o numero e o real (campo "tentativas" no bloco do coleta_web.json)."""
+    roteiro = {coleta_web.URL_LEIS: [(0, "", False), (0, "", False)], coleta_web.URL_MPV: [(403, "", False)],
+               coleta_web.URL_MIGALHAS: [(404, "", False)]}
+    pedidos = []
+
+    def falso(url, timeout):
+        pedidos.append(url)
+        return roteiro[url].pop(0)
+    antigo, pausa = coleta_web._fetch1, coleta_web.PAUSA_REPETICAO
+    coleta_web._fetch1, coleta_web.PAUSA_REPETICAO = falso, 0
+    try:
+        z = datetime(2026, 11, 17, 7, 0, tzinfo=TZ)
+        res = [coleta_web.leis(z, z, z, set()), coleta_web.mpvs(z, z, z, set()), coleta_web.migalhas(z, z, z, set())]
+        roteiro.update({"a": [(503, "", False), (200, "ok", False)], "b": [(404, "", False)],
+                        "c": [(0, "", True)]})
+        assert coleta_web.fetch_n("a") == (200, "ok", 2) and coleta_web.fetch_n("b") == (404, "", 1)
+        assert coleta_web.fetch_n("c", repetir_timeout=False) == (0, "", 1)
+    finally:
+        coleta_web._fetch1, coleta_web.PAUSA_REPETICAO = antigo, pausa
+    assert [r["tentativas"] for r in res] == [2, 1, 1] and pedidos.count(coleta_web.URL_MPV) == 1, res
+    st = coleta_web.status_fontes(res)
+    assert st["congresso_ultimas_leis"] == ("falha", "http=0 (2 tentativas)"), st
+    assert st["congresso_mpvs"] == ("falha", "http=403 (1 tentativa); conferir PLANALTO_ATO"), st
+    assert st["migalhas"] == ("falha", "http=404 (1 tentativa)"), st
+    linhas = coleta_web.imprimir(res, z, z, z)
+    erro = [l for l in linhas if l.startswith("ERRO: congresso_mpv")]
+    assert erro and erro[0].startswith("ERRO: congresso_mpv indisponivel (http=403, 1 tentativa) — antes de gastar"), erro
+    assert "2 tentativas" not in "\n".join(l for l in linhas if "congresso_mpv" in l.lower())
+    # coleta_web.json antigo (sem "tentativas"): nao inventa numero
+    velho = [{"fonte": "congresso_mpv", "http": 0, "itens": [], "listadas": 0}]
+    assert coleta_web.status_fontes(velho)["congresso_mpvs"] == ("falha", "http=0; conferir PLANALTO_ATO")
+    assert any(l.startswith("ERRO: congresso_mpv indisponivel (http=0) — ") for l in coleta_web.imprimir(velho, z, z, z))
+
+
+@teste
 def coleta_conjur_pelo_dia():
     """C7: janela de 72h (13/11 07:05 -> 16/11 07:07; recorte 15/11 07:07)."""
     def h2(url, t):
@@ -326,14 +364,14 @@ def coleta_ato_ja_publicado_com_outra_grafia():
              '<dt>Ementa:</dt><dd>Regime de recuperação fiscal.</dd></div>'
              '<div class="sf-lista-resumos__resumo"><dt>Norma:</dt><dd><a href="https://x/l15540">'
              'Lei nº 15.540 de 14/11/2026</a> (<a href="#">DOU de 17/11/2026</a>)</dd></div>')
-    antigo = coleta_web.fetch
-    coleta_web.fetch = lambda url, *a, **k: (200, bloco)
+    antigo = coleta_web.fetch_n
+    coleta_web.fetch_n = lambda url, *a, **k: (200, bloco, 1)
     try:
         inicio = datetime.fromisoformat("2026-11-14T07:05:00-03:00")
         fim = datetime.fromisoformat("2026-11-17T07:05:00-03:00")
         out = coleta_web.leis(inicio, fim, fim.replace(day=16), atos)
     finally:
-        coleta_web.fetch = antigo
+        coleta_web.fetch_n = antigo
     sit = {i["numero"]: i["situacao"] for i in out["itens"]}
     assert sit == {"239": "JA_PUBLICADA", "15540": "NOVA"}, sit
 
@@ -635,6 +673,155 @@ def jota_extrair_rodape_clique_aqui():
     codigo, out = saida_de(jota_extrair.main, ["--novo", "--urls", urls, arq])
     assert codigo == 0 and "2 descadastro/preferencias" in out.splitlines()[0], out
     assert open(urls, encoding="utf-8").read() == "1\thttps://t.rdsv2.net/ls/click?upn=u001.MATERIA\n"
+
+
+RODAPE_REAL = "Caso não queira mais receber estes e-mails,  cancele sua inscrição"     # 16/11, RD Station
+
+
+@teste
+def jota_extrair_rodapes_reais():
+    """Rodada 2: rodapes reais do JOTA de 16/11 (Direito na Midia/JOTA PRO e JOTA
+    Principal; texto real, tokens falsos) e as variacoes que a ancora pode ter:
+    'clique aqui' depois de quebra de linha ou de espacos de diagramacao, sem
+    acento, NFD, caixa alta, 'caso nao queira', 'deixar de receber', 'cancelar
+    inscricao', 'gerenciar preferencias'. Nenhum entra no indice."""
+    urls = os.path.join(TMPDIR, "jota_urls_rodapes.tsv")
+    assert os.path.exists(os.path.join(FIX, "jota_rodapes_reais.json")), \
+        "fixture ausente: git add work/testes/fixtures/web/jota_rodapes_reais.json"
+    codigo, out = saida_de(jota_extrair.main, ["--novo", "--urls", urls, os.path.join(FIX, "jota_rodapes_reais.json")])
+    assert codigo == 0, out
+    nums = [l.split("TESTE-R")[1][:2] for l in open(urls, encoding="utf-8")]
+    assert nums == ["01", "02", "03", "04"], nums      # Visualizar, "Conheça o melhor...", a materia, JOTA PRO
+    cab = out.splitlines()[0]
+    assert "2 descadastro/preferencias" in cab and "1 propaganda" in cab and "7 sem texto" in cab, cab
+    assert "Caso não queira mais receber estes e-mails, cancele sua inscrição ." in out, out
+    import unicodedata
+    variacoes = [
+        "Caso não queira mais receber estes e-mails, clique aqui",
+        "Caso não queira mais receber estes e-mails,\n clique aqui",
+        "Caso não queira mais receber estes e-mails,   clique aqui",          # espacos de diagramacao
+        "Caso nao queira mais receber estes e-mails,  cancele sua inscricao",
+        unicodedata.normalize("NFD", RODAPE_REAL),
+        RODAPE_REAL.upper(),
+        "Caso não\u00a0queira mais receber estes e-mails,\u200b clique aqui",      # nbsp e zero-width
+        "Caso não queira, clique aqui", "Caso nao queira,\n aqui",
+        "Caso não queira receber mais nossos e-mails,\n Clique neste link",
+        "Para não receber mais nossas newsletters,\n clique aqui",
+        "Se quer deixar de receber esta newsletter,\n aqui", "Deixe de receber estes e-mails",
+        "Cancelar inscrição", "Cancelar a sua inscrição", "cancelamento da inscricao", "CANCELAR INSCRIÇÃO",
+        "Gerenciar preferências", "Gerenciar preferencias", "Gerencie sua preferência de envio",
+        "Gerenciar newsletters", "Caso não queira mais receber estes e-mails,\n Sair",
+        "Caso não queira mais receber estes e-mails:\n ",                     # imagem/botao depois da frase
+        "Remova seu e-mail da lista", "Para sair da nossa lista, clique aqui"]
+    bons = ["JUSTIÇA | Lei garante preferência a idosos no pagamento de precatórios",
+            "STF | Matéria boa sobre o STF e o CNJ hoje"]
+    partes = []
+    for i, v in enumerate(variacoes):
+        partes.append("%s [ https://t.rdsv2.net/ls/click?upn=u001.VAR-%02d ]." % (v, i))
+        partes.append("%s [ https://t.rdsv2.net/ls/click?upn=u001.BOM-%02d ]" % (bons[i % 2], i))
+    arq = os.path.join(TMPDIR, "variacoes.txt")
+    with open(arq, "w", encoding="utf-8") as f:
+        f.write("\n\n".join(partes) + "\n")
+    codigo, out = saida_de(jota_extrair.main, ["--novo", "--urls", urls, arq])
+    indice = open(urls, encoding="utf-8").read()
+    assert codigo == 0 and "VAR-" not in indice, [l for l in indice.splitlines() if "VAR-" in l]
+    assert indice.count("BOM-") == len(variacoes), indice
+    assert "%d descadastro/preferencias" % len(variacoes) in out.splitlines()[0], out.splitlines()[0]
+    # a funcao usada pelo resolver
+    assert jota_extrair.trecho_descadastro("clique aqui", "Caso nao queira mais receber estes e-mails,") == \
+        "Caso nao queira"
+    assert jota_extrair.trecho_descadastro("clique aqui", "Para não receber mais nossas newsletters,") == \
+        "não receber mais"
+    assert jota_extrair.trecho_descadastro("Matéria direta:", "Gerencie suas preferências de e-mail:") == ""
+
+
+@teste
+def resolver_descadastro_variacoes():
+    """Rodada 2: titulo de rodape com ou sem acento, NFD, 'caso nao queira',
+    'deixar de receber', 'cancelar inscricao', 'gerenciar preferencias' e titulo
+    que nao diz nada ('clique aqui', 'Sair'): RECUSADO sem nenhum pedido.
+    Manchetes parecidas passam; URL com acento codificado e recusada."""
+    import unicodedata
+    titulos = [RODAPE_REAL, "Caso nao queira mais receber estes e-mails, cancele sua inscricao",
+               unicodedata.normalize("NFD", RODAPE_REAL), RODAPE_REAL.upper(), "Caso não queira, clique aqui",
+               "Caso não queira mais receber, toque aqui", "Para não receber mais nossas newsletters",
+               "Deixe de receber estes e-mails", "Cancelar inscricao", "Cancelar a sua inscrição",
+               "cancelamento da inscrição", "Gerenciar preferencias", "Gerencie sua preferência de envio",
+               "GERENCIAR PREFERÊNCIAS", "Se quer parar de receber esta newsletter, clique aqui",
+               "clique aqui", "Aqui", "Clique neste link", "Sair", "Remova seu e-mail"]
+    linhas = ["%s\t%s" % (t, W % (60 + i)) for i, t in enumerate(titulos)]
+    codigo, out, rede = rodar_resolver(linhas, {}, ["--sem-historico"])
+    assert codigo == 0 and [l.split("\t")[0] for l in out] == ["RECUSADO"] * len(titulos), out
+    assert all("\ttitulo de descadastro ou preferencias (" in l for l in out), out
+    assert not rede.pedidos, rede.pedidos
+    assert out[-5].endswith("(titulo generico: clique aqui)") and out[-2].endswith("(titulo generico: Sair)"), out
+    for manchete in ["Aposentados podem deixar de receber benefício após revisão",
+                     "Brasil pode sair da lista suja do trabalho escravo",
+                     "TSE manda cancelar inscrição de candidato por fraude em domicílio eleitoral",
+                     "Lei garante preferência a idosos no pagamento de precatórios",
+                     "STF decide que contribuinte não precisa mais receber notificação por carta",
+                     "Caso não queira depor, Bolsonaro pode ser conduzido pela PF"]:
+        assert resolver_jota.titulo_de_descadastro(manchete) == "", manchete
+    mp = resolver_jota.motivo_proibido
+    for u in ["https://www.jota.info/justica/materia-boa-sobre-o-stf?gerenciar=prefer%C3%AAncias",
+              "https://www.jota.info/justica/materia-boa-sobre-o-stf?x=n%C3%A3o-queira-mais-receber",
+              "https://www.jota.info/justica/inscri%C3%A7%C3%A3o/materia-com-slug-longo",
+              "https://www.jota.info/justica/caso-nao-queira-receber"]:
+        assert mp(u), u
+    assert mp("https://www.jota.info/stf/do-supremo/stf-decide-que-contribuinte-nao-precisa-mais-receber-carta") == ""
+
+
+@teste
+def jota_rodape_frase_e_ultima_oracao():
+    """Volta 2: 'Você recebeu este e-mail porque se cadastrou no JOTA. Para sair,
+    clique aqui [url]' entrava no indice (o texto do link nao era generico nem
+    so de saida) e, copiado como titulo, o wrapper recebia 1 pedido. Agora a
+    frase de rodape (RODAPE) e a ultima oracao so de saida contam, no extrator e
+    no resolver. Manchetes com pergunta, ponto ou 'sair' no meio passam."""
+    rodapes = [
+        "Você recebeu este e-mail porque se cadastrou no JOTA. Para sair, clique aqui",
+        "Voce recebeu este email porque se cadastrou no JOTA. Para sair, clique aqui",
+        unicodedata.normalize("NFD", "Você está recebendo este e-mail porque se inscreveu. Clique aqui"),
+        "VOCÊ RECEBEU ESTA NEWSLETTER PORQUE É ASSINANTE. GERENCIE AQUI",
+        "Este e-mail foi enviado para leitor@exemplo.invalid. Clique aqui",
+        "Obrigado pela leitura. Para sair, clique aqui", "Obrigado pela leitura! Sair",
+        "Atenção: para sair, clique aqui", "Boa leitura; cancelar aqui"]
+    manchetes = [
+        "Você recebeu este e-mail? Golpe usa nome do STF para roubar dados",
+        "STF manda remover posts. Entenda", "Min. Fux vota para cancelar multa bilionária",
+        "Moraes nega pedido de Bolsonaro para sair do país", "Câmara aprova; Senado deve cancelar sessão",
+        "TRIBUTOS | Receita manda cancelar CNPJ de empresas inativas", "Leia a íntegra da decisão. Clique aqui"]
+    # extrator: os rodapes ficam fora do indice (mesma linha e com a frase na linha anterior)
+    partes = []
+    for i, r in enumerate(rodapes):
+        partes.append("%s [ https://t.rdsv2.net/ls/click?upn=u001.ROD-%02d ]." % (r, i))
+        partes.append("%s [ https://t.rdsv2.net/ls/click?upn=u001.MAN-%02d ]" % (manchetes[i % len(manchetes)], i))
+    partes.append("Você recebeu este e-mail porque se cadastrou no JOTA.\n Clique aqui "
+                  "[ https://t.rdsv2.net/ls/click?upn=u001.ROD-90 ]")
+    partes.append("Obrigado pela leitura. Para sair,\n clique aqui [ https://t.rdsv2.net/ls/click?upn=u001.ROD-91 ]")
+    arq = os.path.join(TMPDIR, "rodape_v2.txt")
+    with open(arq, "w", encoding="utf-8") as f:
+        f.write("\n\n".join(partes) + "\n")
+    urls = os.path.join(TMPDIR, "jota_urls_v2.tsv")
+    codigo, out = saida_de(jota_extrair.main, ["--novo", "--urls", urls, arq])
+    indice = open(urls, encoding="utf-8").read()
+    assert codigo == 0 and "ROD-" not in indice, [l for l in indice.splitlines() if "ROD-" in l]
+    assert indice.count("MAN-") == len(rodapes), indice
+    assert "%d descadastro/preferencias" % (len(rodapes) + 2) in out.splitlines()[0], out.splitlines()[0]
+    assert jota_extrair.trecho_descadastro(rodapes[0]) == "Você recebeu este e-mail"
+    assert jota_extrair.trecho_descadastro(rodapes[5]) == "Para sair, clique aqui"
+    assert jota_extrair.ultima_oracao("Lei 15.123 garante. Sair.") == ("Lei 15.123 garante.", " Sair.")
+    assert jota_extrair.ultima_oracao("e-mail:x 15.123") == ("", "e-mail:x 15.123")
+    # resolver: titulo de rodape com o wrapper -> RECUSADO sem nenhum pedido; manchetes passam
+    linhas = ["%s\t%s" % (t, W % (80 + i)) for i, t in enumerate(rodapes)]
+    codigo, out, rede = rodar_resolver(linhas, {}, ["--sem-historico"])
+    assert codigo == 0 and [l.split("\t")[0] for l in out] == ["RECUSADO"] * len(rodapes), out
+    assert all("\ttitulo de descadastro ou preferencias (" in l for l in out), out
+    assert out[0].endswith("(Você recebeu este e-mail)") and out[5].endswith("(Para sair, clique aqui)"), out
+    assert not rede.pedidos, rede.pedidos
+    for t in manchetes:
+        assert resolver_jota.titulo_de_descadastro(t) == "", t
+        assert jota_extrair.trecho_descadastro(t) == "", t
 
 
 @teste

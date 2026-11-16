@@ -19,7 +19,12 @@
 #   - prompts prontos dos coletores em $ROBOZINHO_TMP/coletor-*.md, a partir de
 #     work/prompts/*.md + ledger (notas vivas, pendencias, armadilhas); o de
 #     concursos ganha no fim o "Registro atual" (linha completa dos concursos
-#     que nao estao em foco hoje: fidelidade da reescrita de `linha`);
+#     que nao estao em foco hoje: fidelidade da reescrita de `linha`); errata_*
+#     nunca entra na fila do coletor de concursos (e correcao para o leitor);
+#     regra de armadilha que o codigo tornou falsa sai ja atualizada (a mesma
+#     migracao do helper, Update-Historico.REGRAS_ATUALIZADAS, so em memoria);
+#   - rodape "Proxima edicao": o proximo dia de edicao (seg-sex) — "amanhã" ou,
+#     de sexta e de (Extra de) sabado, "segunda-feira";
 #   - concursos: banca oficial (work/bancas.py: arquivos novos, DIVERGE DO
 #     REGISTRO), selo por data (work/selos.py), prazos do registro em ordem,
 #     os de ate 7 dias como VERIFICAR PRIMEIRO, os vencidos para confirmar,
@@ -165,6 +170,20 @@ def br(iso):
         return iso or "?"
 
 
+def migrar_armadilhas(ledger):
+    """A mesma migracao de regra de armadilha do helper (Update-Historico.REGRAS_ATUALIZADAS), so em memoria:
+    o LEDGER impresso ja sai com a regra atual no dia em que o helper ainda nao gravou. Falha = segue."""
+    try:
+        import importlib.util
+        codigo = os.path.dirname(os.path.abspath(__file__))       # o codigo, nao os dados (AQUI)
+        spec = importlib.util.spec_from_file_location("update_historico", os.path.join(codigo, "Update-Historico.py"))
+        uh = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(uh)
+        return uh.migrar_armadilhas(ledger)
+    except Exception:  # noqa: BLE001 — so o texto impresso; nunca bloqueia o passo 1
+        return []
+
+
 def disparar_passo2(exec_id, desligado):
     """coleta_web, informativos e versiculo em processos destacados (sobrevivem ao fim do Bash: testado em
     16/11/2026 na nuvem). Saidas em $ROBOZINHO_TMP/passo2-<nome>.out/.rc; o aguardar_coleta.py espera e
@@ -175,10 +194,11 @@ def disparar_passo2(exec_id, desligado):
                 os.remove(tmp("passo2-%s%s" % (nome, ext)))
             except OSError:
                 pass
-    try:
-        os.remove(tmp("passo2-disparo.json"))
-    except OSError:
-        pass
+    for nome in ("passo2-disparo.json", "passo2-impresso.json"):      # impresso: o que o aguardar ja mostrou
+        try:
+            os.remove(tmp(nome))
+        except OSError:
+            pass
     if desligado:
         return []
     pids = {}
@@ -295,6 +315,7 @@ def main():
 
     estado = ler("robozinho-estado.json")
     ledger = ler("robozinho-aprendizado.json")
+    migrar_armadilhas(ledger)
     ult = estado.get("ultima_execucao") or {}
 
     alertas = []
@@ -343,8 +364,8 @@ def main():
     inicio = datetime.fromisoformat(ult["window_end"]) if ult.get("window_end") else \
         agora - timedelta(hours=72 if agora.weekday() == 0 else 24)
     if agora - inicio > timedelta(days=7):
-        alertas.append("GAP > 7 dias (a última janela terminou em %s): cobrir só 7 dias e registrar "
-                       "nas pendências que o intervalo além do teto pode ter lacunas" % inicio.isoformat())
+        alertas.append("GAP > 7 dias (a última janela terminou em %s): cobrir só 7 dias e dizer em "
+                       "email.limitacoes que o intervalo além do teto pode ter lacunas" % inicio.isoformat())
         inicio = agora - timedelta(days=7)
     horas = (agora - inicio).total_seconds() / 3600
     ult_data = datetime.fromisoformat(ult["date"]).date() if ult.get("date") else hoje - timedelta(days=1)
@@ -371,7 +392,12 @@ def main():
     fontes_m = {f["id"]: f["titulo"] for f in q.get("fontes", [])}
 
     ant_br = ult_data.strftime("%d/%m/%Y")
-    rodape = "segunda-feira" if agora.weekday() == 4 else "amanhã"
+    # rodape: o proximo dia de edicao (seg-sex; a edicao sai em feriado). Sexta e (Extra de) sabado ->
+    # "segunda-feira"; domingo e seg-qui -> "amanhã" (a edicao normal sempre fez assim)
+    prox = hoje + timedelta(days=1)
+    while prox.weekday() >= 5:
+        prox += timedelta(days=1)
+    rodape = "amanhã" if prox == hoje + timedelta(days=1) else DIAS[prox.weekday()]
     fmt = "%d/%m %H:%M"
     # F8: o after: do Gmail e a DATA do inicio da janela (o Gmail le a data a meia-noite do Pacifico,
     # antes das 6h BRT). So quando a janela comeca de madrugada (antes das 06:00) volta um dia.
@@ -409,9 +435,13 @@ def main():
     # ---- variaveis dos prompts dos coletores
     fontes = {f["id"]: f for f in ledger.get("fontes", [])}
     armad = {x["id"]: x for x in ledger.get("armadilhas", [])}
+    # errata_* e correcao para o leitor (o montador a publica), nao tarefa do coletor: o texto dela casa
+    # PALAVRAS_CONCURSO ("inscri") e gastava uma busca de pendencia ativa
     pend_conc = [p for p in ledger.get("pendencias_vivas", [])
-                 if p.get("coletor") == "concursos" or
-                 (not p.get("coletor") and p.get("faixa") != "cronica" and PALAVRAS_CONCURSO.search(p.get("texto", "")))]
+                 if not str(p.get("id", "")).startswith("errata_") and (
+                     p.get("coletor") == "concursos" or
+                     (not p.get("coletor") and p.get("faixa") != "cronica"
+                      and PALAVRAS_CONCURSO.search(p.get("texto", ""))))]
     concursos = ledger.get("concursos", [])
     rede = alcancaveis([p.get("dominio_oficial") for p in pend_conc] +
                        [c.get("dominio_oficial") for c in concursos])
@@ -495,11 +525,17 @@ def main():
 
     # selo por data (work/selos.py) — o montador e o helper aplicam sozinhos; aqui so se avisa
     selo_auto, selo_alerta = [], []
+    encerrada_pela_banca = {}       # id -> (fim, ultima retificacao): o desfecho do prazo vencido ja esta confirmado
     for c in concursos:
         x = ctx_selo.get(c.get("id")) or {}
         s, m = selos.selo_por_data(c, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
                                    ultima_retificacao=x.get("ultima_retificacao"),
                                    inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+        fim, _ = selos.fim_inscricoes(c)
+        ret = selos._data(x.get("ultima_retificacao"))
+        if (s == "INSCRIÇÕES ENCERRADAS" and x.get("banca_lida_hoje") and fim and fim < hoje
+                and (ret is None or fim > ret)):
+            encerrada_pela_banca[c["id"]] = (fim, ret)
         if s == selos.SELO_SEM_CONFIRMACAO and s != c.get("selo"):
             selo_alerta.append("%s %s" % (c["id"], m))      # prazo vencido sem confirmacao: decisao do orquestrador
         elif s != c.get("selo"):
@@ -621,6 +657,16 @@ def main():
         out.append("  só em fonte secundária (o quadro os lista à parte, em cinza; evento no LEDGER): " +
                    "; ".join("%s %s" % (i, ", ".join(ds)) for i, ds in a_conf.items()))
     for x in vencidos:
+        enc = encerrada_pela_banca.get(x[2].get("id"))
+        if (enc and x[3].get("confirmado") and selos.classe_prazo(x[3]) == "inscricoes_fim"
+                and x[1] <= enc[0]):
+            # a banca lida hoje confirma o encerramento (sem retificacao depois do prazo): o ALERTA gastaria
+            # uma busca para confirmar o que a linha SELO POR DATA ja diz
+            out.append("PRAZO VENCIDO (sem ação): %s — encerramento confirmado pela banca oficial lida hoje (%s): "
+                       "selo INSCRIÇÕES ENCERRADAS automático" % (
+                           fmt_pz(*x), "última retificação %s" % enc[1].strftime("%d/%m") if enc[1] else
+                           "sem retificação"))
+            continue
         out.append("ALERTA: prazo vencido %s — confirmar desfecho/prorrogação e atualizar o registro "
                    "(ledger_updates.concursos)" % fmt_pz(*x))
     for s in selo_auto:

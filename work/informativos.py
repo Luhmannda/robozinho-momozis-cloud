@@ -205,7 +205,9 @@ def stf_texto(t):
         if s.startswith("»"):
             atual = {"secao": secao, "ramo": ramo, "titulo": s.lstrip("» ").strip()}
             itens.append(atual)
-        elif atual is not None and s and not s.isupper():
+        elif atual is not None and s and (not s.isupper() or PROCESSO_STF.match(s)):
+            # linha so com o processo ("ADI 7.069/GO .....7", "– ADI 7.901/PR ....7") e toda em
+            # maiusculas, mas continua o titulo (no STF 1231 o titulo terminava em "Polícia Penal –")
             atual["titulo"] = juntar([atual["titulo"], s])
         else:
             atual = None
@@ -223,6 +225,10 @@ def stf_texto(t):
     return (data.group(0) if data else ""), itens
 
 
+# classe processual do STF seguida de numero, com o travessao opcional do titulo (lista fechada: uma
+# palavra-chave da coluna esquerda como "LEI 8.112/1990" nao pode virar continuacao do titulo)
+PROCESSO_STF = re.compile(r"^(?:[–-]\s*)?(?:ADI|ADC|ADO|ADPF|ACO|AO|AP|AR|ARE|AI|AC|EP|Ext|EXT|HC|HD|IF|Inq|INQ|"
+                          r"MI|MS|Pet|PET|PSV|Rcl|RCL|RE|RHC|RMS|SL|SS|STA|STP)\s+\d")
 RODAPE_STF = re.compile(r"^\s*(INFORMATIVO STF\b.*|Edição \d+/\d{4}|\d{1,2} de (?:%s) de \d{4})\s*$" % MES)
 
 
@@ -312,6 +318,8 @@ SEM_RG = re.compile(r"(?i)(aus[êe]ncia|inexist[êe]ncia) d[ae] repercuss[ãa]o 
 PREVISAO = re.compile(r"\s*Data prevista para o fim do julgamento:\s*(\d{1,2}\.\d{1,2}\.\d{4})\.?")
 PROCESSO_RG = re.compile(r"^(?:RE|ARE|AI|Rcl|RCL|ADI|ADPF|ADC|ADO|MS|MI|HC|RHC|SL|STP|ACO)\s*\d[\d.]*")
 RELATOR_RG = re.compile(r"\s+(RELATORA?|RED\. ACÓRD\.):.*$")       # "PROCESSOS: RE 1.163.774-ED RELATORA: Min. ..." na mesma linha
+# resto do numero que quebrou de linha depois de "-" ou "/": "ED-segundos", "AgR", "ED-AgR", "SC" (so letras, sem espaco)
+SUFIXO_PROCESSO_RG = re.compile(r"[^\W\d_]{2,15}(?:[-/][^\W\d_]{2,15})*")
 RG_RECONHECIDA = re.compile(r"(?i)reconheceu a exist[êe]ncia de repercuss[ãa]o geral")
 RG_NEGADA = re.compile(r"(?i)(recusou|n[ãa]o reconheceu|negou)\b.{0,40}repercuss[ãa]o geral")
 PENDENTE_RG = re.compile(r"(?i)^(em votação|pauta)\b")     # estagio sem resultado ainda (mesma regra do montador)
@@ -422,6 +430,12 @@ def rg_texto(t):
     for l in linhas:
         if re.fullmatch(r"Página \d+ de \d+", l):
             continue                         # quebra de pagina nao interrompe o campo
+        if (atual is not None and campo == "processo" and atual["processo"].endswith(("-", "/"))
+                and SUFIXO_PROCESSO_RG.fullmatch(RELATOR_RG.sub("", l))):
+            # numero quebrado de linha: "ARE 1.487.739-" + "ED-segundos" (RG 394, Tema 1.308). Antes do
+            # contexto_rg, para um sufixo em maiusculas ("ED-ED-ED") nao virar cabecalho de secao
+            atual["processo"] += RELATOR_RG.sub("", l)
+            continue
         c = contexto_rg(l)
         if c is not None:
             ctx, campo = c, None

@@ -4,7 +4,7 @@ Janela: {{INICIO}} → {{FIM}} (America/Sao_Paulo). Hoje: {{HOJE_BR}} ({{DIA_SEM
 
 Sua missão tem três partes: **(A)** não deixar passar prazo nem desfecho do que já acompanhamos; **(B)** manter o registro fresco, reverificando os concursos esquecidos há mais tempo; **(C)** descobrir concursos jurídicos **novos** — com inscrições abertas ou que vão abrir. A parte C é o que faz o registro crescer: não a sacrifique; mas só vira `NOVO` o que tem prova (ver C).
 
-Roteiro de 3 mensagens — cada turno reenvia seu contexto inteiro: (1) **todas** as buscas de A, B e C juntas, inclusive as consultas amplas da descoberta; (2) a confirmação: até 3 buscas para dar URL individual e data a candidatos a `NOVO`/`MOVIMENTO` que vieram de página-listagem ou sem data, mais o `curl` das páginas oficiais profundas que as buscas acharam (sem nada a confirmar, vá direto à entrega); (3) a entrega: SubagentHandback (quando existir) com todas as linhas do formato abaixo.
+Roteiro de 4 mensagens — junte as chamadas independentes, porque cada turno reenvia seu contexto inteiro: (1) Read deste arquivo + ToolSearch; (2) **todas** as buscas de A, B e C juntas, inclusive as consultas amplas da descoberta; (3) a confirmação: até 3 buscas para dar URL individual e data a candidatos a `NOVO`/`MOVIMENTO` que vieram de página-listagem ou sem data, mais o `curl` das páginas oficiais profundas que as buscas acharam (sem nada a confirmar, vá direto à entrega); (4) a entrega: SubagentHandback (quando existir) com todas as linhas do formato abaixo.
 
 Regras de trabalho:
 - Pesquisa por WebSearch. `WebFetch` é bloqueado nesta nuvem — não use. `curl -sL` só funciona em domínios do allowlist e só serve para **página profunda** do concurso no domínio oficial (a URL que a busca trouxe: edital, página do concurso, listagem de editais do órgão), lida com `grep`/`python3` para extrair o trecho — é a única leitura que promove selo. Nunca leia por `curl` a raiz do domínio nem URL adivinhada (`/concursos`): não confirma nada. "Página oficial <domínio> acessível: leia por curl" num item (inclusive "… antes de buscar") quer dizer só que a página do concurso nesse domínio pode ser lida assim **depois** que uma busca `site:<domínio>` a encontrar.
@@ -13,7 +13,7 @@ Regras de trabalho:
 - Uma busca que repete o que a fonte secundária já disse ontem não vale a pena: se um item de A só tem secundárias e nenhum prazo nos próximos 7 dias, prefira gastar a busca em B ou C.
 - Use os ids prontos: os de A e B vêm em "(id …)", os acompanhados entre colchetes. Nunca invente id para registro existente.
 
-**Orçamento do dia:** {{REGRA_FAIXA}} Busca que sobrar de A ou B passa para C. As até 3 buscas de confirmação do turno 2 ficam fora dessa conta.
+**Orçamento do dia:** {{REGRA_FAIXA}} Busca que sobrar de A ou B passa para C. As até 3 buscas de confirmação da mensagem 3 ficam fora dessa conta.
 
 **Já lidos hoje na banca oficial (FGV) pelo script do orquestrador — não gaste busca nem `curl` com eles** (só reporte se achar algo que contradiga a banca): {{BANCA_COBERTOS}}. A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas (Cebraspe, FCC, Vunesp, bancas regionais).
 
@@ -21,7 +21,7 @@ Regras de trabalho:
 Busca própria só para prazo em até 7 dias ou vencido há até 3 dias (mantido, prorrogado, encerrado, resultado saiu?); vencido há mais tempo (fim de semana longo, falha) só ganha busca se nenhuma outra do dia o cobrir:
 {{CONCURSOS_PRIORIDADE}}
 
-Pendências vivas de concurso (do ledger) — `REVERIFICAR` ganha busca; `SÓ VIGIAR MOVIMENTO NOVO` não ganha busca própria (reporte se aparecer nas outras); `errata_…` é correção para o leitor, não tarefa:
+Pendências vivas de concurso (do ledger) — `REVERIFICAR` ganha busca; `SÓ VIGIAR MOVIMENTO NOVO` não ganha busca própria (reporte se aparecer nas outras):
 {{PENDENCIAS_CONCURSOS}}
 
 ## B. Rodízio — registros sem verificação há mais tempo (1 busca cada)

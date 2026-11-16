@@ -16,6 +16,18 @@
 #   E9 (dominio_oficial/url_oficial), paginas_oficiais ausente, feriado como dia de
 #   edicao, finalizar.sh (remontagem do execucao.json editado; reaplicacao com a
 #   arvore limpa) num repositorio git descartavel com os dados do MON de 17/11.
+#   Rodada 2 do reteste: motivo do rebaixamento (selo que a nova data da); historico
+#   sem impacto/resenha/desdobramento; armadilhas migradas (helper grava, inicio so
+#   em memoria); aguardar com teto por chamada (90 s), AINDA RODANDO e --mais N;
+#   errata_* fora da fila do coletor; rodape da Extra de fim de semana; GAP ->
+#   email.limitacoes; banca: outro cargo do mesmo orgao, pagina sem cargo e duas
+#   paginas para o mesmo registro nao cobrem; 1a leitura sem estado (anterior ao
+#   verificado_em = visto); finalizar.sh: hook recusando nao reaplica, copia do
+#   estado da ultima rodada, sha da 1a rodada quando a reaplicacao falha.
+#   Volta 2 do reteste: classe_prazo com outras formas do fim/inicio das inscricoes;
+#   AVISO de prazos[n].tipo que contradiz o evento (chave do montador); prazo vencido
+#   com encerramento confirmado pela banca lida hoje nao e ALERTA; errata removida no
+#   mesmo resolvido nao gera "saiu na edicao mas nao existe no ledger".
 # USO: python3 work/testes/test_est.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda em pastas temporarias (ROBOZINHO_TMP proprio); rede simulada.
 # =====================================================================
@@ -150,6 +162,9 @@ def selo_vencido_sem_confirmacao():
     r["selo"] = "ENCERRA HOJE"
     s, m = selos.selo_por_data(r, D("2026-11-19"), banca_lida_hoje=False)
     ok(s == selos.SELO_SEM_CONFIRMACAO and "não foi lida" in m and "INSCRIÇÕES ENCERRADAS" in m, "sem banca: %r %r" % (s, m))
+    # prorrogação: o selo que a NOVA data dá (até 7 dias = ENCERRA EM BREVE), não "INSCRIÇÕES ABERTAS" fixo
+    ok("o selo que a nova data dá (ENCERRA HOJE / ENCERRA EM BREVE / INSCRIÇÕES ABERTAS)" in m
+       and "e selo INSCRIÇÕES ABERTAS" not in m, m)
     # DPE-SP (fora da FGV): ENCERRA HOJE com prazo de 11/11 nunca mais sai como ENCERRA HOJE
     dpe = {"id": "dpe_sp", "selo": "ENCERRA HOJE", "fonte": "https://www.defensoria.sp.def.br",
            "prazos": [{"data": "2026-11-11", "evento": "fim das inscrições", "confirmado": True}]}
@@ -265,11 +280,24 @@ def saida(res):
     return buf.getvalue()
 
 
+RET2 = "https://conhecimento.fgv.br/sites/default/files/concursos/retificacao-tjap.pdf"   # URL da 2ª Retificação
+
+
+def vistos_sem_ret2(data="2026-11-13"):
+    """Estado de URLs vistas com tudo da página do TJAP menos a 2ª Retificação (o caso de 16/11 com estado)."""
+    est = {}
+    bancas.atualizar_estado(est, tjap("2a9eac9"), data)
+    del est["bancas"]["fgv"]["tjap26"]["urls"][RET2]
+    return est
+
+
 @teste
 def bancas_tjap_retificacao_e_diverge():
-    for commit, esperado in (("b80a3bd", "linha: inscrições encerradas em 13/11"),
-                             ("2426d11", "prazo 13/11/2026 fim das inscrições")):
-        res = tjap(commit)
+    # b80a3bd (verificado 16/11, linha "encerradas"): com URLs vistas, a 2ª Retificação não vista é novidade.
+    # 2426d11 (verificado 13/11), sem estado: o arquivo do próprio dia do verificado_em continua novo (C1).
+    for commit, esperado, est in (("b80a3bd", "linha: inscrições encerradas em 13/11", vistos_sem_ret2()),
+                                  ("2426d11", "prazo 13/11/2026 fim das inscrições", None)):
+        res = tjap(commit, est)
         c = res["concursos"][0]
         ok(len(c["arquivos"]) == 11, "11 arquivos na página")
         ed = next(a for a in c["arquivos"] if a["titulo"].startswith("Edital"))
@@ -298,9 +326,67 @@ def bancas_urls_vistas():
     c = tjap("2a9eac9", est, hoje="2026-11-16")["concursos"][0]
     ok(len(c["novos_arquivos"]) == 11, "re-execução no mesmo dia: vistos hoje continuam novos")
     est2 = copy.deepcopy(est)
-    del est2["bancas"]["fgv"]["tjap26"]["urls"]["https://conhecimento.fgv.br/sites/default/files/concursos/retificacao-tjap.pdf"]
+    del est2["bancas"]["fgv"]["tjap26"]["urls"][RET2]
     c = tjap("2a9eac9", est2, hoje="2026-11-17")["concursos"][0]
     ok([a["titulo"] for a in c["novos_arquivos"]] == ["2ª Retificação"], "só a URL não vista")
+
+
+@teste
+def bancas_sem_estado_anterior_ao_verificado_e_visto():
+    """1ª leitura sem URLs vistas: o anterior ao verificado_em conta como visto (a linha já o traz); o do
+    próprio dia continua novo (a FGV publica depois da execução das 7h: TJAP 13/11, TJRS 16/11)."""
+    c = tjap("2a9eac9", hoje="2026-11-17")["concursos"][0]          # verificado_em 16/11; arquivos até 13/11
+    ok(c["base_novos"] == "data (sem estado)" and c["novos_arquivos"] == [], [a["titulo"] for a in c["novos_arquivos"]])
+    c = tjap("2426d11", hoje="2026-11-16")["concursos"][0]          # verificado_em 13/11
+    ok(sorted({a["data_efetiva"] for a in c["novos_arquivos"]}) == ["2026-11-13"] and len(c["novos_arquivos"]) == 5,
+       [(a["data_efetiva"], a["titulo"][:30]) for a in c["novos_arquivos"]])
+    ok(bancas.MARGEM_SEM_ESTADO == 0, "margem")
+
+
+def pagina_fgv(slug, titulo):
+    return bancas.analisar_pagina({"slug": slug, "titulo": titulo, "http": 200,
+                                   "url": "https://conhecimento.fgv.br/concursos/" + slug}, fx("tjap26.html"))
+
+
+TIT_TJAP = "Concurso Público para Tribunal de Justiça do Estado do Amapá"
+
+
+@teste
+def bancas_outro_concurso_do_mesmo_orgao():
+    """tjapservidores26 não cai no tjap_juiz; página sem cargo identificável ou duas páginas para o mesmo
+    registro não cobrem (sem carimbo, sem selo por data, sem DIVERGE) e saem com AVISO."""
+    led = regs("b80a3bd")                       # registro que diverge do edital: o DIVERGE errado apareceria
+    a, b = pagina_fgv("tjap26", TIT_TJAP + " - Juiz de Direito Substituto"), pagina_fgv("tjapservidores26", TIT_TJAP + " - Servidores")
+    r = bancas.analisar([a, b], D("2026-11-19"), copy.deepcopy(led), vistos_sem_ret2(), ler=ler_falso)
+    ok(r[0]["coberto"] == ["tjap_juiz"] and r[0]["divergencias"], "a página do Juiz cobre")
+    ok(r[1]["registros"] == [] and r[1]["coberto"] == [] and r[1]["divergencias"] == []
+       and r[1]["mesma_sigla"] == ["tjap_juiz"] and "incerto" not in r[1], r[1].get("registros"))
+    res = {"banca": "FGV", "http": 200, "data": "2026-11-19", "concursos": r}
+    ok(set(bancas.carimbos(res, led, "2026-11-19")) == {"tjap_juiz"}, "carimbo só pela página certa")
+    txt = saida(res)
+    ok("tjapservidores26 | " in txt and "SEM REGISTRO (tjap_juiz, da mesma sigla, é de outro cargo) → avalie como NOVO"
+       in txt and txt.count("DIVERGE DO REGISTRO: tjap_juiz") == 1, txt)
+    # sem cargo no título, no slug e no edital: não cobre, AVISO
+    sem = pagina_fgv("tjap26", TIT_TJAP)
+    r = bancas.analisar([sem], D("2026-11-19"), copy.deepcopy(led), {}, ler=lambda u: ("texto sem cargo", ""))
+    ok(r[0]["coberto"] == [] and r[0]["registros"] == [] and r[0]["incerto"]["ids"] == ["tjap_juiz"]
+       and r[0]["divergencias"] == [], r[0].get("incerto"))
+    res = {"banca": "FGV", "http": 200, "data": "2026-11-19", "concursos": r}
+    ok(bancas.carimbos(res, led, "2026-11-19") == {} and bancas.contexto_selos(res) == {}, "nada mecânico")
+    txt = saida(res)
+    ok("registro incerto: tjap_juiz" in txt and "  AVISO: página não cobre tjap_juiz (cargo não identificado" in txt, txt)
+    # duas páginas para o mesmo registro: nenhuma cobre
+    a, b = pagina_fgv("tjap26", TIT_TJAP + " - Juiz"), pagina_fgv("tjapjuiz26", TIT_TJAP + " - Juiz de Direito")
+    r = bancas.analisar([a, b], D("2026-11-19"), copy.deepcopy(led), {}, ler=ler_falso)
+    ok(all(c["coberto"] == [] and c["divergencias"] == [] and "2 páginas da FGV" in c["incerto"]["motivo"] for c in r),
+       [(c["coberto"], c.get("incerto")) for c in r])
+    # sem regressão nas páginas reais de 16/11 (TJPB sem cargo no título: 2 registros, decide pelo edital)
+    b16 = json.loads(fx("bancas-1611.json"))
+    ed = {c["edital_url"]: " ".join(c["edital"].values()) for c in b16["concursos"] if c.get("edital_url")}
+    alvo = [{k: c[k] for k in ("slug", "titulo", "url", "http", "situacao", "arquivos")} for c in b16["concursos"]]
+    r = bancas.analisar(alvo, D("2026-11-16"), regs("2a9eac9"), {}, ler=lambda u: (ed.get(u, ""), ""))
+    ok({c["slug"]: c["coberto"] for c in r} == {c["slug"]: c["coberto"] for c in b16["concursos"]},
+       {c["slug"]: c["coberto"] for c in r})
 
 
 @teste
@@ -465,6 +551,39 @@ def rodar_helper(d, ex, *extra):
 
 
 @teste
+def helper_historico_enxuto_e_armadilhas_migradas():
+    d = pasta_helper()
+    p = os.path.join(d, "led.json")
+    led = json.load(open(p))
+    velhas = {x["id"]: x for x in json.load(open(os.path.join(MONFIX, "ledger-1611.json")))["armadilhas"]
+              if x["id"] in uh.REGRAS_ATUALIZADAS}
+    outra = {"id": "outra", "fonte": "f", "sintoma": "s", "regra": "Publicar o link so se o TITULO bater."}
+    reescrita = dict(velhas["gmail_after_epoch"], regra="Regra reescrita depois por outra via.")
+    led["armadilhas"] = [velhas["jota_link_wrapper_mismatch"], reescrita, outra]
+    json.dump(led, open(p, "w"), ensure_ascii=False)
+    item = {"categoria": "Planalto", "titulo": "Lei 15.999", "url": "https://www.planalto.gov.br/l15999.htm",
+            "chave": "planalto|lei|15999|2026-11-18|x", "status": "CONFIRMADO POR FONTE OFICIAL", "fonte": "PUSH Planalto",
+            "data": "2026-11-18", "impacto": "Altera: Código Penal", "resenha": "Lei nº 15.999 ...",
+            "desdobramento": True, "grupo": "Leis", "meta": "DOU 18/11"}
+    rc, out = rodar_helper(d, {"delivery": "draft", "items": [item]}, "--draft-id", "r1")
+    ok(rc == 0 and "STATUS: OK" in out, out)
+    nova = json.load(open(os.path.join(d, "hist.json")))["executions"][-1]
+    ok(not {"impacto", "resenha", "desdobramento", "grupo", "meta"} & set(nova["items"][0]), nova["items"][0])
+    ok(nova["items"][0]["chave"] == item["chave"] and nova["items"][0]["titulo"] == item["titulo"], "o resto fica")
+    arm = {x["id"]: x for x in json.load(open(p))["armadilhas"]}
+    ok(arm["jota_link_wrapper_mismatch"]["regra"] == uh.REGRAS_ATUALIZADAS["jota_link_wrapper_mismatch"]["regra"],
+       "regra antiga migrada")
+    ok(arm["gmail_after_epoch"]["regra"] == "Regra reescrita depois por outra via." and arm["outra"] == outra,
+       "só o texto antigo exato muda")
+    ok("Ledger: regra da armadilha atualizada para o comportamento atual (migracao): jota_link_wrapper_mismatch" in out,
+       out)
+    ok(all(len(m["regra"]) <= uh.LIMITE["regra"] for m in uh.REGRAS_ATUALIZADAS.values()), "limite da regra")
+    l2 = {"armadilhas": [dict(velhas["gmail_after_epoch"])]}
+    ok(uh.migrar_armadilhas(l2) == ["gmail_after_epoch"] and uh.migrar_armadilhas(l2) == [], "idempotente")
+    ok(len(uh.LIMITE) and all(len(v["antigas"]) for v in uh.REGRAS_ATUALIZADAS.values()), "tabela")
+
+
+@teste
 def helper_completo():
     d = pasta_helper()
     ex = {"delivery": "draft", "items": [], "source_status": {"conjur": "ok"},
@@ -606,10 +725,52 @@ def aguardar_fallback_e_status():
     out = aguardar(d)
     ok("feito em segundo plano coleta_web" in out and "linha de versiculo" in out
        and "feito em segundo plano versiculo" not in out, out)
+    ok("== versiculo.py (exit 0; disparado de novo aqui (o processo do disparo morreu sem resultado))" in out, out)
+    ok("versiculo" in json.load(open(os.path.join(T, "passo2-disparo.json")))["iniciado_em"], "redisparo registrado")
     # disparo de outra execução: roda tudo aqui
     with open(os.path.join(T, "passo2-disparo.json"), "w") as f:
         json.dump({"execution_id": "E0", "pids": {}}, f)
     ok("disparo de outra execução (E0)" in aguardar(d), "disparo velho")
+
+
+@teste
+def aguardar_cabe_no_bash_e_mais():
+    """O Bash do agente tem timeout padrão de 2 min: sem flag, a chamada volta em até CHAMADA_S (90 s) com o
+    que terminou e AINDA RODANDO para o resto; --mais N espera N s a partir da chamada seguinte."""
+    L = aguardar_coleta.limite_da_chamada
+    ok(aguardar_coleta.CHAMADA_S <= 100, "teto por chamada")
+    ok(L(1000, 970) == 1090, "disparo há 30 s: 90 s nesta chamada (não os 240 do disparo)")
+    ok(L(1000, 400) == 1005, "teto do disparo vencido: só confere")
+    ok(L(1000, 400, mais=240) == 1240 and L(1000, 400, mais=0) == 1000, "--mais conta da chamada")
+    ok(L(1000, 400, teto=900) == 1300, "--teto explícito conta do disparo (compatibilidade)")
+    d = pasta_aguardar()
+    T = os.path.join(d, "tmp")
+    for n in ("coleta_web", "versiculo"):
+        open(os.path.join(T, "passo2-%s.out" % n), "w").write("pronto %s\nSOURCE_STATUS {\"%s\": \"ok\"}\n" % (n, n))
+        open(os.path.join(T, "passo2-%s.rc" % n), "w").write("0\n")
+    lento = subprocess.Popen([sys.executable, "-c",
+                              "import os,sys,time\ntime.sleep(4)\nt=sys.argv[1]\n"
+                              "open(os.path.join(t,'passo2-informativos.out'),'w').write('stf1237 NOVA\\n"
+                              "SOURCE_STATUS {\"informativos_docs\": \"ok\"}\\n')\n"
+                              "open(os.path.join(t,'passo2-informativos.rc'),'w').write('0\\n')\n", T])
+    from datetime import datetime, timedelta
+    json.dump({"execution_id": "E1", "pids": {"informativos": lento.pid},
+               "disparado_em": (datetime.now().astimezone() - timedelta(seconds=30)).isoformat(timespec="seconds")},
+              open(os.path.join(T, "passo2-disparo.json"), "w"))
+    out = aguardar(d, "--mais", "1")
+    ok("pronto coleta_web" in out and "pronto versiculo" in out and "stf1237" not in out, out)
+    ok(re.search(r"^AINDA RODANDO informativos\.py \((3\d|4\d) s desde o disparo\) — para esperar mais: "
+                 r"python3 work/aguardar_coleta\.py --mais N", out, re.M), out)
+    ok("== informativos.py (exit ?; segundo plano) — AINDA RODANDO (" in out, out)
+    ok(json.loads(out.strip().splitlines()[-1][len("SOURCE_STATUS "):]) == {"coleta_web": "ok", "versiculo": "ok"}, out)
+    out = aguardar(d, "--mais", "20")
+    lento.wait()
+    ok("stf1237 NOVA" in out and "AINDA RODANDO" not in out, out)
+    ok("== coleta_web.py (exit 0; saída já impressa inteira na chamada anterior)" in out
+       and "pronto coleta_web" not in out, "o que já saiu não se repete no --mais: " + out)
+    ok(json.loads(out.strip().splitlines()[-1][len("SOURCE_STATUS "):]) ==
+       {"coleta_web": "ok", "informativos_docs": "ok", "versiculo": "ok"}, "SOURCE_STATUS completo")
+    ok("pronto coleta_web" in aguardar(d), "sem --mais: tudo de novo")
 
 
 # ------------------------------------------------------------------ paginas_oficiais
@@ -633,7 +794,7 @@ def paginas_oficiais_offline():
 
 
 # ------------------------------------------------------------------ inicio.py
-def rodar_inicio(agora, *args, estado_data="2026-11-16", extra_concursos=()):
+def rodar_inicio(agora, *args, estado_data="2026-11-16", extra_concursos=(), banca_mod=None, mod_concursos=None):
     import inicio
     d = tempfile.mkdtemp(dir=TMPDIR)
     t = os.path.join(d, "tmp")
@@ -642,12 +803,16 @@ def rodar_inicio(agora, *args, estado_data="2026-11-16", extra_concursos=()):
     shutil.copy(os.path.join(WORK, "munger-quotes.json"), d)
     led = json.load(open(os.path.join(WORK, "robozinho-aprendizado.json"), encoding="utf-8"))
     led["concursos"] = regs("2a9eac9") + list(extra_concursos)
+    if mod_concursos:
+        mod_concursos(led["concursos"])
     json.dump(led, open(os.path.join(d, "robozinho-aprendizado.json"), "w"), ensure_ascii=False)
     json.dump({"ultima_execucao": {"execution_id": "%s-7h" % estado_data, "date": estado_data, "delivery": "draft",
                                    "email_subject": "S", "draft_id": "r",
                                    "window_end": "%sT07:07:30-03:00" % estado_data}},
               open(os.path.join(d, "robozinho-estado.json"), "w"))
     banca = json.loads(fx("bancas-1611.json"))
+    if banca_mod:
+        banca_mod(banca)
     salvo = (inicio.AQUI, inicio.alcancaveis, bancas.coletar, os.environ.get("ROBOZINHO_TMP"), sys.argv)
     inicio.AQUI = d
     inicio.alcancaveis = lambda ds: {x: True for x in ds if x}
@@ -708,6 +873,33 @@ def inicio_feriados_gap_extra():
     ok(j["cabecalho_extra"] == "Edição extra" and j["tipo"] == "extra" and j["munger"]["idx"] == (321 + 1) % 200, j)
     _, j, _ = rodar_inicio("2026-11-17T07:05:00-03:00", estado_data="2026-11-16")
     ok(j["munger"]["idx"] == 321 % 200, "idx diário")
+
+
+@teste
+def inicio_errata_rodape_gap_armadilhas():
+    out, j, t = rodar_inicio("2026-11-17T07:05:00-03:00")
+    cc = open(os.path.join(t, "coletor-concursos.md"), encoding="utf-8").read()
+    ok("errata_2026_11_16:" not in cc, "errata_* não é tarefa do coletor de concursos")
+    ok("- errata_2026_11_16 [ativa" in out.split("PENDÊNCIAS VIVAS:")[1], "a errata segue no LEDGER (com o texto)")
+    arm = out.split("ARMADILHAS (checklist")[1].split("PENDÊNCIAS VIVAS:")[0]
+    ok("- jota_link_wrapper_mismatch: Link do JOTA só o que o coletor trouxe do work/resolver_jota.py" in arm
+       and "1 tentativa por item" not in arm and "BLOQUEADO" in arm and "RECUSADO" in arm and "JA_PUBLICADA" in arm, arm)
+    ok("GMAIL_APOS = a data do início da janela (o dia anterior, se o início for antes das 06:00)" in arm
+       and "(dia anterior ao início da janela)" not in arm, arm)
+    led = json.load(open(os.path.join(os.path.dirname(t), "robozinho-aprendizado.json"), encoding="utf-8"))
+    ok(any("1 tentativa por item" in x.get("regra", "") for x in led["armadilhas"]),
+       "o inicio só migra em memória (quem grava é o helper)")
+    out, _, _ = rodar_inicio("2026-11-27T07:05:00-03:00", estado_data="2026-11-16")
+    ok("ALERTA: GAP > 7 dias (a última janela terminou em 2026-11-16T07:07:30-03:00): cobrir só 7 dias e dizer em "
+       "email.limitacoes que o intervalo além do teto pode ter lacunas" in out, [l for l in out.splitlines() if "GAP" in l])
+    esperado = {"2026-11-19T15:00:00": "amanhã", "2026-11-20T15:00:00": "segunda-feira",
+                "2026-11-21T15:00:00": "segunda-feira", "2026-11-22T15:00:00": "amanhã"}
+    for agora, rod in esperado.items():
+        _, j, _ = rodar_inicio(agora, "--extra", estado_data="2026-11-19")
+        ok(j["rodape"] == rod, "Extra %s (%s): %r" % (agora[:10], j["dia_semana"], j["rodape"]))
+    for agora, rod in (("2026-11-20T07:05:00-03:00", "segunda-feira"), ("2026-11-23T07:05:00-03:00", "amanhã")):
+        _, j, _ = rodar_inicio(agora, estado_data="2026-11-19")
+        ok(j["rodape"] == rod, "diária %s: %r" % (agora[:10], j["rodape"]))
 
 
 @teste
@@ -775,7 +967,7 @@ def selo_copiado_nao_e_decisao():
 def diverge_sem_carimbo():
     """Registro que a banca contradiz (TJAP de b80a3bd) não ganha verificado_em de hoje nem conta como banca lida,
     até o update corrigir prazos/linha; o --validar avisa (acionável no montador)."""
-    res = tjap("b80a3bd", hoje="2026-11-17")
+    res = tjap("b80a3bd", vistos_sem_ret2(), hoje="2026-11-17")    # com URLs vistas: a 2ª Retificação é nova
     rs = regs("b80a3bd")
     ok(bancas.carimbos(res, rs, D("2026-11-17")).get("tjap_juiz"), "sem upd: comportamento antigo (compatível)")
     ok("tjap_juiz" not in bancas.carimbos(res, rs, D("2026-11-17"), upd={}), "diverge: sem carimbo")
@@ -953,6 +1145,194 @@ def finalizar_reaplicacao_arvore_limpa():
     ok(g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout, "HEAD enviado")
     e = json.load(open(os.path.join(sess, "work", "resumo-legislativo-historico.json")))["executions"][-1]
     ok(e["execution_id"] == "2026-11-17-7h", "execução gravada sobre a main concorrente")
+
+
+def falha_de_push(cenario):
+    """finalizar.sh (sem as esperas entre tentativas) com: 'hook' = pre-receive que sempre recusa; 'concorrente+hook'
+    = main andou no remoto (ledger com marca_concorrente) e o hook recusa o push da reaplicação; 'helper2' = main
+    andou e traz um helper que falha (a reaplicação não termina)."""
+    import tarfile
+    base, sess, t, g, run = repo_finalizar()
+    outro = os.path.join(base, "outro")
+    g(base, "clone", "-q", "origin.git", outro)
+    fin = os.path.join(outro, "work", "finalizar.sh")
+    src = open(fin).read()
+    open(fin, "w").write(src.replace("for espera in 0 2 4 8 16; do", "for espera in 0 0 0 0 0; do"))
+    g(outro, "commit", "-qam", "finalizar sem espera")
+    g(outro, "push", "-q", "origin", "main")
+    g(sess, "fetch", "-q", "origin")
+    g(sess, "reset", "-q", "--hard", "origin/main")
+    run(sys.executable, "work/montar_email.py")
+    if cenario != "hook":
+        pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+        led = json.load(open(pl))
+        led["marca_concorrente"] = "x"
+        json.dump(led, open(pl, "w"), ensure_ascii=False, indent=1)
+        if cenario == "helper2":
+            h = os.path.join(outro, "work", "Update-Historico.py")
+            src = open(h).read()
+            open(h, "w").write(src.replace("import argparse\n", "import argparse\nraise SystemExit(1)\n", 1))
+        g(outro, "commit", "-qam", "concorrente")
+        g(outro, "push", "-q", "origin", "main")
+    if cenario != "helper2":
+        hook = os.path.join(base, "origin.git", "hooks", "pre-receive")
+        open(hook, "w").write("#!/bin/sh\necho 'recusado pelo hook' >&2\nexit 1\n")
+        os.chmod(hook, 0o755)
+    rc, out = run("bash", "work/finalizar.sh", "--draft-id", "r-X", "--message-id", "m-X")
+    est = [l for l in out.splitlines() if l.startswith("ESTADO:")]
+    bk = os.path.join(t, "robozinho-estado-backup-2026-11-17-7h.tar.gz")
+    with tarfile.open(bk) as tf:
+        marca = "marca_concorrente" in json.load(tf.extractfile("work/robozinho-aprendizado.json"))
+    sha = lambda ref: g(sess, "rev-parse", "--short", ref).stdout.strip()
+    return rc, out, est[0] if est else "", marca, sha, g, sess
+
+
+@teste
+def finalizar_falha_estado_e_recusa_de_hook():
+    # (3) hook do servidor recusando ("[remote rejected]") não é "main andou": nada de reset/reaplicação
+    rc, out, est, marca, sha, g, sess = falha_de_push("hook")
+    ok(rc == 3 and "PUSH: recusado (main andou" not in out and "PUSH: FALHOU (apos 5 tentativas)" in out, out[-600:])
+    ok("(commit local %s) — para reaplicar: tar -xzf" % sha("HEAD") in est
+       and "Robozinho: execução" in g(sess, "log", "-1", "--format=%s").stdout, est)
+    # (1) reaplicação OK e push recusado de novo: a cópia é a da ÚLTIMA rodada (com a mudança concorrente)
+    rc, out, est, marca, sha, g, sess = falha_de_push("concorrente+hook")
+    ok(rc == 3 and "PUSH: recusado (main andou no remoto)" in out and out.count("STATUS: OK") == 2, out[-600:])
+    ok(marca, "tar da 2ª rodada (com a mudança concorrente)")
+    ok("(commit local %s) — para reaplicar: tar -xzf" % sha("HEAD") in est
+       and g(sess, "merge-base", "--is-ancestor", "origin/main", "HEAD").returncode == 0, est)
+    # (2) helper da reaplicação falhou: o commit impresso é o da 1ª rodada (não origin/main) e o tar não é aplicável
+    rc, out, est, marca, sha, g, sess = falha_de_push("helper2")
+    ok(rc == 3 and "PUSH: FALHOU (helper na reaplicacao" in out and not marca, out[-600:])
+    m = re.search(r"commit local (\w+), da 1a rodada", est)
+    ok(m and m.group(1) != sha("origin/main") and m.group(1) != sha("HEAD")
+       and "Robozinho: execução" in g(sess, "log", "-1", "--format=%s", m.group(1)).stdout, est)
+    ok("NAO aplique o tar sobre a main atual" in est and "rode bash work/finalizar.sh de novo" in est, est)
+
+
+# ------------------------------------------------------------------ volta 2 do reteste
+@teste
+def classe_prazo_formas_de_escrever():
+    # sem `tipo`, estes jeitos de escrever o fim/início das inscrições caíam em "outro" e desligavam o selo por data
+    for ev in ("data limite para inscrições", "prazo limite de inscrição", "prazo de inscrição termina",
+               "inscrições (prorrogadas)", "inscrições prorrogadas até 21/11", "prorrogação das inscrições",
+               "inscrições abertas até 21/11", "inscrição até 21/11", "inscrições encerram em 21/11",
+               "Fim das Inscrições (taxa R$ 120)", "fim das inscrições", "último dia de inscrição",
+               "prazo final de inscrição", "encerramento das inscrições", "fim das inscrições, 16h (prorrogado)"):
+        ok(selos.classe_prazo({"evento": ev}) == "inscricoes_fim", "fim: %s -> %s" % (ev, selos.classe_prazo({"evento": ev})))
+    for ev in ("inscrições a partir de 10/11", "inscrições abertas a partir de 10/11", "inscrições abrem em 10/11",
+               "início das inscrições", "abertura das inscrições"):
+        ok(selos.classe_prazo({"evento": ev}) == "inscricoes_inicio", "início: %s" % ev)
+    # pagamento, isenção, inscrição definitiva e eventos sobre as inscrições continuam fora
+    for ev in ("pagamento da taxa de inscrição (fim)", "prazo de pagamento da inscrição termina",
+               "data limite para pagamento da taxa de inscrição", "prorrogado o prazo de pagamento da inscrição",
+               "fim do prazo de pedido de isenção da taxa de inscrição", "inscrições para isenção até 10/11",
+               "fim da inscrição definitiva (fonte secundária)", "convocação para inscrição definitiva",
+               "resultado das inscrições deferidas", "homologação das inscrições", "inscrições"):
+        ok(selos.classe_prazo({"evento": ev}) == "outro", "outro: %s -> %s" % (ev, selos.classe_prazo({"evento": ev})))
+    # os eventos reais (ledger e histórico, git) não mudam de classe
+    for c in regs("2a9eac9") + regs("b80a3bd") + regs("2426d11"):
+        for p in c.get("prazos") or []:
+            ev = p.get("evento") or ""
+            esperado = ("outro" if re.search(r"definitiv|resultado|convoca", ev, re.I) else
+                        "inscricoes_inicio" if re.search(r"in[íi]cio", ev, re.I) else
+                        "inscricoes_fim" if re.search(r"fim das inscri", ev, re.I) else
+                        "prova" if re.search(r"prova", ev, re.I) else "outro")
+            ok(selos.classe_prazo({"evento": ev}) == esperado, "regressão: %s -> %s" % (ev, selos.classe_prazo({"evento": ev})))
+    # o tipo explícito continua prevalecendo sobre o evento
+    ok(selos.classe_prazo({"evento": "data limite para inscrições", "tipo": "outro"}) == "outro", "tipo vence")
+
+
+RE_AVISO_TIPO_MON = re.compile(r"^ledger_updates\.concursos\.(\S+?)\.prazos\[(\d+)\]\.tipo\b")   # montar_email.py
+
+
+@teste
+def tipo_outro_no_fim_das_inscricoes_avisa():
+    pz = {"data": "2026-11-21", "evento": "fim das inscrições, 16h (prorrogado)", "confirmado": True}
+    ok(selos.tipo_contradiz_evento(dict(pz, tipo="outro")) == "inscricoes_fim", "outro")
+    ok(selos.tipo_contradiz_evento(dict(pz, tipo="prova")) == "inscricoes_fim", "prova")
+    ok(selos.tipo_contradiz_evento(dict(pz, tipo="inscricoes_fim")) is None, "tipo certo")
+    ok(selos.tipo_contradiz_evento(pz) is None and selos.tipo_contradiz_evento(dict(pz, tipo="xx")) is None, "sem tipo")
+    ok(selos.tipo_contradiz_evento({"evento": "início das inscrições", "tipo": "outro"}) == "inscricoes_inicio", "início")
+    for ev in ("fim da inscrição definitiva", "pagamento da taxa até 19/11 (inscrições)", "resultado da prova"):
+        ok(selos.tipo_contradiz_evento({"evento": ev, "tipo": "outro"}) is None, "outro legítimo: %s" % ev)
+    # o caso do reteste (19/11, sem a banca): tipo 'outro' tirava o prazo do selo por data, sem aviso nenhum
+    r = {"id": "tjap_juiz", "selo": "INSCRIÇÕES ABERTAS", "fonte": "https://conhecimento.fgv.br/concursos/tjap26",
+         "prazos": [dict(pz, tipo="outro")]}
+    ok(selos.selo_por_data(r, D("2026-11-23")) == ("INSCRIÇÕES ABERTAS", None), "o tipo prevalece (nada corrigido)")
+    led = json.loads(open(os.path.join(AQUI, "fixtures", "mon", "ledger-1611.json"), encoding="utf-8").read())
+    fonte = "https://conhecimento.fgv.br/concursos/tjap26"
+    for tipo, selo in (("outro", "INSCRIÇÕES ABERTAS"), ("prova", "INSCRIÇÕES ABERTAS"), ("outro", None)):
+        u = {"prazos": [dict(pz, tipo=tipo), {"data": "2027-01-24", "evento": "prova objetiva (prevista)",
+                                               "confirmado": True, "tipo": "prova"}], "fonte": fonte}
+        if selo:
+            u["selo"] = selo
+        upd = {"concursos": {"tjap_juiz": u}}
+        ok(uh.validar_ledger_updates(upd, copy.deepcopy(led), hoje="2026-11-19") == [], "não é ERRO")
+        av = [a for a in uh.avisos_ledger_updates(upd, led, "2026-11-19") if ".prazos[" in a]
+        ok(len(av) == 1 and RE_AVISO_TIPO_MON.match(av[0]).groups() == ("tjap_juiz", "0"), "1 AVISO, chave do MON: %r" % av)
+        ok(("'%s' num prazo cujo evento é o fim das inscrições («fim das inscrições, 16h (prorrogado)») — com esse "
+            "tipo o selo por data ignora o prazo" % tipo) in av[0] and "escreva tipo 'inscricoes_fim' ou omita o tipo; "
+           "se não é, aceite o aviso" in av[0], av[0])
+        # com o selo escrito, diz o que a data daria (o registro tinha ENCERRA EM BREVE: sem selo, nada a dizer)
+        ok(("o selo por data daria 'ENCERRA EM BREVE': fim das inscrições em 2 dias (21/11)" in av[0]) == bool(selo),
+           av[0])
+    upd = {"concursos": {"tjap_juiz": {"prazos": [dict(pz, tipo="inscricoes_fim")], "fonte": fonte,
+                                       "selo": "INSCRIÇÕES ABERTAS"}}}
+    av = uh.avisos_ledger_updates(upd, led, "2026-11-19")
+    ok(not any(".prazos[" in a for a in av) and any("contradiz o selo por data 'ENCERRA EM BREVE'" in a for a in av),
+       "tipo certo: só o aviso do selo escrito: %r" % av)
+    ok(not any(".prazos[" in a for a in uh.avisos_ledger_updates(
+        {"concursos": {"tjap_juiz": {"remover": True, "desfecho": "x", "prazos": [dict(pz, tipo="outro")]}}},
+        led, "2026-11-19")), "remover: sem aviso")
+
+
+@teste
+def inicio_prazo_vencido_confirmado_pela_banca():
+    # 19/11 com a banca lida: o mesmo registro tinha ALERTA de prazo vencido e SELO POR DATA → ENCERRADAS
+    out, _, _ = rodar_inicio("2026-11-19T07:05:00-03:00", estado_data="2026-11-18")
+    for org, ident, ret in (("TJAP", "tjap_juiz", "13/11"), ("TJPB", "tjpb_apoio", "12/11")):
+        ok("ALERTA: prazo vencido 18/11 (ontem) %s" % org not in out, "sem ALERTA: %s" % org)
+        ok(("PRAZO VENCIDO (sem ação): 18/11 (ontem) %s — fim das inscrições" % org) in out and
+           ("(id %s) — encerramento confirmado pela banca oficial lida hoje (última retificação %s): selo INSCRIÇÕES "
+            "ENCERRADAS automático" % (ident, ret)) in out, [l for l in out.splitlines() if ident in l][:3])
+        ok("SELO POR DATA: %s ENCERRA EM BREVE → INSCRIÇÕES ENCERRADAS" % ident in out, "o selo por data continua")
+    # dia seguinte, com o selo já ENCERRADAS no registro: continua sem ALERTA (a banca segue confirmando)
+    def encerradas(cs):
+        for c in cs:
+            if c["id"] in ("tjap_juiz", "tjpb_apoio"):
+                c["selo"] = "INSCRIÇÕES ENCERRADAS"
+    out, _, _ = rodar_inicio("2026-11-20T07:05:00-03:00", estado_data="2026-11-19", mod_concursos=encerradas)
+    ok("ALERTA: prazo vencido 18/11 (há 2 dias) TJAP" not in out and
+       "PRAZO VENCIDO (sem ação): 18/11 (há 2 dias) TJAP" in out and "SELO POR DATA: tjap_juiz" not in out, "20/11")
+    # retificação no dia do prazo (prorrogação possível) ou banca não lida: o ALERTA fica
+    def retificou(b):
+        for c in b["concursos"]:
+            if c["slug"] == "tjap26":
+                c["ultima_retificacao"] = "2026-11-18"
+    out, _, _ = rodar_inicio("2026-11-19T07:05:00-03:00", estado_data="2026-11-18", banca_mod=retificou)
+    ok("ALERTA: prazo vencido 18/11 (ontem) TJAP" in out and "PRAZO VENCIDO (sem ação): 18/11 (ontem) TJAP" not in out
+       and "PRAZO VENCIDO (sem ação): 18/11 (ontem) TJPB" in out, "retificação em 18/11")
+    def sem_tjap(b):
+        b["concursos"] = [c for c in b["concursos"] if c["slug"] != "tjap26"]
+    out, _, _ = rodar_inicio("2026-11-19T07:05:00-03:00", estado_data="2026-11-18", banca_mod=sem_tjap)
+    ok("ALERTA: prazo vencido 18/11 (ontem) TJAP" in out and "PRAZO VENCIDO (sem ação): 18/11 (ontem) TJAP" not in out,
+       "banca do TJAP não lida")
+
+
+@teste
+def helper_errata_removida_sem_falso_indicio():
+    d = tempfile.mkdtemp(dir=TMPDIR)
+    caminho = os.path.join(d, "led.json")
+    led = json.loads(open(os.path.join(AQUI, "fixtures", "mon", "ledger-1611.json"), encoding="utf-8").read())
+    json.dump(led, open(caminho, "w"), ensure_ascii=False)
+    log = []
+    ex = {"execution_id": "2026-11-17-7h", "date": "2026-11-17", "source_status": {},
+          "pendencias": [{"id": "errata_2026_11_16", "texto": "errata"}, {"id": "outra_fora", "texto": "x"}],
+          "ledger_updates": {"pendencias": {"errata_2026_11_16": {"remover": True, "desfecho": "errata publicada"}}}}
+    uh.aplicar_ledger(caminho, ex, log.append)
+    ok(any("errata_2026_11_16 removida" in l for l in log), log)
+    ok(not any("errata_2026_11_16 saiu na edicao" in l for l in log), "falso indício: %r" % log)
+    ok(any("outra_fora saiu na edicao mas nao existe no ledger" in l for l in log), "o indício real continua")
 
 
 def main():

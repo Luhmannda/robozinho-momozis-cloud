@@ -166,8 +166,14 @@ de da do das dos e o a em no na
 # AVISO que pede decisao do orquestrador antes do rascunho: com algum deles o corpo vai para
 # email-com-avisos.html (o Read de email.html na mesma mensagem falha barato; quem aceita o aviso
 # le o outro arquivo, sem rodar de novo). Os demais AVISOs sao informativos.
+# "contradiz o selo por data" (helper: selo escrito hoje diferente do que a data da) e "prorrogação não
+# confirmada" (selos.py: prazo vencido sem a banca confirmar; o selo caiu para PENDÊNCIA DE VERIFICAÇÃO) pedem
+# o selo ou os prazos certos: sem isso o e-mail saia "INSCRIÇÕES ABERTAS" para inscricao que acaba em 2 dias.
+# "prazos[n].tipo" (montador, tipo_contra_evento; e o do helper com o mesmo prefixo): `tipo` 'outro'/'prova' num
+# prazo que o evento diz ser de inscricao desligava o selo por data sem alerta (INSCRIÇÕES ABERTAS a 2 dias do fim).
 ACIONAVEL = re.compile(r"REPUBLICADA|POSSIVEL_REPETIDA|POSSIVEL_DUPLICATA|movimento oficial não refletido|"
-                       r"relacionado a |nenhum card do resumo|citam? item descartado")
+                       r"relacionado a |nenhum card do resumo|citam? item descartado|contradiz o selo por data|"
+                       r"prorrogação não confirmada|\.prazos\[\d+\]\.tipo\b")
 
 # G7: atos de rotina do Planalto (agrupados no fim da secao; nada e omitido)
 ROTINA_ATO = re.compile(
@@ -453,19 +459,38 @@ def texto_destaque(tipo, d, hoje=None):
     return "%s — %s <i>%s</i>" % (cab, esc(ponto(limpo(d["destaque"]))), esc(ponto(limpo(d["processo"]))))
 
 
+def grupo_rg(d):
+    """Estagio do tema da RG para a ordem do bloco: 0 = com tese ou desfecho, 1 = em votacao ou em pauta
+    (sem tese ainda), 2 = sem repercussao geral (numa linha so, no fim)."""
+    if _verdade(d.get("sem_repercussao_geral")):
+        return 2
+    return 1 if _pendente_rg(d) and not d.get("tese") else 0
+
+
+def aviso_ordem_rg(spec, itens, idx, ref, avisos):
+    """Na RG a "ordem" do orquestrador vale DENTRO de cada estagio (grupo_rg): o bloco sempre traz primeiro
+    os temas com tese ou desfecho. Quando a ordem pedida poe um tema de estagio posterior antes, AVISO
+    informativo (antes a ordem era ignorada em silencio)."""
+    if not isinstance(spec, dict):        # a lista antiga ja tem o seu AVISO (selecionar)
+        return
+    pedidos = [i for i in spec.get("ordem") or [] if isinstance(i, int) and not isinstance(i, bool) and i in idx]
+    sai = sorted(pedidos, key=lambda i: (grupo_rg(itens[i]), pedidos.index(i)))
+    if sai != pedidos:
+        k = next(n for n, (a, b) in enumerate(zip(sai, pedidos)) if a != b)
+        avisos.append("%s: na Repercussão Geral a \"ordem\" vale dentro de cada estágio (com tese ou desfecho → em "
+                      "votação ou pauta → sem repercussão geral): Tema %s sai depois do Tema %s" % (
+                          ref, itens[pedidos[k]].get("tema"), itens[sai[k]].get("tema")))
+
+
 def destaques_html(tipo, itens, hoje=None):
     """Lista de <p> do bloco de destaques. RG (G5): primeiro os temas com tese ou desfecho, depois os em
-    votacao ou em pauta (sem tese ainda), e os sem repercussao geral numa linha so."""
+    votacao ou em pauta (sem tese ainda), e os sem repercussao geral numa linha so; dentro de cada estagio,
+    a ordem recebida (a do orquestrador, ver aviso_ordem_rg)."""
     if tipo != "rg":
         return [texto_destaque(tipo, d, hoje) for d in itens]
-    cheios, pendentes, sem_rg = [], [], []
-    for d in itens:
-        if _verdade(d.get("sem_repercussao_geral")):
-            sem_rg.append(d)
-        elif _pendente_rg(d) and not d.get("tese"):
-            pendentes.append(d)
-        else:
-            cheios.append(d)
+    cheios = [d for d in itens if grupo_rg(d) == 0]
+    pendentes = [d for d in itens if grupo_rg(d) == 1]
+    sem_rg = [d for d in itens if grupo_rg(d) == 2]
     out = [texto_destaque("rg", d, hoje) for d in cheios + pendentes]
     if sem_rg:
         out.append("<i>Sem repercussão geral:</i> " + "; ".join(
@@ -503,7 +528,9 @@ def selecionar(spec, n, ref, erros, avisos):
     return sel
 
 
-DERIVADOS = {"destaques_texto", "observacao", "herdada", "chave", "sem_conteudo"}
+# temas (so RG): os temas que sairam no e-mail, gravados no historico; o informativos.py tira da revisita de
+# uma RG anterior o tema ja publicado com uma RG posterior (INF-rev-1c: o Tema 1.483 da RG 397 voltava na 394)
+DERIVADOS = {"destaques_texto", "observacao", "herdada", "chave", "sem_conteudo", "temas"}
 
 
 def resolver(it, ev, erros, avisos=None, hoje=None):
@@ -562,6 +589,9 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "_revisita": bool(e.get("revisita")),
                 "_nota_auto": ("destaques da edição anunciada em %s" % br_data(anunciada))
                 if e.get("situacao") == "atrasada" and br_data(anunciada) else ""}
+        if e["tipo"] == "rg":
+            base["temas"] = [str(e["itens"][i]["tema"]) for i in idx if e["itens"][i].get("tema")]
+            aviso_ordem_rg(it.get("destaques"), e["itens"], idx, ref, avisos)
     elif m:
         # edicao anunciada por e-mail cujo documento nao abriu: numero, data e link, sem destaques
         tipo, n = m.group(1), int(m.group(2))
@@ -621,9 +651,16 @@ def limpar_nota(nota):
     return "; ".join(p for p in partes if p and not SO_SEM_LINK.match(p))
 
 
+EXTRA_META = re.compile(r"\(\s*(?:edi[çc][ãa]o\s+)?extra\s*\)|(?:edi[çc][ãa]o\s+)?\bextra\b", re.I)
+DATA_ATO_META = re.compile(r"\s*(?:(?:do\s+)?ato\s+(?:de\s+)?)?\d{1,2}/\d{1,2}(?:/\d{2,4})?\s*[,;·]?\s*", re.I)
+
+
 def norm_meta(meta):
-    """Metadado do Planalto no formato 'DOU DD/MM[ · edição extra][; com veto — ...]'. Aceita o antigo
-    'DD/MM, DOU DD/MM (edição extra)' e o do coletor 'ato DD/MM/AAAA; DOU DD/MM/AAAA (edição extra)'."""
+    """Metadado do Planalto no formato 'DOU DD/MM[ · edição extra][; <resto>]'. Aceita o antigo
+    'DD/MM, DOU DD/MM (edição extra)' e o do coletor 'ato DD/MM/AAAA; DOU DD/MM/AAAA (edição extra)'.
+    So sai a data do ato antes do DOU (o titulo ja a traz) e a marca de edicao extra (vira ' · edição extra');
+    todo o resto escrito pelo orquestrador fica, depois de '; ', sem parenteses aninhados: veto, republicacao,
+    retificacao, vigencia ('DOU 13/11 (republicação por incorreção)' -> 'DOU 13/11; republicação por incorreção')."""
     m = str(meta or "").strip()
     if not m:
         return ""
@@ -631,10 +668,21 @@ def norm_meta(meta):
     if not dou:
         return re.sub(r"\s*\(([^()]*)\)", r" · \1", m)
     out = "DOU %02d/%02d" % (int(dou.group(1)), int(dou.group(2)))
-    if re.search(r"edi[çc][ãa]o\s+extra|\bextra\b", m, re.I):
+    if EXTRA_META.search(m):
         out += " · edição extra"
-    resto = re.search(r";\s*((?:com\s+)?vetos?\b.*)$", m, re.I)
-    return out + ("; " + resto.group(1) if resto else "")
+    antes = m[:dou.start()]
+    if DATA_ATO_META.fullmatch(antes) or not antes.strip():
+        antes = ""
+    partes = []
+    for s in (antes, m[dou.end():]):
+        s = EXTRA_META.sub("", s)
+        for _ in range(3):                         # parenteses (ate aninhados) viram separador
+            s = re.sub(r"\(([^()]*)\)", r"; \1;", s)
+        for p in re.split(r"\s*[;·]\s*", s):
+            p = p.strip(" ,:;·-–—()")
+            if p:
+                partes.append(p)
+    return out + "".join("; " + p for p in partes)
 
 
 def grupo_resenha(r):
@@ -770,33 +818,108 @@ def execucoes_historico(caminho, com_arquivos=False):
     return out
 
 
+CLASSE_INSCRICAO = {"inscricoes_fim": "o fim das inscrições", "inscricoes_inicio": "o início das inscrições"}
+RE_AVISO_TIPO = re.compile(r"^ledger_updates\.concursos\.(\S+?)\.prazos\[(\d+)\]\.tipo\b")
+
+
+def tipo_contra_evento(upd, por_id, hoje, ctx_banca):
+    """AVISOs (acionaveis) para `prazos[n].tipo` do update de hoje que esconde um prazo de inscricao: o `evento`
+    (so o texto; selos.tipo_contradiz_evento, a regra do helper) diz inscricoes_fim/inscricoes_inicio e o tipo
+    escrito da outra classe. O tipo
+    prevalece sobre o evento, e com 'outro' o selo por data ignora o prazo: o e-mail saia INSCRIÇÕES ABERTAS (ou
+    ENCERRA HOJE de ontem) para inscricao que acaba em 2 dias, sem ENCERRA EM BREVE nem rebaixamento. Nao muda
+    o selo: o tipo pode ser decisao (o regex do evento erra); diz o que a data daria com a classe do evento."""
+    out = []
+    for ident, campos in (upd or {}).items():
+        if not isinstance(campos, dict) or campos.get("remover") or not isinstance(campos.get("prazos"), list):
+            continue
+        for n, p in enumerate(campos["prazos"]):
+            if not isinstance(p, dict) or "tipo" not in p:
+                continue
+            if hasattr(selos, "tipo_contradiz_evento"):     # a mesma regra do helper (avisos_tipo_prazo)
+                pelo_evento = selos.tipo_contradiz_evento(p)
+            else:
+                pelo_evento = selos.classe_prazo({k: v for k, v in p.items() if k != "tipo"})
+                if selos.classe_prazo(p) == pelo_evento:
+                    pelo_evento = None
+            if pelo_evento not in CLASSE_INSCRICAO:
+                continue
+            daria = ""
+            c = por_id.get(ident)
+            if c is not None:
+                alt = dict(c, prazos=[dict(q, tipo=pelo_evento) if i == n and isinstance(q, dict) else q
+                                      for i, q in enumerate(campos["prazos"])])
+                x = ctx_banca.get(ident) or {}
+                try:
+                    novo, motivo = selos.selo_por_data(alt, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                                       ultima_retificacao=x.get("ultima_retificacao"),
+                                                       inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+                except (KeyError, ValueError, TypeError, AttributeError):
+                    novo, motivo = c.get("selo"), None
+                if novo != c.get("selo") and motivo:
+                    porque = motivo.split(": ", 1)[-1].split(": ")[0].split(" — ")[0]
+                    daria = " (com '%s', o selo por data daria '%s': %s)" % (pelo_evento, novo, porque)
+            out.append("ledger_updates.concursos.%s.prazos[%d].tipo: %r num prazo cujo evento é %s («%s») — com "
+                       "esse tipo o selo por data ignora o prazo%s; se é %s, escreva tipo '%s' ou omita o tipo; "
+                       "se não é, aceite o aviso" % (
+                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], str(p.get("evento") or "")[:80],
+                           daria, CLASSE_INSCRICAO[pelo_evento], pelo_evento))
+    return out
+
+
+def sem_tipo_repetido(do_helper, proprios):
+    """AVISOs do helper (--validar) sem o de prazos[n].tipo que o montador ja deu para o mesmo prazo: fica o do
+    montador, que diz o selo que a data daria com o mesmo estado do e-mail. Prazo so do helper continua."""
+    meus = {m.groups() for m in map(RE_AVISO_TIPO.match, proprios) if m}
+    out = []
+    for a in do_helper:
+        m = RE_AVISO_TIPO.match(a)
+        if not (m and m.groups() in meus):
+            out.append(a)
+    return out
+
+
 def estado_concursos(ex, j, led, op, avisos):
     """Registro de concursos como sai no e-mail: ledger + ledger_updates de hoje + carimbo da banca lida
-    hoje + selo por data (work/selos.py; nunca sobre selo escrito hoje) + mudou_em (migracao em memoria)."""
+    hoje + selo por data (work/selos.py; nunca sobre selo escrito hoje) + mudou_em (migracao em memoria).
+    Mesma regra do helper (aplicar_mecanicos_concursos), para o e-mail e o ledger nao divergirem:
+    - selo ESCRITO hoje = selos.selo_escrito (difere do registro de antes); a copia do selo nao e decisao;
+    - carimbo e contexto da banca com o update de hoje: o registro que AINDA diverge do edital nao e
+      carimbado nem conta como banca lida (bancas.divergencias_pendentes)."""
     hoje = date.fromisoformat(j["data"])
     upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
+    antes = {c.get("id"): c for c in led.get("concursos") or []}
     regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd)
     por_id = {c["id"]: c for c in regs}
     banca = ler_banca(op.get("bancas") or tmp("bancas.json"), j["data"])
     if banca:
         try:
-            carimbos = bancas.carimbos(banca, led.get("concursos") or [], hoje)
+            carimbos = bancas.carimbos(banca, regs, hoje, upd=upd)
         except (KeyError, ValueError, TypeError):
             carimbos = {}
         for ident, campos in carimbos.items():
             if ident in por_id:      # o julgamento de hoje prevalece; carimbo nao e novidade para o leitor
                 por_id[ident].update({k: v for k, v in campos.items() if k not in (upd.get(ident) or {})})
-    ctx_banca = bancas.contexto_selos(banca) if banca else {}
+    try:
+        ctx_banca = bancas.contexto_selos(banca, regs, hoje, upd) if banca else {}
+    except (KeyError, ValueError, TypeError):
+        ctx_banca = {}
+    avisos += tipo_contra_evento(upd, por_id, hoje, ctx_banca)
     selo_mudou = set()
     for c in regs:
-        if "selo" in (upd.get(c["id"]) or {}):
+        if selos.selo_escrito(upd.get(c["id"]), antes.get(c["id"])):
             continue
         x = ctx_banca.get(c["id"]) or {}
         novo, motivo = selos.selo_por_data(c, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
                                            ultima_retificacao=x.get("ultima_retificacao"),
                                            inicio_inscricoes_banca=x.get("inicio_inscricoes"))
         if novo != c.get("selo"):
-            avisos.append("selo por data: %s %s (automático; não escreva o selo)" % (c["id"], motivo))
+            if novo == selos.SELO_SEM_CONFIRMACAO:
+                # o motivo pede ao orquestrador o selo/os prazos (encerradas ou prorrogadas): nada de
+                # "nao escreva o selo"; casa ACIONAVEL ("prorrogação não confirmada")
+                avisos.append("selo por data: %s %s" % (c["id"], motivo))
+            else:
+                avisos.append("selo por data: %s %s (automático; não escreva o selo)" % (c["id"], motivo))
             c["selo"] = novo
             c["mudou_em"] = j["data"]
             selo_mudou.add(c["id"])
@@ -906,13 +1029,25 @@ def apoio_calculado(cat, por_cat):
     """D5/G3/A8: a linha de apoio de secao vazia confere o que a edicao traz (email.apoio sobrescreve)."""
     infs = por_cat.get("Informativos") or []
 
-    def edicoes(prefixos):
-        return [it for it in infs if re.match(r"(%s)\d+$" % prefixos, str(it.get("ref") or ""))]
+    def edicoes(prefixos, com_conteudo=True):
+        """Edicoes da secao Informativos; com_conteudo: so as que trazem destaques (a "sem_conteudo", cujo
+        documento nao abriu, sai la como "Conteúdo não acessível" e nao tem teses para apontar)."""
+        return [it for it in infs if re.match(r"(%s)\d+$" % prefixos, str(it.get("ref") or ""))
+                and not (com_conteudo and it.get("sem_conteudo"))]
+
+    def nao_abriu(lista):
+        nomes = " e ".join(("da " if it["titulo"].startswith("Repercussão") else "do ") + it["titulo"] for it in lista)
+        return "%s %s não %s nesta execução (número, data e link em 📚 Informativos)" % (
+            "os documentos" if len(lista) > 1 else "o documento", nomes, "abriram" if len(lista) > 1 else "abriu")
     if cat == "STF Jurisprudência":
+        todas = edicoes("rg|stf", False)
         stf = edicoes("rg|stf")
-        if not stf:
+        if not todas:
             return None
-        rg_novo = any(str(it.get("ref")).startswith("rg") and not it.get("herdada") for it in stf)
+        if not stf:
+            return "Teses e julgados do STF desta edição ainda não legíveis: %s." % nao_abriu(todas)
+        # "sem RG nova" so quando nenhuma RG da edicao e nova, mesmo a anunciada sem conteudo
+        rg_novo = any(str(it.get("ref")).startswith("rg") and not it.get("herdada") for it in todas)
         nomes = "; ".join(it["titulo"] for it in sorted(stf, key=lambda x: not str(x.get("ref")).startswith("rg")))
         if rg_novo:
             return "Teses e julgados do STF desta edição estão em 📚 Informativos (%s)." % nomes
@@ -930,6 +1065,9 @@ def apoio_calculado(cat, por_cat):
         if stj:
             return "Sem teses do CodJu na janela; as do STJ desta edição estão em 📚 Informativos (%s)." % (
                 "; ".join(it["titulo"] for it in stj))
+        vazias = edicoes("stj", False)
+        if vazias:
+            return "Sem teses do CodJu na janela; %s." % nao_abriu(vazias)
         return "Sem teses do CodJu nem Informativo STJ novo na janela."
     return None
 
@@ -1225,20 +1363,27 @@ def sec_pendencias(pend, regs, ex, ss):
     return "\n".join(out)
 
 
-TECNICO = re.compile(r"\s*\(?\bhttps?\s*[=:]?\s*\d{1,3}\b\)?|\s*\(?\b[\w-]+\.(?:py|sh)\b:?\)?|\s*\(anti-bot\)",
-                     re.I)
+# G8: detalhe tecnico que nao e para o leitor (codigo http/erro, nome de script, id interno com "_").
+# Nao e apagado do texto (apagar embaralhava a frase: "scripts coleta_web, informativos e x" virava
+# "scripts,, e x"): o montador avisa (tecnico_para_leitor) e o orquestrador reescreve.
+TECNICO = re.compile(r"\b(?:https?|erro|status|c[óo]digo)\s*[=:]?\s*[1-5]\d\d\b|\(\s*[45]\d\d\s*\)|"
+                     r"\b[\w-]+\.(?:py|sh)\b|\b[a-z]+(?:_[a-z0-9]+)+\b", re.I)
 
 
-def suporte_txt(ss, em):
+def tecnico_para_leitor(texto):
+    """Trechos tecnicos (TECNICO) do texto, sem repeticao, na ordem; [] = linguagem simples."""
+    out = []
+    for m in TECNICO.finditer(str(texto or "")):
+        if m.group(0) not in out:
+            out.append(m.group(0))
+    return out
+
+
+def suporte_txt(ss, em=None):
     """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
-    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico)."""
-    if em.get("suporte"):
-        t = TECNICO.sub("", em["suporte"])
-        for fid, rot in ROTULO_FONTE.items():          # id interno -> nome da fonte
-            t = re.sub(r"\b%s\b" % re.escape(fid), rot, t)
-        t = re.sub(r"\b(?:coleta_web|informativos|versiculo|montar_email|bancas|inicio)\b(?!\.)", "", t)
-        t = re.sub(r"\s+([;:,.])", r"\1", re.sub(r"\s{2,}", " ", t))
-        return re.sub(r":(?=[;.]|\s*$)", "", t).strip()
+    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
+    calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
+    embaralhava a frase e deixava codigo e nome de script."""
     falhas = []
     for i in OFICIAIS + SECUNDARIAS:
         if ss.get(i) == "falha":
@@ -1250,6 +1395,15 @@ def suporte_txt(ss, em):
             "de concurso; e-mail montado automaticamente")
     return base + (". Fontes que falharam nesta execução: " + "; ".join(falhas) if falhas
                    else ". Nenhuma fonte falhou nesta execução")
+
+
+def nome_feriado(nome):
+    """'Recesso da Justiça Federal (20/12 a 06/01)' -> 'Recesso da Justiça Federal, 20/12 a 06/01': o nome entra
+    entre parenteses na frase da janela, e parenteses aninhados ficam ilegiveis."""
+    s = str(nome or "")
+    for _ in range(3):
+        s = re.sub(r"\s*\(\s*([^()]*?)\s*\)", r", \1", s)
+    return re.sub(r"\s*,\s*(,\s*)+", ", ", s).strip(" ,")
 
 
 def janela_txt(j, limitacoes):
@@ -1266,7 +1420,8 @@ def janela_txt(j, limitacoes):
     if fds:
         cobre.append("o fim de semana")
     if fer:
-        cobre.append("o feriado de " + " e ".join("%s (%s)" % (br_data(f["data"]), f.get("nome") or "") for f in fer))
+        cobre.append("o feriado de " + " e ".join("%s (%s)" % (br_data(f["data"]), nome_feriado(f.get("nome")))
+                                                  for f in fer))
     t = "Janela de cobertura: das %s de %s (%s) às %s de hoje (%s)%s, fuso América/São Paulo." % (
         hm(ini), rot, ini.strftime("%d/%m"), hm(fim), fim.strftime("%d/%m/%Y"),
         (", cobrindo " + " e ".join(cobre)) if cobre else "")
@@ -1274,7 +1429,7 @@ def janela_txt(j, limitacoes):
     if isinstance(fh, dict) and fh.get("nome"):
         qual = {"nacional": "feriado nacional", "justica_federal": "feriado na Justiça Federal",
                 "ponto_facultativo": "ponto facultativo"}.get(fh.get("tipo"), "feriado")
-        t += " Hoje é %s (%s)." % (qual, fh["nome"])
+        t += " Hoje é %s (%s)." % (qual, nome_feriado(fh["nome"]))
     if limitacoes:
         t += " Limitações: " + ponto(limitacoes)
     return t
@@ -1716,6 +1871,20 @@ def preparar(ex, j, led, ev, v, op=None):
         n = sum(1 for i in itens if i["categoria"] == cat)
         if n > 12:
             avisos.append("%s com %d itens (alvo ~10): corte os menos relevantes" % (cat, n))
+    # G8: o leitor nao ve codigo http nem nome de script. O rodape e sempre o calculado; limitacoes e
+    # observacoes saem como escritas, entao o montador aponta o trecho tecnico (sem apagar: apagar embaralha)
+    if str(em.get("suporte") or "").strip():
+        avisos.append("email.suporte ignorado: o rodapé \"Suporte usado na execução\" é automático (fontes que "
+                      "falharam vêm do source_status); detalhe técnico vai em errors/verification_notes")
+    lim = em.get("limitacoes") or ""
+    textos = [("email.limitacoes", lim)] + [("email.observacoes[%d]" % i, o)
+                                           for i, o in enumerate(em.get("observacoes") or [])
+                                           if not ja_em_limitacoes(o, lim)]      # a repetida nem sai
+    for onde, txt in textos:
+        tec = tecnico_para_leitor(txt)
+        if tec:
+            avisos.append("%s traz detalhe técnico ao leitor (%s): reescreva em linguagem simples (o técnico vai em "
+                          "errors)" % (onde, ", ".join(tec[:4])))
     urgente = [x for x in prazos(regs, hj) if x[1] <= 7]
     if (urgente or novos) and not any(re.search(r"(?i)concurs|inscri|edital|prova", " ".join(map(str, c[1:])))
                                       for c in cards if isinstance(c, list)):
@@ -1829,7 +1998,8 @@ def main():
     validacao = [l for l in linhas if l.startswith("VALIDACAO")]
     if r.returncode != 0:
         falhar([l for l in linhas if l.startswith("ERRO")] + [x for x in [r.stderr.strip()[-400:]] if x] + validacao)
-    avisos = agrupar_avisos([l[len("AVISO: "):] for l in linhas if l.startswith("AVISO: ")] + avisos)
+    do_helper = [l[len("AVISO: "):] for l in linhas if l.startswith("AVISO: ")]
+    avisos = agrupar_avisos(sem_tipo_repetido(do_helper, avisos) + avisos)
 
     try:
         from zoneinfo import ZoneInfo
@@ -1847,11 +2017,12 @@ def main():
     dados = corpo.encode("utf-8")
     if len(dados) >= TAMANHO_AVISO:          # D6: nunca ERRO; a alavanca e Concursos, nao a Midia
         maiores = tamanho_secoes(secoes)[:4]
-        avisos.append("corpo com %s (≥ %d KB; o Gmail corta a exibição perto de 102 KB, sem perder conteúdo) — "
-                      "maiores seções: %s%s; leia o arquivo com allow_large" % (
-                          kb(len(dados)), TAMANHO_AVISO // 1000, ", ".join("%s %s" % (n, kb(b)) for n, b in maiores),
-                          "; a alavanca é Concursos (compactação e remoção de encerrados)"
-                          if maiores and maiores[0][0] == "Concursos" else ""))
+        # 1o dos informativos: diz como ler o arquivo (allow_large) e nao pode cair no montagem-avisos.txt
+        avisos.insert(0, "corpo com %s (≥ %d KB; o Gmail corta a exibição perto de 102 KB, sem perder conteúdo) — "
+                         "maiores seções: %s%s; leia o arquivo com allow_large" % (
+                             kb(len(dados)), TAMANHO_AVISO // 1000, ", ".join("%s %s" % (n, kb(b)) for n, b in maiores),
+                             "; a alavanca é Concursos (compactação e remoção de encerrados)"
+                             if maiores and maiores[0][0] == "Concursos" else ""))
     acionaveis = [x for x in avisos if ACIONAVEL.search(x)]
     informativos_av = [x for x in avisos if not ACIONAVEL.search(x)]
     destino = saida_avisos if acionaveis else a.saida
@@ -1875,7 +2046,10 @@ def main():
     detalhe = ctx["descartadas"] + ["AVISO ACIONÁVEL: " + x for x in acionaveis] + ["AVISO: " + x for x in informativos_av]
     cabe, usado = [], 0
     for l in detalhe:                        # stdout < 3 KB: o excedente vai para um arquivo
-        l = l if len(l) <= 320 else l[:200] + " … " + l[-117:]     # o fim diz o que fazer: corta o meio
+        # o fim diz o que fazer: corta o meio. O acionavel (pede decisao; o meio pode ser o que fazer, como em
+        # "encerradas → … ; prorrogadas → …") so e cortado acima de 600 caracteres
+        lim = 600 if l.startswith("AVISO ACIONÁVEL: ") else 320
+        l = l if len(l) <= lim else l[:lim - 120] + " … " + l[-117:]
         if usado + len(l) > 2100:
             break
         cabe.append(l)

@@ -10,7 +10,10 @@
 # traz "parar de receber esta newsletter" no mesmo wrapper t.rdsv2.net das
 # materias. Nada aqui segue redirecionamento as cegas (antes: curl -L):
 #   - linha cujo TITULO e de descadastro ("Caso nao queira mais receber estes
-#     e-mails...", "cancele sua inscricao", "Sair da lista") -> RECUSADO antes de
+#     e-mails...", "cancele sua inscricao", "Sair da lista", "Voce recebeu este
+#     e-mail porque...", com ou sem acento), termina em oracao so de saida
+#     ("... Para sair, clique aqui") ou nao diz nada ("clique aqui", "aqui",
+#     "Sair") -> RECUSADO antes de
 #     qualquer pedido, nem o wrapper e tocado (via inline titulo<TAB>wrapper);
 #   - cada salto e resolvido SEM seguir (-o /dev/null -w redirect_url), no
 #     maximo 5, e so no caminho de clique do rastreio (t.rdsv2.net/ls/click);
@@ -100,18 +103,25 @@ SEGMENTOS_CONTA = {
     "wp-login.php", "wp-json", "api", "cancelamento", "cancelar", "remover"}
 PROIBIDO = re.compile(r"unsub|descadastr|opt-?out|opt_out|preferenc")       # em qualquer parte
 # fora do slug (no slug sao manchete: ".../aposentados-podem-deixar-de-receber-...")
-PROIBIDO_FORA_DO_SLUG = re.compile(r"manage|remov|cancel|inscri|assinatura|newsletter|e-?mail|"
-                                   r"sa(?:ir|ia)-d[aeo]s?-lista|(?:parar|deixar)-de-receber|"
-                                   r"nao-(?:qu[ei]\w*|desej\w*)-mais-receber")   # conta/perfil/login: SEGMENTOS_CONTA
+PROIBIDO_FORA_DO_SLUG = re.compile(r"manage|remov|cancel|inscri|assinatura|newsletter|e-?mail|gerenci|desinscrev|"
+                                   r"sa(?:ir|ia)-d[aeo]s?-lista|(?:parar|pare|deixar|deixe)-de-receber|"
+                                   r"nao-(?:[a-z]+-){0,2}?(?:mais-receber|receber-mais)|"
+                                   r"caso-nao-(?:queira|quiser|deseje)")
+# (conta/perfil/login: SEGMENTOS_CONTA). Caminho e consulta sao conferidos DOBRADOS
+# (jota_extrair.dobrar: "prefer%C3%AAncias" -> "preferencias", "n%C3%A3o" -> "nao").
 FRASE_DESCADASTRO = re.compile(r"(?:^|-)(?:cancel|remov|sair|desinscrev|desativ)[a-z]*"
                                r"(?:-[a-z0-9]+){0,3}?-(?:inscri|assinatura|e-?mail|newsletter)")
-# Titulo da linha (via inline "titulo<TAB>wrapper"): os trechos do DESCADASTRO
-# que tambem aparecem em manchete ("Aposentados podem deixar de receber...",
-# "Brasil pode sair da lista suja...", "TSE manda cancelar inscricao...") so
-# contam com contexto de e-mail ou em texto curto de link (<= 6 palavras).
-TRECHO_FRACO = re.compile(r"prefer|cancelar|sair da|deixar de|parar de|n[aã]o |remover o ", re.I)
-CONTEXTO_EMAIL = re.compile(r"e-?mails?\b|newsletter|clique|voc[eê]|\bsua inscri|\bseu e-?mail|"
-                            r"\best[ae]s? (?:mensage|comunica)|\bnoss[ao]s? (?:mensage|comunica|e-?mail)", re.I)
+# Titulo da linha (via inline "titulo<TAB>wrapper"), conferido DOBRADO (sem
+# acento, qualquer espaco): os trechos do DESCADASTRO que tambem aparecem em
+# manchete ("Aposentados podem deixar de receber...", "Brasil pode sair da lista
+# suja...", "TSE manda cancelar inscricao...", "...nao precisa mais receber...")
+# so contam com contexto de e-mail ou em texto curto de link (<= 6 palavras).
+# Titulo que nao diz nada ("clique aqui", "aqui", vazio) ou so verbo de saida
+# ("Sair", "Cancelar") e rodape copiado sem contexto: RECUSADO tambem.
+TRECHO_FRACO = re.compile(r"prefer|cancel|sa(?:ir|ia)\s+d|(?:deix|par)\w*\s+de|n[aã]o\s|caso\s|remov", re.I)
+CONTEXTO_EMAIL = re.compile(r"e-?mails?\b|newsletter|clique|\btoque\b|\baqui\b|\blink\b|voc[eê]|\bsua\s+inscri|"
+                            r"\bseu\s+e-?mail|\best[ae]s?\s+(?:mensage|comunica)|"
+                            r"\bnoss[ao]s?\s+(?:mensage|comunica|e-?mail)", re.I)
 CAMINHOS_RASTREIO = {"/ls/click", "/wf/click"}
 
 
@@ -155,7 +165,7 @@ def motivo_proibido(url):
     if u.scheme not in ("http", "https"):
         return "esquema nao permitido: %s" % (u.scheme or "?")
     caminho, consulta = unquote(u.path or "").lower(), unquote(u.query or "").lower()
-    m = PROIBIDO.search(caminho + "?" + consulta)
+    m = PROIBIDO.search(_dobrado(caminho + "?" + consulta))
     if m:
         return "caminho/consulta de descadastro ou preferencias (%s)" % m.group(0)
     if host in RASTREIO:
@@ -168,7 +178,7 @@ def motivo_proibido(url):
     segs = [x for x in caminho.split("/") if x]
     if len(segs) < 2 or segs[0] not in EDITORIAS:
         return "caminho fora das editorias do jota.info (/%s)" % "/".join(segs[:2])
-    conta = next((x for x in segs if x in SEGMENTOS_CONTA), None)
+    conta = next((x for x in segs if _dobrado(x) in SEGMENTOS_CONTA), None)
     if conta:
         return "caminho/consulta de descadastro ou preferencias (/%s)" % conta
     slug = segs[-1]
@@ -184,7 +194,7 @@ def motivo_proibido(url):
         antes = "/".join(segs[:-1])
     util = urlencode([(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True)
                       if not k.lower().startswith(("utm_", "rd_"))]).lower()
-    m = PROIBIDO_FORA_DO_SLUG.search(antes + "?" + unquote(util))
+    m = PROIBIDO_FORA_DO_SLUG.search(_dobrado(antes + "?" + unquote(util)))
     if m:
         return "caminho/consulta de descadastro ou preferencias (%s)" % m.group(0)
     m = FRASE_DESCADASTRO.search(slug) or re.search(r"manage", slug)
@@ -197,15 +207,29 @@ def motivo_proibido(url):
     return ""
 
 
+def _dobrado(s):
+    """Minusculo e sem acento (jota_extrair.dobrar), para as palavras proibidas."""
+    return jota_extrair.dobrar(unicodedata.normalize("NFC", s)).lower()
+
+
 def titulo_de_descadastro(titulo):
     """Trecho de descadastro no titulo da linha ('Caso nao queira mais receber
-    estes e-mails', 'cancele sua inscricao', 'Sair da lista'), ou ''."""
-    titulo = titulo or ""
-    curto = len(re.findall(r"\w+", titulo)) <= 6
-    for m in jota_extrair.DESCADASTRO.finditer(titulo):
-        if not TRECHO_FRACO.match(m.group(0)) or curto or CONTEXTO_EMAIL.search(titulo):
-            return m.group(0)
-    return ""
+    estes e-mails', 'cancele sua inscricao', 'Sair da lista', 'Você recebeu este
+    e-mail porque...'), com ou sem acento; 'titulo generico: ...' para 'clique
+    aqui', 'aqui', 'Sair'; a ultima oracao so de saida ('... no JOTA. Para sair,
+    clique aqui'); ou ''."""
+    titulo = unicodedata.normalize("NFC", titulo or "")
+    dob = jota_extrair.dobrar(titulo)
+    curto = len(re.findall(r"\w+", dob)) <= 6
+    for m in jota_extrair.DESCADASTRO.finditer(dob):
+        if not TRECHO_FRACO.match(m.group(0)) or curto or CONTEXTO_EMAIL.search(dob):
+            return titulo[m.start():m.end()]
+    m = jota_extrair.RODAPE.search(dob)       # frase de rodape: nunca e manchete (v2)
+    if m:
+        return titulo[m.start():m.end()]
+    if jota_extrair.generico(titulo) or jota_extrair.so_saida(titulo):
+        return "titulo generico: %s" % (" ".join(titulo.split()) or "vazio")
+    return jota_extrair.saida(titulo)         # "... no JOTA. Para sair, clique aqui" (v2)
 
 
 def seguir(url):

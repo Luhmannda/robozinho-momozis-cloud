@@ -33,7 +33,10 @@
 #       prazos vencidos (prazos_podados = os que o update de hoje retirou).
 #   classe_prazo: "inscricao definitiva" (2a fase da magistratura) e eventos
 #     acessorios da prova (resultado, gabarito, recurso, locais, convocacao...)
-#     sao "outro" — nao abrem inscricao nem viram PROVA EM BREVE.
+#     sao "outro" — nao abrem inscricao nem viram PROVA EM BREVE. O `tipo` escrito
+#     prevalece sobre o evento; tipo_contradiz_evento acusa o tipo que tira da
+#     classe um evento que, pelo texto (classe_pelo_evento), e o fim/inicio das
+#     inscricoes (helper e montador avisam; nada e corrigido sozinho).
 #   fonte_oficial: so o que passa em DOMINIOS_OFICIAIS; o dominio_oficial do
 #     registro nao vale como prova (era contornavel no mesmo update: E9).
 # =====================================================================
@@ -78,9 +81,17 @@ SECUNDARIOS = re.compile(r"estrategia|qconcursos|pciconcursos|jcconcursos|ceisc|
                          r"editaljuridico|conjur|migalhas|jota|g1\.globo|wikipedia|blog", re.I)
 TERMOS_RELATIVOS = re.compile(r"\b(hoje|amanh[ãa]|ontem)\b", re.I)
 
-RE_FIM = re.compile(r"(fim|t[ée]rmino|encerramento|[úu]ltimo dia|prazo final|encerra).{0,25}inscri|"
-                    r"inscri[çc][õo]es?\s+at[ée]|inscri[çc][õo]es?\s*\(fim", re.I)
-RE_INICIO = re.compile(r"(in[íi]cio|abertura).{0,25}inscri", re.I)
+_INSCR = r"inscri[çc][ãaõo]\w*"
+# fim das inscricoes pelo texto do evento (volta 2: "data limite para inscrições", "prazo de inscrição termina",
+# "inscrições (prorrogadas)", "prorrogação das inscrições" e "inscrições abertas até" eram "outro" e desligavam
+# o selo por data do registro)
+RE_FIM = re.compile(r"(fim|t[ée]rmino|encerramento|[úu]ltimo dia|prazo final|encerra|limite|prorroga)\w*.{0,25}inscri|"
+                    + _INSCR + r"(?:\s+(?:abertas?|online|prorrogad[ao]s?))?\s+at[ée]\b|"
+                    + _INSCR + r"\s*\(\s*(?:fim|prorrogad|encerra)|" + _INSCR + r"\s+prorrogad|"
+                    + _INSCR + r".{0,20}?\b(?:termina|encerra|acaba)", re.I)
+# inicio das inscricoes (volta 2: "inscrições a partir de DD/MM", "inscrições abrem em DD/MM")
+RE_INICIO = re.compile(r"(in[íi]cio|abertura)\w*.{0,25}inscri|" + _INSCR + r"(?:\s+abertas?)?\s+a\s+partir\s+d|"
+                       + _INSCR + r"\s+(?:abrem|come[çc]am|iniciam)\b", re.I)
 RE_PROVA = re.compile(r"\bprova", re.I)
 RE_PAGAMENTO = re.compile(r"pagamento|boleto|taxa|isen", re.I)
 # inscricao DEFINITIVA (2a fase da magistratura: TJRS, TJSC, TJAP, TRF5 em 2027) nao reabre o concurso
@@ -133,12 +144,29 @@ def classe_prazo(pz):
     t = pz.get("tipo")
     if t in TIPOS_PRAZO:
         return t
-    ev = pz.get("evento") or ""
+    return classe_pelo_evento(pz.get("evento"))
+
+
+def tipo_contradiz_evento(pz):
+    """`tipo` escrito que tira um prazo de inscricao da sua classe: o `evento`, pelo texto, e o fim (ou o inicio)
+    das inscricoes e o `tipo` diz outra coisa (ex.: 'outro' em "fim das inscrições, 16h (prorrogado)", pela
+    leitura "'outro' para tudo que nao e a prova"). O tipo prevalece sobre o evento: o selo por data, o
+    rebaixamento e o DIVERGE ignoram o prazo. Devolve a classe do evento (inscricoes_fim|inscricoes_inicio) ou
+    None. Nao corrige nada: o tipo existe para o caso em que o regex do evento erra (isencao, outra etapa)."""
+    if not isinstance(pz, dict) or pz.get("tipo") not in TIPOS_PRAZO:
+        return None
+    c = classe_pelo_evento(pz.get("evento"))
+    return c if c in ("inscricoes_fim", "inscricoes_inicio") and c != pz["tipo"] else None
+
+
+def classe_pelo_evento(ev):
+    """Classe do prazo so pelo texto do `evento` (sem o `tipo`)."""
+    ev = ev if isinstance(ev, str) else ""
     if RE_DEFINITIVA.search(ev):
         return "outro"          # inscricao definitiva: etapa de quem ja passou, nao reabre inscricao
     if RE_INICIO.search(ev):
         return "inscricoes_inicio"
-    if RE_FIM.search(ev) and not RE_PAGAMENTO.search(ev.split("inscri")[0]):
+    if RE_FIM.search(ev) and not RE_PAGAMENTO.search(re.split(r"inscri", ev, maxsplit=1, flags=re.I)[0]):
         return "inscricoes_fim"
     m = RE_PROVA.search(ev)
     # so o que vem ANTES de "prova" decide: "resultado preliminar da prova" e outro; "prova objetiva
@@ -263,7 +291,8 @@ def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, ini
                 porque[SELO_SEM_CONFIRMACAO] = (
                     "o fim das inscrições (%s) já passou e %s: prorrogação não confirmada — confirme na fonte "
                     "oficial e escreva em ledger_updates.concursos: encerradas → selo INSCRIÇÕES ENCERRADAS; "
-                    "prorrogadas → prazos com a data nova (confirmado, fonte oficial) e selo INSCRIÇÕES ABERTAS"
+                    "prorrogadas → prazos com a data nova (confirmado, fonte oficial) e o selo que a nova data dá "
+                    "(ENCERRA HOJE / ENCERRA EM BREVE / INSCRIÇÕES ABERTAS)"
                     % (fim.strftime("%d/%m"), razao))
     if prova is not None and (prova - hoje).days <= PROVA_BREVE_DIAS:
         cands.append("PROVA EM BREVE")

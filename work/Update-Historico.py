@@ -4,7 +4,8 @@
 # historico da newsletter "Robozinho dos Momozis ate Passar", para uso
 # no ambiente de nuvem (Linux) das rotinas agendadas.
 #
-# Replica fielmente work/Update-Historico.ps1 (PowerShell/Windows):
+# Nasceu como porte do antigo helper PowerShell (Update-Historico.ps1, do
+# ambiente Windows; nao esta neste repositorio) e hoje e a unica versao:
 # reconciliacao de entrega, anti-duplicata por execution_id,
 # arquivamento (max_execucoes), gravacao UTF-8 sem BOM, deteccao de
 # mojibake e emissao de robozinho-estado.json.
@@ -50,6 +51,9 @@
 #                    url_oficial e dominio_oficial escritos so oficiais. AVISOs:
 #                    DIVERGE DO REGISTRO nao corrigido; selo escrito que
 #                    contradiz o selo por data.
+#   Migracao     : regra de armadilha que o codigo tornou falsa e reescrita
+#                    (REGRAS_ATUALIZADAS; so se o texto atual for o antigo,
+#                    idempotente; o inicio.py aplica o mesmo em memoria).
 #   Mecanico (o orquestrador nao escreve): carimbo da banca lida hoje
 #                    (verificado_em/fonte/dominio_oficial, bancas.carimbos; nunca
 #                    no registro que ainda DIVERGE DO REGISTRO), selo por data
@@ -411,6 +415,7 @@ def avisos_ledger_updates(upd, led, hoje, banca_res=None):
     conc = upd.get("concursos") if isinstance(upd.get("concursos"), dict) else {}
     por_id = {c.get("id"): c for c in led.get("concursos") or []}
     avisos += avisos_selo_escrito(conc, por_id, hoje, banca_res)
+    avisos += avisos_tipo_prazo(conc, por_id, hoje, banca_res)
     if banca_res:
         import bancas
         for ident, arqs in bancas.novos_por_registro(banca_res).items():
@@ -462,6 +467,57 @@ def avisos_selo_escrito(conc, por_id, hoje, banca_res=None):
                        "escrito prevalece no e-mail e no registro; se não foi decisão, escreva %r ou tire o selo do "
                        "update, ou corrija os prazos" % (ident, u["selo"], novo, (motivo or "").split(": ", 1)[-1],
                                                          novo))
+    return out
+
+
+CLASSE_INSCRICAO = {"inscricoes_fim": "o fim das inscrições", "inscricoes_inicio": "o início das inscrições"}
+
+
+def avisos_tipo_prazo(conc, por_id, hoje, banca_res=None):
+    """`prazos[n].tipo` escrito hoje que esconde um prazo de inscricao (selos.tipo_contradiz_evento: o `evento`,
+    pelo texto, e o fim/inicio das inscricoes e o tipo diz outra classe, ex.: 'outro' em "fim das inscrições,
+    16h (prorrogado)"). O tipo prevalece: o selo por data, o rebaixamento e o DIVERGE ignoram o prazo, e o
+    leitor via INSCRIÇÕES ABERTAS para inscricao que acaba em 2 dias, sem aviso. Nao muda nada (o tipo pode ser
+    decisao: o regex do evento erra); diz o que a data daria com a classe do evento, sobre o registro mesclado
+    (atual + carimbo da banca + update). Mesmo texto e mesma chave (id, n) do montador (tipo_contra_evento),
+    que tira este AVISO do --validar quando da o seu para o mesmo prazo."""
+    out = []
+    if not hoje:
+        return out
+    import bancas
+    try:
+        car = bancas.carimbos(banca_res, list(por_id.values()), hoje, upd=conc) if banca_res else {}
+    except (KeyError, ValueError, TypeError):
+        car = {}
+    for ident, u in sorted(conc.items()):
+        if not isinstance(u, dict) or u.get("remover") or not isinstance(u.get("prazos"), list):
+            continue
+        for n, p in enumerate(u["prazos"]):
+            pelo_evento = selos.tipo_contradiz_evento(p)
+            if not pelo_evento:
+                continue
+            daria = ""
+            if ident in por_id:
+                reg = dict(por_id[ident])
+                reg.update({k: v for k, v in (car.get(ident) or {}).items() if k not in u})
+                reg.update({k: v for k, v in u.items() if k != "desfecho"})
+                alt = dict(reg, prazos=[dict(q, tipo=pelo_evento) if i == n and isinstance(q, dict) else q
+                                        for i, q in enumerate(u["prazos"])])
+                try:
+                    x = (bancas.contexto_selos(banca_res, [reg], hoje, {ident: u}) if banca_res else {}).get(ident) or {}
+                    novo, motivo = selos.selo_por_data(alt, hoje, banca_lida_hoje=x.get("banca_lida_hoje", False),
+                                                       ultima_retificacao=x.get("ultima_retificacao"),
+                                                       inicio_inscricoes_banca=x.get("inicio_inscricoes"))
+                except (KeyError, ValueError, TypeError, AttributeError):
+                    novo, motivo = reg.get("selo"), None
+                if novo != reg.get("selo") and motivo:
+                    porque = motivo.split(": ", 1)[-1].split(": ")[0].split(" — ")[0]
+                    daria = " (com '%s', o selo por data daria '%s': %s)" % (pelo_evento, novo, porque)
+            out.append("ledger_updates.concursos.%s.prazos[%d].tipo: %r num prazo cujo evento é %s («%s») — com "
+                       "esse tipo o selo por data ignora o prazo%s; se é %s, escreva tipo '%s' ou omita o tipo; "
+                       "se não é, aceite o aviso" % (
+                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], str(p.get("evento") or "")[:80],
+                           daria, CLASSE_INSCRICAO[pelo_evento], pelo_evento))
     return out
 
 
@@ -652,6 +708,48 @@ def medir_e_preencher(ex, add_log):
     add_log("Uso medido (modelo/contexto processado/custo relativo em tokens de entrada): " + " ".join(resumo))
 
 
+# Migracao idempotente das regras de armadilha que o codigo tornou falsas (o LEDGER impresso pelo inicio.py e
+# "checklist antes de publicar" e vence o prompt mestre). So troca quando a regra atual e uma das antigas, texto
+# exato: regra reescrita depois por outra via fica como esta.
+REGRAS_ATUALIZADAS = {
+    "jota_link_wrapper_mismatch": {
+        "antigas": (
+            "Publicar o link so se o TITULO da pagina de destino bater com o anunciado. Em nuvem o WebFetch do "
+            "wrapper e bloqueado — usar so WebSearch site:jota.info; 1 tentativa por item, senao publicar sem link.",
+        ),
+        "regra": ("Link do JOTA só o que o coletor trouxe do work/resolver_jota.py (OK = título da página de destino "
+                  "conferido); SEM_MATCH, ERRO, SEM_LINK e RECUSADO → sem link, e RECUSADO nunca por outro caminho; "
+                  "JA_PUBLICADA só como desdobramento. Resolver BLOQUEADO → só a sondagem curta por WebSearch "
+                  "site:jota.info do prompt do coletor, com título igual ao anunciado; nada de WebSearch por item "
+                  "fora dela."),
+    },
+    "gmail_after_epoch": {
+        "antigas": (
+            "Corrigido na origem em 04/11: inicio.py gera GMAIL_APOS (dia anterior ao início da janela) e os prompts "
+            "usam after:AAAA/MM/DD + filtro pelo horário interno. Nunca voltar a epoch; vazio com epoch nunca vale "
+            "como ausência.",
+            "Usar after:AAAA/MM/DD (dia anterior ao início da janela) e filtrar pelo horário interno do e-mail; "
+            "vazio com epoch nunca vale como ausência.",
+        ),
+        "regra": ("Corrigido na origem: o inicio.py gera GMAIL_APOS = a data do início da janela (o dia anterior, se "
+                  "o início for antes das 06:00) e os prompts usam after:AAAA/MM/DD + filtro pelo horário interno. "
+                  "Nunca voltar a epoch; vazio com epoch nunca vale como ausência."),
+    },
+}
+
+
+def migrar_armadilhas(led):
+    """Reescreve a `regra` das armadilhas de REGRAS_ATUALIZADAS cujo texto atual e o antigo. Idempotente.
+    Devolve os ids migrados."""
+    feitos = []
+    for x in (led or {}).get("armadilhas") or []:
+        m = REGRAS_ATUALIZADAS.get(x.get("id")) if isinstance(x, dict) else None
+        if m and x.get("regra") in m["antigas"]:
+            x["regra"] = m["regra"]
+            feitos.append(x["id"])
+    return feitos
+
+
 def gravar_ledger(caminho, led):
     """Uma entrada de lista por linha: compacto para ler e estavel para diff."""
     partes = []
@@ -680,6 +778,10 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     n = selos.garantir_mudou_em(led.get("concursos") or [], anteriores)
     if n:
         add_log("Ledger: mudou_em inicializado em %d concursos (historico de ledger_updates)" % n)
+    migradas = migrar_armadilhas(led)
+    if migradas:
+        add_log("Ledger: regra da armadilha atualizada para o comportamento atual (migracao): %s"
+                % ", ".join(migradas))
     aplicar_updates(led, ex.get("ledger_updates"), hoje, add_log, retirar_copias="selos_copiados" not in ex)
     aplicar_mecanicos_concursos(led, ex.get("ledger_updates"), hoje, banca_res, add_log)
     if led.get("licoes_de_processo") == []:         # E13: lista vazia, sem leitor
@@ -726,7 +828,11 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
                         % (p["id"], p["execucoes"]))
         else:
             add_log("Ledger: pendencia %s nao foi a edicao — se resolvida, remova-a." % p.get("id"))
-    for novo in sorted(ids - no_ledger):
+    # pendencia removida pelo ledger_updates desta mesma execucao (a errata herdada sai na edicao e e removida
+    # no mesmo resolvido): nao e inconsistencia
+    removidas_hoje = {i for i, c in (((ex.get("ledger_updates") or {}).get("pendencias")) or {}).items()
+                      if isinstance(c, dict) and c.get("remover")}
+    for novo in sorted(ids - no_ledger - removidas_hoje):
         add_log("Ledger: pendencia %s saiu na edicao mas nao existe no ledger." % novo)
     led["atualizado_em"] = now_iso_with_offset()
     led["atualizado_por_execucao"] = ex["execution_id"]
@@ -1074,7 +1180,8 @@ def main():
     for it in nova_exec.get("items") or []:
         if it.get("nota") and not it.get("observacao"):
             it["observacao"] = it["nota"]
-        for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor"):
+        for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor",
+                      "impacto", "resenha", "desdobramento"):
             it.pop(campo, None)
     # grava a versao normalizada, para o historico ficar consistente
     write_json_no_bom(args.nova_execucao_path, nova_exec)

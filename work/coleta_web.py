@@ -92,14 +92,27 @@ def repetir(codigo):
     return codigo == 0 or codigo == 429 or codigo >= 500
 
 
-def fetch(url, timeout=20, repetir_timeout=True):
-    """GET com 1 nova tentativa apos ~3 s em http 0/429/5xx. Tempo esgotado so
-    tenta de novo se repetir_timeout (senao uma fonte lenta soma 20 s por pagina)."""
+def fetch_n(url, timeout=20, repetir_timeout=True):
+    """(codigo, corpo, tentativas): GET com 1 nova tentativa apos ~3 s em http
+    0/429/5xx. Tempo esgotado so tenta de novo se repetir_timeout (senao uma
+    fonte lenta soma 20 s por pagina). 403/404 = 1 tentativa so."""
     codigo, corpo, esgotado = _fetch1(url, timeout)
     if repetir(codigo) and (repetir_timeout or not esgotado):
         time.sleep(PAUSA_REPETICAO)
         codigo, corpo, _ = _fetch1(url, timeout)
-    return codigo, corpo
+        return codigo, corpo, 2
+    return codigo, corpo, 1
+
+
+def fetch(url, timeout=20, repetir_timeout=True):
+    """(codigo, corpo) do fetch_n."""
+    return fetch_n(url, timeout, repetir_timeout)[:2]
+
+
+def tentativas_txt(r):
+    """'1 tentativa' / '2 tentativas' da listagem (campo "tentativas"); '' se faltar."""
+    n = r.get("tentativas")
+    return "%d tentativa%s" % (n, "s" if n != 1 else "") if isinstance(n, int) and n > 0 else ""
 
 
 def fetch_many(urls):
@@ -187,11 +200,12 @@ def classifica(quando, inicio, fim, recorte):
 # ------------------------------------------------------------ Congresso
 def leis(inicio, fim, recorte, atos_pub):
     import repeticao
-    cod, t = fetch(URL_LEIS)
+    cod, t, n_tent = fetch_n(URL_LEIS)
     # listadas/mais_recente: pagina lida sem norma na janela (ex.: periodo
     # eleitoral, out/2026) nao e erro da fonte; em 16/10 isso virou "ERRO",
     # WebSearch inutil e status "falha".
-    out = {"fonte": "congresso_leis", "http": cod, "itens": [], "listadas": 0, "mais_recente": ""}
+    out = {"fonte": "congresso_leis", "http": cod, "tentativas": n_tent, "itens": [], "listadas": 0,
+           "mais_recente": ""}
     for bloco in t.split('<div class="sf-lista-resumos__resumo">')[1:]:
         m = re.search(r'<dt>Norma:</dt>\s*<dd>\s*<a href="([^"]+)">([^<]+)</a>\s*'
                       r'\(<a[^>]*>DOU de (\d\d/\d\d/\d{4})</a>\)', bloco)
@@ -228,8 +242,8 @@ def leis(inicio, fim, recorte, atos_pub):
 
 
 def mpvs(inicio, fim, recorte, atos_pub):
-    cod, t = fetch(URL_MPV)
-    out = {"fonte": "congresso_mpv", "http": cod, "itens": [], "listadas": 0}
+    cod, t, n_tent = fetch_n(URL_MPV)
+    out = {"fonte": "congresso_mpv", "http": cod, "tentativas": n_tent, "itens": [], "listadas": 0}
     candidatos = []
     for bloco in t.split('<div class="sf-lista-resumos__resumo">')[1:]:
         m = re.search(r'href="(https://www\.congressonacional\.leg\.br/materias/medidas-provisorias/-/mpv/\d+)"'
@@ -313,8 +327,8 @@ def conjur(inicio, fim, recorte, urls_pub):
 
 
 def migalhas(inicio, fim, recorte, urls_pub):
-    cod, t = fetch(URL_MIGALHAS)
-    out = {"fonte": "migalhas", "http": cod, "itens": []}
+    cod, t, n_tent = fetch_n(URL_MIGALHAS)
+    out = {"fonte": "migalhas", "http": cod, "tentativas": n_tent, "itens": []}
     lista = []
     for art in t.split("<article")[1:]:
         m = re.search(r'href="(https://www\.migalhas\.com\.br/quentes/\d+/[^"]+)"', art)
@@ -429,7 +443,8 @@ def imprimir(res, inicio, fim, recorte):
             out.append("ERRO: congresso_mpv %s — antes de gastar WebSearch, confira as PLANALTO_ATO do "
                        "coletor Gmail (a Resenha PUSH traz as MPVs da janela); WebSearch "
                        "site:congressonacional.leg.br so se o PUSH Planalto nao veio"
-                       % ("indisponivel (http=%s, 2 tentativas)" % r["http"] if not ok(r["http"])
+                       % ("indisponivel (%s)" % ", ".join(x for x in ("http=%s" % r["http"], tentativas_txt(r)) if x)
+                          if not ok(r["http"])
                           else "lida sem nenhuma MPV listada (layout mudou?)"))
         elif r["fonte"] == "congresso_leis" and ok(r["http"]) and not itens and r.get("listadas"):
             out.append("SEM NORMA NOVA NA JANELA: pagina lida (%d normas listadas; a mais recente: %s)"
@@ -478,6 +493,10 @@ def imprimir(res, inicio, fim, recorte):
 
 
 # ------------------------------------------------------------ status das fontes
+def _entre_parenteses(s):
+    return " (%s)" % s if s else ""
+
+
 def status_fontes(res):
     """{id do source_status: (status, detalhe)} das 4 fontes deste script."""
     por = {r["fonte"]: r for r in res}
@@ -485,7 +504,7 @@ def status_fontes(res):
     r = por.get("congresso_leis")
     if r:
         if r["http"] != 200:
-            st["congresso_ultimas_leis"] = ("falha", "http=%s (2 tentativas)" % r["http"])
+            st["congresso_ultimas_leis"] = ("falha", "http=%s%s" % (r["http"], _entre_parenteses(tentativas_txt(r))))
         elif not r.get("listadas"):
             st["congresso_ultimas_leis"] = ("falha", "pagina lida, 0 normas extraidas (layout?)")
         else:
@@ -495,7 +514,8 @@ def status_fontes(res):
     r = por.get("congresso_mpv")
     if r:
         if r["http"] != 200:
-            st["congresso_mpvs"] = ("falha", "http=%s (2 tentativas); conferir PLANALTO_ATO" % r["http"])
+            st["congresso_mpvs"] = ("falha", "http=%s%s; conferir PLANALTO_ATO"
+                                    % (r["http"], _entre_parenteses(tentativas_txt(r))))
         elif not r.get("listadas", 1):
             st["congresso_mpvs"] = ("falha", "pagina lida, 0 MPVs listadas (layout?)")
         else:
@@ -505,7 +525,7 @@ def status_fontes(res):
         if not r:
             continue
         if not ok(r["http"]):
-            st[fonte] = ("falha", "http=%s" % (r["http"],))
+            st[fonte] = ("falha", "http=%s%s" % (r["http"], _entre_parenteses(tentativas_txt(r))))
         elif not r["itens"]:
             st[fonte] = ("falha", "0 itens extraidos (layout?)")
         else:

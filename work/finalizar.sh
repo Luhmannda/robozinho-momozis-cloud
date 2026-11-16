@@ -26,7 +26,13 @@
 #      versao antiga do que mudou no remoto, e o `git diff` pos-push (o reverso
 #      da mudanca concorrente) seria commitado por quem obedecesse ao hook de
 #      parada. Falhou de novo: copia do estado do dia em
-#      $ROBOZINHO_TMP/robozinho-estado-backup-<exec>.tar.gz.
+#      $ROBOZINHO_TMP/robozinho-estado-backup-<exec>.tar.gz — refeita depois
+#      de cada rodada OK do helper (a linha ESTADO aponta para a ULTIMA); se a
+#      reaplicacao nao chegou ao fim, a copia e a da 1a rodada, sobre a main
+#      antiga, e a linha ESTADO manda rodar o finalizar.sh de novo em vez de
+#      aplicar o tar (apagaria a mudanca concorrente). So "[rejected]",
+#      non-fast-forward e fetch first contam como "main andou" ("[remote
+#      rejected]" de hook nao: e repetido como falha comum).
 #
 # USO: bash work/finalizar.sh --draft-id ID --message-id MSG_ID \
 #                             [--anterior EXEC_ID] [--trailer "linhas de atribuicao do commit"]
@@ -176,8 +182,16 @@ fi
 cp "$T/finalizar-rodada1.json" "$ENTRADA"      # a entrada fica normalizada, como antes
 
 EXEC=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['execution_id'])" "$ENTRADA")
-BACKUP="$T/robozinho-estado-backup-$EXEC.tar.gz"
-tar -czf "$BACKUP" $(arquivos_estado) 2>/dev/null || BACKUP=""
+BACKUP_ARQ="$T/robozinho-estado-backup-$EXEC.tar.gz"
+BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0
+copiar_estado() {   # copia do estado da ULTIMA rodada OK do helper ($1 = rodada1|rodada2); falha = fica a anterior
+  if tar -czf "$BACKUP_ARQ.tmp" $(arquivos_estado) 2>/dev/null && mv -f "$BACKUP_ARQ.tmp" "$BACKUP_ARQ"; then
+    BACKUP="$BACKUP_ARQ" ESTADO_DE="$1"
+  else
+    rm -f "$BACKUP_ARQ.tmp"
+  fi
+}
+copiar_estado rodada1
 
 commitar() {
   git add $(arquivos_estado)
@@ -190,8 +204,13 @@ commitar() {
 
 falhou() {
   echo "PUSH: FALHOU ($1) — registrar no relatorio final."
-  if [[ -n "$BACKUP" ]]; then
-    echo "ESTADO: copia do estado do dia em $BACKUP (commit local $(git rev-parse --short HEAD 2>/dev/null)) —" \
+  if [[ -n "$BACKUP" && $reaplicado -eq 1 && "$ESTADO_DE" == "rodada1" ]]; then
+    # a main remota andou e a reaplicacao nao terminou: a copia e o commit sao da main ANTIGA
+    echo "ESTADO: copia do estado do dia em $BACKUP (commit local ${SHA1:-nenhum}, da 1a rodada, sobre a main" \
+         "anterior a mudanca concorrente) — NAO aplique o tar sobre a main atual (apagaria a mudanca concorrente):" \
+         "rode bash work/finalizar.sh de novo com os mesmos argumentos (entrada em $COPIA)"
+  elif [[ -n "$BACKUP" ]]; then
+    echo "ESTADO: copia do estado do dia em $BACKUP (commit local ${SHA:-nenhum}) —" \
          "para reaplicar: tar -xzf $BACKUP e commitar os arquivos work/ na main"
   fi
   exit 3
@@ -199,8 +218,8 @@ falhou() {
 
 git switch -q -C main || falhou "git switch main"
 commitar || falhou "commit"
+SHA=$(git rev-parse --short HEAD 2>/dev/null) SHA1="$SHA"
 
-reaplicado=0
 for espera in 0 2 4 8 16; do
   sleep "$espera"
   if saida=$(git push -q -u origin main 2>&1); then
@@ -212,7 +231,9 @@ for espera in 0 2 4 8 16; do
     exit 0
   fi
   # main andou no remoto (ex.: alteracao manual no dia): reaplica o helper sobre o estado de origin/main
-  if [[ $reaplicado -eq 0 ]] && grep -qiE "rejected|non-fast-forward|fetch first" <<< "$saida"; then
+  # so a recusa por historico ("! [rejected] ... (fetch first|non-fast-forward)"); "[remote rejected]" (hook
+  # do servidor) nao e "main andou": reset e reaplicacao seriam inuteis
+  if [[ $reaplicado -eq 0 ]] && grep -qiE "non-fast-forward|fetch first|\[rejected\]" <<< "$saida"; then
     reaplicado=1
     echo "PUSH: recusado (main andou no remoto) — reaplicando o helper sobre origin/main"
     git fetch -q origin main || falhou "git fetch origin main"
@@ -231,7 +252,10 @@ for espera in 0 2 4 8 16; do
     done
     cp "$COPIA" "$T/finalizar-rodada2.json"
     helper "$T/finalizar-rodada2.json" || falhou "helper na reaplicacao sobre origin/main (STATUS != OK)"
+    copiar_estado rodada2
+    SHA=""
     commitar || falhou "commit na reaplicacao"
+    SHA=$(git rev-parse --short HEAD 2>/dev/null)
   fi
 done
 echo "Ultimo erro do push:"

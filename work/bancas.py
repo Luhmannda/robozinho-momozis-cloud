@@ -19,7 +19,10 @@
 #   - NOVO = arquivo (URL) ainda nao visto. As URLs vistas ficam em
 #     work/concursos-estado.json, gravado pelo helper (Update-Historico.py,
 #     so quando a execucao e registrada) e commitado pelo finalizar.sh. Sem
-#     estado para o concurso (1a vez): data efetiva >= verificado_em - 3 dias;
+#     estado para o concurso (1a vez): o arquivo com data efetiva ANTERIOR ao
+#     verificado_em do registro conta como visto; o do proprio dia do
+#     verificado_em continua novo (a FGV publica depois da execucao das 7h:
+#     2a Retificacao do TJAP em 13/11, Edital 0056/2026-DMAG do TJRS em 16/11);
 #   - o edital e relido quando ha arquivo novo de retificacao/prorrogacao/
 #     edital, ou prazo do registro entre -3 e +7 dias (alem dos casos de
 #     antes: concurso sem registro ou registro sem confirmacao oficial);
@@ -29,7 +32,12 @@
 #     registro (prazos ou, sem prazo, a linha).
 #
 # Para cada concurso juridico do ano corrente (ou do anterior) na listagem:
-#   - casa com o registro do ledger pela sigla (tjap26 -> tjap_juiz);
+#   - casa com o registro do ledger pela sigla (tjap26 -> tjap_juiz) E pelo
+#     cargo (sufixo do slug ou titulo: Juiz/Magistratura, Promotor, Defensor,
+#     Procurador, Servidores/Analista/Tecnico) contra o bloco do registro:
+#     outro concurso do mesmo orgao (tjapservidores26) nao cai no tjap_juiz.
+#     Sem cargo identificavel (titulo, slug e edital) ou com duas paginas para
+#     o mesmo registro: nao cobre (campo `incerto` + AVISO na saida);
 #   - lista os arquivos novos (movimento oficial, com data);
 #   - quando preciso (acima), baixa o edital e copia os trechos de vagas,
 #     inscricoes, taxa, remuneracao e prova objetiva.
@@ -81,7 +89,7 @@ TRECHOS = [  # (rotulo, regex sobre o edital com espacos normalizados)
 RE_RETIFICADO = re.compile(r"\((?:retificad[oa]|atualizad[oa]|consolidad[oa])\s+em\s+(\d{2})/(\d{2})/(\d{4})\)", re.I)
 RE_RETIFICACAO = re.compile(r"retifica|prorroga|errata", re.I)
 RE_RELEITURA = re.compile(r"retifica|prorroga|errata|\bedital\b", re.I)
-MARGEM_SEM_ESTADO = 3        # dias antes do verificado_em que ainda contam como novos, sem estado
+MARGEM_SEM_ESTADO = 0        # sem estado: data efetiva >= verificado_em - N dias e novo (0 = so o dia dele e depois)
 PRAZO_RELEITURA = (-3, 7)    # prazo do registro nesta faixa (dias) -> reler o edital
 
 
@@ -272,7 +280,9 @@ def vistos_da_banca(estado):
 
 def novos_arquivos(c, regs, vistos, hoje):
     """(arquivos novos, base). Com estado: URL nao vista (ou vista hoje: re-execucao do mesmo dia).
-    Sem estado (1a vez do concurso): data efetiva >= verificado_em - MARGEM_SEM_ESTADO dias."""
+    Sem estado (1a vez do concurso): data efetiva >= verificado_em - MARGEM_SEM_ESTADO dias, isto e, o
+    anterior ao verificado_em conta como visto (a linha ja o traz) e o do proprio dia continua novo (a
+    banca publica depois da execucao da manha: o caso de 16/11)."""
     hj = hoje.isoformat()
     if vistos is not None:
         return [a for a in c["arquivos"] if (vistos.get(chave_arquivo(a)) or hj) >= hj], "urls_vistas"
@@ -355,39 +365,98 @@ def analisar(alvo, hoje, concursos, estado=None, ler=texto_pdf):
     for c in alvo:
         for a in c.get("arquivos") or []:
             a.setdefault("data_efetiva", data_efetiva(a))
-        regs = por_sigla.get(sigla(c["slug"]), [])
+        mesma = por_sigla.get(sigla(c["slug"]), [])
+        regs, certo = desambiguar(c, mesma)              # pelo cargo do slug/titulo (antes do edital)
+        if regs != mesma and not regs:
+            c["mesma_sigla"] = [r["id"] for r in mesma]  # outro cargo do mesmo orgao: SEM REGISTRO
         v = (vistos.get(c["slug"]) or {}).get("urls") if c["slug"] in vistos else None
         c["novos_arquivos"], c["base_novos"] = novos_arquivos(c, regs, v, hoje)
         c["ultima_retificacao"] = ultima_retificacao(c)
         c["releitura"] = motivo_releitura(c, regs, hoje)
         if c["releitura"]:
             edital(c, ler)
-        regs = desambiguar(c, regs)
-        c["registros"] = [r["id"] for r in regs]
+        if not certo:
+            regs, certo = desambiguar(c, regs, usar_edital=True)
+        # dois ou mais candidatos sem cargo: como antes ("registro X ou Y", sem cobrir); um so sem cargo: incerto
+        c["registros"] = [r["id"] for r in regs] if certo or len(regs) > 1 else []
+        if not certo and len(regs) == 1:
+            c["incerto"] = {"ids": [regs[0]["id"]],
+                            "motivo": "cargo não identificado no título, no slug nem no edital"}
         # coberto = a pagina oficial deste registro foi lida hoje: o coletor nao gasta busca com ele
-        c["coberto"] = c["registros"] if (len(regs) == 1 and c.get("http") == 200 and c.get("arquivos")) else []
-        c["divergencias"] = divergencias(c, regs, hoje)
+        c["coberto"] = c["registros"] if (len(c["registros"]) == 1 and c.get("http") == 200
+                                          and c.get("arquivos")) else []
+        c["divergencias"] = divergencias(c, regs, hoje) if certo else []
         c["chaves_arquivos"] = [chave_arquivo(a) for a in c.get("arquivos") or []]
+    # duas paginas para o mesmo registro: nenhuma cobre (a ultima sobrescreveria carimbo, selo e DIVERGE)
+    paginas = {}
+    for c in alvo:
+        for ident in c["coberto"]:
+            paginas.setdefault(ident, []).append(c)
+    for ident, cs in paginas.items():
+        if len(cs) < 2:
+            continue
+        slugs = ", ".join(x["slug"] for x in cs)
+        for c in cs:
+            c["coberto"], c["divergencias"] = [], []
+            c["registros"] = [i for i in c["registros"] if i != ident]
+            c["incerto"] = {"ids": [ident], "motivo": "%d páginas da FGV casam com o registro (%s)" % (len(cs), slugs)}
     return alvo
 
 
-CARGO_BLOCO = [(r"Juiz|Magistratura", "Magistratura"), (r"Promotor", "Promotor"), (r"Defensor", "Defensor"),
-               (r"Procurador", "Procurador")]
+# cargo da pagina da banca (sufixo do slug ou titulo) x bloco do registro. Com \b: "Defensoria",
+# "Procuradoria" e "Promotoria" sao o orgao, nao o cargo.
+CARGOS = [(r"\bJu[íi]z(?:es|a|as)?\b|\bMagistratura\b", "magistratura"), (r"\bPromotor(?:es|a|as)?\b", "promotor"),
+          (r"\bDefensor(?:es|a|as)?\b", "defensor"), (r"\bProcurador(?:es|a|as)?\b|\bAdvogad[oa]s?\b", "procurador"),
+          (r"\bServidor(?:es)?\b|\bAnalista|\bT[ée]cnico|\bOficial\b", "apoio")]
+SUFIXO_CARGO = {"juiz": "magistratura", "magistratura": "magistratura", "servidor": "apoio", "servidores": "apoio",
+                "analista": "apoio", "tecnico": "apoio", "promotor": "promotor", "defensor": "defensor",
+                "procurador": "procurador"}
 
 
-def desambiguar(c, regs):
-    """Duas linhas do registro com a mesma sigla (ex.: tjpb_juiz e tjpb_apoio): decide pelo cargo
-    do titulo da banca; sem cargo no titulo, edital que fala em Analista/Tecnico e do quadro de apoio."""
-    if len(regs) < 2:
-        return regs
-    for padrao, bloco in CARGO_BLOCO:
-        if re.search(padrao, c["titulo"], re.I):
-            so = [r for r in regs if (r.get("bloco") or "").startswith(bloco)]
-            return so or regs
-    if re.search(r"Analista|T[ée]cnico", " ".join((c.get("edital") or {}).values())):
-        so = [r for r in regs if r.get("bloco") == "Quadro de apoio"]
-        return so or regs
-    return regs
+def cargos_texto(t):
+    return {cl for padrao, cl in CARGOS if re.search(padrao, t or "", re.I)}
+
+
+def cargo_slug(slug):
+    s = re.sub(r"\d{2,4}$", "", re.sub(r"[^a-z0-9]", "", (slug or "").lower()))
+    m = SUFIXOS.search(s)
+    return {SUFIXO_CARGO[m.group(1)]} if m and m.group(1) in SUFIXO_CARGO else set()
+
+
+def cargo_registro(r):
+    b = r.get("bloco") or ""
+    if b.startswith("Magistratura"):
+        return "magistratura"
+    if b == "Quadro de apoio":
+        return "apoio"
+    if "Promotor" in b:
+        return "promotor"
+    if "Defensor" in b:
+        return "defensor"
+    if "Procurador" in b or b in ("PFN", "AGU — Advogado da União"):
+        return "procurador"
+    return ""
+
+
+def desambiguar(c, regs, usar_edital=False):
+    """(registros da mesma sigla que sao DESTE concurso, certo?). Decide pelo cargo do slug e do titulo da
+    banca contra o bloco do registro — tambem com um registro so (tjapservidores26 nao e o tjap_juiz).
+    Sem cargo no slug/titulo: com `usar_edital`, o edital que fala em Analista/Tecnico e do quadro de apoio
+    (senao, o cargo unico que o edital citar). Sem nada: (regs, False) — quem chama nao cobre."""
+    if not regs:
+        return regs, True
+    cl = cargo_slug(c.get("slug")) | cargos_texto(c.get("titulo"))
+    if not cl and usar_edital:
+        ed = " ".join((c.get("edital") or {}).values())
+        if re.search(r"Analista|T[ée]cnico", ed):
+            cl = {"apoio"}
+        else:
+            cl = cargos_texto(ed)
+            cl = cl if len(cl) == 1 else set()
+    if not cl:
+        return regs, False
+    so = [r for r in regs if cargo_registro(r) in cl]
+    return so, len(so) <= 1 or len(cl) == 1
 
 
 # ------------------------------------------------------------------ usados pelo helper e pelo montador
@@ -527,8 +596,19 @@ def imprimir(res):
     print("BANCA FGV (fonte OFICIAL, lida por script — promove selo e confirma prazo; verificado_em, fonte e "
           "dominio_oficial dos registros lidos aqui são gravados sozinhos): %d concursos jurídicos" % len(cs))
     for c in cs:
-        reg = ("registro " + " ou ".join(c["registros"])) if c["registros"] else "SEM REGISTRO → avalie como NOVO"
+        inc = c.get("incerto")
+        if c["registros"]:
+            reg = "registro " + " ou ".join(c["registros"])
+        elif inc:
+            reg = "registro incerto: %s" % " ou ".join(inc["ids"])
+        elif c.get("mesma_sigla"):
+            reg = "SEM REGISTRO (%s, da mesma sigla, é de outro cargo) → avalie como NOVO" % ", ".join(c["mesma_sigla"])
+        else:
+            reg = "SEM REGISTRO → avalie como NOVO"
         print("- %s | %s | %s | %s | %s" % (c["slug"], c.get("situacao") or "?", c["titulo"], reg, c["url"]))
+        if inc:
+            print("  AVISO: página não cobre %s (%s): sem carimbo, sem selo por data e sem DIVERGE daqui — "
+                  "confira o cargo antes de levar estes arquivos ao registro" % (" ou ".join(inc["ids"]), inc["motivo"]))
         novos = c.get("novos_arquivos") or []
         if novos:
             print("  arquivos novos (%s): %s%s" % (
