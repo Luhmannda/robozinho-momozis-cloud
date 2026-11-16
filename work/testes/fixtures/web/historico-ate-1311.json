@@ -1,0 +1,1432 @@
+{
+"executions": [
+{
+"execution_id": "2026-11-03-7h",
+"items": [
+{
+"chave": "stf|noticia|audiencia-publica-bets|2026|2026-11-02",
+"titulo": "STF realiza nesta terça (3) audiência pública sobre proibição das bets",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-realiza-nesta-terca-3-audiencia-publica-sobre-proibicao-das-bets/"
+},
+{
+"chave": "informativos|stj|908|2026|2026-11-03",
+"titulo": "Informativos: sem edição nova confirmada nesta janela",
+"categoria": "Informativos",
+"url": "https://processo.stj.jus.br/"
+},
+{
+"chave": "conjur|noticia|stj-pensao-por-morte-prazo|2026|2026-11-02",
+"titulo": "STJ julga se pensão por morte reabre prazo para rever ato administrativo",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-02/stj-julga-se-pensao-por-morte-reabre-prazo-para-rever-ato-administrativo/"
+},
+{
+"chave": "conjur|noticia|stf-consulta-publica-reforma-tributaria|2026|2026-11-02",
+"titulo": "STF reabre consulta pública sobre contencioso da reforma tributária",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-02/cestf-reabre-consulta-publica-sobre-contencioso-da-reforma-tributaria/"
+},
+{
+"chave": "conjur|noticia|cnj-violencia-processual-genero|2026|2026-11-02",
+"titulo": "CNJ define diretrizes contra violência processual de gênero",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-02/cnj-define-diretrizes-contra-violencia-processual-de-genero/"
+},
+{
+"chave": "conjur|noticia|agu-recorre-prfs-direitos-humanos|2026|2026-11-02",
+"titulo": "AGU recorre para derrubar formação de PRFs em Direitos Humanos",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-02/agu-recorre-para-derrubar-formacao-de-prfs-em-direitos-humanos/"
+},
+{
+"chave": "migalhas|noticia|467660|2026|2026-11-02",
+"titulo": "Justiça bloqueia R$ 10,8 bilhões de alvos da operação Carbono Oculto",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467660"
+},
+{
+"chave": "migalhas|noticia|467662|2026|2026-11-02",
+"titulo": "Defensoria quer condenação de R$ 50 milhões ao RJ por operação que deixou 122 mortos",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467662/defensoria-quer-que-rj-pague-r-50-mi-por-operacao-com-122-mortos"
+},
+{
+"chave": "migalhas|noticia|467432|2026|2026-11-02",
+"titulo": "Justiça mantém em concurso candidata que questiona erros em prova",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467432/justica-mantem-em-concurso-candidata-que-questiona-erros-em-prova"
+},
+{
+"chave": "jota|noticia|fachin-nega-pedido-flavio-moraes|2026|2026-11-03",
+"titulo": "Fachin deve negar pedido de Flávio para tirar investigação de Moraes",
+"categoria": "Mídia",
+"url": "https://www.jota.info/"
+},
+{
+"chave": "jota|noticia|cnj-acordos-precatorios|2026|2026-11-03",
+"titulo": "CNJ prevê assinar acordos com B3, Cerc, Núclea e Colégio Notarial para monitorar precatórios",
+"categoria": "Mídia",
+"url": "https://www.jota.info/"
+},
+{
+"chave": "jota|noticia|trf3-faltas-aviso-previo|2026|2026-11-03",
+"titulo": "TRF-3 permite excluir da contribuição patronal faltas descontadas no aviso-prévio trabalhado",
+"categoria": "Mídia",
+"url": "https://www.jota.info/"
+},
+{
+"chave": "conjur|art|improbidade-teto-20-anos|2026|2026-11-03",
+"titulo": "Teto de 20 anos na improbidade administrativa: contar do fato ou do ajuizamento?",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/teto-de-20-anos-na-improbidade-administrativa-contar-do-fato-ou-do-ajuizamento/"
+},
+{
+"chave": "conjur|art|recolhimento-noturno-pena-substituida|2026|2026-11-03",
+"titulo": "Quando a pena acaba antes de começar: recolhimento noturno e pena substituída",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/quando-a-pena-acaba-antes-de-comecar-recolhimento-noturno-e-pena-substituida/"
+},
+{
+"chave": "conjur|art|consumacao-nao-e-tempo|2026|2026-11-03",
+"titulo": "Consumação não é tempo: da aplicação da Lei 12.234/10 pelo STJ aos crimes tributários",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/consumacao-nao-e-tempo-da-aplicacao-da-lei-12-234-10-pelo-stj-aos-crimes-tributarios/"
+},
+{
+"chave": "conjur|art|devedor-contumaz-recuperacao-judicial|2026|2026-11-02",
+"titulo": "Devedor contumaz e recuperação judicial: ruptura na lógica do sistema",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-02/devedor-contumaz-e-recuperacao-judicial-ruptura-na-logica-do-sistema/"
+},
+{
+"chave": "conjur|art|mediacao-institucional-ad-hoc|2026|2026-11-02",
+"titulo": "Mediação institucional ou ad hoc: escolha também protege mediador",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-02/mediacao-institucional-ou-ad-hoc-escolha-tambem-protege-mediador/"
+},
+{
+"chave": "conjur|col|usucapiao-tabular|2026|2026-11-02",
+"titulo": "Usucapião tabular: a visão de Ebert Vianna Chamoun",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-02/usucapiao-tabular-a-visao-de-ebert-vianna-chamoun/"
+},
+{
+"chave": "jota|bastidor|gonet-parecer-encerra-inquerito-fake-news|2026|2026-11-03",
+"titulo": "Gonet deve enviar nesta semana parecer favorável ao encerramento do inquérito das fake news",
+"categoria": "Fofoquinha",
+"url": "https://www.jota.info/"
+},
+{
+"chave": "jota|bastidor|vaga-trf1-mendanha|2026|2026-11-03",
+"titulo": "Vaga no TRF-1: governo diz que Lula deve escolher Fausto Mendanha",
+"categoria": "Fofoquinha",
+"url": "https://www.jota.info/"
+}
+]
+},
+{
+"execution_id": "2026-11-04-7h",
+"items": [
+{
+"chave": "planalto|decreto|13142|2026|2026-10-29",
+"titulo": "Decreto nº 13.142/2026 — qualificação de empreendimentos aeroportuários no PPI e inclusão no PND",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13142.htm"
+},
+{
+"chave": "planalto|decreto|13143|2026|2026-10-29",
+"titulo": "Decreto nº 13.143/2026 — altera o Decreto 12.261/2024 (Comissão Especial dos ex-Territórios Federais)",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13143.htm"
+},
+{
+"chave": "planalto|decreto|13144|2026|2026-10-29",
+"titulo": "Decreto nº 13.144/2026 — altera o Regulamento da Anvisa (Decreto 3.029/1999) e remaneja cargos",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13144.htm"
+},
+{
+"chave": "planalto|decreto|13145|2026|2026-10-29",
+"titulo": "Decreto nº 13.145/2026 — Estrutura Regimental e cargos em comissão do INSS",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13145.htm"
+},
+{
+"chave": "stf|noticia|proibicao-das-bets-audiencia-publica|2026|2026-11-03",
+"titulo": "Proibição das bets: autoridades e especialistas discutem riscos à saúde e avanço do mercado ilegal",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/proibicao-das-bets-autoridades-e-especialistas-discutem-riscos-a-saude-e-avanco-do-mercado-ilegal/"
+},
+{
+"chave": "stf|noticia|violencia-comunidades-indigenas|2026|2026-11-03",
+"titulo": "STF requer informações sobre relatos de violência contra comunidades indígenas após as eleições",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-requer-informacoes-sobre-relatos-de-violencia-contra-comunidades-indigenas-apos-as-eleicoes/"
+},
+{
+"chave": "conjur|noticia|stf-invalida-lei-veto-aulas-sexo|2026|2026-11-03",
+"titulo": "STF invalida lei que permitia veto a participação em aulas sobre sexo",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-03/stf-invalida-lei-que-permitia-veto-a-participacao-em-aulas-sobre-sexo/"
+},
+{
+"chave": "conjur|noticia|senado-pec-seguranca-publica|2026|2026-11-03",
+"titulo": "Senado aprova PEC da Segurança Pública sem redução da maioridade penal",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-03/senado-aprova-pec-da-seguranca-publica-sem-reducao-da-maioridade-penal/"
+},
+{
+"chave": "conjur|noticia|tse-gravacao-ambiental|2026|2026-11-03",
+"titulo": "Gravação ambiental em local sem controle de acesso é válida, decide TSE",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-03/tse-valida-gravacao-ambiental-em-local-sem-controle-de-acesso/"
+},
+{
+"chave": "migalhas|noticia|boate-kiss-schietti|2026|2026-11-03",
+"titulo": "Boate Kiss: Schietti diverge sobre penas e aponta reformatio in pejus",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467745/boate-kiss-schietti-diverge-sobre-penas-e-aponta-reformatio-in-pejus"
+},
+{
+"chave": "migalhas|noticia|stj-delegado-prescricao|2026|2026-11-03",
+"titulo": "STJ nega reintegrar delegado absolvido por prescrição na esfera penal",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467794/stj-nega-reintegrar-delegado-absolvido-por-prescricao-na-esfera-penal"
+},
+{
+"chave": "migalhas|noticia|stj-csll-desagio|2026|2026-11-03",
+"titulo": "STJ permite excluir amortização de deságio do cálculo da CSLL",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467777/stj-permite-excluir-amortizacao-de-desagio-do-calculo-da-csll"
+},
+{
+"chave": "migalhas|noticia|stj-pf-residencia-imigrantes|2026|2026-11-03",
+"titulo": "STJ afasta exigências da PF e garante análise de residência a imigrantes",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467772/stj-afasta-exigencias-da-pf-para-analise-de-residencia-de-imigrantes"
+},
+{
+"chave": "jota|noticia|flavio-bolsonaro-limite-faltas|2026|2026-11-03",
+"titulo": "Flávio Bolsonaro se aproxima do limite de faltas no Senado que pode levar à perda do mandato",
+"categoria": "Mídia",
+"url": "https://www.jota.info/legislativo/flavio-bolsonaro-se-aproxima-do-limite-de-faltas-que-pode-levar-a-perda-do-mandato"
+},
+{
+"chave": "jota|noticia|liminar-meta-conteudo-jornalistico|2026|2026-11-04",
+"titulo": "Liminar proíbe a Meta de usar sem autorização conteúdos de veículos associados à ANJ, Abert e Aner",
+"categoria": "Mídia"
+},
+{
+"chave": "conjur|opiniao|stj-coisa-julgada-modulacao|2026|2026-11-04",
+"titulo": "STJ diante da sua própria coisa julgada: modulação que se nega e se pratica",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-04/o-stj-diante-da-sua-propria-coisa-julgada-a-modulacao-que-se-nega-e-se-pratica/"
+},
+{
+"chave": "conjur|opiniao|reforma-tributaria-split-payment|2026|2026-11-04",
+"titulo": "Reforma tributária: split payment ainda não! Mas ApA-e e RAD já funcionarão em janeiro",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-04/reforma-tributaria-split-payment-ainda-nao-mas-apa-e-e-rad-ja-funcionarao-em-janeiro/"
+},
+{
+"chave": "conjur|opiniao|lei-15358-dominio-territorial|2026|2026-11-03",
+"titulo": "Lei 15.358 e domínio territorial prisional: falta de critérios objetivos compromete a aplicação do Marco Antifacções",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/lei-15-358-e-dominio-territorial-prisional-falta-de-criterios-objetivos-compromete-a-aplicacao-do-marco-antifaccoes/"
+},
+{
+"chave": "conjur|opiniao|adi-6309-futuras-geracoes|2026|2026-11-03",
+"titulo": "ADI 6.309: decisão do STF só vale para as futuras gerações (contém ironia)?",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/adi-6-309-a-decisao-do-stf-so-vale-para-as-futuras-geracoes-contem-ironia/"
+},
+{
+"chave": "conjur|opiniao|juri-execucao-imediata-tema-1068|2026|2026-11-03",
+"titulo": "Tribunal do Júri e execução imediata da pena: o que o Tema 1.068 mudou na preparação do plenário",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/tribunal-do-juri-e-execucao-imediata-da-pena-o-que-o-tema-1-068-mudou-na-preparacao-do-plenario/"
+},
+{
+"chave": "conjur|opiniao|5-melhores-decisoes-eleicao|2026|2026-11-03",
+"titulo": "As 5 melhores decisões na eleição: sim, o Supremo pode e deve corrigir o TSE",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-03/as-5-melhores-decisoes-durante-a-eleicao-sim-o-supremo-pode-e-deve-corrigir-o-tse/"
+},
+{
+"chave": "jota|fofoquinha|gilmar-cobra-arbitro-equidistante-tse|2026|2026-11-04",
+"titulo": "Gilmar Mendes cobra \"postura de árbitro equidistante\" do comando do TSE; crítica seria dirigida a Nunes Marques, sem citá-lo",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota|fofoquinha|decreto-fim-escala-6x1-marinho|2026|2026-11-03",
+"titulo": "Decreto do fim da 6x1 deve sair nesta semana e trará flexibilidade, diz Luiz Marinho",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-05-7h",
+"items": [
+{
+"chave": "stf|noticia|ato-obsceno-criterios|2026|2026-11-04",
+"titulo": "STF começa a discutir critérios para definir crime de ato obsceno em locais públicos",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-comeca-a-discutir-criterios-para-definir-crime-de-ato-obsceno-em-locais-publicos/"
+},
+{
+"chave": "stf|noticia|presidente-recebe-especialistas-ue|2026|2026-11-04",
+"titulo": "Presidente do STF recebe especialistas da União Europeia que acompanharam eleições no Brasil",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-recebe-especialistas-da-uniao-europeia-que-acompanharam-eleicoes-no-brasil/"
+},
+{
+"chave": "stf|noticia|dialogos-supremo-transformacoes-digitais|2026|2026-11-04",
+"titulo": "'Diálogos com o Supremo' debate transformações digitais na Justiça com pesquisadores franceses",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/dialogos-com-o-supremo-debate-transformacoes-digitais-na-justica-com-pesquisadores-franceses/"
+},
+{
+"chave": "stf|noticia|cnc-escala-6x1|2026|2026-11-04",
+"titulo": "Confederação do comércio questiona no STF prazo para fim da escala 6×1",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/confederacao-do-comercio-questiona-no-stf-prazo-para-fim-da-escala-6x1/"
+},
+{
+"chave": "stf|tese|tema-1258|2026|2026-11-03",
+"titulo": "Tema 1.258 (RE 1.362.742): crédito de ICMS nas operações internas anteriores — acórdão publicado",
+"categoria": "STF Jurisprudência",
+"url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf"
+},
+{
+"chave": "stf|tese|tema-1486|2026|2026-11-03",
+"titulo": "Tema 1.486 (RE 1.555.476): jornada de fisioterapeutas e terapeutas ocupacionais — trânsito em julgado",
+"categoria": "STF Jurisprudência",
+"url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf"
+},
+{
+"chave": "camara|plenario|postes-energia-teles|2026|2026-11-05",
+"titulo": "Câmara aprova regras para o uso de postes por empresas de energia e teles",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1315992-camara-aprova-regras-para-o-uso-de-postes-por-empresas-de-energia-e-teles"
+},
+{
+"chave": "camara|plenario|urgencia-fies|2026|2026-11-05",
+"titulo": "Deputados aprovam urgência para projeto que cria nova modalidade para Fies",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1315954-deputados-aprovam-urgencia-para-projeto-que-cria-nova-modalidade-para-fies"
+},
+{
+"chave": "camara|plenario|programa-psicossocial|2026|2026-11-05",
+"titulo": "Câmara aprova criação de programa para acompanhamento psicossocial de crianças e adolescentes",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1316057-camara-aprova-criacao-de-programa-para-acompanhamento-psicossocial-de-criancas-e-adolescentes"
+},
+{
+"chave": "camara|plenario|drones-presidios|2026|2026-11-05",
+"titulo": "Câmara aprova proposta que criminaliza sobrevoo não autorizado de drones perto de presídios",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1315957-camara-aprova-proposta-que-criminaliza-sobrevoo-nao-autorizado-de-drones-perto-de-presidios"
+},
+{
+"chave": "stf|informativo|1235|2026|2026-11-04",
+"titulo": "Informativo STF nº 1235 (04/11/2026)",
+"categoria": "Informativos",
+"url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1235.pdf"
+},
+{
+"chave": "stf|informativo|repercussao-geral-396|2026|2026-11-03",
+"titulo": "Repercussão Geral em Pauta nº 396 (27/10 a 03/11/2026)",
+"categoria": "Informativos",
+"url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf"
+},
+{
+"chave": "conjur|noticia|ato-obsceno-cinco-votos|2026|2026-11-04",
+"titulo": "Supremo tem cinco votos para manter crime de ato obsceno em público",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-04/supremo-tem-cinco-votos-para-manter-crime-de-ato-obsceno-em-publico/"
+},
+{
+"chave": "conjur|noticia|stf-loterias-municipais|2026|2026-11-04",
+"titulo": "STF começa a julgar se municípios podem explorar loterias e serviços de apostas",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-04/stf-comeca-a-julgar-se-municipios-podem-criar-e-explorar-loterias-e-servicos-de-apostas/"
+},
+{
+"chave": "jota|noticia|senado-aprova-pec-seguranca|2026|2026-11-04",
+"titulo": "Senado aprova PEC da Segurança sem reduzir maioridade penal",
+"categoria": "Mídia",
+"url": "https://www.jota.info/legislativo/senado-aprova-pec-da-seguranca-sem-reduzir-maioridade-penal"
+},
+{
+"chave": "conjur|noticia|stj-pix-desercao|2026|2026-11-04",
+"titulo": "STJ afasta deserção de recurso que teve custas pagas por meio do Pix",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-04/stj-afasta-desercao-de-recurso-que-teve-custas-pagas-por-pix/"
+},
+{
+"chave": "conjur|noticia|stj-farmaceutico-presencial|2026|2026-11-04",
+"titulo": "Farmácias devem garantir atendimento presencial de farmacêuticos, define STJ",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-04/farmacias-devem-ter-farmaceuticos-presencialmente-em-todas-unidades-define-stj/"
+},
+{
+"chave": "conjur|noticia|stj-cooperativa-medica|2026|2026-11-04",
+"titulo": "Cooperativa médica não pode restringir título de especialista, diz STJ",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-04/cooperativa-medica-nao-pode-restringir-titulo-de-especialista-diz-stj/"
+},
+{
+"chave": "conjur|noticia|cni-horas-extras-pausas-termicas|2026|2026-11-04",
+"titulo": "CNI questiona pagamento de horas extras por falta de pausas térmicas",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-04/cni-questiona-pagamento-de-horas-extras-por-falta-de-pausas-termicas/"
+},
+{
+"chave": "migalhas|noticia|oab-adiamento-reforma-tributaria|2026|2026-11-04",
+"titulo": "OAB pede adiamento da reforma tributária para 2028",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467893/oab-pede-adiamento-da-reforma-tributaria-para-2028"
+},
+{
+"chave": "jota|noticia|corte-especial-stj-condena-desembargadora|2026|2026-11-05",
+"titulo": "Corte Especial do STJ condena desembargadora Sandra Inês Rusciolelli (Operação Faroeste)",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|cnj-certidoes-obito-acao-policial|2026|2026-11-05",
+"titulo": "CNJ aprova regras para que certidões de óbito incluam o contexto de mortes relacionadas à atuação policial",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|opiniao|impeachment-ministros-stf|2026|2026-11-04",
+"titulo": "Impeachment de ministros do STF subiu no telhado",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/o-mundo-fora-dos-autos/impeachment-de-ministros-do-stf-subiu-no-telhado"
+},
+{
+"chave": "jota|opiniao|eficacia-horizontal-big-techs|2026|2026-11-04",
+"titulo": "Eficácia horizontal 2.0: o STF diante das Big Techs",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/observatorio-constitucional/eficacia-horizontal-2-0-o-stf-diante-das-big-techs"
+},
+{
+"chave": "jota|opiniao|bets-seguranca-juridica|2026|2026-11-04",
+"titulo": "Proibição das bets e o alerta para o investidor estrangeiro: segurança jurídica em risco?",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/coberturas-especiais/jurisprudente/proibicao-das-bets-e-o-alerta-para-o-investidor-estrangeiro-seguranca-juridica-em-risco"
+},
+{
+"chave": "conjur|opiniao|exclusao-advocacia-revisao-tese-stj|2026|2026-11-05",
+"titulo": "Exclusão da advocacia na proposta de revisão de tese do STJ",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-05/exclusao-da-advocacia-na-proposta-de-revisao-de-tese-do-stj/"
+},
+{
+"chave": "conjur|opiniao|racionalidade-prova-penal|2026|2026-11-05",
+"titulo": "Racionalidade da prova penal e dever de enfrentar elementos favoráveis à defesa",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-05/racionalidade-da-prova-penal-e-dever-de-enfrentar-elementos-favoraveis-a-defesa/"
+},
+{
+"chave": "conjur|opiniao|coragem-indeferir-ultima-ratio|2026|2026-11-04",
+"titulo": "Coragem para indeferir diante da manchete e da inversão da ultima ratio",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-04/coragem-para-indeferir-diante-da-manchete-e-da-inversao-da-ultima-ratio/"
+},
+{
+"chave": "jota|fofoca|pgr-revisao-criminal-bolsonaro|2026|2026-11-05",
+"titulo": "PGR deve recomendar a rejeição do novo pedido de revisão criminal de Jair Bolsonaro",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-06-7h",
+"items": [
+{
+"chave": "planalto|mpv|1399|2026|2026-11-04",
+"titulo": "Medida Provisória nº 1.399, de 04/11/2026 — Imposto Seletivo 2027",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/mpv/mpv1399.htm"
+},
+{
+"chave": "planalto|decreto|13146|2026|2026-11-04",
+"titulo": "Decreto nº 13.146, de 04/11/2026 — minerais críticos e estratégicos",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13146.htm"
+},
+{
+"chave": "stf|noticia|stf-rejeita-recurso-ex-prefeito-duque-de-caxias|2026|2026-11-05",
+"titulo": "STF rejeita recurso de ex-prefeito de Duque de Caxias (RJ) condenado por crime ambiental",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-rejeita-recurso-de-ex-prefeito-de-duque-de-caxias-rj-condenado-por-crime-ambiental/"
+},
+{
+"chave": "stf|noticia|stf-suspende-julgamento-limites-tcu-solucao-consensual|2026|2026-11-05",
+"titulo": "STF suspende julgamento sobre limites para atuação do TCU na solução consensual de conflitos",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-julgamento-sobre-limites-para-atuacao-do-tcu-na-solucao-consensual-de-conflitos/"
+},
+{
+"chave": "stf|noticia|stf-invalida-normas-investigacao-mp-rs|2026|2026-11-05",
+"titulo": "STF invalida normas sobre organização e poderes de investigação do Ministério Público do RS",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-invalida-normas-sobre-organizacao-e-poderes-de-investigacao-do-ministerio-publico-do-rs/"
+},
+{
+"chave": "stf|noticia|escala-6x1-stf-marca-audiencia-conciliacao|2026|2026-11-05",
+"titulo": "Escala 6×1: STF marca audiência de conciliação para debater implementação da mudança",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/escala-6x1-stf-marca-audiencia-de-conciliacao-para-debater-implementacao-da-mudanca/"
+},
+{
+"chave": "migalhas|midia|tse-abre-investigacao-chapa-lula-alckmin|2026|2026-11-05",
+"titulo": "TSE abre investigação contra chapa Lula/Alckmin por abuso de poder político",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-05/tse-abre-investigacao-contra-chapa-lula-alckmin-por-suposto-abuso-de-poder-politico/"
+},
+{
+"chave": "conjur|midia|fraude-cota-genero-nao-retira-mandato|2026|2026-11-05",
+"titulo": "Fraude à cota de gênero não retira mandato de mulheres eleitas, decide TSE",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-05/partido-que-frauda-cota-de-genero-pode-manter-votos-e-mulheres-eleitas/"
+},
+{
+"chave": "jota|midia|trf3-autoriza-tres-bets-voltarem-operar|2026|2026-11-06",
+"titulo": "Desembargadora Adriana Pileggi, do TRF-3, autorizou três bets a voltarem a operar",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|midia|drogarias-farmaceutico-presencial-stj|2026|2026-11-05",
+"titulo": "Drogarias devem ter farmacêutico trabalhando presencialmente durante todo o expediente, diz STJ",
+"categoria": "Mídia",
+"url": "https://www.jota.info/saude/drogarias-devem-ter-farmaceutico-trabalhando-presencialmente-durante-todo-o-expediente-diz-stj"
+},
+{
+"chave": "jota|midia|stj-stock-options-sem-contribuicao-previdenciaria|2026|2026-11-05",
+"titulo": "STJ: não incidem contribuições previdenciárias sobre ganhos de stock options",
+"categoria": "Mídia",
+"url": "https://www.jota.info/tributos/stj-nao-incidem-contribuicoes-previdenciarias-sobre-ganhos-de-stock-options"
+},
+{
+"chave": "jota|midia|carf-nega-tese-stf-multa-ipi|2026|2026-11-05",
+"titulo": "Carf nega tese do STF à multa regulamentar do IPI por notas fiscais irregulares",
+"categoria": "Mídia",
+"url": "https://www.jota.info/tributos/carf-nega-tese-do-stf-a-multa-regulamentar-do-ipi-por-notas-fiscais-irregulares"
+},
+{
+"chave": "migalhas|midia|stj-segunda-secao-equoterapia|2026|2026-11-05",
+"titulo": "2ª seção do STJ analisa se planos de saúde devem cobrir equoterapia",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467988/2-secao-do-stj-analisa-se-planos-de-saude-devem-cobrir-equoterapia"
+},
+{
+"chave": "migalhas|midia|stj-buscas-policiais-nervosismo-denuncia-anonima|2026|2026-11-05",
+"titulo": "STJ volta a julgar buscas policiais motivadas por nervosismo e denúncia anônima",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/467965/stj-volta-a-julgar-buscas-policiais-por-nervosismo-e-denuncia-anonima"
+},
+{
+"chave": "jota|midia|mte-decreto-fim-escala-6x1-segunda|2026|2026-11-05",
+"titulo": "MTE prevê publicar decreto sobre fim da escala 6x1 na próxima segunda-feira (9/11)",
+"categoria": "Mídia",
+"url": "https://www.jota.info/trabalho/mte-preve-publicar-decreto-sobre-fim-da-escala-6x1-na-proxima-segunda-feira-9-11"
+},
+{
+"chave": "jota|midia|camara-aprova-marco-legal-postes|2026|2026-11-05",
+"titulo": "Câmara aprova marco legal para compartilhamento de postes; texto volta ao Senado",
+"categoria": "Mídia",
+"url": "https://www.jota.info/legislativo/camara-aprova-marco-legal-para-compartilhamento-de-postes-texto-volta-ao-senado"
+},
+{
+"chave": "jota|opiniao|ia-na-arbitragem-panorama|2026|2026-11-05",
+"titulo": "Inteligência artificial na arbitragem: um panorama das orientações no Brasil e no mundo",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/inteligencia-artificial-na-arbitragem-um-panorama-das-orientacoes-no-brasil-e-no-mundo"
+},
+{
+"chave": "jota|opiniao|autonomia-banco-central-selic|2026|2026-11-05",
+"titulo": "Autonomia do Banco Central e o paraíso imaginário do controle da Selic",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/autonomia-do-banco-central-e-o-paraiso-imaginario-do-controle-da-selic"
+},
+{
+"chave": "jota|opiniao|reforma-tributaria-ruim-hoje-ruim-em-um-ano|2026|2026-11-05",
+"titulo": "Reforma tributária: o ruim hoje seguirá sendo ruim em um ano",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/coberturas-especiais/pulso-da-reforma/reforma-tributaria-o-ruim-hoje-seguira-sendo-ruim-em-um-ano"
+},
+{
+"chave": "conjur|art|substituir-relevancia-presumida-por-relativa|2026|2026-11-06",
+"titulo": "Substituir ‘relevância presumida’ por ‘relativa’ é interpretar ou legislar?",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-06/substituir-relevancia-presumida-por-relativa-e-interpretar-ou-legislar/"
+},
+{
+"chave": "conjur|art|concorrencia-nao-pode-ser-proibida-por-contrato|2026|2026-11-06",
+"titulo": "A concorrência não pode ser proibida por contrato",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-06/a-concorrencia-nao-pode-ser-proibida-por-contrato/"
+},
+{
+"chave": "conjur|art|tres-decisoes-ampliam-poder-do-fisco|2026|2026-11-05",
+"titulo": "Três decisões ampliam poder do Fisco e deixam contraditório para depois",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-05/tres-decisoes-ampliam-poder-do-fisco-e-deixam-contraditorio-para-depois/"
+},
+{
+"chave": "jota|fofoca|lula-insistir-messias-stf|2026|2026-11-06",
+"titulo": "Lula quer insistir em Jorge Messias para o STF, indica jornal",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota|fofoca|fux-decidir-quando-estiver-pronto-bets|2026|2026-11-05",
+"titulo": "Fux, relator das ações contra a MP que proibiu as apostas, diz que vai \"decidir quando estiver pronto\"",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-09-7h",
+"items": [
+{
+"chave": "planalto|decreto|13151|2026|2026-11-05",
+"titulo": "Decreto nº 13.151/2026 — Decisão XXXVIII/D/453 da OLADE",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13151.htm"
+},
+{
+"chave": "planalto|decreto|13150|2026|2026-11-05",
+"titulo": "Decreto nº 13.150/2026 — Acordo-Quadro de Cooperação Militar Brasil–Bahrein",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13150.htm"
+},
+{
+"chave": "planalto|decreto|13149|2026|2026-11-05",
+"titulo": "Decreto nº 13.149/2026 — Acordo de Cooperação Científica e Tecnológica Brasil–Jordânia",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13149.htm"
+},
+{
+"chave": "planalto|decreto|13148|2026|2026-11-05",
+"titulo": "Decreto nº 13.148/2026 — Acordo sobre Serviços Aéreos Brasil–Paraguai",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13148.htm"
+},
+{
+"chave": "planalto|decreto|13147|2026|2026-11-05",
+"titulo": "Decreto nº 13.147/2026 — Prazo de noventa dias a turistas do Mercosul",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13147.htm"
+},
+{
+"chave": "stf|noticia|pauta-plenario-novembro|2026|2026-11-09",
+"titulo": "Confira os destaques da pauta do Plenário do STF para novembro",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/confira-os-destaques-da-pauta-do-plenario-do-stf-para-novembro/"
+},
+{
+"chave": "stf|noticia|curso-direito-constitucional-lusofono|2026|2026-11-08",
+"titulo": "STF promove curso internacional de direito constitucional para magistrados de países de língua portuguesa",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-promove-curso-internacional-de-direito-constitucional-para-magistrados-de-paises-de-lingua-portuguesa/"
+},
+{
+"chave": "stf|noticia|supremo-na-semana-bets|2026|2026-11-07",
+"titulo": "Supremo na Semana destaca audiência pública sobre proibição das bets",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/supremo-na-semana-destaca-audiencia-publica-sobre-proibicao-das-bets/"
+},
+{
+"chave": "stf|noticia|carmen-lucia-representacao-feminina|2026|2026-11-06",
+"titulo": "Ministra Cármen Lúcia critica baixa representação feminina na política",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/ministra-carmen-lucia-critica-baixa-representacao-feminina-na-politica/"
+},
+{
+"chave": "stf|noticia|cestf-consulta-precedentes|2026|2026-11-06",
+"titulo": "CESTF reabre consulta para debater conclusões preliminares sobre sistema de precedentes e autonomia federativa",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/cestf-reabre-consulta-para-debater-conclusoes-preliminares-sobre-sistema-de-precedentes-e-autonomia-federativa/"
+},
+{
+"chave": "migalhas|noticia|468082|2026|2026-11-09",
+"titulo": "STF: Pauta da semana tem violência patrimonial e piso dos professores",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468082/stf-pauta-da-semana-tem-violencia-patrimonial-e-piso-dos-professores"
+},
+{
+"chave": "conjur|noticia|prisao-desembargadora-venda-sentencas|2026|2026-11-07",
+"titulo": "Ministro do STJ manda prender desembargadora condenada por venda de sentenças",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-07/ministro-do-stj-decreta-prisao-de-desembargadora-condenada-por-venda-de-sentenca/"
+},
+{
+"chave": "jota|noticia|cni-acao-emenda-6x1|2026|2026-11-06",
+"titulo": "CNI entra com ação contra emenda que acabou com a escala 6x1 e reduziu jornada semanal",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|dino-conciliacao-6x1|2026|2026-11-06",
+"titulo": "Dino marca audiência de conciliação em ação que discute fim da escala 6x1",
+"categoria": "Mídia"
+},
+{
+"chave": "conjur|noticia|stj-busca-veicular|2026|2026-11-08",
+"titulo": "STJ discute se polícia só pode revistar carro para fiscalizar o trânsito",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-08/stj-debate-limites-para-busca-veicular-feita-por-policiais/"
+},
+{
+"chave": "jota|noticia|gilmar-folga-dominical-mulheres|2026|2026-11-09",
+"titulo": "Gilmar Mendes reconheceu a validade de acordo coletivo que permite folga dominical para mulheres a cada três semanas",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|og-fernandes-entrevista|2026|2026-11-09",
+"titulo": "Entrevista do ministro Og Fernandes, do STJ, às vésperas de sua aposentadoria compulsória",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|tse-chapa-lula-alckmin|2026|2026-11-06",
+"titulo": "TSE admite ação contra a chapa Lula-Alckmin por uso de máquina pública em ano eleitoral",
+"categoria": "Mídia"
+},
+{
+"chave": "conjur|art|iva-30-split-payment|2026|2026-11-09",
+"titulo": "IVA de 30% e split payment: crise da teoria tributária diante da arrecadação instantânea",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-09/iva-de-30-e-split-payment-crise-da-teoria-tributaria-diante-da-arrecadacao-instantanea/"
+},
+{
+"chave": "conjur|art|mp-1399-imposto-seletivo|2026|2026-11-08",
+"titulo": "Do signo solto ao emprestado: prejudicialidade na MP 1.399/26 do Imposto Seletivo",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-08/do-signo-solto-ao-emprestado-prejudicialidade-na-mp-1-399-26-do-imposto-seletivo/"
+},
+{
+"chave": "conjur|art|rabo-da-lagartixa|2026|2026-11-08",
+"titulo": "O rabo da lagartixa: limites das medidas cautelares reais no processo penal",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-08/o-rabo-da-lagartixa-limites-das-medidas-cautelares-reais-no-processo-penal/"
+},
+{
+"chave": "conjur|art|rpps-instituicao-financeira|2026|2026-11-08",
+"titulo": "RPPS não é instituição financeira: os limites da Lei 7.492/86",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-08/rpps-nao-e-instituicao-financeira-os-limites-da-lei-7-492-86/"
+},
+{
+"chave": "jota|opiniao|caminhos-investigar-stf|2026|2026-11-06",
+"titulo": "Quais são os caminhos para investigar o Supremo Tribunal Federal?",
+"categoria": "Opinião/Análise"
+},
+{
+"chave": "jota|opiniao|reclamacao-relevancia-parte-i|2026|2026-11-06",
+"titulo": "A reclamação no regime de relevância (Parte I)",
+"categoria": "Opinião/Análise"
+},
+{
+"chave": "jota|fofoca|fachin-inquerito-fake-news|2026|2026-11-09",
+"titulo": "Fachin pode encerrar inquérito das fake news nesta semana, indica jornal",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota|fofoca|pf-relatorios-ministros-master|2026|2026-11-09",
+"titulo": "PF concluiu três relatórios sobre relações de Moraes, Nunes Marques e Toffoli com Vorcaro e o Banco Master",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota|fofoca|nunes-marques-vaga-trf1|2026|2026-11-09",
+"titulo": "Nunes Marques também está no centro da disputa por uma vaga no TRF-1",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-10-7h",
+"items": [
+{
+"chave": "planalto|mpv|1400|2026|2026-11-09",
+"titulo": "Medida Provisória nº 1.400/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.congressonacional.leg.br/materias/medidas-provisorias/-/mpv/176244"
+},
+{
+"chave": "planalto|decreto|13158|2026|2026-11-06",
+"titulo": "Decreto nº 13.158/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://portaldalegislacao.presidencia.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13158.htm"
+},
+{
+"chave": "planalto|decreto|13157|2026|2026-11-06",
+"titulo": "Decreto nº 13.157/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://portaldalegislacao.presidencia.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13157.htm"
+},
+{
+"chave": "planalto|decreto|13156|2026|2026-11-06",
+"titulo": "Decreto nº 13.156/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://portaldalegislacao.presidencia.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13156.htm"
+},
+{
+"chave": "planalto|decreto|13155|2026|2026-11-06",
+"titulo": "Decreto nº 13.155/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://portaldalegislacao.presidencia.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13155.htm"
+},
+{
+"chave": "planalto|decreto|13154|2026|2026-11-06",
+"titulo": "Decreto nº 13.154/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://portaldalegislacao.presidencia.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13154.htm"
+},
+{
+"chave": "planalto|decreto|13153|2026|2026-11-06",
+"titulo": "Decreto nº 13.153/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://portaldalegislacao.presidencia.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13153.htm"
+},
+{
+"chave": "planalto|lei|15527|2026|2026-11-06",
+"titulo": "Lei nº 15.527/2026 (herdada)",
+"categoria": "Planalto/Legislação",
+"url": "https://conjur.com.br/2026-nov-09/lei-torna-aprovacao-no-enamed-obrigatoria-para-a-medicina/"
+},
+{
+"chave": "stf|noticia|inquerito-4781-arquivado|2026|2026-11-09",
+"titulo": "Presidente do STF arquiva inquérito das fake news (Inquérito 4781)",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-arquiva-inquerito-das-fake-news-inquerito-4-781/"
+},
+{
+"chave": "stf|noticia|escuta-ribeirinhas-ananindeua|2026|2026-11-09",
+"titulo": "STF realiza escuta territorializada com comunidades ribeirinhas nas ilhas de Ananindeua (PA)",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-realiza-escuta-territorializada-com-comunidades-ribeirinhas-nas-ilhas-de-ananindeua-pa/"
+},
+{
+"chave": "stf|noticia|ouvidoria-mulher-encontro|2026|2026-11-09",
+"titulo": "Ouvidoria da Mulher do STF compartilha experiências de acolhimento e proteção em encontro nacional de ouvidorias",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/ouvidoria-da-mulher-do-stf-compartilha-experiencias-de-acolhimento-e-protecao-em-encontro-nacional-de-ouvidorias/"
+},
+{
+"chave": "stf|noticia|programa-preparacao-magistratura|2026|2026-11-09",
+"titulo": "STF lança programa de incentivo à preparação de pessoas negras, indígenas e quilombolas para a magistratura",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-lanca-programa-de-incentivo-a-preparacao-de-pessoas-negras-indigenas-e-quilombolas-para-a-magistratura/"
+},
+{
+"chave": "midia|conjur|fux-suspende-punicao-cnj-hardt|2026|2026-11-09",
+"titulo": "Fux suspende punição do CNJ à juíza Gabriela Hardt",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-09/fux-suspende-punicao-do-cnj-a-juiza-gabriela-hardt/"
+},
+{
+"chave": "midia|jota|fux-suspende-processos-bets|2026|2026-11-09",
+"titulo": "Luiz Fux suspende tramitação de todos os processos sobre fim das bets no Brasil",
+"categoria": "Mídia",
+"url": "https://www.jota.info/coberturas-especiais/jurisprudente/luiz-fux-suspende-tramitacao-de-todos-os-processos-sobre-fim-das-bets-no-brasil"
+},
+{
+"chave": "midia|jota|trf3-presidente-suspende-bets|2026|2026-11-09",
+"titulo": "Presidente do TRF3 suspende decisão de desembargadora que autorizava bets a funcionar",
+"categoria": "Mídia",
+"url": "https://www.jota.info/justica/presidente-do-trf3-suspende-decisao-de-desembargadora-que-autorizava-bets-a-funcionar"
+},
+{
+"chave": "midia|estadao|og-fernandes-difusao-vermelha|2026|2026-11-10",
+"titulo": "Og Fernandes determina inclusão de desembargadora do TJ-BA na difusão vermelha da Interpol",
+"categoria": "Mídia"
+},
+{
+"chave": "midia|migalhas|lula-nomeia-mendanha-trf1|2026|2026-11-09",
+"titulo": "Lula nomeia juiz federal Fausto Mendanha Gonzaga para o TRF-1",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468178/lula-nomeia-juiz-federal-fausto-mendanha-gonzaga-para-o-trf-1"
+},
+{
+"chave": "midia|conjur|stj-relevancia-afetacoes|2026|2026-11-09",
+"titulo": "Com regime da relevância, STJ projeta triplicar ritmo de afetações para firmar teses",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-09/com-regime-da-relevancia-stj-projeta-triplicar-afetacoes-para-firmar-teses/"
+},
+{
+"chave": "midia|jota|pauta-semana-6x1-cnj-precatorios|2026|2026-11-09",
+"titulo": "Pauta da semana: decreto do fim da escala 6x1, audiência no STF, CNJ e precatórios",
+"categoria": "Mídia"
+},
+{
+"chave": "midia|jota|reacao-senado-cbs|2026|2026-11-09",
+"titulo": "Reação do Senado à CBS ameaça receitas em 2027, mas corte não será fácil",
+"categoria": "Mídia",
+"url": "https://www.jota.info/coberturas-especiais/pulso-da-reforma/reacao-do-senado-a-cbs-ameaca-receitas-em-2027-mas-corte-nao-sera-facil"
+},
+{
+"chave": "opiniao|jota|salomao-protecao-digital-criancas|2026|2026-11-09",
+"titulo": "Proteção digital de crianças e adolescentes: novos paradigmas para o Direito brasileiro",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/protecao-digital-de-criancas-e-adolescentes-novos-paradigmas-para-o-direito-brasileiro"
+},
+{
+"chave": "opiniao|jota|santi-mp-imposto-seletivo|2026|2026-11-09",
+"titulo": "Medida provisória não pode dispor sobre Imposto Seletivo, CBS e IBS",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/coberturas-especiais/pulso-da-reforma/medida-provisoria-nao-pode-dispor-sobre-imposto-seletivo-cbs-e-ibs"
+},
+{
+"chave": "opiniao|jota|estellita-devedor-contumaz|2026|2026-11-09",
+"titulo": "Devedor contumaz: efeitos penais da LC 225/2026 no tempo",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/devedor-contumaz-efeitos-penais-da-lc-225-2026-no-tempo"
+},
+{
+"chave": "opiniao|jota|cbs-113-aliquota-referencia|2026|2026-11-09",
+"titulo": "CBS de 11,3%: as premissas do cálculo e os limites da alíquota de referência",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/coluna-da-abdf/cbs-de-113-as-premissas-do-calculo-e-os-limites-da-aliquota-de-referencia"
+},
+{
+"chave": "opiniao|conjur|lei-15397-conta-laranja|2026|2026-11-10",
+"titulo": "Lei nº 15.397/2026: a equiparação de conta laranja ao estelionato",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-10/entre-a-toga-e-a-catedra-conta-laranja-lavagem-de-dinheiro-e-a-lei-no-15-397-2026/"
+},
+{
+"chave": "opiniao|conjur|direitos-vitima-art5|2026|2026-11-09",
+"titulo": "Direitos da vítima no art. 5º da Constituição: o que isso exige do Estado?",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-09/os-direitos-da-vitima-no-artigo-5o-da-constituicao-o-que-isso-exige-do-estado/"
+},
+{
+"chave": "fofoca|oglobo|pf-tres-relatorios-ministros-stf|2026|2026-11-09",
+"titulo": "PF concluiu três relatórios sobre relações de Moraes, Nunes Marques e Toffoli com Vorcaro; cúpula manda refazer",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "fofoca|uol-folha|vorcaro-moraes-encontros|2026|2026-11-10",
+"titulo": "Dois encontros de Vorcaro com Alexandre de Moraes (14 e 16/11/2025) reconstituídos pelo UOL",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-11-7h",
+"items": [
+{
+"chave": "planalto|decreto|13159|2026|2026-11-09",
+"titulo": "Decreto nº 13.159, de 09/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13159.htm"
+},
+{
+"chave": "camara|mpv|fundo-garantidor-credito-rural|2026|2026-11-11",
+"titulo": "Medida provisória cria fundo garantidor para novas operações de crédito rural",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318105-medida-provisoria-cria-fundo-garantidor-para-novas-operacoes-de-credito-rural"
+},
+{
+"chave": "camara|plenario|credito-18-5-bi-exportadores|2026|2026-11-11",
+"titulo": "Câmara aprova crédito de 18,5 bi para exportadores afetados por novo tarifaço dos EUA",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1317853-camara-aprova-credito-de-185-bi-para-exportadores-afetados-por-novo-tarifaco-dos-eua"
+},
+{
+"chave": "camara|plenario|renegociacao-dividas-rurais|2026|2026-11-11",
+"titulo": "Câmara aprova renegociação de dívidas rurais de produtores prejudicados por eventos climáticos extremos",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1317852-camara-aprova-renegociacao-de-dividas-rurais-de-produtores-prejudicados-por-eventos-climaticos-extremos"
+},
+{
+"chave": "camara|plenario|codigo-florestal-senado|2026|2026-11-11",
+"titulo": "Câmara envia ao Senado projeto que flexibiliza Código Florestal",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318042-camara-envia-ao-senado-projeto-que-flexibiliza-codigo-florestal"
+},
+{
+"chave": "stf|noticia|escala-5x2-dino|2026|2026-11-10",
+"titulo": "Escala 5×2: relator decidirá sobre implementação da nova jornada até sexta-feira (13)",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/escala-5x2-relator-decidira-sobre-implementacao-da-nova-jornada-ate-sexta-feira-13/"
+},
+{
+"chave": "stf|noticia|leiloes-judiciais-cnj|2026|2026-11-10",
+"titulo": "Associação questiona regras do CNJ sobre leilões judiciais",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/associacao-questiona-regras-do-cnj-sobre-leiloes-judiciais/"
+},
+{
+"chave": "stf|noticia|saneamento-rj-precatorios|2026|2026-11-10",
+"titulo": "Companhia de saneamento do RJ deve pagar dívidas judiciais por precatórios, decide STF",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/companhia-de-saneamento-do-rj-deve-pagar-dividas-judiciais-por-precatorios-decide-stf/"
+},
+{
+"chave": "stf|noticia|buscas-emendas-bahia|2026|2026-11-10",
+"titulo": "STF autoriza buscas em investigação sobre suspeitas de desvio de emendas parlamentares na Bahia",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-autoriza-buscas-em-investigacao-sobre-suspeitas-de-desvio-de-emendas-parlamentares-na-bahia/"
+},
+{
+"chave": "stf|informativo|1236|2026|2026-11-10",
+"titulo": "Informativo STF nº 1236/2026",
+"categoria": "Informativos",
+"url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF"
+},
+{
+"chave": "stj|informativo|909|2026|2026-11-10",
+"titulo": "Informativo STJ nº 909 (10/11/2026)",
+"categoria": "Informativos",
+"url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0909.cod.&from=feed"
+},
+{
+"chave": "jota|noticia|fachin-arquiva-inquerito-fake-news|2026|2026-11-10",
+"titulo": "Edson Fachin arquiva inquérito das fake news depois de mais de 7 anos de tramitação",
+"categoria": "Mídia",
+"url": "https://www.jota.info/stf/do-supremo/edson-fachin-arquiva-inquerito-das-fake-news-depois-de-mais-de-7-anos-de-tramitacao"
+},
+{
+"chave": "migalhas|noticia|stj-ans-planos-coletivos|2026|2026-11-10",
+"titulo": "STJ valida regras da ANS que proíbem cobrança direta em planos coletivos por adesão",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468315/stj-valida-regra-da-ans-que-proibe-cobranca-direta-em-planos-coletivos"
+},
+{
+"chave": "migalhas|noticia|stj-pis-cofins-portuarios|2026|2026-11-10",
+"titulo": "Pagamento a portuários avulsos não gera créditos de PIS/Cofins, decide STJ",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468312/stj-nega-creditos-de-pis-cofins-sobre-trabalho-portuario-avulso"
+},
+{
+"chave": "conjur|noticia|tjsp-suspende-ibs-cbs-icms|2026|2026-11-10",
+"titulo": "TJ-SP suspende decisões que afastavam IBS e CBS da base do ICMS",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-10/tj-sp-suspende-decisoes-que-afastavam-ibs-e-cbs-da-base-do-icms/"
+},
+{
+"chave": "jota|noticia|stj-afasta-servidores-vazamento|2026|2026-11-10",
+"titulo": "STJ afasta servidores por vazamento a advogado amigo de Flávio; ex-secretário de TI do STJ é preso",
+"categoria": "Mídia",
+"url": "https://www.jota.info/justica/stj-afasta-servidores-e-pf-faz-busca-contra-suspeito-de-vazamento-a-advogado-amigo-de-flavio"
+},
+{
+"chave": "jota|noticia|tse-multa-meta|2026|2026-11-11",
+"titulo": "TSE multa Meta em R$ 7,5 milhões por descumprir ordens durante a eleição",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|boate-kiss-penas-stj|2026|2026-11-11",
+"titulo": "6ª Turma do STJ aumenta as penas dos dois sócios da Boate Kiss",
+"categoria": "Mídia"
+},
+{
+"chave": "jota|noticia|stf-lei-paulista-policia-penal|2026|2026-11-10",
+"titulo": "STF mantém lei paulista sobre policiais penais (ADI 7781)",
+"categoria": "Mídia",
+"url": "https://www.jota.info/stf/do-supremo/stf-mantem-lei-paulista-que-sujeita-policial-penal-a-trabalhar-em-condicoes-precarias-de-seguranca"
+},
+{
+"chave": "jota|opiniao|triunfo-fachin-fake-news|2026|2026-11-10",
+"titulo": "Triunfo de Fachin, fim do inquérito das fake news não será suficiente para pacificar STF",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/coluna-flavia-maia/triunfo-de-fachin-fim-do-inquerito-das-fake-news-nao-sera-suficiente-para-pacificar-stf"
+},
+{
+"chave": "jota|opiniao|cbs-neutralidade-arrecadatoria|2026|2026-11-10",
+"titulo": "A CBS e os limites da neutralidade arrecadatória",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/a-cbs-e-os-limites-da-neutralidade-arrecadatoria"
+},
+{
+"chave": "jota|opiniao|honorarios-contra-fazenda|2026|2026-11-10",
+"titulo": "Quatro regimes em cinco anos: os honorários contra a Fazenda",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/quatro-regimes-em-cinco-anos-os-honorarios-contra-a-fazenda"
+},
+{
+"chave": "jota|opiniao|recuperacao-judicial-credito|2026|2026-11-10",
+"titulo": "A recuperação judicial como a linha de crédito mais barata do país",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/a-recuperacao-judicial-como-a-linha-de-credito-mais-barata-do-pais"
+},
+{
+"chave": "jota|opiniao|violencia-processual-genero|2026|2026-11-10",
+"titulo": "Violência processual de gênero: prova, revitimização e autonomia conceitual",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/juizo-de-valor/violencia-processual-de-genero-prova-revitimizacao-e-autonomia-conceitual"
+},
+{
+"chave": "jota|opiniao|negociacao-coletiva-repousos|2026|2026-11-10",
+"titulo": "Negociação coletiva sobre o valor dos repousos semanais remunerados",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/releitura-trabalhista/negociacao-coletiva-sobre-o-valor-dos-repousos-semanais-remunerados"
+},
+{
+"chave": "valor|fofoca|pf-relatorios-fux-gilmar-mendonca|2026|2026-11-11",
+"titulo": "Caso Master: PF deve incluir Fux, Gilmar Mendes e André Mendonça nos novos relatórios",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "oglobo|fofoca|nunes-marques-nao-suspeito|2026|2026-11-11",
+"titulo": "Nunes Marques diz a interlocutores que não se considera suspeito para julgar casos do Master",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-12-7h",
+"items": [
+{
+"chave": "agencia-camara|ato|motta-destaca-aprovacao-de-medida-provisoria-que-permite|2026|2026-11-12",
+"titulo": "Motta destaca aprovação de medida provisória que permite renegociação de dívidas de produtores rurais",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318249-motta-destaca-aprovacao-de-medida-provisoria-que-permite-renegociacao-de-dividas-de-produtores-rurais"
+},
+{
+"chave": "agencia-camara|ato|camara-aprova-projeto-que-torna-hediondo-o-crime-de-maus|2026|2026-11-12",
+"titulo": "Câmara aprova projeto que torna hediondo o crime de maus-tratos de cães e gatos quando resulta em morte",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318510-camara-aprova-projeto-que-torna-hediondo-o-crime-de-maus-tratos-de-caes-e-gatos-quando-resulta-em-morte"
+},
+{
+"chave": "agencia-camara|ato|camara-decide-enviar-ao-senado-projeto-que-revoga-lei-so|2026|2026-11-12",
+"titulo": "Câmara decide enviar ao Senado projeto que revoga lei sobre alienação parental",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318504-camara-decide-enviar-ao-senado-projeto-que-revoga-lei-sobre-alienacao-parental"
+},
+{
+"chave": "agencia-camara|ato|camara-aprova-perda-de-heranca-para-quem-tentar-interdit|2026|2026-11-12",
+"titulo": "Câmara aprova perda de herança para quem tentar interditar idosos de forma fraudulenta",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318722-camara-aprova-perda-de-heranca-para-quem-tentar-interditar-idosos-de-forma-fraudulenta"
+},
+{
+"chave": "agencia-camara|ato|camara-aprova-projeto-que-aumenta-penas-para-compra-de-v|2026|2026-11-12",
+"titulo": "Câmara aprova projeto que aumenta penas para compra de votos por organizações criminosas",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318219-camara-aprova-projeto-que-aumenta-penas-para-compra-de-votos-por-organizacoes-criminosas"
+},
+{
+"chave": "agencia-camara|ato|camara-aprova-criacao-da-politica-nacional-de-residencia|2026|2026-11-12",
+"titulo": "Câmara aprova criação da Política Nacional de Residência em Saúde",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318796-camara-aprova-criacao-da-politica-nacional-de-residencia-em-saude"
+},
+{
+"chave": "agencia-camara|ato|camara-aprova-convencao-internacional-sobre-reciclagem-s|2026|2026-11-12",
+"titulo": "Câmara aprova convenção internacional sobre reciclagem segura de navios",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318718-camara-aprova-convencao-internacional-sobre-reciclagem-segura-de-navios"
+},
+{
+"chave": "push-stf|noticia|relator-vota-pelo-fim-da-isencao-de-pena-em-crimes-patri|2026|2026-11-11",
+"titulo": "Relator vota pelo fim da isenção de pena em crimes patrimoniais contra mulheres no ambiente familiar",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/relator-vota-pelo-fim-da-isencao-de-pena-em-crimes-patrimoniais-contra-mulheres-no-ambiente-familiar/"
+},
+{
+"chave": "push-stf|noticia|stf-suspende-processos-e-bloqueia-precatorios-de-valores|2026|2026-11-11",
+"titulo": "STF suspende processos e bloqueia precatórios de valores pagos pelo SUS a hospitais privados",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-suspende-processos-e-bloqueia-precatorios-de-valores-pagos-pelo-sus-a-hospitais-privados/"
+},
+{
+"chave": "push-stf|noticia|stf-vai-definir-se-alegacao-de-desconhecimento-de-idade|2026|2026-11-11",
+"titulo": "STF vai definir se alegação de desconhecimento de idade pode afastar condenação por estupro de vulnerável",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-vai-definir-se-alegacao-de-desconhecimento-de-idade-pode-afastar-condenacao-por-estupro-de-vulneravel/"
+},
+{
+"chave": "push-stf|noticia|presidente-do-stf-e-vice-se-reunem-com-parlamentares-da|2026|2026-11-11",
+"titulo": "Presidente do STF e vice se reúnem com parlamentares da Comissão Mista de Planos, Orçamentos Públicos e Fiscalização",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-e-vice-se-reunem-com-parlamentares-da-comissao-mista-de-planos-orcamentos-publicos-e-fiscalizacao/"
+},
+{
+"chave": "stf|informativo|repercussao-geral-397|2026|2026-11-11",
+"titulo": "Repercussão Geral em Pauta nº 397",
+"categoria": "Informativos",
+"url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio397.pdf"
+},
+{
+"chave": "stj|informativo|908|2026|2026-11-03",
+"titulo": "Informativo STJ nº 908",
+"categoria": "Informativos",
+"url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0908.cod."
+},
+{
+"chave": "stj|informativo|909-conteudo|2026|2026-11-10",
+"titulo": "Informativo STJ nº 909",
+"categoria": "Informativos",
+"url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0909.cod."
+},
+{
+"chave": "jota|noticia|flavio-dino-diz-que-dara-decisao-com-medidas-que-facilit|2026|2026-11-11",
+"titulo": "Flávio Dino diz que dará decisão com medidas que facilitem aplicação do fim da 6x1",
+"categoria": "Mídia",
+"url": "https://www.jota.info/trabalho/flavio-dino-diz-que-dara-decisao-com-medidas-que-facilitem-aplicacao-do-fim-da-6x1"
+},
+{
+"chave": "jota|noticia|toffoli-muda-voto-e-stf-tem-maioria-para-derrubar-lei-qu|2026|2026-11-11",
+"titulo": "Toffoli muda voto e STF tem maioria para derrubar lei que restringe cota racial",
+"categoria": "Mídia",
+"url": "https://www.jota.info/stf/do-supremo/toffoli-muda-voto-e-stf-tem-maioria-para-derrubar-lei-que-restringe-cota-racial"
+},
+{
+"chave": "jota|noticia|cnj-aprova-novas-regras-para-cessao-de-precatorios-e-pre|2026|2026-11-11",
+"titulo": "CNJ aprova novas regras para cessão de precatórios e prevê 'regime de transição'",
+"categoria": "Mídia",
+"url": "https://www.jota.info/justica/cnj-aprova-novas-regras-para-cessao-de-precatorios-e-preve-regime-de-transicao"
+},
+{
+"chave": "migalhas|noticia|468409-stj-preso-que-pede-droga-responde-por-trafico-mesm|2026|2026-11-11",
+"titulo": "Preso que pede droga responde por tráfico mesmo sem recebê-la, define STJ",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468409/stj-preso-que-pede-droga-responde-por-trafico-mesmo-sem-recebe-la"
+},
+{
+"chave": "migalhas|noticia|468415-stj-admite-remocao-de-professores-entre-universida|2026|2026-11-11",
+"titulo": "STJ reconhece quadro único e admite remoção de professores entre universidades federais",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468415/stj-admite-remocao-de-professores-entre-universidades-federais"
+},
+{
+"chave": "conjur|noticia|stj-convoca-fatima-maranhao-do-tj-pb-para-vaga-de|2026|2026-11-11",
+"titulo": "STJ convoca Fátima Maranhão, do TJ-PB, para vaga de Og Fernandes",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-11/stj-convoca-fatima-maranhao-do-tj-pb-para-vaga-de-og-fernandes/"
+},
+{
+"chave": "jota|noticia|stj-aditivo-a-plano-de-recuperacao-judicial-com-menos-de|2026|2026-11-11",
+"titulo": "STJ: aditivo a plano de recuperação judicial com menos de 15 dias anula assembleia de credores",
+"categoria": "Mídia",
+"url": "https://www.jota.info/justica/stj-aditivo-a-plano-de-recuperacao-judicial-com-menos-de-15-dias-anula-assembleia-de-credores"
+},
+{
+"chave": "conjur|noticia|stj-vai-decidir-tributacao-sobre-hora-repouso-alim|2026|2026-11-11",
+"titulo": "STJ vai decidir tributação sobre hora repouso alimentação após reforma",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-11/stj-vai-decidir-tributacao-sobre-hora-repouso-alimentacao-apos-reforma/"
+},
+{
+"chave": "jota|opiniao|quem-interpreta-a-constituicao|2026|2026-11-11",
+"titulo": "Quem interpreta a Constituição?",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/observatorio-constitucional/quem-interpreta-a-constituicao"
+},
+{
+"chave": "jota|opiniao|quando-a-relevancia-forma-precedente-e-o-que-restou-da-r|2026|2026-11-11",
+"titulo": "Quando a relevância forma precedente e o que restou da reclamação no STJ?",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/quando-a-relevancia-forma-precedente-e-o-que-restou-da-reclamacao-no-stj"
+},
+{
+"chave": "jota|opiniao|o-contraditorio-interno-de-og-fernandes-a-escuta-como-le|2026|2026-11-11",
+"titulo": "O contraditório interno de Og Fernandes: a escuta como legado judicial",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/o-contraditorio-interno-de-og-fernandes-a-escuta-como-legado-judicial"
+},
+{
+"chave": "conjur|opiniao|stf-exclui-iss-da-base-do-pis-e-da-cofins-veja-os|2026|2026-11-11",
+"titulo": "STF exclui ISS da base do PIS e da Cofins; veja os efeitos da decisão",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-11/stf-exclui-iss-da-base-do-pis-e-da-cofins-veja-os-efeitos-da-decisao/"
+},
+{
+"chave": "conjur|opiniao|pec-da-seguranca-muda-desenho-federativo-do-combat|2026|2026-11-11",
+"titulo": "PEC da Segurança muda desenho federativo do combate à criminalidade",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-11/pec-da-seguranca-muda-desenho-federativo-do-combate-a-criminalidade/"
+},
+{
+"chave": "conjur|opiniao|isonomia-no-condominio-o-stj-e-a-taxa-de-lazer-cob|2026|2026-11-11",
+"titulo": "Isonomia no condomínio: taxa de lazer cobrada de possuidores não proprietários",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-11/isonomia-no-condominio-o-stj-e-a-taxa-de-lazer-cobrada-de-possuidores-nao-proprietarios/"
+},
+{
+"chave": "o-globo|fofoca|aliados-aconselham-lula-a-indicar-uma-mulher-para-a-vaga|2026|2026-11-12",
+"titulo": "Aliados aconselham Lula a indicar uma mulher para a vaga de Barroso no STF",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "jota-pro-poder|fofoca|fazenda-mantem-cronograma-da-reforma-tributaria-inicio-e|2026|2026-11-11",
+"titulo": "Fazenda mantém cronograma da reforma tributária (início em janeiro de 2027)",
+"categoria": "Fofoquinha"
+}
+]
+},
+{
+"execution_id": "2026-11-13-7h",
+"items": [
+{
+"chave": "planalto|lei|15528|2026|2026-11-11",
+"titulo": "Lei nº 15.528, de 11/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://legis.senado.leg.br/norma/44386606"
+},
+{
+"chave": "planalto|decreto|13161|2026|2026-11-12",
+"titulo": "Decreto nº 13.161, de 11/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13161.htm"
+},
+{
+"chave": "planalto|decreto|13160|2026|2026-11-12",
+"titulo": "Decreto nº 13.160, de 11/11/2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13160.htm"
+},
+{
+"chave": "agencia-camara|ato|congresso-aprova-creditos-orcamentarios-de-r-152-4-bilho|2026|2026-11-13",
+"titulo": "Congresso aprova créditos orçamentários de R$ 152,4 bilhões no Orçamento de 2026",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1318963-congresso-aprova-creditos-orcamentarios-de-r-1524-bilhoes-no-orcamento-de-2026"
+},
+{
+"chave": "agencia-camara|ato|congresso-aprova-indicacao-para-o-conselho-de-comunicaca|2026|2026-11-13",
+"titulo": "Congresso aprova indicação para o Conselho de Comunicação Social",
+"categoria": "Planalto/Legislação",
+"url": "https://www.camara.leg.br/noticias/1319007-congresso-aprova-indicacao-para-o-conselho-de-comunicacao-social"
+},
+{
+"chave": "push-stf|noticia|stf-tem-unanimidade-para-afastar-isencao-de-pena-em-crim|2026|2026-11-12",
+"titulo": "STF tem unanimidade para afastar isenção de pena em crimes patrimoniais entre familiares",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-forma-unanimidade-para-afastar-isencao-de-pena-em-crimes-patrimoniais-entre-familiares/"
+},
+{
+"chave": "push-stf|noticia|stf-rejeita-recursos-contra-decisao-que-homologou-acordo|2026|2026-11-12",
+"titulo": "STF rejeita recursos contra decisão que homologou acordo dos planos econômicos",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-rejeita-recursos-contra-decisao-que-homologou-acordo-dos-planos-economicos/"
+},
+{
+"chave": "push-stf|noticia|por-questoes-processuais-relator-nega-pedido-do-psd-para|2026|2026-11-12",
+"titulo": "Por questões processuais, relator nega pedido do PSD para realizar segundo turno das eleições no RJ",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/por-questoes-processuais-relator-nega-pedido-do-psd-para-realizar-segundo-turno-das-eleicoes-no-rj/"
+},
+{
+"chave": "push-stf|noticia|stf-divulga-finalistas-para-fase-de-sustentacoes-da-segu|2026|2026-11-12",
+"titulo": "STF divulga finalistas para fase de sustentações da segunda edição do STF Moot",
+"categoria": "STF Notícias",
+"url": "https://noticias.stf.jus.br/postsnoticias/stf-divulga-finalistas-para-fase-de-sustentacoes-da-segunda-edicao-do-stf-moot/"
+},
+{
+"chave": "conjur|noticia|pedido-de-drogas-em-presidio-e-sempre-crime-redefi|2026|2026-11-12",
+"titulo": "Pedido de drogas feito em presídio é sempre crime, redefine STJ",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-12/pedido-de-drogas-em-presidio-e-sempre-crime-redefine-stj/"
+},
+{
+"chave": "conjur|noticia|stj-julga-se-pode-majorar-pena-se-violencia-psicol|2026|2026-11-12",
+"titulo": "STJ julga se pode majorar pena se violência psicológica é também doméstica",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-12/stj-julga-se-pode-majorar-pena-se-violencia-psicologica-e-tambem-domestica/"
+},
+{
+"chave": "conjur|noticia|stf-suspende-lei-que-obriga-provedores-a-informar|2026|2026-11-12",
+"titulo": "STF suspende lei que obriga provedores a informar velocidade da internet",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-12/stf-suspende-lei-que-obriga-provedores-a-informar-velocidade-da-internet/"
+},
+{
+"chave": "conjur|noticia|flavio-dino-nega-adiamento-e-mantem-cronograma-de|2026|2026-11-12",
+"titulo": "Flávio Dino nega adiamento e mantém cronograma de extinção da jornada 6×1",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-12/flavio-dino-nega-adiamento-e-mantem-cronograma-de-extincao-da-jornada-6x1/"
+},
+{
+"chave": "migalhas|noticia|468499-tst-anula-dispensa-em-massa-e-multa-casa-da-moeda|2026|2026-11-12",
+"titulo": "TST anula dispensa em massa e multa Casa da Moeda em R$ 10 mi por etarismo",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468499/tst-anula-dispensa-em-massa-e-multa-casa-da-moeda-por-etarismo"
+},
+{
+"chave": "jota|noticia|gilmar-mendes-interrompe-julgamento-com-maioria-formada|2026|2026-11-12",
+"titulo": "Gilmar Mendes interrompe julgamento com maioria formada para derrubar lei que restringe cota racial",
+"categoria": "Mídia",
+"url": "https://www.jota.info/stf/do-supremo/gilmar-mendes-interrompe-julgamento-com-maioria-formada-para-derrubar-lei-que-restringe-cota-racial"
+},
+{
+"chave": "jota|noticia|stj-decide-que-vale-transporte-pago-em-dinheiro-integra|2026|2026-11-12",
+"titulo": "STJ decide que vale-transporte pago em dinheiro integra base de cálculo do FGTS",
+"categoria": "Mídia",
+"url": "https://www.jota.info/trabalho/stj-decide-que-vale-transporte-pago-em-dinheiro-integra-base-de-calculo-do-fgts"
+},
+{
+"chave": "migalhas|noticia|468505-stj-dispensa-oferta-de-outro-seguro-para-nao-renov|2026|2026-11-12",
+"titulo": "STJ dispensa oferta de outro seguro para não renovação de apólice coletiva",
+"categoria": "Mídia",
+"url": "https://www.migalhas.com.br/quentes/468505/stj-dispensa-oferta-de-outro-seguro-para-nao-renovar-apolice-coletiva"
+},
+{
+"chave": "conjur|noticia|pessoa-com-esquizofrenia-em-vulnerabilidade-pode-r|2026|2026-11-12",
+"titulo": "Melhora em quadro de esquizofrenia não afasta direito ao BPC",
+"categoria": "Mídia",
+"url": "https://conjur.com.br/2026-nov-12/pessoa-com-esquizofrenia-em-vulnerabilidade-pode-receber-bpc/"
+},
+{
+"chave": "conjur|opiniao|a-revisao-da-coisa-julgada-inconstitucional-nos-ju|2026|2026-11-13",
+"titulo": "A revisão da coisa julgada inconstitucional nos Juizados Especiais",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-13/a-revisao-da-coisa-julgada-inconstitucional-nos-juizados-especiais/"
+},
+{
+"chave": "conjur|opiniao|pagar-3-vezes-pelo-que-se-recebeu-caso-paradigma-d|2026|2026-11-13",
+"titulo": "Pagar 3 vezes pelo que se recebeu: caso paradigma do Tema 1.414 (STJ)",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-13/pagar-3-vezes-pelo-que-se-recebeu-caso-paradigma-do-tema-1-414-stj/"
+},
+{
+"chave": "conjur|opiniao|taxa-zero-de-recursos-a-triagem-que-transformou-o|2026|2026-11-12",
+"titulo": "Taxa zero de recursos: a triagem que transformou o REsp em ficção",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-12/taxa-zero-de-recursos-a-triagem-que-transformou-o-resp-em-ficcao/"
+},
+{
+"chave": "conjur|opiniao|quem-paga-pela-incerteza-constitucional-adpf-248-e|2026|2026-11-13",
+"titulo": "Quem paga pela incerteza constitucional? ADPF 248 e o teste da universalização",
+"categoria": "Opinião/Análise",
+"url": "https://conjur.com.br/2026-nov-13/quem-paga-pela-incerteza-constitucional-adpf-248-e-o-teste-da-universalizacao/"
+},
+{
+"chave": "jota|opiniao|a-necessaria-coordenacao-entre-o-controle-concentrado-e|2026|2026-11-12",
+"titulo": "A necessária coordenação entre o controle concentrado e o controle difuso de constitucionalidade",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/colunas/observatorio-constitucional/a-necessaria-coordenacao-entre-o-controle-concentrado-e-o-controle-difuso-de-constitucionalidade"
+},
+{
+"chave": "jota|opiniao|modulacao-existe-para-prestigiar-a-confianca-do-particul|2026|2026-11-12",
+"titulo": "Modulação existe para prestigiar a confiança do particular nos atos do Estado",
+"categoria": "Opinião/Análise",
+"url": "https://www.jota.info/opiniao-e-analise/artigos/modulacao-existe-para-prestigiar-a-confianca-do-particular-nos-atos-do-estado"
+},
+{
+"chave": "jota|fofoca|lula-ainda-nao-deu-sinais-concretos-de-como-pretende-con|2026|2026-11-12",
+"titulo": "Lula ainda não deu sinais concretos de como pretende conduzir a indicação para a vaga aberta no Supremo Tribunal Federal",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "folha-de-s-paulo|fofoca|pgr-apresentara-nos-proximos-dias-ao-stf-a-primeira-denu|2026|2026-11-13",
+"titulo": "PGR apresentará nos próximos dias ao STF a primeira denúncia contra Daniel Vorcaro",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "o-globo|fofoca|no-stf-voltou-a-avancar-a-proposta-de-proibir-policiais|2026|2026-11-13",
+"titulo": "No STF, voltou a avançar a proposta de proibir policiais e militares em funções de assessoramento nos gabinetes",
+"categoria": "Fofoquinha"
+},
+{
+"chave": "folha-de-s-paulo|fofoca|gilmar-mendes-sinalizou-que-devera-reconhecer-a-competen|2026|2026-11-13",
+"titulo": "Gilmar Mendes sinalizou que deverá reconhecer a competência da Justiça do Trabalho para julgar ações sobre fraudes na contratação de pessoas jurídicas",
+"categoria": "Fofoquinha"
+}
+]
+}
+]
+}

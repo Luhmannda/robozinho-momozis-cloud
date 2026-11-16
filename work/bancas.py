@@ -10,16 +10,38 @@
 # Por que: em 11/11/2026 o registro tinha TJAP, TJSC, TJRS, TRF5 e TJPB
 # como "so fonte secundaria / PENDENCIA DE VERIFICACAO" enquanto a pagina
 # oficial da banca, legivel daqui, trazia edital, retificacao e datas.
+# Em 16/11/2026 o script escondeu a 2a Retificacao do TJAP (prorrogou as
+# inscricoes ate 18/11) e a edicao disse "encerradas": (1) arquivo novo era
+# "data > verificado_em", e a FGV publicou depois da verificacao, no mesmo
+# dia; (2) o "(retificado em 13/11/2026)" do titulo do edital era ignorado;
+# (3) o edital nao era relido com o registro "confirmado". Agora:
+#   - data efetiva de cada arquivo = max(data da linha, "retificado em");
+#   - NOVO = arquivo (URL) ainda nao visto. As URLs vistas ficam em
+#     work/concursos-estado.json, gravado pelo helper (Update-Historico.py,
+#     so quando a execucao e registrada) e commitado pelo finalizar.sh. Sem
+#     estado para o concurso (1a vez): data efetiva >= verificado_em - 3 dias;
+#   - o edital e relido quando ha arquivo novo de retificacao/prorrogacao/
+#     edital, ou prazo do registro entre -3 e +7 dias (alem dos casos de
+#     antes: concurso sem registro ou registro sem confirmacao oficial);
+#     retificacao posterior ao edital consolidado tambem e lida (trecho
+#     "LEIA-SE" das inscricoes);
+#   - "DIVERGE DO REGISTRO" quando o fim das inscricoes do edital difere do
+#     registro (prazos ou, sem prazo, a linha).
 #
 # Para cada concurso juridico do ano corrente (ou do anterior) na listagem:
 #   - casa com o registro do ledger pela sigla (tjap26 -> tjap_juiz);
-#   - lista os arquivos mais recentes (movimento oficial, com data);
-#   - quando o registro ainda nao esta confirmado em fonte oficial (ou o
-#     concurso e novo), baixa o edital e copia os trechos de vagas,
+#   - lista os arquivos novos (movimento oficial, com data);
+#   - quando preciso (acima), baixa o edital e copia os trechos de vagas,
 #     inscricoes, taxa, remuneracao e prova objetiva.
 #
-# USO:   python3 work/bancas.py [--janela /tmp/janela.json]   (chamado pelo inicio.py)
-# SAIDA: bloco compacto em stdout; JSON em /tmp/bancas.json.
+# Funcoes usadas por outros scripts (mesmo JSON de $ROBOZINHO_TMP/bancas.json):
+#   carimbos(res, concursos, hoje)  -> {id: {verificado_em, fonte?, dominio_oficial?}}
+#   contexto_selos(res)             -> {id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}}
+#   novos_por_registro(res)         -> {id: [arquivos novos]}
+#   atualizar_estado(estado, res)   -> quantos arquivos passaram a "vistos"
+#
+# USO:   python3 work/bancas.py [--janela $ROBOZINHO_TMP/janela.json]   (o inicio.py chama coletar())
+# SAIDA: bloco compacto em stdout; JSON em $ROBOZINHO_TMP/bancas.json.
 # =====================================================================
 
 import argparse
@@ -30,15 +52,21 @@ import re
 import subprocess
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+
+import selos
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 UA = "Mozilla/5.0 (X11; Linux x86_64) Robozinho/1.0"
-BASE = "https://conhecimento.fgv.br"
+BANCA_ID = "fgv"
+DOMINIO = "conhecimento.fgv.br"
+BASE = "https://" + DOMINIO
+ESTADO_PADRAO = os.path.join(AQUI, "concursos-estado.json")
 JURIDICO = re.compile(r"Tribunal|Juiz|Magistratura|Procurador|Defensor|Minist[ée]rio P[úu]blico|"
                       r"Assembleia Legislativa|Advocacia|Promotor", re.I)
 SUFIXOS = re.compile(r"(juiz|magistratura|servidor(es)?|analista|tecnico|promotor|defensor|procurador)$")
 MES = "janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro"
+MESES = {m: i + 1 for i, m in enumerate(MES.split("|"))}
 DATA = r"\d{1,2}º?\s+de\s+(?:%s)\s+de\s+\d{4}" % MES
 TRECHOS = [  # (rotulo, regex sobre o edital com espacos normalizados)
     ("vagas", r"provimento de \d+ \([^)]{1,40}\) vagas[^.;]{0,90}"),
@@ -47,6 +75,15 @@ TRECHOS = [  # (rotulo, regex sobre o edital com espacos normalizados)
     ("remuneração", r"(?:subs[íi]dio|remuneração)[^.]{0,110}?R\$\s?[\d.]+,\d{2}"),
     ("prova objetiva", r"[Pp]rova [Oo]bjetiva[^.]{0,140}?%s" % DATA),
 ]
+RE_RETIFICADO = re.compile(r"\((?:retificad[oa]|atualizad[oa]|consolidad[oa])\s+em\s+(\d{2})/(\d{2})/(\d{4})\)", re.I)
+RE_RETIFICACAO = re.compile(r"retifica|prorroga|errata", re.I)
+RE_RELEITURA = re.compile(r"retifica|prorroga|errata|\bedital\b", re.I)
+MARGEM_SEM_ESTADO = 3        # dias antes do verificado_em que ainda contam como novos, sem estado
+PRAZO_RELEITURA = (-3, 7)    # prazo do registro nesta faixa (dias) -> reler o edital
+
+
+def tmp(nome):
+    return os.path.join(os.environ.get("ROBOZINHO_TMP", "/tmp"), nome)
 
 
 def fetch(url, binario=False, timeout=40):
@@ -80,10 +117,22 @@ def listagem():
     return codigo, out
 
 
-def pagina(c):
-    """Situacao e arquivos (data, titulo, url) da pagina do concurso."""
-    codigo, t = fetch(c["url"])
-    c["http"] = codigo
+def data_efetiva(a):
+    """max(data da linha, data do "(retificado em DD/MM/AAAA)" do titulo)."""
+    d = a.get("data") or ""
+    m = RE_RETIFICADO.search(a.get("titulo") or "")
+    if m:
+        d = max(d, "%s-%s-%s" % (m.group(3), m.group(2), m.group(1)))
+    return d
+
+
+def chave_arquivo(a):
+    """Identidade do arquivo: a URL (a FGV repete titulos no mesmo dia); sem URL, data|titulo."""
+    return a.get("url") or "%s|%s" % (a.get("data"), a.get("titulo"))
+
+
+def analisar_pagina(c, t):
+    """Situacao e arquivos (data, data_efetiva, titulo, url) a partir do HTML da pagina do concurso."""
     corpo = re.sub(r"(?is)<(script|style|nav|footer|header).*?</\1>", " ", t)
     m = re.search(r"(?is)<main.*?</main>", corpo)
     corpo = m.group(0) if m else corpo
@@ -97,21 +146,25 @@ def pagina(c):
     for n, l in enumerate(linhas[:-1]):
         if re.fullmatch(r"\d{2}/\d{2}/\d{4}", l):
             titulo = linhas[n + 1]
-            arquivos.append({"data": datetime.strptime(l, "%d/%m/%Y").date().isoformat(), "titulo": titulo,
-                             "url": links.get(titulo, "")})
+            a = {"data": datetime.strptime(l, "%d/%m/%Y").date().isoformat(), "titulo": titulo,
+                 "url": links.get(titulo, "")}
+            a["data_efetiva"] = data_efetiva(a)
+            arquivos.append(a)
     c["arquivos"] = arquivos
     return c
 
 
-def edital(c):
-    """Trechos copiados do edital de abertura (PDF da banca)."""
-    alvo = next((a for a in reversed(c["arquivos"]) if a["titulo"].lower().startswith("edital") and a["url"]), None)
-    if not alvo:
-        return
-    codigo, dados = fetch(alvo["url"], binario=True, timeout=60)
+def pagina(c):
+    codigo, t = fetch(c["url"])
+    c["http"] = codigo
+    return analisar_pagina(c, t)
+
+
+def texto_pdf(url):
+    """(texto com espacos normalizados | None, erro)."""
+    codigo, dados = fetch(url, binario=True, timeout=60)
     if codigo != 200 or not dados.startswith(b"%PDF"):
-        c["edital_erro"] = "http %s" % codigo
-        return
+        return None, "http %s" % codigo
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
         f.write(dados)
         caminho = f.name
@@ -119,17 +172,70 @@ def edital(c):
         t = subprocess.run(["pdftotext", "-l", "40", caminho, "-"], capture_output=True,
                            timeout=60).stdout.decode("utf-8", "replace")
     except Exception as e:  # noqa: BLE001
-        c["edital_erro"] = "pdftotext: %s" % e
-        return
+        return None, "pdftotext: %s" % e
     finally:
         os.unlink(caminho)
-    t = re.sub(r"\s+", " ", t)
-    c["edital_url"] = alvo["url"]
-    c["edital"] = {}
+    return re.sub(r"\s+", " ", t), ""
+
+
+def trechos(t):
+    out = {}
     for rotulo, padrao in TRECHOS:
         m = re.search(padrao, t)
         if m:
-            c["edital"][rotulo] = m.group(0).strip()[:230]
+            out[rotulo] = m.group(0).strip()[:230]
+    return out
+
+
+def trecho_leia_se(t):
+    """Ultimo trecho de inscricoes dentro de um bloco LEIA-SE (retificacao do tipo 'onde se le / leia-se')."""
+    achado = None
+    for bloco in re.split(r"LEIA-SE", t, flags=re.I)[1:]:
+        bloco = re.split(r"ONDE SE L", bloco, flags=re.I)[0]
+        for m in re.finditer(TRECHOS[1][1], bloco):
+            achado = m.group(0).strip()[:230]
+    return achado
+
+
+def datas_trecho(trecho):
+    """[date, ...] das datas por extenso do trecho, na ordem."""
+    out = []
+    for m in re.finditer(r"(\d{1,2})º?\s+de\s+(%s)\s+de\s+(\d{4})" % MES, trecho or ""):
+        try:
+            out.append(date(int(m.group(3)), MESES[m.group(2)], int(m.group(1))))
+        except ValueError:
+            pass
+    return out
+
+
+def edital(c, ler=texto_pdf):
+    """Trechos copiados do edital de abertura (PDF da banca) e, se houver retificacao posterior
+    ao texto consolidado, o trecho de inscricoes do LEIA-SE dela."""
+    alvo = next((a for a in reversed(c["arquivos"]) if a["titulo"].lower().startswith("edital") and a["url"]), None)
+    if not alvo:
+        return
+    t, erro = ler(alvo["url"])
+    if t is None:
+        c["edital_erro"] = erro
+        return
+    c["edital_url"] = alvo["url"]
+    c["edital"] = trechos(t)
+    consolidado = data_efetiva(alvo) if RE_RETIFICADO.search(alvo["titulo"]) else ""
+    rets = [a for a in c["arquivos"] if RE_RETIFICACAO.search(a["titulo"]) and a["url"]
+            and not a["titulo"].lower().startswith("edital") and a.get("data_efetiva", a["data"]) > consolidado]
+    if rets:
+        ult = max(rets, key=lambda a: a.get("data_efetiva", a["data"]))
+        tr, erro = ler(ult["url"])
+        if tr is not None:
+            achado = trecho_leia_se(tr)
+            if achado:
+                c["retificacao_inscricoes"] = {"titulo": ult["titulo"], "data": ult["data"], "url": ult["url"],
+                                               "trecho": achado}
+    ins = (c.get("retificacao_inscricoes") or {}).get("trecho") or c["edital"].get("inscrições")
+    ds = datas_trecho(ins)
+    if ds:
+        c["inscricoes"] = {"inicio": ds[0].isoformat(), "fim": ds[-1].isoformat(), "trecho": ins,
+                           "origem": "retificação" if c.get("retificacao_inscricoes") else "edital"}
 
 
 def sigla(slug):
@@ -139,17 +245,91 @@ def sigla(slug):
 
 
 def confirmado(reg):
-    """O registro ja se apoia na banca oficial? (entao nao e preciso reler o edital todo dia)"""
+    """O registro ja se apoia na banca oficial?"""
     if reg.get("selo") in ("PENDÊNCIA DE VERIFICAÇÃO", "PENDÊNCIA"):
         return False
     if any(not p.get("confirmado") for p in reg.get("prazos") or []):
         return False
-    return "conhecimento.fgv.br" in (reg.get("fonte") or "")
+    return DOMINIO in (reg.get("fonte") or "")
 
 
-def coletar(hoje, concursos, ja_visto=None):
+# ------------------------------------------------------------------ estado (URLs vistas)
+def carregar_estado(caminho=ESTADO_PADRAO):
+    try:
+        with open(caminho, encoding="utf-8") as f:
+            e = json.load(f)
+        return e if isinstance(e, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def vistos_da_banca(estado):
+    return ((estado.get("bancas") or {}).get(BANCA_ID)) or {}
+
+
+def novos_arquivos(c, regs, vistos, hoje):
+    """(arquivos novos, base). Com estado: URL nao vista (ou vista hoje: re-execucao do mesmo dia).
+    Sem estado (1a vez do concurso): data efetiva >= verificado_em - MARGEM_SEM_ESTADO dias."""
+    hj = hoje.isoformat()
+    if vistos is not None:
+        return [a for a in c["arquivos"] if (vistos.get(chave_arquivo(a)) or hj) >= hj], "urls_vistas"
+    if not regs:
+        return list(c["arquivos"]), "sem_registro"
+    ult = max((r.get("verificado_em") or "" for r in regs), default="")
+    try:
+        corte = (date.fromisoformat(ult) - timedelta(days=MARGEM_SEM_ESTADO)).isoformat()
+    except ValueError:
+        corte = ""
+    return [a for a in c["arquivos"] if a.get("data_efetiva", a["data"]) >= corte], "data (sem estado)"
+
+
+def ultima_retificacao(c):
+    ds = [a.get("data_efetiva", a["data"]) for a in c.get("arquivos") or []
+          if RE_RETIFICACAO.search(a["titulo"]) or RE_RETIFICADO.search(a["titulo"])]
+    return max(ds) if ds else None
+
+
+def prazo_proximo(regs, hoje):
+    for r in regs:
+        for p in r.get("prazos") or []:
+            try:
+                d = (date.fromisoformat(p.get("data", "")) - hoje).days
+            except ValueError:
+                continue
+            if PRAZO_RELEITURA[0] <= d <= PRAZO_RELEITURA[1]:
+                return "prazo do registro em %s" % date.fromisoformat(p["data"]).strftime("%d/%m")
+    return ""
+
+
+def motivo_releitura(c, regs, hoje):
+    if not regs:
+        return "concurso sem registro"
+    if not all(confirmado(r) for r in regs):
+        return "registro sem confirmação oficial"
+    mov = [a for a in c["novos_arquivos"] if RE_RELEITURA.search(a["titulo"])]
+    if mov:
+        return "arquivo novo: %s" % mov[0]["titulo"]
+    return prazo_proximo(regs, hoje)
+
+
+def divergencias(c, regs, hoje):
+    """[{id, edital, registro}] quando o fim das inscricoes do edital (ou da retificacao) difere do registro."""
+    ins = c.get("inscricoes") or {}
+    if not ins.get("fim") or len(regs) != 1:
+        return []
+    fim = date.fromisoformat(ins["fim"])
+    r = regs[0]
+    d, txt = selos.fim_inscricoes_registro(r, hoje)
+    if d == fim:
+        return []
+    if d is None and (fim - hoje).days < -3:
+        return []          # inscricoes encerradas ha tempo e o registro nao fala nelas: nada a acusar
+    return [{"id": r["id"], "edital": ins["trecho"], "registro": txt, "origem": ins.get("origem")}]
+
+
+def coletar(hoje, concursos, estado=None):
     codigo, lista = listagem()
-    res = {"banca": "FGV", "http": codigo, "concursos": []}
+    res = {"banca": "FGV", "dominio": DOMINIO, "http": codigo, "data": hoje.isoformat(), "concursos": []}
     if codigo != 200 or not lista:
         return res
     anos = {"%02d" % (hoje.year % 100), "%02d" % ((hoje.year - 1) % 100), str(hoje.year), str(hoje.year - 1)}
@@ -157,21 +337,35 @@ def coletar(hoje, concursos, ja_visto=None):
             and re.search(r"(\d{2,4})$", c["slug"]).group(1) in anos]
     with ThreadPoolExecutor(max_workers=4) as ex:
         alvo = list(ex.map(pagina, alvo))
+    res["concursos"] = analisar(alvo, hoje, concursos, estado)
+    return res
+
+
+def analisar(alvo, hoje, concursos, estado=None, ler=texto_pdf):
+    """Casa cada concurso da banca com o registro, marca os arquivos novos, rele o edital quando
+    preciso e aponta divergencias. `alvo` = concursos com `arquivos` (pagina() ja rodou)."""
+    estado = carregar_estado() if estado is None else estado
+    vistos = vistos_da_banca(estado)
     por_sigla = {}
     for r in concursos:
         por_sigla.setdefault(r["id"].split("_")[0], []).append(r)
     for c in alvo:
+        for a in c.get("arquivos") or []:
+            a.setdefault("data_efetiva", data_efetiva(a))
         regs = por_sigla.get(sigla(c["slug"]), [])
-        ult = max((r.get("verificado_em") or "" for r in regs), default="")
-        c["novos_arquivos"] = [a for a in c["arquivos"] if not regs or a["data"] > ult]
-        if not regs or not all(confirmado(r) for r in regs):
-            edital(c)
+        v = (vistos.get(c["slug"]) or {}).get("urls") if c["slug"] in vistos else None
+        c["novos_arquivos"], c["base_novos"] = novos_arquivos(c, regs, v, hoje)
+        c["ultima_retificacao"] = ultima_retificacao(c)
+        c["releitura"] = motivo_releitura(c, regs, hoje)
+        if c["releitura"]:
+            edital(c, ler)
         regs = desambiguar(c, regs)
         c["registros"] = [r["id"] for r in regs]
         # coberto = a pagina oficial deste registro foi lida hoje: o coletor nao gasta busca com ele
-        c["coberto"] = c["registros"] if (len(regs) == 1 and c.get("http") == 200) else []
-    res["concursos"] = alvo
-    return res
+        c["coberto"] = c["registros"] if (len(regs) == 1 and c.get("http") == 200 and c.get("arquivos")) else []
+        c["divergencias"] = divergencias(c, regs, hoje)
+        c["chaves_arquivos"] = [chave_arquivo(a) for a in c.get("arquivos") or []]
+    return alvo
 
 
 CARGO_BLOCO = [(r"Juiz|Magistratura", "Magistratura"), (r"Promotor", "Promotor"), (r"Defensor", "Defensor"),
@@ -193,31 +387,133 @@ def desambiguar(c, regs):
     return regs
 
 
+# ------------------------------------------------------------------ usados pelo helper e pelo montador
+def _concursos_lidos(res):
+    if not res or res.get("http") != 200:
+        return []
+    return [c for c in res.get("concursos") or [] if c.get("http") == 200 and c.get("arquivos")]
+
+
+def contexto_selos(res):
+    """{id: {banca_lida_hoje, ultima_retificacao, inicio_inscricoes}} para selos.selo_por_data."""
+    out = {}
+    for c in _concursos_lidos(res):
+        ret = c.get("ultima_retificacao")
+        if ret is None and "ultima_retificacao" not in c:      # bancas.json antigo
+            ret = ultima_retificacao(c)
+        for ident in c.get("coberto") or []:
+            out[ident] = {"banca_lida_hoje": True, "ultima_retificacao": ret,
+                          "inicio_inscricoes": (c.get("inscricoes") or {}).get("inicio")}
+    return out
+
+
+def carimbos(res, concursos, hoje):
+    """Campos mecanicos dos registros lidos hoje na banca: verificado_em = hoje; fonte = pagina da
+    banca so quando a fonte atual nao e oficial (nunca troca fonte oficial, de nenhum dominio);
+    dominio_oficial quando falta ou quando a fonte passou a ser a da banca."""
+    hj = hoje.isoformat() if isinstance(hoje, date) else str(hoje)
+    por_id = {c.get("id"): c for c in concursos or []}
+    out = {}
+    for c in _concursos_lidos(res):
+        for ident in c.get("coberto") or []:
+            reg = por_id.get(ident)
+            if reg is None:
+                continue
+            campos = {}
+            if (reg.get("verificado_em") or "") < hj:
+                campos["verificado_em"] = hj
+            dom = res.get("dominio") or DOMINIO
+            if not selos.fonte_oficial(reg.get("fonte"), reg.get("dominio_oficial")):
+                campos["fonte"] = c["url"]
+                if reg.get("dominio_oficial") != dom:
+                    campos["dominio_oficial"] = dom
+            elif not reg.get("dominio_oficial"):
+                campos["dominio_oficial"] = selos.host(reg.get("fonte")) or dom
+            if campos:
+                out[ident] = campos
+    return out
+
+
+def novos_por_registro(res):
+    out = {}
+    for c in _concursos_lidos(res):
+        if c.get("novos_arquivos"):
+            for ident in c.get("coberto") or []:
+                out[ident] = c["novos_arquivos"]
+    return out
+
+
+def atualizar_estado(estado, res, hoje):
+    """Marca como vistos (data da 1a vez) os arquivos dos concursos lidos hoje. Devolve quantos novos."""
+    hj = hoje.isoformat() if isinstance(hoje, date) else str(hoje)
+    fgv = estado.setdefault("bancas", {}).setdefault(BANCA_ID, {})
+    n = 0
+    for c in _concursos_lidos(res):
+        reg = fgv.setdefault(c["slug"], {"urls": {}})
+        urls = reg.setdefault("urls", {})
+        for k in c.get("chaves_arquivos") or [chave_arquivo(a) for a in c["arquivos"]]:
+            if k not in urls:
+                urls[k] = hj
+                n += 1
+        reg["lido_em"] = hj
+    return n
+
+
+def gravar_estado(caminho, estado):
+    estado["aviso"] = ("Gerado por work/Update-Historico.py (bancas.atualizar_estado) e commitado pelo "
+                       "finalizar.sh. Nao editar a mao.")
+    texto = json.dumps(estado, ensure_ascii=False, indent=1, sort_keys=True) + "\n"
+    with open(caminho, "w", encoding="utf-8", newline="") as f:
+        f.write(texto)
+
+
+# ------------------------------------------------------------------ saida
+def dm(iso):
+    return iso[8:10] + "/" + iso[5:7]
+
+
+def _arq(a):
+    d = a.get("data_efetiva") or a["data"]
+    return "%s %s" % (dm(d), a["titulo"]) + (" [data da linha %s]" % dm(a["data"]) if d != a["data"] else "")
+
+
 def imprimir(res):
     cs = res["concursos"]
     if res["http"] != 200 or not cs:
         print("BANCA FGV: página não lida (http %s) — concursos da FGV seguem pela busca do coletor." % res["http"])
         return
-    print("BANCA FGV (fonte OFICIAL, lida por script — promove selo e confirma prazo; cite a URL em `fonte`; "
-          "os trechos do edital são do texto consolidado: retificação listada depois dele pode alterá-los): "
-          "%d concursos jurídicos" % len(cs))
+    print("BANCA FGV (fonte OFICIAL, lida por script — promove selo e confirma prazo; verificado_em, fonte e "
+          "dominio_oficial dos registros lidos aqui são gravados sozinhos): %d concursos jurídicos" % len(cs))
     for c in cs:
         reg = ("registro " + " ou ".join(c["registros"])) if c["registros"] else "SEM REGISTRO → avalie como NOVO"
         print("- %s | %s | %s | %s | %s" % (c["slug"], c.get("situacao") or "?", c["titulo"], reg, c["url"]))
-        arqs = c["novos_arquivos"] or c["arquivos"][:1]
-        rot = "arquivos novos desde a última verificação" if c["novos_arquivos"] else "sem arquivo novo; último"
-        if arqs:
-            print("  %s: %s" % (rot, "; ".join("%s %s" % (a["data"][8:] + "/" + a["data"][5:7], a["titulo"])
-                                                 for a in arqs[:5])))
+        novos = c.get("novos_arquivos") or []
+        if novos:
+            print("  arquivos novos (%s): %s%s" % (
+                "não vistos antes" if c.get("base_novos") == "urls_vistas" else "desde a última verificação",
+                "; ".join(_arq(a) for a in novos[:5]), " (+%d)" % (len(novos) - 5) if len(novos) > 5 else ""))
+        elif c.get("arquivos"):
+            ult = c["arquivos"][0]
+            ret = c.get("ultima_retificacao")
+            ret_a = next((a for a in c["arquivos"] if ret and a.get("data_efetiva") == ret
+                          and (RE_RETIFICACAO.search(a["titulo"]) or RE_RETIFICADO.search(a["titulo"]))), None)
+            print("  sem arquivo novo; último: %s%s" % (_arq(ult), "; última retificação: " + _arq(ret_a)
+                                                         if ret_a and ret_a is not ult else ""))
         if c.get("edital"):
-            print("  edital: " + " · ".join('%s "%s"' % kv for kv in c["edital"].items()))
+            print("  edital%s: %s" % (" (relido: %s)" % c["releitura"] if c.get("releitura") else "",
+                                      " · ".join('%s "%s"' % kv for kv in c["edital"].items())))
+            ri = c.get("retificacao_inscricoes")
+            if ri:
+                print('  %s (%s), LEIA-SE: inscrições "%s"' % (ri["titulo"], dm(ri["data"]), ri["trecho"]))
         elif c.get("edital_erro"):
             print("  edital não lido (%s)" % c["edital_erro"])
+        for d in c.get("divergencias") or []:
+            print('DIVERGE DO REGISTRO: %s edital="%s" registro="%s"' % (d["id"], d["edital"], d["registro"]))
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--janela", default="/tmp/janela.json")
+    ap.add_argument("--janela", default=tmp("janela.json"))
     a = ap.parse_args()
     try:
         hoje = date.fromisoformat(json.load(open(a.janela, encoding="utf-8"))["data"])
@@ -225,7 +521,7 @@ def main():
         hoje = date.today()
     led = json.load(open(os.path.join(AQUI, "robozinho-aprendizado.json"), encoding="utf-8"))
     res = coletar(hoje, led.get("concursos") or [])
-    with open("/tmp/bancas.json", "w", encoding="utf-8") as f:
+    with open(tmp("bancas.json"), "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     imprimir(res)
 

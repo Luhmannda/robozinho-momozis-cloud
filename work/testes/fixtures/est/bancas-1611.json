@@ -1,0 +1,606 @@
+{
+ "banca": "FGV",
+ "http": 200,
+ "concursos": [
+  {
+   "slug": "tjpb26",
+   "titulo": "Concurso Público para Tribunal de Justiça do Estado da Paraíba",
+   "url": "https://conhecimento.fgv.br/concursos/tjpb26",
+   "http": 200,
+   "situacao": "Em Andamento",
+   "arquivos": [
+    {
+     "data": "2026-11-12",
+     "titulo": "3ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/06.11-extrato-3a-retificacao-do-edital-tjpb.pdf"
+    },
+    {
+     "data": "2026-11-06",
+     "titulo": "Interposição de recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição (candidatos indeferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpb-resultado-preliminar-da-analise-dos-pedidos-de-isencao-indeferido.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição (candidatos deferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpb-resultado-preliminar-da-analise-dos-pedidos-de-isencao-deferido.pdf"
+    },
+    {
+     "data": "2026-10-30",
+     "titulo": "2ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/29.10-extrato-2a-retificacao-do-edital-tjpb.pdf"
+    },
+    {
+     "data": "2026-10-26",
+     "titulo": "1ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/extrato-1a-retificacao-do-edital-tjpb.pdf"
+    },
+    {
+     "data": "2026-10-20",
+     "titulo": "Inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-20",
+     "titulo": "Edital (retificado em 12/11/2026)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-retificado-tjpb_11.11.pdf"
+    }
+   ],
+   "novos_arquivos": [],
+   "edital_url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-retificado-tjpb_11.11.pdf",
+   "edital": {
+    "inscrições": "das 16h do dia 20 de outubro de 2026 até às 16h do dia 18 de novembro de 2026",
+    "taxa": "taxa de inscrição para todos os Cargos de Analista é de R$ 120,00"
+   },
+   "registros": [
+    "tjpb_apoio"
+   ],
+   "coberto": [
+    "tjpb_apoio"
+   ]
+  },
+  {
+   "slug": "tjscjuiz26",
+   "titulo": "Concurso Público para o Tribunal de Justiça do Estado de Santa Catarina - Juiz Substituto (2026)",
+   "url": "https://conhecimento.fgv.br/concursos/tjscjuiz26",
+   "http": 200,
+   "situacao": "Em Andamento",
+   "arquivos": [
+    {
+     "data": "2026-11-10",
+     "titulo": "Interposição de recursos contra o Resultado preliminar da análise dos pedidos de isenção",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Consulta individual - Resultado preliminar da análise dos pedidos de isenção",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção – indeferido",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjsc_resultado-preliminar-de-isencao-indeferidos-vf.pdf"
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção – deferido",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjsc_resultado-preliminar-de-isencao-deferidos-vf.pdf"
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "1ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_11350910_edital.pdf"
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-13",
+     "titulo": "Edital (retificado em 19/10/2026)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n-33-2026-edital-de-abertura-retificado.pdf"
+    }
+   ],
+   "novos_arquivos": [],
+   "registros": [
+    "tjsc_juiz"
+   ],
+   "coberto": [
+    "tjsc_juiz"
+   ]
+  },
+  {
+   "slug": "tjap26",
+   "titulo": "Concurso Público para Tribunal de Justiça do Estado do Amapá - Juiz de Direito Substituto",
+   "url": "https://conhecimento.fgv.br/concursos/tjap26",
+   "http": 200,
+   "situacao": "Em Andamento",
+   "arquivos": [
+    {
+     "data": "2026-11-13",
+     "titulo": "Resultado definitivo da análise dos pedidos de isenção da taxa de inscrição (candidatos indeferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjap-resultado-definitivo-da-analise-dos-pedidos-de-isencao-indeferido.pdf"
+    },
+    {
+     "data": "2026-11-13",
+     "titulo": "Resultado definitivo da análise dos pedidos de isenção da taxa de inscrição (candidatos deferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjap-resultado-definitivo-da-analise-dos-pedidos-de-isencao-deferido.pdf"
+    },
+    {
+     "data": "2026-11-13",
+     "titulo": "Respostas aos recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-11-13",
+     "titulo": "2ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/retificacao-tjap.pdf"
+    },
+    {
+     "data": "2026-11-03",
+     "titulo": "Interposição de recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-30",
+     "titulo": "Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-30",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição (candidatos indeferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjap-resultado-preliminar-da-analise-dos-pedidos-de-isencao-indeferido.pdf"
+    },
+    {
+     "data": "2026-10-30",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição (candidatos deferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjap-resultado-preliminar-da-analise-dos-pedidos-de-isencao-deferido.pdf"
+    },
+    {
+     "data": "2026-10-13",
+     "titulo": "Inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-13",
+     "titulo": "1ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/retificacao-tjap_.pdf"
+    },
+    {
+     "data": "2026-10-05",
+     "titulo": "Edital (retificado em 13/11/2026)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjap.versao-final.13.11.pdf"
+    }
+   ],
+   "novos_arquivos": [],
+   "registros": [
+    "tjap_juiz"
+   ],
+   "coberto": [
+    "tjap_juiz"
+   ]
+  },
+  {
+   "slug": "tjrsjuiz26",
+   "titulo": "Concurso Público para o Tribunal de Justiça do Estado do Rio Grande do Sul - Juiz Substituto",
+   "url": "https://conhecimento.fgv.br/concursos/tjrsjuiz26",
+   "http": 200,
+   "situacao": "Em Andamento",
+   "arquivos": [
+    {
+     "data": "2026-11-10",
+     "titulo": "Impugnação da composição da Comissão de Concurso",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Edital Nº 0054/2026 - DMAG - Edital de homologação das inscrições preliminares e de resultado das solicitações de atendimento especial",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-0054-2026-dmag.pdf"
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Edital Nº 0053/2026 - DMAG - Edital de resultado do julgamento dos recursos interpostos contra as inscrições preliminares não homologadas e atendimentos especiais indeferidos",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-0053-2026-dmag.pdf"
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Respostas aos recursos contra o indeferimento preliminar dos pedidos de atendimento especial",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Respostas aos recursos contra o indeferimento de inscrição na condição de pessoa indígena",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Respostas aos recursos contra o indeferimento preliminar de inscrição destinada aos candidatos negros",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Respostas aos recursos contra o indeferimento preliminar de inscrição na condição de pessoa com deficiência",
+     "url": ""
+    },
+    {
+     "data": "2026-11-09",
+     "titulo": "Respostas aos recursos contra o indeferimento preliminar de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-11-04",
+     "titulo": "Edital retificativo Nº 0045/2026-DMAG",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_10143682_edital.pdf"
+    },
+    {
+     "data": "2026-11-03",
+     "titulo": "Edital de convocação para a sessão de julgamento dos recursos do resultado da homologação das inscrições preliminares e dos pedidos de atendimento especial",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_10218549_edital-1.pdf"
+    },
+    {
+     "data": "2026-10-27",
+     "titulo": "Interposição de recursos contra o indeferimento preliminar dos pedidos de atendimento especial",
+     "url": ""
+    },
+    {
+     "data": "2026-10-27",
+     "titulo": "Interposição de recursos contra o indeferimento de inscrição na condição de pessoa indígena",
+     "url": ""
+    },
+    {
+     "data": "2026-10-27",
+     "titulo": "Interposição de recursos contra o indeferimento preliminar de inscrição destinada aos candidatos negros",
+     "url": ""
+    },
+    {
+     "data": "2026-10-27",
+     "titulo": "Interposição de recursos contra o indeferimento preliminar de inscrição na condição de pessoa com deficiência",
+     "url": ""
+    },
+    {
+     "data": "2026-10-27",
+     "titulo": "Interposição de recursos contra o indeferimento preliminar de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Consulta individual - pedidos de atendimento especial",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Consulta individual - inscrição nas vagas destinadas aos candidatos quilombolas",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Consulta individual - Inscrição nas vagas destinadas aos candidatos indígenas",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Consulta individual - Inscrição nas vagas destinadas aos candidatos negros e/ou pardos",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Consulta individual - indeferimento de inscrição na condição de pessoa com deficiência",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Consulta individual - indeferimento de homologação de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-23",
+     "titulo": "Resultado Preliminar de Inscrições",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei-8.2026.7030_000283-0.pdf"
+    },
+    {
+     "data": "2026-10-14",
+     "titulo": "Resultado Definitivo da análise dos pedidos de isenção da taxa de inscrição",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjrs-resultado-definitivo-isencao.pdf"
+    },
+    {
+     "data": "2026-10-14",
+     "titulo": "Edital de resultado do julgamento dos recursos referentes às solicitações de isenção da taxa de inscrição",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-de-resultado-do-julgamento-dos-recursos-isencao-1.pdf"
+    },
+    {
+     "data": "2026-10-14",
+     "titulo": "Respostas aos recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-08",
+     "titulo": "Edital de convocação para a sessão de julgamento dos recursos do resultado da isenção da taxa de inscrição",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_10127032_edital-1.pdf"
+    },
+    {
+     "data": "2026-09-30",
+     "titulo": "Interposição de recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-09-29",
+     "titulo": "Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-09-29",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/98233-1.pdf"
+    },
+    {
+     "data": "2026-09-15",
+     "titulo": "Inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-09-10",
+     "titulo": "Respostas às impugnações do Edital de Abertura",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_9993538_respostas-as-impugnacoes-do-edital-de-abertura.pdf"
+    },
+    {
+     "data": "2026-09-10",
+     "titulo": "1ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_9940985_edital-retificativo.pdf"
+    },
+    {
+     "data": "2026-08-28",
+     "titulo": "Edital (retificado em 10/09/2026)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_9998416_edital_consolidado.pdf"
+    }
+   ],
+   "novos_arquivos": [],
+   "registros": [
+    "tjrs_juiz"
+   ],
+   "coberto": [
+    "tjrs_juiz"
+   ]
+  },
+  {
+   "slug": "trf5juiz26",
+   "titulo": "XVI Concurso Público para provimento de cargos de Juiz Federal Substituto da 5ª Região",
+   "url": "https://conhecimento.fgv.br/concursos/trf5juiz26",
+   "http": 200,
+   "situacao": "Em Andamento",
+   "arquivos": [
+    {
+     "data": "2026-11-05",
+     "titulo": "Demanda de candidatos por vaga",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-relacao-de-candidatos-por-vaga.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo da análise dos pedidos de atendimentos especiais",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-atendimentos.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo de homologação de inscrições nas vagas destinadas aos quilombolas",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-quilombolas.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo de homologação de inscrições nas vagas destinadas aos indígenas",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-indigenas.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo de homologação de inscrições nas vagas destinadas aos negros (pretos e pardos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-negros.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo de indeferimento de inscrição na condição de pessoa com deficiência",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-pcd-indeferido.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo de deferimento de inscrição na condição de pessoa com deficiência",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-pcd-deferido.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Resultado definitivo de homologação de inscrição",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-de-inscricao.pdf"
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Respostas aos recursos contra o resultado preliminar da análise dos pedidos de atendimentos especiais",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Respostas aos recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos quilombolas",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Respostas aos recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos indígenas",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Respostas aos recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos negros (pretos e pardos)",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Respostas aos recursos contra o resultado preliminar de deferimento de inscrição na condição de pessoa com deficiência",
+     "url": ""
+    },
+    {
+     "data": "2026-11-05",
+     "titulo": "Respostas aos recursos contra o resultado preliminar de homologação de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-11-04",
+     "titulo": "Banca examinadora",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-banca-examinadora-fgv.pdf"
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Interposição de recursos contra o resultado preliminar da análise dos pedidos de atendimentos especiais",
+     "url": ""
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Interposição de recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos quilombolas",
+     "url": ""
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Interposição de recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos indígenas",
+     "url": ""
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Interposição de recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos negros (pretos e pardos)",
+     "url": ""
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Interposição de recursos contra o resultado preliminar de deferimento de inscrição na condição de pessoa com deficiência",
+     "url": ""
+    },
+    {
+     "data": "2026-10-19",
+     "titulo": "Interposição de recursos contra o resultado preliminar de homologação de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Consulta individual - pedidos de atendimento especial",
+     "url": ""
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar da análise dos pedidos de atendimentos especiais",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-atendimentos.pdf"
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar de homologação de inscrições nas vagas destinadas aos quilombolas",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-quilombolas.pdf"
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar de homologação de inscrições nas vagas destinadas aos indígenas",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-indigenas.pdf"
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar de homologação de inscrições nas vagas destinadas aos negros (pretos e pardos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-negros.pdf"
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Consulta individual - indeferimento de inscrição destinada na condição de pessoa com deficiência",
+     "url": ""
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar de indeferimento de inscrição na condição de pessoa com deficiência",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-pcd-indeferidos.pdf"
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar de deferimento de inscrição na condição de pessoa com deficiência",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-pcd-deferidos.pdf"
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Consulta individual - Indeferimento de homologação de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-10-16",
+     "titulo": "Resultado preliminar de homologação de inscrição",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-inscricao.pdf"
+    },
+    {
+     "data": "2026-09-28",
+     "titulo": "Resultado definitivo da análise dos pedidos de isenção da taxa de inscrição (candidatos indeferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-da-analise-dos-pedidos-de-isencao-indeferido.pdf"
+    },
+    {
+     "data": "2026-09-28",
+     "titulo": "Resultado definitivo da análise dos pedidos de isenção da taxa de inscrição (candidatos deferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-definitivo-da-analise-dos-pedidos-de-isencao-deferido.pdf"
+    },
+    {
+     "data": "2026-09-28",
+     "titulo": "Respostas aos recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-09-17",
+     "titulo": "2ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-2a-retificacao.pdf"
+    },
+    {
+     "data": "2026-09-16",
+     "titulo": "Interposição de recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-09-15",
+     "titulo": "Consulta individual - pedidos de isenção da taxa de inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-09-15",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição (candidatos indeferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-isencao-indeferidos.pdf"
+    },
+    {
+     "data": "2026-09-15",
+     "titulo": "Resultado preliminar da análise dos pedidos de isenção da taxa de inscrição (candidatos deferidos)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-resultado-preliminar-de-isencao-deferidos.pdf"
+    },
+    {
+     "data": "2026-09-01",
+     "titulo": "1ª Retificação",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-1a-retificacao.pdf"
+    },
+    {
+     "data": "2026-08-28",
+     "titulo": "Inscrição",
+     "url": ""
+    },
+    {
+     "data": "2026-08-28",
+     "titulo": "COMUNICADO",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-comunicado-isencao-liminar.pdf"
+    },
+    {
+     "data": "2026-08-18",
+     "titulo": "Edital (retificado em 17/09/2026)",
+     "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-01-de-2026-xvi-concurso-juiz-federal-retificado.pdf"
+    }
+   ],
+   "novos_arquivos": [],
+   "registros": [
+    "trf5_juiz"
+   ],
+   "coberto": [
+    "trf5_juiz"
+   ]
+  }
+ ]
+}

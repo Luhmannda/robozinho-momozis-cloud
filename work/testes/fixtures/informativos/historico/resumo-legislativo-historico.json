@@ -1,0 +1,193 @@
+{
+ "executions": [
+  {
+   "execution_id": "2026-09-22-7h",
+   "date": "2026-09-22",
+   "items": [
+    {
+     "chave": "stf|informativo|1228|2026|2026-09-21",
+     "observacao": ""
+    },
+    {
+     "chave": "stf|informativo|1229|2026|2026-09-21",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-29-7h",
+   "date": "2026-09-29",
+   "items": [
+    {
+     "chave": "stf|informativo|1230|2026|2026-09-29",
+     "observacao": "Link genérico do e-mail, sem indicação dos temas"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-30-7h",
+   "date": "2026-09-30",
+   "items": [
+    {
+     "chave": "stj|informativo|903|2026|2026-09-29",
+     "observacao": "corpo do e-mail sem teses"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-06-7h",
+   "date": "2026-10-06",
+   "items": [
+    {
+     "chave": "stf|informativo|1231|2026|2026-10-05",
+     "observacao": "corpo sem temas (link genérico)"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-08-7h",
+   "date": "2026-10-08",
+   "items": [
+    {
+     "chave": "stj|informativo|904|2026|2026-10-06",
+     "observacao": "Corpo do e-mail sem teses"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-14-7h",
+   "date": "2026-10-14",
+   "items": [
+    {
+     "chave": "stf|informativo|1232|2026|2026-10-13",
+     "observacao": ""
+    },
+    {
+     "chave": "stj|informativo|905|2026|2026-10-13",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-20-7h",
+   "date": "2026-10-20",
+   "items": [
+    {
+     "chave": "stf|informativo|1233|2026|2026-10-19",
+     "observacao": "conteudo nao acessivel nesta execucao (403)"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-21-7h",
+   "date": "2026-10-21",
+   "items": [
+    {
+     "chave": "stj|informativo|906|2026|2026-10-20",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-22-7h",
+   "date": "2026-10-22",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-394|2026|2026-10-21",
+     "observacao": "conteudo nao acessivel nesta execucao (http 403)"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-27-7h",
+   "date": "2026-10-27",
+   "items": [
+    {
+     "chave": "stf|informativo|1234|2026|2026-10-26",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-28-7h",
+   "date": "2026-10-28",
+   "items": [
+    {
+     "chave": "stj|informativo|907|2026|2026-10-27",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-29-7h",
+   "date": "2026-10-29",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-395|2026|2026-10-26",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-05-7h",
+   "date": "2026-11-05",
+   "items": [
+    {
+     "chave": "stf|informativo|1235|2026|2026-11-04",
+     "observacao": ""
+    },
+    {
+     "chave": "stf|informativo|repercussao-geral-396|2026|2026-11-03",
+     "observacao": ""
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-11-7h",
+   "date": "2026-11-11",
+   "items": [
+    {
+     "chave": "stf|informativo|1236|2026|2026-11-10",
+     "observacao": "conteúdo não acessível (http 403)"
+    },
+    {
+     "chave": "stj|informativo|909|2026|2026-11-10",
+     "observacao": "só número, data e link; conteúdo não lido"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-12-7h",
+   "date": "2026-11-12",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-397|2026|2026-11-11",
+     "observacao": "",
+     "sem_conteudo": true
+    },
+    {
+     "chave": "stj|informativo|908|2026|2026-11-03",
+     "observacao": "6 de 10 destaques publicados"
+    },
+    {
+     "chave": "stj|informativo|909-conteudo|2026|2026-11-10",
+     "observacao": "6 de 10 destaques publicados"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-16-7h",
+   "date": "2026-11-16",
+   "items": [
+    {
+     "chave": "stf|informativo|1236-conteudo|2026|2026-11-10",
+     "observacao": "4 de 4 destaques publicados"
+    },
+    {
+     "chave": "stf|informativo|repercussao-geral-397-conteudo|2026|2026-11-09",
+     "observacao": "6 de 10"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,473 @@
+[
+{
+"fonte": "congresso_leis",
+"http": 200,
+"itens": [
+{
+"situacao": "JA_PUBLICADA",
+"tipo": "Lei",
+"numero": "15528",
+"data_ato": "11/11/2026",
+"dou": "12/11/2026",
+"ementa": "Autoriza a concessão de apoio financeiro aos produtores independentes de cana-de-açúcar da Região Nordeste no exercício de 2026 e a destinação de recursos a linhas de financiamento reembolsável para a renovação de frota; e altera as Leis nºs 9.818, de 23 de agosto de 1999, 11.540, de 12 de novembro de 2007, e 14.947, de 2 de agosto de 2024.",
+"materia": "PL 5649/2026",
+"veto": "",
+"url": "https://legis.senado.leg.br/norma/44386606",
+"chave": "planalto|lei|15528|2026|2026-11-11"
+}
+],
+"listadas": 47,
+"mais_recente": "Lei nº 15.528 de 11/11/2026, DOU 12/11/2026"
+},
+{
+"fonte": "congresso_mpv",
+"http": 0,
+"itens": []
+},
+{
+"fonte": "conjur",
+"http": {
+"noticia": 200,
+"artigo": 200,
+"coluna": 200
+},
+"itens": [
+{
+"tipo": "noticia",
+"titulo": "Convenção coletiva não pode afastar garantia à trabalhadora prevista na CLT",
+"url": "https://conjur.com.br/2026-nov-15/convencao-coletiva-nao-pode-afastar-garantia-a-trabalhadora-prevista-na-clt/",
+"data": "2026-11-15",
+"quando": "2026-11-15T17:55:00-03:00",
+"situacao": "NOVA",
+"resumo": "Sentença julgou parcialmente procedente Ação Civil Pública do MPT contra Sindicato dos Lojistas do Comércio do Município do Rio",
+"id": "c1"
+},
+{
+"tipo": "noticia",
+"titulo": "União, Rio e BB devem garantir moradia após invasões no Minha Casa, Minha Vida",
+"url": "https://conjur.com.br/2026-nov-15/uniao-rio-e-bb-devem-garantir-moradia-apos-invasoes-no-minha-casa-minha-vida/",
+"data": "2026-11-15",
+"quando": "2026-11-15T16:56:40-03:00",
+"situacao": "NOVA",
+"resumo": "Justiça determinou que União, Prefeitura e Banco do Brasil adotem medidas para garantir moradia a famílias do Minha Casa, Minha Vida",
+"id": "c2"
+},
+{
+"tipo": "noticia",
+"titulo": "Justiça determina que município restaure parte de Mata Atlântica em APP",
+"url": "https://conjur.com.br/2026-nov-15/justica-determina-que-municipio-restaure-parte-de-mata-atlantica-em-app/",
+"data": "2026-11-15",
+"quando": "2026-11-15T15:38:14-03:00",
+"situacao": "NOVA",
+"resumo": "O exercício adequado do poder de polícia da Administração Pública Municipal não é uma faculdade, mas sim um dever",
+"id": "c3"
+},
+{
+"tipo": "noticia",
+"titulo": "Fatos posteriores ao crime não devem ser considerados para majoração da pena",
+"url": "https://conjur.com.br/2026-nov-15/fatos-posteriores-ao-crime-nao-devem-ser-considerados-para-majoracao-da-pena/",
+"data": "2026-11-15",
+"quando": "2026-11-15T13:45:32-03:00",
+"situacao": "NOVA",
+"resumo": "Para TJ-SP, os fatos que devem ser avaliados são os que ocorreram até o momento do crime. Pena foi fixada em 16 anos e seis meses de reclusão",
+"id": "c4"
+},
+{
+"tipo": "noticia",
+"titulo": "STJ julga contribuição previdenciária em rateio de recursos do Fundeb/Fundef",
+"url": "https://conjur.com.br/2026-nov-15/stj-julga-contribuicao-previdenciaria-em-rateio-de-recursos-do-fundeb-fundef/",
+"data": "2026-11-15",
+"quando": "2026-11-15T12:29:34-03:00",
+"situacao": "NOVA",
+"resumo": "1ª Seção vai decidir se incide contribuição previdenciária nos valores pagos a profissionais da educação vindos do Fundeb e Fundef.",
+"id": "c5"
+},
+{
+"tipo": "noticia",
+"titulo": "STF vai reiniciar julgamento sobre fim da escala 6×1 em plenário presencial",
+"url": "https://conjur.com.br/2026-nov-15/stf-vai-reiniciar-julgamento-sobre-fim-da-escala-6x1-em-plenario/",
+"data": "2026-11-15",
+"quando": "2026-11-15T11:43:09-03:00",
+"situacao": "NOVA",
+"resumo": "Ministro do STF Luiz Fux interrompeu análise no plenário virtual sobre fim da escala 6x1 para que julgamento seja reiniciado presencialmente",
+"id": "c6"
+},
+{
+"tipo": "noticia",
+"titulo": "STJ deve tabelar teses para orientar casos de distinção, defende ministro",
+"url": "https://conjur.com.br/2026-nov-15/stj-deve-tabelar-teses-para-orientar-casos-de-distincao-defende-ministro/",
+"data": "2026-11-15",
+"quando": "2026-11-15T10:48:38-03:00",
+"situacao": "NOVA",
+"resumo": "Ministro Marco Aurélio Bellizze defendeu que teses do STJ detalhem inclusive quando ela não se aplica, para orientar distinção.",
+"id": "c7"
+},
+{
+"tipo": "noticia",
+"titulo": "TJ-SP proíbe advogado de atuar em júri por defender e acusar na mesma ação",
+"url": "https://conjur.com.br/2026-nov-15/tj-sp-proibe-advogado-de-atuar-em-juri-por-defender-e-acusar-na-mesma-acao/",
+"data": "2026-11-15",
+"quando": "2026-11-15T09:56:39-03:00",
+"situacao": "NOVA",
+"resumo": "Nulidade do ato no qual o assistente da acusação prestou assistência jurídica à corré, além da proibição de sua participação no júri",
+"id": "c8"
+},
+{
+"tipo": "noticia",
+"titulo": "Justiça 4.0 acelera julgamentos nas varas e no TJ paulista",
+"url": "https://conjur.com.br/2026-nov-15/justica-4-0-acelera-julgamentos-nas-varas-e-no-tj-paulista/",
+"data": "2026-11-15",
+"quando": "2026-11-15T08:50:25-03:00",
+"situacao": "NOVA",
+"resumo": "Com modelo quase todo virtual, Justiça 4.0 do Tribunal de Justiça de São Paulo acelera julgamentos em primeira e segunda instâncias",
+"id": "c9"
+},
+{
+"tipo": "noticia",
+"titulo": "Isenção de IR por moléstia profissional não exige aposentadoria por invalidez",
+"url": "https://conjur.com.br/2026-nov-15/isencao-de-ir-por-molestia-profissional-nao-exige-aposentadoria-por-invalidez/",
+"data": "2026-11-15",
+"quando": "2026-11-15T08:24:47-03:00",
+"situacao": "NOVA",
+"resumo": "TRF-1 reconheceu direito de aposentado à isenção do Imposto de Renda em razão de doença relacionada à atividade profissional",
+"id": "c10"
+},
+{
+"tipo": "noticia",
+"titulo": "STJ limita complementação de condenação contra a Fazenda Pública",
+"url": "https://conjur.com.br/2026-nov-15/stj-limita-complementacao-de-condenacao-contra-a-fazenda-publica/",
+"data": "2026-11-15",
+"quando": "2026-11-15T07:44:46-03:00",
+"situacao": "NOVA",
+"resumo": "Só cabe a complementação de valores de condenações contra a Fazenda quando o cumprimento de sentença estiver em curso no prazo prescricional.",
+"id": "c11"
+},
+{
+"tipo": "noticia",
+"titulo": "Gilmar diz que inquérito das fakes news encerrou ‘no tempo certo’",
+"url": "https://conjur.com.br/2026-nov-14/gilmar-diz-que-inquerito-das-fakes-news-encerrou-no-tempo-certo/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Declaração foi dada quatro dias após decisão de Edson Fachin, que encerrou processo que tramitava no STF há mais de sete anos",
+"id": "c12"
+},
+{
+"tipo": "noticia",
+"titulo": "STF vai reiniciar julgamento sobre castração de cães e gatos em SP",
+"url": "https://conjur.com.br/2026-nov-14/stf-vai-reiniciar-julgamento-sobre-castracao-de-caes-e-gatos-em-sp/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Pedido de destaque de Edson Fachin interrompeu análise da ADI 7.704 no Supremo, que será reiniciada em julgamento presencial",
+"id": "c13"
+},
+{
+"tipo": "noticia",
+"titulo": "STF confirma preservação de dados de celular apreendido sem mandado prévio",
+"url": "https://conjur.com.br/2026-nov-14/stf-confirma-preservacao-de-dados-de-celular-apreendido-sem-mandado-previo/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "STF confirmou que apreensão de aparelho e preservação de dados por backup não dependem de mandado judicial prévio ou consentimento do titular",
+"id": "c14"
+},
+{
+"tipo": "noticia",
+"titulo": "Repactuação de dívida bancária não gera honorários sucumbenciais, decide STJ",
+"url": "https://conjur.com.br/2026-nov-14/repactuacao-de-divida-bancaria-nao-gera-honorarios-sucumbenciais-decide-stj/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Para STJ, o plano de pagamento é uma medida para reorganizar as finanças do devedor e não representa o reconhecimento de uma disputa",
+"id": "c15"
+},
+{
+"tipo": "artigo",
+"titulo": "O direito de reclamar e as campanhas de descredibilização empresarial",
+"url": "https://conjur.com.br/2026-nov-16/o-direito-de-reclamar-e-as-campanhas-de-descredibilizacao-empresarial/",
+"data": "2026-11-16",
+"quando": "2026-11-16T07:01:33-03:00",
+"situacao": "NOVA",
+"resumo": "Jurisprudência demonstra que o Judiciário está atento à imputação irresponsável de fatos e à disseminação de hostilidade em face de empresas",
+"id": "c16"
+},
+{
+"tipo": "artigo",
+"titulo": "Carta de anuência do arrendador: consentir com crédito não é garantir dívida",
+"url": "https://conjur.com.br/2026-nov-16/carta-de-anuencia-do-arrendador-consentir-com-credito-nao-e-garantir-divida/",
+"data": "2026-11-16",
+"quando": "2026-11-16T06:35:46-03:00",
+"situacao": "NOVA",
+"resumo": "Uma carta de anuência não precisa ser tratada como um obstáculo ao crédito nem como uma formalidade inofensiva",
+"id": "c17"
+},
+{
+"tipo": "artigo",
+"titulo": "365 dias, uma prorrogação: STJ e controle judicial do inquérito civil",
+"url": "https://conjur.com.br/2026-nov-16/365-dias-uma-prorrogacao-o-stj-e-o-controle-judicial-do-inquerito-civil/",
+"data": "2026-11-16",
+"quando": "2026-11-16T06:01:03-03:00",
+"situacao": "NOVA",
+"resumo": "Não se trata de obstar o poder investigatório do MP, mas de assegurar que ele se exerça dentro dos limites que a lei lhe impôs",
+"id": "c18"
+},
+{
+"tipo": "artigo",
+"titulo": "Conta de vendedor bloqueada e saldo retido: limites do poder dos marketplaces",
+"url": "https://conjur.com.br/2026-nov-15/conta-de-vendedor-bloqueada-e-saldo-retido-os-limites-do-poder-dos-marketplaces/",
+"data": "2026-11-15",
+"quando": "2026-11-15T17:27:43-03:00",
+"situacao": "NOVA",
+"resumo": "Num mercado em que a conta digital é o próprio estabelecimento comercial, transparência e devido processo deixam de ser cortesia",
+"id": "c19"
+},
+{
+"tipo": "artigo",
+"titulo": "Embriaguez, velocidade e morte: onde está a prova da vontade?",
+"url": "https://conjur.com.br/2026-nov-15/embriaguez-velocidade-e-morte-onde-esta-a-prova-da-vontade/",
+"data": "2026-11-15",
+"quando": "2026-11-15T16:26:45-03:00",
+"situacao": "NOVA",
+"resumo": "A pronúncia por dolo eventual no trânsito e a necessidade de distinguir risco previsível de decisão dirigida ao resultado.",
+"id": "c20"
+},
+{
+"tipo": "artigo",
+"titulo": "Venda de imóvel por conselho profissional: por que não se deve exigir autorização legislativa",
+"url": "https://conjur.com.br/2026-nov-15/conselhos-profissionais-e-a-venda-de-imoveis-por-que-nao-se-deve-exigir-autorizacao-legislativa/",
+"data": "2026-11-15",
+"quando": "2026-11-15T15:25:34-03:00",
+"situacao": "NOVA",
+"resumo": "Dispensar a lei significa que a decisão, e a prestação de contas por ela, ficam a cargo do próprio sistema e do TCU",
+"id": "c21"
+},
+{
+"tipo": "artigo",
+"titulo": "Lei 15.040/24: limites da regulação infralegal no mercado segurador",
+"url": "https://conjur.com.br/2026-nov-15/lei-no-15-040-2024-limites-da-regulacao-infralegal-no-mercado-segurador/",
+"data": "2026-11-15",
+"quando": "2026-11-15T14:24:47-03:00",
+"situacao": "NOVA",
+"resumo": "O desafio não é regular mais ou menos, mas regular bem e dentro dos limites que a própria lei passou a estabelecer",
+"id": "c22"
+},
+{
+"tipo": "artigo",
+"titulo": "Atualização e juros na nova interpretação do STJ: impactos sobre créditos e dívidas",
+"url": "https://conjur.com.br/2026-nov-15/atualizacao-e-juros-na-nova-interpretacao-do-stj-impactos-sobre-creditos-e-dividas/",
+"data": "2026-11-15",
+"quando": "2026-11-15T13:23:15-03:00",
+"situacao": "NOVA",
+"resumo": "Interpretação adotada pela 4ª Turma no AREsp 3.220.147/RS afeta o valor que o credor pode receber e o devedor terá de pagar",
+"id": "c23"
+},
+{
+"tipo": "artigo",
+"titulo": "Male captum, bene retentum ? Prova ilícita por violação ao foro e o investigado sem prerrogativa",
+"url": "https://conjur.com.br/2026-nov-15/male-captum-bene-retentum-prova-ilicita-por-violacao-ao-foro-e-o-investigado-sem-prerrogativa/",
+"data": "2026-11-15",
+"quando": "2026-11-15T11:28:51-03:00",
+"situacao": "NOVA",
+"resumo": "Os elementos colhidos na investigação podem continuar a ser usados contra os demais investigados, que não têm foro?",
+"id": "c24"
+},
+{
+"tipo": "artigo",
+"titulo": "Tema 118 não termina em dezembro para quem recebe pelo regime de caixa",
+"url": "https://conjur.com.br/2026-nov-15/tema-118-nao-termina-em-dezembro-para-quem-recebe-pelo-regime-de-caixa/",
+"data": "2026-11-15",
+"quando": "2026-11-15T10:26:20-03:00",
+"situacao": "NOVA",
+"resumo": "Desde o julgamento do RE 592.616, quase toda análise sobre a exclusão do ISS da base do PIS e da Cofins parte da mesma premissa",
+"id": "c25"
+},
+{
+"tipo": "artigo",
+"titulo": "Apuração assistida da CBS: simplificação ou risco aos contribuintes?",
+"url": "https://conjur.com.br/2026-nov-15/apuracao-assistida-da-cbs/",
+"data": "2026-11-15",
+"quando": "2026-11-15T09:26:50-03:00",
+"situacao": "NOVA",
+"resumo": "Receita disponibilizou das versões 2.0 das interfaces de programação de aplicações para consulta de débitos e créditos da CBS",
+"id": "c26"
+},
+{
+"tipo": "artigo",
+"titulo": "Pedir droga é tráfico? Limites da participação criminal e paradoxo do policial disfarçado",
+"url": "https://conjur.com.br/2026-nov-14/pedir-droga-e-trafico-limites-da-participacao-criminal-e-paradoxo-do-policial-disfarcado/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Simples ato de pedir droga pode ser considerado participação no tráfico? Entendo que a resposta exige cautela e análise individualizada.",
+"id": "c27"
+},
+{
+"tipo": "artigo",
+"titulo": "Autonomia jurídica e proteção das instituições públicas",
+"url": "https://conjur.com.br/2026-nov-14/autonomia-juridica-e-protecao-das-instituicoes-publicas/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Cabe às instâncias de governança e entidades da administração assegurar condições efetivas de atuação aos órgãos jurídicos e de controle",
+"id": "c28"
+},
+{
+"tipo": "artigo",
+"titulo": "Litigância abusiva na saúde suplementar: a importância do diagnóstico",
+"url": "https://conjur.com.br/2026-nov-14/litigancia-abusiva-na-saude-suplementar-a-importancia-do-diagnostico/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Em novembro de 2025, o Conselho Nacional de Justiça e o Programa das Nações Unidas para o Desenvolvimento publicaram o Diagnóstico da Judicialização da Saúde Pública e Suplementar.",
+"id": "c29"
+},
+{
+"tipo": "artigo",
+"titulo": "Construção do dolo nos delitos praticados em estruturas empresariais",
+"url": "https://conjur.com.br/2026-nov-14/construcao-do-dolo-nos-delitos-praticados-em-estruturas-empresariais/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Há alguns anos, um grande grupo empresarial brasileiro admitiu, em acordo com autoridades estrangeiras, a existência de um departamento interno dedicado exclusivamente ao pagamento de propinas.",
+"id": "c30"
+},
+{
+"tipo": "coluna",
+"titulo": "A menina e a toga e as muitas vozes da Justiça",
+"url": "https://conjur.com.br/2026-nov-15/a-menina-a-toga-e-as-muitas-vozes-da-justica/",
+"data": "2026-11-15",
+"quando": "2026-11-15T07:08:57-03:00",
+"situacao": "NOVA",
+"resumo": "“A menina e a toga”, de Flávia Martins de Carvalho e Micaela Prado, é um livro sobre infância, violência, abandono e busca de pertencimento",
+"id": "c31"
+},
+{
+"tipo": "coluna",
+"titulo": "Aprovação da PEC 32 que reduz responsabilidade penal aos 16 anos",
+"url": "https://conjur.com.br/2026-nov-15/aprovacao-da-pec-32-que-reduz-responsabilidade-penal-aos-16-anos/",
+"data": "2026-11-15",
+"quando": "2026-11-15T06:31:18-03:00",
+"situacao": "HERDADA",
+"resumo": "Brasil está em descompasso com os mais diferentes países do mundo, evidenciando uma tolerância que sugere ingenuidade no trato da matéria",
+"id": "c32"
+},
+{
+"tipo": "coluna",
+"titulo": "Dinheiro de concessão é público? Discussão das contas vinculadas no TCU",
+"url": "https://conjur.com.br/2026-nov-15/dinheiro-de-concessao-e-publico-discussao-das-contas-vinculadas-no-tcu/",
+"data": "2026-11-15",
+"quando": "2026-11-15T06:01:22-03:00",
+"situacao": "HERDADA",
+"resumo": "Controlar adequadamente a inovação pode significar estabelecer as condições para que ela continue acontecendo",
+"id": "c33"
+},
+{
+"tipo": "coluna",
+"titulo": "Inadmissibilidade da prova ilícita e sua extensão ao plenário do júri",
+"url": "https://conjur.com.br/2026-nov-14/inadmissibilidade-da-prova-ilicita-e-sua-extensao-ao-plenario-do-juri-parte-01/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Apresentação de prova ilícita deve ser extremamente vedada. Sendo o júri garantia fundamental do acusado, não se pode aceitar interpretação",
+"id": "c34"
+},
+{
+"tipo": "coluna",
+"titulo": "Limites nas súmulas vinculantes e a legitimidade democrática",
+"url": "https://conjur.com.br/2026-nov-14/limites-nas-sumulas-vinculantes-e-a-legitimidade-democratica/",
+"data": "2026-11-14",
+"situacao": "NOVA",
+"resumo": "Que o STF assegure sua legitimidade democrática, respeitando os limites materiais constitucionais para edição e revisão das súmulas",
+"id": "c35"
+}
+]
+},
+{
+"fonte": "migalhas",
+"http": 200,
+"itens": [
+{
+"titulo": "Preâmbulo Tech lança panorama sobre uso de IA no setor jurídico brasileiro",
+"resumo": "Pesquisa mostra que 75,6% dos escritórios utilizam IA diariamente e que integração aos sistemas de trabalho deve marcar a próxima etapa de adoção de IA no setor.",
+"badge": "16.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468593/preambulo-tech-lanca-panorama-sobre-uso-de-ia-no-setor-juridico",
+"quando": "2026-11-16T06:41:47-03:00",
+"situacao": "NOVA",
+"id": "m1"
+},
+{
+"titulo": "Celso Magalhães: conheça a história do promotor que enfrentou escravocratas",
+"resumo": "Promotor levou integrante da elite maranhense ao Júri pela morte de menino escravizado e sofreu perseguição política reconhecida em 2026.",
+"badge": "16.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468032/celso-magalhaes-historia-do-promotor-que-enfrentou-escravocratas",
+"quando": "2026-11-16T06:30:48-03:00",
+"situacao": "NOVA",
+"id": "m2"
+},
+{
+"titulo": "Vereador recorre pela via errada e TRE/RJ mantém multa de 20 salários-mínimos",
+"resumo": "Colegiado considerou inadequada a via utilizada e afastou a fungibilidade recursal.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468191/vereador-recorre-pela-via-errada-e-tre-rj-mantem-multa",
+"quando": "2026-11-15T17:05:00-03:00",
+"situacao": "NOVA",
+"id": "m3"
+},
+{
+"titulo": "TJ/GO valida instalação de placas solares por maioria simples em condomínio",
+"resumo": "Colegiado classificou a instalação do sistema como benfeitoria útil e validou sua aprovação por maioria simples em segunda convocação.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468258/tj-go-valida-instalacao-de-placas-solares-por-maioria-simples",
+"quando": "2026-11-15T15:05:44-03:00",
+"situacao": "NOVA",
+"id": "m4"
+},
+{
+"titulo": "Juíza valida empréstimo após analisar comprovante ignorado",
+"resumo": "Com a reforma da sentença, foram afastadas as condenações à devolução dos descontos e ao pagamento de indenização por danos morais.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468170/juiza-valida-emprestimo-apos-analisar-comprovante-ignorado",
+"quando": "2026-11-15T13:04:18-03:00",
+"situacao": "NOVA",
+"id": "m5"
+},
+{
+"titulo": "Cores do Brasil e bola de futebol não são exclusivas da CBF, decide TJ/SC",
+"resumo": "Tribunal afastou multa de R$ 40 mil contra confecção que utilizou verde e amarelo, imagem de bola e inscrição \"Brasil\" em estampas.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468100/tj-sc-cores-do-brasil-e-bola-de-futebol-nao-sao-exclusivas-da-cbf",
+"quando": "2026-11-15T11:00:00-03:00",
+"situacao": "NOVA",
+"id": "m6"
+},
+{
+"titulo": "TJ/DF valida capturas de tela como prova documental em ação de cobrança",
+"resumo": "Colegiado entendeu que alegações genéricas de falta de confiabilidade não afastam a força probatória dos registros eletrônicos, cuja autenticidade deve ser questionada de forma específica e fundamentada.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468626/tj-df-valida-captura-de-tela-como-prova-documental-em-acao-de-cobranca",
+"quando": "2026-11-15T10:31:00-03:00",
+"situacao": "NOVA",
+"id": "m7"
+},
+{
+"titulo": "Advogado brasileiro que defendeu ex-espião venezuelano é encontrado morto",
+"resumo": "Nielson de Souza Vilela, que atuou na defesa de Hugo Carvajal, ex-chefe da inteligência militar da Venezuela, foi encontrado morto no depósito do prédio onde morava, em Madri. A causa da morte não foi confirmada oficialmente.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468627/advogado-brasileiro-de-ex-espiao-venezuelano-e-encontrado-morto",
+"quando": "2026-11-15T09:11:26-03:00",
+"situacao": "NOVA",
+"id": "m8"
+},
+{
+"titulo": "TJ/SP: Estado indenizará dono de carro roubado leiloado como sucata",
+"resumo": "Tribunal manteve indenizações de R$ 25,3 mil por danos materiais e R$ 10 mil por danos morais após veículo ser vendido apesar de ordem judicial que impedia o leilão.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468099/tj-sp-estado-indenizara-dono-de-carro-roubado-leiloado-como-sucata",
+"quando": "2026-11-15T09:00:07-03:00",
+"situacao": "NOVA",
+"id": "m9"
+},
+{
+"titulo": "TRT-2: Comgás indenizará dirigente sindical punido após criticar condições de trabalho",
+"resumo": "Críticas foram divulgadas no canal interno da empresa; colegiado considerou a advertência uma retaliação à atuação sindical.",
+"badge": "15.nov.2026",
+"url": "https://www.migalhas.com.br/quentes/468098/comgas-indenizara-dirigente-sindical-punido-por-criticas-ao-trabalho",
+"quando": "2026-11-15T07:01:00-03:00",
+"situacao": "HERDADA",
+"id": "m10"
+}
+]
+}
+]

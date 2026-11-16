@@ -1,0 +1,110 @@
+{
+ "origem": "git show 2426d11:work/robozinho-aprendizado.json (só os concursos da FGV)",
+ "concursos": [
+  {
+   "id": "tjrs_juiz",
+   "bloco": "Magistratura Estadual",
+   "linha": "TJRS — Juiz de Direito Substituto: banca FGV, 30 vagas, taxa R$ 305,00, subsídio R$ 30.505,36; inscrições encerradas em 14/10 às 16h; prova objetiva prevista para 13/12/2026, conforme o edital na página da FGV; em 10/11 a banca publicou a impugnação da composição da Comissão de Concurso",
+   "selo": "INSCRIÇÕES ENCERRADAS",
+   "verificado_em": "2026-11-13",
+   "prazos": [
+    {
+     "data": "2026-12-13",
+     "evento": "prova objetiva (prevista)",
+     "confirmado": true
+    }
+   ],
+   "fonte": "https://conhecimento.fgv.br/concursos/tjrsjuiz26",
+   "dominio_oficial": "conhecimento.fgv.br"
+  },
+  {
+   "id": "tjsc_juiz",
+   "bloco": "Magistratura Estadual",
+   "linha": "TJSC — Juiz Substituto: banca FGV, 15 vagas, taxa R$ 340,00, subsídio R$ 34.083,15; inscrições das 16h de 19/10 até 16h de 26/11, conforme o edital na página da FGV; prova objetiva prevista para 31/01/2027; em 10/11 a banca abriu a interposição de recursos contra o resultado preliminar dos pedidos de isenção",
+   "selo": "INSCRIÇÕES ABERTAS",
+   "verificado_em": "2026-11-13",
+   "fonte": "https://conhecimento.fgv.br/concursos/tjscjuiz26",
+   "prazos": [
+    {
+     "data": "2026-11-26",
+     "evento": "fim das inscrições, 16h",
+     "confirmado": true
+    },
+    {
+     "data": "2027-01-31",
+     "evento": "prova objetiva (prevista)",
+     "confirmado": true
+    }
+   ],
+   "dominio_oficial": "conhecimento.fgv.br"
+  },
+  {
+   "id": "trf5_juiz",
+   "bloco": "Magistratura Federal",
+   "linha": "TRF5 — Juiz Federal Substituto (XVI concurso): banca FGV, 11 vagas + cadastro de reserva, taxa R$ 350,00, subsídio R$ 37.765,55; inscrições encerradas em 28/09 às 16h; prova objetiva prevista para 20/12/2026, conforme o edital na página da FGV (última publicação: demanda de candidatos por vaga, 05/11)",
+   "selo": "INSCRIÇÕES ENCERRADAS",
+   "verificado_em": "2026-11-13",
+   "prazos": [
+    {
+     "data": "2026-12-20",
+     "evento": "prova objetiva (prevista)",
+     "confirmado": true
+    }
+   ],
+   "fonte": "https://conhecimento.fgv.br/concursos/trf5juiz26",
+   "dominio_oficial": "conhecimento.fgv.br"
+  },
+  {
+   "id": "tjap_juiz",
+   "bloco": "Magistratura Estadual",
+   "linha": "TJAP — Juiz de Direito Substituto: banca FGV, 15 vagas + cadastro de reserva, taxa R$ 358,77, subsídio R$ 35.877,27; inscrições das 16h de 13/10 até 16h de 13/11 (hoje), conforme o edital na página da FGV; prova objetiva prevista para 24/01/2027",
+   "selo": "ENCERRA HOJE",
+   "verificado_em": "2026-11-13",
+   "prazos": [
+    {
+     "data": "2026-11-13",
+     "evento": "fim das inscrições, 16h",
+     "confirmado": true
+    },
+    {
+     "data": "2027-01-24",
+     "evento": "prova objetiva (prevista)",
+     "confirmado": true
+    }
+   ],
+   "fonte": "https://conhecimento.fgv.br/concursos/tjap26",
+   "dominio_oficial": "conhecimento.fgv.br"
+  },
+  {
+   "id": "tjpb_apoio",
+   "bloco": "Quadro de apoio",
+   "linha": "TJPB — Analista Judiciário (Edital nº 01/2026): banca FGV; inscrições das 16h de 20/10 até 16h de 18/11 e taxa de R$ 120,00, confirmadas na página da FGV (última publicação: 3ª Retificação, 12/11); 50 vagas imediatas + CR, provas em 24/01/2027 e remuneração (R$ 7.526,14 x R$ 7.033,78) só em fontes secundárias",
+   "selo": "ENCERRA EM BREVE",
+   "prazos": [
+    {
+     "data": "2026-11-18",
+     "evento": "fim das inscrições, 16h",
+     "confirmado": true
+    },
+    {
+     "data": "2027-01-24",
+     "evento": "provas (fonte secundária)",
+     "confirmado": false
+    }
+   ],
+   "verificado_em": "2026-11-13",
+   "fonte": "https://conhecimento.fgv.br/concursos/tjpb26",
+   "pendencia": null,
+   "dominio_oficial": "conhecimento.fgv.br"
+  },
+  {
+   "id": "tjpb_juiz",
+   "bloco": "Magistratura Estadual",
+   "linha": "TJPB — Juiz Substituto: seis vagas; tribunal teria confirmado em setembro/2026 que prepara novo concurso, sem data de edital nem banca (secundária)",
+   "selo": "EM PLANEJAMENTO",
+   "prazos": [],
+   "verificado_em": "2026-11-10",
+   "fonte": "https://ceisc.com.br/blog/post/concursos-magistratura-confira-os-editais-mais-aguardados-para-2026"
+  }
+ ]
+}
