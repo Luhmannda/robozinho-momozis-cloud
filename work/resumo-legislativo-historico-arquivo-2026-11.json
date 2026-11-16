@@ -1,0 +1,445 @@
+{
+  "schema_version": 1,
+  "timezone": "America/Sao_Paulo",
+  "newsletter": "Robozinho dos Momozis até Passar",
+  "recipients": [
+    "pereirafranciscofilho@gmail.com",
+    "luizaxbarreto@gmail.com"
+  ],
+  "executions": [
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Coletores Gmail e JOTA: after: epoch voltou {} de novo (armadilha gmail_after_epoch, 3a deteccao); refeitos com after:2026/10/29 e filtro por horario interno. O inicio.py/prompts ainda geram epoch: corrigir fora desta rotina.",
+        "Segunda 02/11: boletins da Camara sem edicao no fim de semana; itens de 29-30/10 ficaram [ANTES] e nao entraram.",
+        "Sem lei nova no Congresso (ultima: Lei 15.526 de 29/09, DOU 30/09); sem MPV nova; PUSH Planalto sonda vazia.",
+        "Informativos STF 1235, RG 396 e STJ 908 sem edicao nova (404/inexistente); STJ 907 (27/10) e RG 395 (28/10) sao anteriores a janela.",
+        "JOTA: digests sem link por item; clipping de outros veiculos sai sem link. YouVersion 403, versiculo via DailyVerses.",
+        "Concursos: sem fonte oficial nova alem do DPE-SP; ALEPA, TRT8, PGM Curitiba e TRF2 seguem so em secundarias; pge.rj.gov.br lido sem convocacao de orais."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|supremo-na-semana-previdencia-complementar|2026|2026-10-31",
+          "fonte": "STF Push",
+          "categoria": "STF Notícias",
+          "titulo": "Supremo na Semana debate julgamento sobre igualdade entre homens e mulheres na previdência complementar",
+          "data": "2026-10-31",
+          "url": "https://noticias.stf.jus.br/postsnoticias/supremo-na-semana-debate-julgamento-sobre-igualdade-entre-homens-e-mulheres-na-previdencia-complementar/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "herdada; 31/10 12:00"
+        },
+        {
+          "chave": "stf|noticia|destaques-plenario-virtual-semana|2026|2026-10-30",
+          "fonte": "STF Push",
+          "categoria": "STF Notícias",
+          "titulo": "Confira os destaques do Plenário Virtual desta semana",
+          "data": "2026-10-30",
+          "url": "https://noticias.stf.jus.br/postsnoticias/confira-os-destaques-do-plenario-virtual-desta-semana-6/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "herdada; 30/10 11:21; sessão virtual até 10/11 23h59"
+        },
+        {
+          "chave": "jota|noticia|fachin-devolve-caso-inss-mendonca|2026|2026-10-30",
+          "fonte": "JOTA/Folha",
+          "categoria": "Mídia",
+          "titulo": "Fachin devolve a André Mendonça a relatoria do caso INSS e mantém inquérito do Banco Master sob a Presidência do STF por 90 dias",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; clipping Folha no JOTA; sem link"
+        },
+        {
+          "chave": "valor|noticia|fachin-arquiva-cinco-procedimentos-fake-news|2026|2026-10-30",
+          "fonte": "JOTA/Valor",
+          "categoria": "Mídia",
+          "titulo": "Fachin arquivou ontem mais cinco procedimentos ligados ao inquérito das fake news",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; sem link"
+        },
+        {
+          "chave": "folha|noticia|tse-inelegibilidade-violencia-domestica|2026|2026-10-30",
+          "fonte": "JOTA/Folha",
+          "categoria": "Mídia",
+          "titulo": "TSE decide que condenações por violência doméstica e lesão corporal contra a mulher geram inelegibilidade",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; sem link"
+        },
+        {
+          "chave": "jota|noticia|meta-remover-posts-demissao-eleitor|2026|2026-10-30",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "Justiça do Trabalho manda Meta remover posts que incentivam demissão de quem votou em Lula",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; sem link; inclui ação do MPT"
+        },
+        {
+          "chave": "estadao|noticia|trf1-precatorio-usina-capricho|2026|2026-10-30",
+          "fonte": "JOTA/Estadão",
+          "categoria": "Mídia",
+          "titulo": "Presidente do TRF-1 suspende cancelamento de precatório de R$ 1,9 bilhão da Usina Capricho",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; sem link"
+        },
+        {
+          "chave": "jota|noticia|cbs-113-resistencia-senado|2026|2026-10-30",
+          "fonte": "JOTA",
+          "categoria": "Mídia",
+          "titulo": "O cálculo do TCU de 11,3% para a alíquota da CBS deve enfrentar resistência no Senado",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; sem link"
+        },
+        {
+          "chave": "migalhas|noticia|467657|2026|2026-11-01",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Moraes manda soltar desembargador acusado de vazar operação da PF",
+          "data": "2026-11-01",
+          "url": "https://www.migalhas.com.br/quentes/467657/moraes-manda-soltar-desembargador-acusado-de-vazar-operacao-da-pf",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "01/11 08:54"
+        },
+        {
+          "chave": "migalhas|noticia|467659|2026|2026-11-01",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Fux inclui ministérios da Saúde e da Justiça em audiência sobre bets",
+          "data": "2026-11-01",
+          "url": "https://www.migalhas.com.br/quentes/467659/fux-inclui-ministerios-da-saude-e-da-justica-em-audiencia-sobre-bets",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "01/11 15:30"
+        },
+        {
+          "chave": "conjur|noticia|stj-banco-atraso-entrega-imovel|2026|2026-11-01",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "Banco não responde por atraso na entrega do imóvel, decide STJ",
+          "data": "2026-11-01",
+          "url": "https://conjur.com.br/2026-nov-01/stj-nega-responsabilidade-do-banco-por-atraso-nas-obras-do-imovel/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "01/11 08:55"
+        },
+        {
+          "chave": "migalhas|noticia|467274|2026|2026-11-01",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "STF reafirma limite de 30 horas para fisioterapeuta em cargo municipal",
+          "data": "2026-11-01",
+          "url": "https://www.migalhas.com.br/quentes/467274/stf-reafirma-limite-de-30-horas-para-fisioterapeuta-em-cargo-municipal",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "herdada; 01/11 07:01; Tema 1.486"
+        },
+        {
+          "chave": "conjur|opiniao|cbs-113-neutra-fisco|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "CBS de 11,3% é neutra para o Fisco, não para cada contribuinte",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/cbs-de-113-e-neutra-para-o-fisco-nao-para-cada-contribuinte/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|combustiveis-mao-federal-estadual|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Nos combustíveis, a mão federal dá e a mão estadual tira",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/nos-combustiveis-a-mao-federal-da-e-a-mao-estadual-tira/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|stj-concorrencia-parasitaria|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "STJ reúne precedentes sobre concorrência parasitária na internet",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/stj-reune-precedentes-sobre-concorrencia-parasitaria-na-internet/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|temas-1442-1448-astreintes|2026|2026-11-01",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Temas 1.442 e 1.448: o que estará em jogo quando o STJ julgar as astreintes",
+          "data": "2026-11-01",
+          "url": "https://conjur.com.br/2026-nov-01/temas-1-442-e-1-448-o-que-estara-em-jogo-quando-o-stj-julgar-as-astreintes/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|opiniao|estrutura-poder-sociedades-por-acoes|2026|2026-10-30",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "A estrutura de poder das sociedades por ações",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "Ana Frazão; sem link"
+        },
+        {
+          "chave": "jota|opiniao|carbon-majors-dano-climatico|2026|2026-10-30",
+          "fonte": "JOTA",
+          "categoria": "Opinião/Análise",
+          "titulo": "Carbon Majors e dano climático: um novo capítulo na litigância brasileira",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "Danielle de Andrade Moreira; sem link"
+        },
+        {
+          "chave": "valor|fofoca|fachin-fim-inquerito-fake-news|2026|2026-10-30",
+          "fonte": "JOTA/Valor",
+          "categoria": "Fofoquinha",
+          "titulo": "Fachin sinaliza a interlocutores que pretende encerrar em breve o inquérito das fake news",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "FORTE INDÍCIO",
+          "observacao": "sem prazo definido; sem confirmação oficial"
+        },
+        {
+          "chave": "folha|fofoca|nunes-marques-mendonca-distanciamento|2026|2026-10-30",
+          "fonte": "JOTA/Folha/O Globo",
+          "categoria": "Fofoquinha",
+          "titulo": "Nunes Marques e André Mendonça tentam se distanciar de Flávio Bolsonaro após carta contestando o resultado",
+          "data": "2026-10-30",
+          "url": "",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "observacao": "Folha: Nunes Marques pretende alinhar resposta com Fachin"
+        },
+        {
+          "chave": "concurso|alepa_procurador|inscricoes-fim|2026|2026-11-02",
+          "fonte": "Estratégia/Focus (secundárias)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "ALEPA — Procurador (003/2026): inscrições até 04/11, sem confirmação oficial",
+          "data": "2026-11-02",
+          "url": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|trt8_apoio|inscricoes-fim|2026|2026-11-02",
+          "fonte": "valorfinal (secundária)",
+          "categoria": "Concursos - Apoio",
+          "titulo": "TRT8 — edital 1/2026 (FCC): inscrições até 05/11, pagamento até 06/11 (secundárias)",
+          "data": "2026-11-02",
+          "url": "https://valorfinal.com.br/concursos/edital/tribunal-regional-do-trabalho-da-8-regiao__1-2026",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|pgm_curitiba|edital-normativo-6|2026|2026-11-02",
+          "fonte": "Estratégia/Juspodivm (secundárias)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGM Curitiba — Edital Normativo 6/2026 (FAFIPA): inscrições até 05/11, R$ 38.087,99, objetiva 13/12",
+          "data": "2026-11-02",
+          "url": "https://cj.estrategia.com/portal/concurso-pgm-curitiba-pr-edital-publicado/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO"
+        },
+        {
+          "chave": "concurso|trf2_juiz|pagina-oficial-sem-oral|2026|2026-11-02",
+          "fonte": "TRF2 (oficial)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF2 XIX — página oficial sem datas de inscrição definitiva e oral (último item 12/08)",
+          "data": "2026-11-02",
+          "url": "https://www.trf2.jus.br/trf2/tag-noticia/concurso-para-juiz",
+          "status": "EM ANDAMENTO"
+        },
+        {
+          "chave": "concurso|tjsc_juiz|cronograma-secundario|2026|2026-11-02",
+          "fonte": "Magistrar (secundária)",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TJSC — Juiz: cronograma preliminar (FGV; inscrições 26/10 a 26/11) sem edital confirmado",
+          "data": "2026-11-02",
+          "url": "https://magistrarcursos.com.br/blog/concursos-juridicos-em-outubro-de-2026-editais-previstos-para-juiz-promotor-procurador-e-defensor/",
+          "status": "EM PLANEJAMENTO"
+        },
+        {
+          "chave": "dailyverses|versiculo|salmo-139-1-2|2026|2026-11-02",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "Salmo 139:1-2 (ARC)",
+          "data": "2026-11-02",
+          "url": "https://dailyverses.net/pt/2026/11/2",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|idx106|2026|2026-11-02",
+          "fonte": "A sabedoria de Charlie Munger (Poor Charlie's Almanack)",
+          "categoria": "Munger",
+          "titulo": "Fatos isolados não bastam; pendure-os numa teoria que faça sentido para que sirvam de algo.",
+          "data": "2026-11-02",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto: sonda vazia na janela",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "tjdft_edital",
+          "texto": "TJDFT XLV: sem edital 2026 localizado",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN 170 vagas: sem banca nem edital (previsto até dezembro, secundárias)",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "crise_institucional_stf_pgr_acompanhar",
+          "texto": "Caso Master/INSS: sem novo ato oficial na janela; mídia relata arquivamentos de Fachin no inquérito das fake news",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: página oficial sem convocação de orais",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: inscrições até 11/11 confirmadas em notícia oficial; edital e prova não lidos",
+          "faixa": "ativa"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA Procurador: inscrições até 04/11 só em secundárias; home oficial sem menção",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: página oficial sem datas de oral nem de inscrição definitiva; prazo de 06/11 não confirmado",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado previsto para 20/10 sem publicação localizada",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8 edital 1/2026: inscrições até 05/11 só em secundárias; oficial bloqueada",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "armadilhas_detectadas": [
+          "gmail_after_epoch"
+        ],
+        "pendencias": {
+          "trf2_oral_divergencia": {
+            "texto": "TRF2 XIX: página oficial (02/11) sem oral nem inscrição definitiva; último item 12/08; prazo 06/11 e oral só em secundárias.",
+            "faixa": "ativa",
+            "politica": "Abrir a notícia oficial do TRF2 sobre o concurso, corrigir o registro e aposentar.",
+            "dominio_oficial": "www.trf2.jus.br"
+          }
+        },
+        "concursos": {
+          "pgm_curitiba": {
+            "bloco": "Procurador do Município (PGM)",
+            "linha": "PGM Curitiba — Procurador do Município: Edital Normativo 6/2026 (FAFIPA), 5 vagas, R$ 38.087,99, inscrições de 07/10 a 05/11 (23h59), objetiva 13/12, discursiva 31/01/2027 (só fontes secundárias; houve retificação)",
+            "selo": "PENDÊNCIA DE VERIFICAÇÃO",
+            "verificado_em": "2026-11-02",
+            "prazos": [
+              {
+                "data": "2026-11-05",
+                "evento": "fim das inscrições (fonte secundária)",
+                "confirmado": false
+              }
+            ],
+            "fonte": "https://cj.estrategia.com/portal/concurso-pgm-curitiba-pr-edital-publicado/"
+          },
+          "tjsc_juiz": {
+            "bloco": "Magistratura Estadual",
+            "linha": "TJSC — Juiz Substituto: banca FGV; cronograma preliminar secundário (edital 13/10, inscrições 26/10 a 26/11, objetiva 31/01/2027) sem edital confirmado",
+            "selo": "EM PLANEJAMENTO",
+            "verificado_em": "2026-11-02",
+            "prazos": [],
+            "fonte": "https://magistrarcursos.com.br/blog/concursos-juridicos-em-outubro-de-2026-editais-previstos-para-juiz-promotor-procurador-e-defensor/"
+          }
+        }
+      },
+      "execution_id": "2026-11-02-7h",
+      "date": "2026-11-02",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-10-30T07:07:39-03:00",
+      "window_end": "2026-11-02T07:08:45-03:00",
+      "run_started_at": "2026-11-02T07:08:45-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 02/11/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r1975562907277174840",
+      "run_finished_at": "2026-11-02T07:16:01-03:00",
+      "coletores": {
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 39151,
+          "chamadas": 17,
+          "duracao_ms": 86411,
+          "chamadas_modelo": 6,
+          "contexto_total": 131637,
+          "cache_gravado": 39149,
+          "saida": 7321
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 106863,
+          "chamadas": 21,
+          "duracao_ms": 99805,
+          "chamadas_modelo": 10,
+          "contexto_total": 342881,
+          "cache_gravado": 106861,
+          "saida": 15510
+        },
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 62445,
+          "chamadas": 23,
+          "duracao_ms": 217094,
+          "chamadas_modelo": 7,
+          "contexto_total": 148695,
+          "cache_gravado": 62443,
+          "saida": 18553
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 198832,
+        "chamadas": 19,
+        "duracao_ms": 430300,
+        "chamadas_modelo": 8,
+        "contexto_total": 1205887,
+        "cache_gravado": 117976,
+        "saida": 39611
+      },
+      "gmail_message_id": "1a19bcdd0ea3ef9e",
+      "delivery_reconciled_at": "2026-11-03T07:11:04-03:00"
+    }
+  ]
+}
