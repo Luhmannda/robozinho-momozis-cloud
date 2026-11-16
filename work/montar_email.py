@@ -672,7 +672,12 @@ def montar(ex, j, led, ev, v, agora):
     ss = ex.get("source_status") or {}
     upd = ex.get("ledger_updates") or {}
     regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd.get("concursos"))
-    pend = aplicar_pendencias(led.get("pendencias_vivas") or [], upd.get("pendencias"))
+    # a remocao automatica da errata herdada (agendada em preparar) vale para o ledger, nao para esta
+    # edicao: sem esta excecao a errata era retirada antes de ser renderizada e nunca saia
+    upd_pend = {k: c for k, c in (upd.get("pendencias") or {}).items()
+                if not (k.startswith("errata_") and c.get("remover")
+                        and str(c.get("desfecho", "")).startswith("Errata publicada na edição de"))}
+    pend = aplicar_pendencias(led.get("pendencias_vivas") or [], upd_pend)
     por_cat = {}
     for it in ex["items"]:
         por_cat.setdefault(it["categoria"], []).append(it)
