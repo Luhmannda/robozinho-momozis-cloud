@@ -523,6 +523,153 @@ def coleta_saida_compacta():
     assert linha.startswith("SOURCE_STATUS {") and json.loads(linha[len("SOURCE_STATUS "):])["congresso_mpvs"] == "falha"
 
 
+# ------------------------------------------------------------ Agencia Camara (site)
+def pagina_camara(noticias):
+    """HTML no formato real de /noticias/ultimas: (retranca, titulo, 'DD/MM/AAAA HH:MM', id)."""
+    itens = "".join(
+        '<li class="l-lista-noticias__item"><article class="g-chamada chamada--ultimas">'
+        '<img src="x.jpg" class="g-chamada__imagem" alt="" loading="lazy" /><div class="g-chamada__conteudo">'
+        '<span class="g-chamada__retranca">%s</span><h3 class="g-chamada__titulo">\n'
+        '<a href="https://www.camara.leg.br/noticias/%d-x">%s</a></h3>'
+        '<span class="g-chamada__data">%s</span></div></article></li>\n' % (ret, nid, tit, quando)
+        for ret, tit, quando, nid in noticias)
+    return '<ul class="l-lista-noticias" aria-label="Lista de últimas notícias">\n%s</ul>' % itens
+
+
+def rede_camara(paginas):
+    """paginas: {numero: (http, html)}; devolve (falso para coleta_web._fetch1, lista de pedidos)."""
+    pedidos = []
+
+    def falso(url, timeout):
+        pedidos.append(url)
+        n = int(url.split("pagina=")[1]) if "pagina=" in url else 1
+        cod, corpo = paginas.get(n, (200, pagina_camara([])))
+        return cod, corpo, False
+    return falso, pedidos
+
+
+JAN_CAM = (datetime.fromisoformat("2026-11-16T07:07:30-03:00"), datetime.fromisoformat("2026-11-17T07:07:43-03:00"))
+
+
+def coletar_camara(paginas, urls_pub=()):
+    falso, pedidos = rede_camara(paginas)
+    antigo, pausa = coleta_web._fetch1, coleta_web.PAUSA_REPETICAO
+    coleta_web._fetch1, coleta_web.PAUSA_REPETICAO = falso, 0
+    try:
+        ini, fim = JAN_CAM
+        return coleta_web.camara_seguro(ini, fim, fim.replace(day=16), set(urls_pub)), pedidos
+    finally:
+        coleta_web._fetch1, coleta_web.PAUSA_REPETICAO = antigo, pausa
+
+
+@teste
+def camara_marcas():
+    casos = {
+        "Câmara aprova criação da Política Nacional de Residência em Saúde": "PLENARIO",
+        "Deputados aprovam requerimentos de urgência para duas propostas; acompanhe": "PLENARIO",
+        "Congresso aprova créditos orçamentários de R$ 152,4 bilhões no Orçamento de 2026": "PLENARIO",
+        "Câmara envia ao Senado projeto que flexibiliza Código Florestal": "PLENARIO",
+        "Texto que cria cadastro de condenados segue para sanção": "PLENARIO",
+        "Congresso derruba veto a projeto sobre licenciamento ambiental": "LEI",
+        "Medida provisória prorroga Auxílio Gás do Povo até 2031": "LEI",
+        "Lula sanciona lei que amplia licença-paternidade": "LEI",
+        "Sancionada lei que cria o Estatuto da Segurança Privada": "LEI",
+        "Congresso promulga emenda constitucional da reforma administrativa": "LEI",
+        "Motta destaca sanção de lei que garante auxílio a produtores de cana-de-açúcar do Nordeste": "LEI",
+        # comissao, projeto apresentado, agenda e homenagem nao entram
+        "Comissão aprova classificar Hamas e Hezbollah como grupos terroristas": "",
+        "Comissão mista aprova medida provisória do crédito rural": "",
+        "Projeto prevê sanção para empresa que descumprir cota": "",
+        "Projeto proíbe uso da imagem de empregado em redes sociais da empresa sem previsão contratual": "",
+        "Câmara pode votar regras mais rígidas para progressão de pena": "",
+        "Câmara homenageia ex-constituinte e ex-governador paranaense José Richa": "",
+        "Líder do governo afirma que ajuste fiscal não retira recursos da saúde e da educação": "",
+    }
+    erradas = {t: coleta_web.marca_camara(t) for t, esperado in casos.items() if coleta_web.marca_camara(t) != esperado}
+    assert not erradas, erradas
+
+
+@teste
+def camara_pagina_real_1711():
+    """17/11/2026: nenhum boletim por e-mail em 16 e 17/11; o site tinha as noticias de 16/11 (nenhuma de lei
+    ou Plenario). O trecho real da pagina e lido: 10 noticias, todas na janela, nenhuma marcada, fonte ok."""
+    html_real = open(os.path.join(FIX, "camara-ultimas-1711.html"), encoding="utf-8").read()
+    antiga = pagina_camara([("Política", "Câmara aprova projeto antigo", "13/11/2026 12:02", 1)])
+    r, pedidos = coletar_camara({1: (200, html_real), 2: (200, antiga)})
+    assert (r["http"], r["lidas"], r["na_janela"], r["resto"], r["itens"], r["completa"]) == (200, 11, 10, 10, [], True), r
+    assert pedidos == [coleta_web.URL_CAMARA, coleta_web.URL_CAMARA + "?pagina=2"], pedidos
+    linhas = coleta_web.imprimir_camara(r)
+    assert linhas[0].startswith("\n== AGENCIA CAMARA") and "na_janela=10 LEI/PLENARIO=0" in linhas[0], linhas
+    assert any(l.startswith("SEM [LEI]/[PLENARIO] NA JANELA: 10 noticia(s)") for l in linhas), linhas
+    assert not any(l.startswith(("ERRO", "AVISO")) for l in linhas), linhas
+    assert coleta_web.status_fontes([r])["camara_noticias"] == ("ok", "0 [LEI]/[PLENARIO] em 10 noticia(s) da janela")
+
+
+@teste
+def camara_itens_janela_e_repetidos():
+    p1 = pagina_camara([
+        ("Política", "Câmara aprova projeto que aumenta penas para compra de votos", "17/11/2026 08:30", 110),   # depois do fim
+        ("Política", "Câmara aprova criação da Política Nacional de Residência em Saúde", "16/11/2026 20:53", 109),
+        ("Segurança", "Comissão aprova classificar Hamas e Hezbollah como grupos terroristas", "16/11/2026 19:19", 108),
+        ("Economia", "Medida provisória prorroga Auxílio Gás do Povo até 2031", "16/11/2026 11:57", 107),
+        ("Agropecuária", "Comissão mista aprova medida provisória do crédito rural", "16/11/2026 11:00", 106)])
+    p2 = pagina_camara([
+        ("Política", "Congresso derruba veto a projeto sobre licenciamento ambiental", "16/11/2026 09:10", 105),
+        ("Política", "Câmara aprova urgência para propostas sobre educação integral", "16/11/2026 08:00", 104),
+        ("Política", "Câmara aprova projeto de sexta-feira", "13/11/2026 19:00", 103)])                       # antes da janela
+    ja = {"https://www.camara.leg.br/noticias/104-x"}
+    r, pedidos = coletar_camara({1: (200, p1), 2: (200, p2), 3: (200, pagina_camara([]))}, ja)
+    assert len(pedidos) == 2 and r["completa"] and r["paginas"] == 2, (pedidos, r)       # parou no que e anterior a janela
+    assert (r["lidas"], r["na_janela"], r["resto"]) == (8, 6, 2), r
+    assert r["duvidosos"] == ["Comissão mista aprova medida provisória do crédito rural"], r["duvidosos"]
+    assert [(i["marca"], i["situacao"], i["url"].rsplit("/", 1)[1]) for i in r["itens"]] == [
+        ("PLENARIO", "NOVA", "109-x"), ("LEI", "NOVA", "107-x"), ("LEI", "NOVA", "105-x"),
+        ("PLENARIO", "JA_PUBLICADA", "104-x")], r["itens"]
+    linhas = coleta_web.imprimir_camara(r)
+    assert [i.get("id") for i in r["itens"]] == ["cam1", "cam2", "cam3", None], r["itens"]
+    assert "[NOVA|PLENARIO] cam1 | 16/11 20:53 | Câmara aprova criação da Política Nacional de Residência em Saúde — Política" in linhas
+    assert "[NOVA|LEI] cam2 | 16/11 11:57 | Medida provisória prorroga Auxílio Gás do Povo até 2031 — Economia" in linhas
+    assert "LEI/PLENARIO=3 JA_PUBLICADA=1" in linhas[0], linhas[0]
+    assert any("(+2 noticia(s) sem [LEI]/[PLENARIO]" in l and "Comissão mista aprova medida provisória" in l for l in linhas)
+    assert coleta_web.status_fontes([r])["camara_noticias"][0] == "ok"
+    # o JSON e serializavel e o item carrega a hora exata (o montador tira dali data, hora e chave)
+    def ser(o):
+        return o.isoformat() if isinstance(o, (datetime, date)) else str(o)
+    d = json.loads(json.dumps([r], ensure_ascii=False, default=ser))
+    assert d[0]["itens"][0]["quando"] == "2026-11-16T20:53:00-03:00", d[0]["itens"][0]
+
+
+@teste
+def camara_falhas_nao_derrubam_a_coleta():
+    r, pedidos = coletar_camara({1: (403, "")})
+    assert r["http"] == 403 and len(pedidos) == 1 and coleta_web.status_fontes([r])["camara_noticias"][0] == "falha"
+    linhas = coleta_web.imprimir_camara(r)
+    assert any(l.startswith("ERRO: Agencia Camara nao lida no site (http=403)") and "coletor Gmail" in l
+               and "sem WebSearch" in l for l in linhas), linhas
+    r, _ = coletar_camara({1: (200, "<html><body>layout novo</body></html>")})
+    assert coleta_web.status_fontes([r])["camara_noticias"] == ("falha", "pagina lida, 0 noticias extraidas (layout?)")
+    # pagina 2 falha: as noticias da pagina 1 valem, com aviso de leitura incompleta
+    p1 = pagina_camara([("Política", "Câmara aprova criação da Política Nacional de Residência em Saúde", "16/11/2026 20:53", 109)])
+    r, _ = coletar_camara({1: (200, p1), 2: (503, "")})
+    linhas = coleta_web.imprimir_camara(r)
+    assert len(r["itens"]) == 1 and not r["completa"] and any(l.startswith("AVISO: a leitura parou antes") for l in linhas), linhas
+    assert coleta_web.status_fontes([r])["camara_noticias"] == ("ok", "1 [LEI]/[PLENARIO] em 1 noticia(s) da janela; leitura incompleta")
+    # excecao dentro da leitura: bloco de erro, nunca excecao para o main()
+    antigo = coleta_web.camara
+    coleta_web.camara = lambda *a: 1 / 0
+    try:
+        ini, fim = JAN_CAM
+        r = coleta_web.camara_seguro(ini, fim, fim, set())
+    finally:
+        coleta_web.camara = antigo
+    assert r["erro"].startswith("ZeroDivisionError") and coleta_web.status_fontes([r])["camara_noticias"][0] == "falha"
+    assert any(l.startswith("ERRO: Agencia Camara nao lida no site (ZeroDivisionError") for l in coleta_web.imprimir_camara(r))
+    # teto de paginas: nunca mais que MAX_PAGINAS_CAMARA pedidos
+    cheia = pagina_camara([("Política", "Câmara aprova projeto %d" % n, "16/11/2026 20:%02d" % n, 200 + n) for n in range(10)])
+    r, pedidos = coletar_camara({n: (200, cheia.replace("/noticias/2", "/noticias/%d2" % n)) for n in range(1, 30)})
+    assert len(pedidos) == coleta_web.MAX_PAGINAS_CAMARA and not r["completa"], len(pedidos)
+
+
 @teste
 def fontes_status_merge():
     caminho = os.path.join(TMPDIR, "fontes_status.json")

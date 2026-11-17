@@ -35,6 +35,7 @@ sys.path.insert(0, WORK)
 TMP = tempfile.mkdtemp(prefix="robozinho-inf-")
 os.environ["ROBOZINHO_TMP"] = TMP
 os.environ["ROBOZINHO_INF_ESPERA"] = "0"
+os.environ["ROBOZINHO_INF_CACHE"] = "0"    # o cache de PDFs da execucao so e ligado no teste dele (t_waf)
 
 import informativos as I  # noqa: E402
 
@@ -93,6 +94,7 @@ PDF = {"stf1236": "stf1236-layout.txt", "stf1233": "stf1233-layout.txt", "rg397"
 
 
 def url_id(url):
+    url = url.replace(I.HOSTS_STF[1], I.HOSTS_STF[0], 1)      # host alternativo do STF: o mesmo documento
     for tipo, modelo in I.URL.items():
         m = re.fullmatch(re.escape(modelo).replace("%04d", r"(\d+)").replace("%d", r"(\d+)"), url)
         if m:
@@ -108,10 +110,12 @@ class Rede:
         self.respostas = {k: list(v) for k, v in respostas.items()}
         self.padrao = padrao
         self.pedidos = []
+        self.urls = []
 
     def baixar(self, url):
         rid = url_id(url)
         self.pedidos.append(rid)
+        self.urls.append(url)
         fila = self.respostas.get(rid)
         if not fila:
             codigo, cont = self.padrao
@@ -416,10 +420,11 @@ def t_replay_1611():
            and "INFORMATIVO STF 1233 [id stf1233] (19 de outubro de 2026) — ATRASADA, revisita (anunciada em 19/10) — 4 destaques" in out,
            out)
     checar("replay: revisitas antigas = 2, as mais recentes primeiro (rg394 de 21/10, stf1233 de 19/10)",
-           [p for p in rede.pedidos if p in ("rg394", "stf1233", "stf1231", "stf1230", "stj904", "stj903")] == ["rg394", "stf1233"],
-           rede.pedidos)
+           [p for p in rede.pedidos if p in ("rg394", "stf1233", "stf1231", "stf1230", "stj904", "stj903")]
+           == ["rg394"] * I.MAX_TENTATIVAS_REVISITA + ["stf1233"], rede.pedidos)
     checar("replay: revisita que não abriu fica só na linha TECNICO",
-           "rg394" not in "\n".join(linhas_leitor(out)) and "rg394=403(indeterminado, revisita)" in out, out)
+           "rg394" not in "\n".join(linhas_leitor(out))
+           and "rg394=403(indeterminado, %d tentativas, 1a=403, revisita)" % I.MAX_TENTATIVAS_REVISITA in out, out)
     checar("replay: índice com '(com resumo)' e '(com tese)' e estágio",
            "  0 [Plenário] DIREITO ADMINISTRATIVO — Incidência do piso salarial" in out and "(com resumo)" in out
            and "  10 [pauta da sessão virtual de 06/11 a 13/11] Tema 1.338 — Cabimento de ação rescisória" in out
@@ -453,12 +458,19 @@ def t_403():
     rede = Rede(dict(base, stf1237=[(403, b""), (403, b"")]))
     out, js, st = rodar(rede, janela=JANELA)
     r = por_id(js)
-    checar("403 sem 404: 1 nova tentativa, depois ERRO", rede.pedidos.count("stf1237") == 2 and r["stf1237"]["tentativas"] == 2
+    checar("403 sem 404: insiste até MAX_TENTATIVAS pedidos, depois ERRO",
+           rede.pedidos.count("stf1237") == I.MAX_TENTATIVAS and r["stf1237"]["tentativas"] == I.MAX_TENTATIVAS
+           and r["stf1237"]["http_1a_tentativa"] == 403
            and any(l.startswith("ERRO INFORMATIVO STF 1237 [id stf1237]: documento não abriu") for l in out.splitlines()),
            (rede.pedidos, out))
+    checar("403 sem 404: os pedidos alternam www.stf.jus.br e portal.stf.jus.br (o mesmo documento)",
+           [u.split("/")[2] for u in rede.urls if "Informativo_stf_1237" in u][:4]
+           == ["www.stf.jus.br", "portal.stf.jus.br", "www.stf.jus.br", "portal.stf.jus.br"], rede.urls)
+    checar("403 sem 404: linha TECNICO com o número de tentativas",
+           "stf1237=403(indeterminado, %d tentativas, 1a=403)" % I.MAX_TENTATIVAS in out, out)
     checar("403 sem 404: ERRO sem código http e com instrução de não reportar sem e-mail",
            "não cite nem reporte ao leitor" in out and not any(re.search(r"\b403\b", l) for l in linhas_leitor(out)))
-    checar("403 sem 404: espera antes da nova tentativa", 0 in ESPERAS)
+    checar("403 sem 404: espera entre as tentativas", ESPERAS.count(0) >= I.MAX_TENTATIVAS - 1, ESPERAS)
     checar("403 sem 404: não sonda 1238 nem imprime SEM EDICAO do STF",
            "stf1238" not in rede.pedidos and "SEM EDICAO NOVA INFORMATIVO STF" not in out)
     checar("403 sem 404: SOURCE_STATUS falha", st["informativos_docs"]["status"] == "falha"
@@ -474,11 +486,129 @@ def t_403():
     checar("403 e depois 200: edição nova aberta na 2ª tentativa", r["stf1237"]["ok"] and r["stf1237"]["tentativas"] == 2
            and r["stf1237"]["chave"].startswith("stf|informativo|1237|") and "INFORMATIVO STF 1237 [id stf1237]" in out
            and st["informativos_docs"]["status"] == "ok", out)
-    # orcamento de novas tentativas: no maximo MAX_RETENTATIVAS por execucao
-    rede = Rede(dict(base, stf1237=[(0, b"")], rg398=[(403, b"")], stj910=[(0, b"")]))
+    # orcamento da insistencia: ORCAMENTO_EXTRAS pedidos alem do 1o de cada documento, por execucao
+    velho = I.ORCAMENTO_EXTRAS
+    I.ORCAMENTO_EXTRAS = 5
+    try:
+        rede = Rede(dict(base, stf1237=[(403, b"")], rg398=[(403, b"")], rg394=[(403, b"")]))
+        out, js, st = rodar(rede, janela=JANELA)
+    finally:
+        I.ORCAMENTO_EXTRAS = velho
+    r = por_id(js)
+    checar("orçamento: no máximo ORCAMENTO_EXTRAS pedidos a mais por execução; depois, 1 pedido por documento",
+           sum(max(0, x.get("tentativas", 1) - 1) for x in js) == 5 and rede.pedidos.count("stf1237") == 6
+           and rede.pedidos.count("rg398") == 1 and rede.pedidos.count("rg394") == 1, rede.pedidos)
+    # prazo: nenhum pedido novo depois de PRAZO_S (o 1o de cada documento sempre e feito)
+    t = [0.0]
+    velho_relogio, velha_espera = I.relogio, I.dormir
+    I.relogio = lambda: t[0]
+    I.dormir = lambda seg: t.__setitem__(0, t[0] + 40)      # cada espera "dura" 40 s
+    try:
+        rede = Rede(dict(base, stf1237=[(403, b"")], rg398=[(403, b"")]))
+        out, js, st = rodar(rede, janela=JANELA)
+    finally:
+        I.relogio, I.dormir = velho_relogio, velha_espera
+    checar("prazo: depois de PRAZO_S não há nova tentativa (stf1237: 3 pedidos; rg398: 1)",
+           rede.pedidos.count("stf1237") == 3 and rede.pedidos.count("rg398") == 1, rede.pedidos)
+    # erro que nao e 403 (rede caida, 5xx): so MAX_OUTROS_ERROS pedidos
+    rede = Rede(dict(base, stf1237=[(0, b"")], stj910=[(503, b"")]))
     out, js, st = rodar(rede, janela=JANELA)
-    checar("orçamento: no máximo 2 novas tentativas por execução",
-           sum(1 for r in js if r.get("tentativas") == 2) == 2 and rede.pedidos.count("stj910") == 1, rede.pedidos)
+    checar("erro de rede/5xx: no máximo MAX_OUTROS_ERROS pedidos por documento",
+           rede.pedidos.count("stf1237") == I.MAX_OUTROS_ERROS and rede.pedidos.count("stj910") == I.MAX_OUTROS_ERROS,
+           rede.pedidos)
+
+
+# ------------------------------------------------------------------ 6b. WAF do STF: 404 escondido, host alternativo, cache
+def t_waf():
+    base = {"stf1236": [(200, "pdf")], "rg397": [(200, "pdf")], "stj910": [(200, "stj910.html")],
+            "rg394": [(200, "pdf")], "stf1233": [(200, "pdf")]}
+    # 17/11/2026: a RG 398 dava 403 no script e 404 quando o pedido passava pelo firewall
+    rede = Rede(dict(base, stf1237=[(403, b""), (403, b""), (404, b"")], rg398=[(403, b""), (404, b"")]))
+    out, js, st = rodar(rede, janela=JANELA)
+    r = por_id(js)
+    checar("WAF: 403 e depois 404 = ainda não publicada (sem ERRO, fonte ok)",
+           r["stf1237"]["estado"] == "inexistente" and r["stf1237"]["tentativas"] == 3 and "ERRO" not in out
+           and st["informativos_docs"]["status"] == "ok"
+           and any(l.startswith("SEM EDICAO NOVA INFORMATIVO STF (1237 ainda não publicada") for l in out.splitlines()), out)
+    checar("WAF: o 404 do host alternativo não vale; o do endereço oficial, sim (rg398: 403, 404 no portal, 404 no www)",
+           r["rg398"]["estado"] == "inexistente" and rede.pedidos.count("rg398") == 3
+           and [u.split("/")[2] for u in rede.urls if "Edio398" in u] == ["www.stf.jus.br", "portal.stf.jus.br", "www.stf.jus.br"],
+           rede.urls)
+    velho = I.baixar
+    antes = dict(PDF)
+    PDF["stf1237"] = "stf1233-layout.txt"
+    try:
+        I.baixar = lambda url: (404, b"") if url.startswith(I.HOSTS_STF[1]) else (403, b"<html>Error 403</html>")
+        c = I.baixar_documento("stf", 1237, tentativas=6)
+        checar("WAF: só o host alternativo responde 404 -> segue indeterminado (403), todos os pedidos feitos",
+               c[0] == 403 and c[2] == 6 and c[4] is False, c[:1] + c[2:])
+        rede = Rede({"stf1237": [(403, b"")] * 4 + [(200, "pdf")]})
+        I.baixar = rede.baixar
+        r5 = I.obter("stf", 1237, "nova", tentativas=I.MAX_TENTATIVAS)
+        checar("WAF: abre no 5º pedido (tentativas e 1ª resposta no registro)",
+               r5["ok"] and r5["tentativas"] == 5 and r5["http_1a_tentativa"] == 403 and rede.pedidos == ["stf1237"] * 5,
+               (r5.get("estado"), rede.pedidos))
+        rede = Rede({"stf1237": [(403, b""), (200, "pdf")]})
+        I.baixar = rede.baixar
+        r1 = I.obter("stf", 1237)
+        checar("WAF: obter() sem `tentativas` faz 1 pedido só (compatível)",
+               r1["estado"] == "indeterminado" and rede.pedidos == ["stf1237"] and "http_1a_tentativa" not in r1, rede.pedidos)
+        rede = Rede({"stf1237": [(200, b"<html>desafio do firewall</html>")]})
+        I.baixar = rede.baixar
+        rh = I.obter("stf", 1237, "nova", tentativas=I.MAX_TENTATIVAS)
+        checar("WAF: 200 que não é PDF não é resposta definitiva (insiste pouco, como erro que não é 403)",
+               rh["estado"] == "indeterminado" and rh["motivo"] == "resposta não é PDF"
+               and rede.pedidos == ["stf1237"] * I.MAX_OUTROS_ERROS, (rh.get("motivo"), rede.pedidos))
+
+        # cache da execucao: o PDF que abriu nao e pedido de novo (montador, rodadas seguintes)
+        os.environ["ROBOZINHO_INF_CACHE"] = "1"
+        json.dump({"execution_id": "2026-11-17-7h"}, open(os.path.join(TMP, "janela.json"), "w"))
+        arq = os.path.join(TMP, "informativos-cache", "2026-11-17-7h", "stf1237.pdf")
+        rede = Rede({"stf1237": [(403, b""), (200, "pdf")]})
+        I.baixar = rede.baixar
+        ra = I.obter("stf", 1237, "nova", tentativas=4)
+        checar("cache: PDF que abriu é gravado em informativos-cache/<execution_id>/<id>.pdf",
+               ra["ok"] and ra["tentativas"] == 2 and os.path.isfile(arq) and open(arq, "rb").read().startswith(b"%PDF"), arq)
+        rede = Rede({"stf1237": [(403, b"")]})
+        I.baixar = rede.baixar
+        rb = I.obter("stf", 1237, "nova", tentativas=4)
+        checar("cache: 2ª leitura sem nenhum pedido, com os mesmos destaques (17/11: abriu numa rodada, 403 nas seguintes)",
+               rb["ok"] and rb.get("cache") is True and rb["tentativas"] == 0 and rede.pedidos == []
+               and rb["itens"] == ra["itens"] and rb["chave"] == ra["chave"], (rb.get("estado"), rede.pedidos))
+        out, js, st = rodar(Rede(dict(base, stf1237=[(403, b"")])), janela={"execution_id": "2026-11-17-7h"})
+        checar("cache: a coleta lê do cache e a linha TECNICO diz 'cache'",
+               por_id(js)["stf1237"]["ok"] and "stf1237=200(cache)" in out and "INFORMATIVO STF 1237 [id stf1237]" in out, out)
+        json.dump({"execution_id": "2026-11-18-7h"}, open(os.path.join(TMP, "janela.json"), "w"))
+        rede = Rede({"stf1237": [(403, b"")]})
+        I.baixar = rede.baixar
+        rc = I.obter("stf", 1237, "nova", tentativas=3)
+        checar("cache: arquivo de outra execução não é usado",
+               rc["estado"] == "indeterminado" and rede.pedidos == ["stf1237"] * 3, rede.pedidos)
+        os.unlink(os.path.join(TMP, "janela.json"))
+        rede = Rede({"stf1238": [(200, "pdf")]})
+        I.baixar = rede.baixar
+        PDF["stf1238"] = "stf1233-layout.txt"
+        I.obter("stf", 1238, "nova")
+        checar("cache: sem execution_id (fora da rotina) nada é gravado",
+               I.caminho_cache("stf1238") is None
+               and not any("stf1238" in f for _, _, fs in os.walk(os.path.join(TMP, "informativos-cache")) for f in fs))
+        json.dump({"execution_id": "2026-11-17-7h"}, open(os.path.join(TMP, "janela.json"), "w"))
+        rede = Rede({"stj909": [(200, "stj909.html")], "stf1239": [(403, b"")], "stf1240": [(404, b"")]})
+        I.baixar = rede.baixar
+        I.obter("stj", 909, "nova"); I.obter("stf", 1239, "nova", tentativas=2); I.obter("stf", 1240, "nova")
+        checar("cache: só PDF aberto vai para o cache (página do STJ, 403 e 404 não)",
+               "stf1237.pdf" in os.listdir(os.path.dirname(arq))
+               and not any(f.startswith(("stj909", "stf1239", "stf1240")) for f in os.listdir(os.path.dirname(arq))),
+               os.listdir(os.path.dirname(arq)))
+    finally:
+        I.baixar = velho
+        os.environ["ROBOZINHO_INF_CACHE"] = "0"
+        PDF.clear(); PDF.update(antes)
+        shutil.rmtree(os.path.join(TMP, "informativos-cache"), ignore_errors=True)
+        try:
+            os.unlink(os.path.join(TMP, "janela.json"))
+        except FileNotFoundError:
+            pass
 
 
 # ------------------------------------------------------------------ 7. parser do STJ, 404 na revisita, pulada
@@ -854,7 +984,8 @@ def t_p6_conferencia():
         cons = {}
         m3 = I.superados_por_documento(394, i394, {397: h[397]}, {}, cons)
         checar("P6 conferência: documento que não abre não tira tema nenhum (fica como antes) e fica registrado",
-               m3 == {} and cons == {"rg397": 403} and rede.pedidos == ["rg397"], (m3, cons, rede.pedidos))
+               m3 == {} and cons == {"rg397": 403} and rede.pedidos == ["rg397"] * I.MAX_TENTATIVAS_REVISITA,
+               (m3, cons, rede.pedidos))
         limpar_consultas()
         rede = Rede({})
         I.baixar = rede.baixar
@@ -917,7 +1048,7 @@ def t_manual_e_compat():
 
 def main():
     try:
-        for t in (t_fixtures, t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_parser_e_404, t_superados,
+        for t in (t_fixtures, t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_waf, t_parser_e_404, t_superados,
                   t_temas_do_montador, t_p6_historico_real, t_p6_temas_do_texto, t_p6_conferencia, t_manual_e_compat):
             try:
                 t()

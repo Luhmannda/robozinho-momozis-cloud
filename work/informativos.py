@@ -8,9 +8,9 @@
 #     numeracao e sequencial: depois de um "ainda nao publicada" (404, ou
 #     pagina do STJ sem o cabecalho do numero), um 403/0 no numero seguinte
 #     e "nao verificavel", nunca ERRO (em 16/11/2026 o 1238 deu 403 depois do
-#     404 do 1237 e virou "limitacao" falsa no e-mail). 403/0 sem 404 antes
-#     ganha 1 nova tentativa apos espera curta e, persistindo, e ERRO (o 1236
-#     deu 403 em 13/11 e abriu em 16/11: o WAF do STF limita rajadas);
+#     404 do 1237 e virou "limitacao" falsa no e-mail). 403/0 sem 404 antes:
+#     o script INSISTE ate uma resposta definitiva (200 ou 404) e so entao,
+#     persistindo, e ERRO — ver "WAF do STF" abaixo;
 #   - as edicoes ATRASADAS: as duas ultimas que sairam so com numero/data/link
 #     ("conteudo nao acessivel") ou que foram puladas — o conteudo entra
 #     quando o documento abrir (em 11/11/2026 o 1236 do STF e o 909 do STJ
@@ -44,6 +44,26 @@
 #   O servidor do STF devolve 403 ao user-agent do curl: usa-se o de navegador
 #   E um Referer de portal.stf.jus.br (sem o Referer o PDF da RG 394 deu 403 em 22/10/2026).
 #
+# WAF do STF (medido em 17/11/2026, ~75 pedidos): o firewall do STF (F5, pagina
+#   "The requested URL was rejected ... F5 site: dc12-ash") recusa com 403 cerca
+#   de 4 em cada 5 pedidos vindos desta nuvem, AO ACASO — o mesmo pedido, segundos
+#   depois, abre. Nao depende do intervalo (3 s ou 20 s), do host (www.stf.jus.br
+#   ou portal.stf.jus.br, que servem o mesmo arquivo) nem dos cabecalhos (o curl
+#   puro passou na mesma proporcao); e o 403 esconde ate o 404 de edicao ainda nao
+#   publicada (a RG 398 dava 403 no script e 404 quando o pedido passava). Uma
+#   tentativa por execucao deixava a edicao nova sem destaques na maioria dos dias
+#   e as revisitas (1233, RG 394) paradas ha um mes. Por isso:
+#   - baixar_documento() repete o pedido, com espera curta e alternando os dois
+#     hosts, ate 200 (PDF) ou 404 do endereco oficial: MAX_TENTATIVAS para edicao
+#     nova ou anunciada sem conteudo, MAX_TENTATIVAS_REVISITA para revisita antiga,
+#     MAX_TENTATIVAS_MONTADOR na segunda tentativa do montador; por execucao, no
+#     maximo ORCAMENTO_EXTRAS pedidos a mais e nenhum depois de PRAZO_S segundos.
+#     Erro que nao e 403 (rede, 5xx) so ganha 2 pedidos a mais;
+#   - o PDF que abriu fica em $ROBOZINHO_TMP/informativos-cache/<execution_id>/:
+#     o montador (segunda tentativa e cada nova rodada) le dali, sem rede. Em
+#     17/11/2026 o 1237 abriu numa rodada do montador, voltou a dar 403 nas
+#     seguintes e o e-mail saiu com "Conteudo nao acessivel".
+#
 # USO:   python3 work/informativos.py                 (edicoes novas, atrasadas e revisitas, pelo historico)
 #        python3 work/informativos.py stf:1232 rg:392 stj:905   (edicoes dadas; nao grava fontes_status.json)
 # SAIDA: indice compacto em stdout (id, data, destaques numerados e curtos, uma
@@ -52,7 +72,8 @@
 #        e o status da fonte (id informativos_docs) mesclado em
 #        $ROBOZINHO_TMP/fontes_status.json (ROBOZINHO_TMP padrao: /tmp).
 # AMBIENTE: ROBOZINHO_TMP (pasta dos arquivos temporarios, padrao /tmp);
-#        ROBOZINHO_INF_ESPERA (segundos antes da nova tentativa apos 403/0, padrao 10).
+#        ROBOZINHO_INF_ESPERA (segundos entre as tentativas do mesmo documento, padrao 2);
+#        ROBOZINHO_INF_CACHE=0 desliga o cache de PDFs (os testes desligam).
 # =====================================================================
 
 import fcntl
@@ -81,12 +102,20 @@ MAX_TXT = 520                 # so para o indice impresso: o JSON guarda o texto
 MAX_INDICE = 25               # linhas de destaque impressas por edicao (o JSON guarda todas)
 JANELA_REVISITA = 8           # revisita edicoes sem conteudo ate base-8 (~2 meses no STF)
 MAX_REVISITAS_ANTIGAS = 2     # por execucao, somando os produtos (as mais recentes primeiro)
-MAX_RETENTATIVAS = 2          # novas tentativas apos 403/0, por execucao
+HOSTS_STF = ("https://www.stf.jus.br/", "https://portal.stf.jus.br/")   # o mesmo PDF nos dois (conferido em 17/11/2026)
+MAX_TENTATIVAS = 12           # pedidos por documento (edicao nova ou anunciada sem conteudo), ate 200 ou 404
+MAX_TENTATIVAS_REVISITA = 4   # idem, revisita antiga e conferencia de temas
+MAX_TENTATIVAS_MONTADOR = 8   # idem, na segunda tentativa do montador
+MAX_OUTROS_ERROS = 3          # pedidos com erro que nao e 403 (rede, 5xx) antes de desistir do documento
+ORCAMENTO_EXTRAS = 30         # pedidos alem do 1o de cada documento, por execucao (~75 s no pior caso)
+PRAZO_S = 90                  # nenhuma nova tentativa depois disto, contado do 1o pedido da execucao
+PRAZO_MONTADOR_S = 30         # idem, na segunda tentativa do montador
 MAX_CONSULTAS_TEMAS = 2       # RGs posteriores baixadas so para conferir temas (item sem a lista), por processo
 RESUMO_MIN, RESUMO_MAX = 100, 900
 FONTE_ID = "informativos_docs"
 SCRIPT = "informativos.py"
 dormir = time.sleep           # os testes trocam por um no-op
+relogio = time.monotonic      # os testes trocam por um relogio falso
 
 
 def tmp(nome):
@@ -96,9 +125,9 @@ def tmp(nome):
 
 def espera_retentativa():
     try:
-        return max(0.0, float(os.environ.get("ROBOZINHO_INF_ESPERA", "10")))
+        return max(0.0, float(os.environ.get("ROBOZINHO_INF_ESPERA", "2")))
     except ValueError:
-        return 10.0
+        return 2.0
 
 
 def chave(r):
@@ -126,6 +155,87 @@ def baixar(url):
         return 0, b""
     finally:
         os.unlink(caminho)
+
+
+# ------------------------------------------------------------------ cache de PDFs e insistencia (WAF do STF)
+def caminho_cache(rid):
+    """Onde fica o PDF ja baixado nesta execucao, ou None (cache desligado, ou sem execution_id no
+    janela.json: fora da rotina nao ha como saber se o arquivo e desta execucao)."""
+    if os.environ.get("ROBOZINHO_INF_CACHE", "1") == "0":
+        return None
+    eid = re.sub(r"[^\w.-]", "_", str(janela().get("execution_id") or ""))
+    if not eid:
+        return None
+    return os.path.join(tmp("informativos-cache"), eid, rid + ".pdf")
+
+
+def cache_ler(rid):
+    caminho = caminho_cache(rid)
+    if not caminho:
+        return None
+    try:
+        with open(caminho, "rb") as f:
+            dados = f.read()
+    except OSError:
+        return None
+    return dados if dados.startswith(b"%PDF") else None
+
+
+def cache_gravar(rid, dados):
+    caminho = caminho_cache(rid)
+    if not caminho:
+        return
+    try:
+        os.makedirs(os.path.dirname(caminho), exist_ok=True)
+        temp = caminho + ".%d.tmp" % os.getpid()
+        with open(temp, "wb") as f:
+            f.write(dados)
+        os.replace(temp, caminho)
+    except OSError:
+        pass                                # o cache e reforco, nunca derruba a coleta
+
+
+def enderecos(tipo, n):
+    """(endereco oficial, o mesmo arquivo no outro host do STF ou None)."""
+    url = URL[tipo] % n
+    alt = HOSTS_STF[1] + url[len(HOSTS_STF[0]):] if url.startswith(HOSTS_STF[0]) else None
+    return url, alt
+
+
+def baixar_documento(tipo, n, tentativas=1, prazo=None):
+    """Baixa o documento insistindo ate uma resposta definitiva — 200 com o documento, ou 404 do
+    endereco oficial (o 404 do host alternativo nao prova inexistencia). Devolve
+    (http, bytes, pedidos feitos, http do 1o pedido, veio do cache).
+    tentativas: maximo de pedidos; prazo: instante de relogio() depois do qual nao ha novo pedido
+    (o 1o sempre e feito). PDF que abriu vai para o cache da execucao; o que esta la nao e pedido de novo."""
+    rid = "%s%d" % (tipo, n)
+    dados = cache_ler(rid)
+    if dados:
+        return 200, dados, 0, None, True
+    url, alt = enderecos(tipo, n)
+    codigo, dados, primeiro, feitos, outros = 0, b"", None, 0, 0
+    for i in range(max(1, tentativas)):
+        if i:
+            if prazo is not None and relogio() >= prazo:
+                break
+            dormir(espera_retentativa())
+        no_alt = bool(alt) and i % 2 == 1
+        c, d = baixar(alt if no_alt else url)
+        feitos += 1
+        if primeiro is None:
+            primeiro = c
+        if no_alt and c == 404:
+            continue                        # so o 404 do endereco oficial vale como "ainda nao publicada"
+        codigo, dados = c, d
+        if c == 404 or (c == 200 and d and (tipo == "stj" or d.startswith(b"%PDF"))):
+            break
+        if c != 403:                        # rede caida, 5xx, resposta que nao e o documento: insistir pouco
+            outros += 1
+            if outros >= MAX_OUTROS_ERROS:
+                break
+    if codigo == 200 and dados.startswith(b"%PDF"):
+        cache_gravar(rid, dados)
+    return codigo, dados, feitos, primeiro, False
 
 
 def pdf_texto(dados, layout):
@@ -385,7 +495,7 @@ def temas_do_documento(m, consultas=None):
         if len(TEMAS_DOC) >= MAX_CONSULTAS_TEMAS:
             return None
         dormir(1.5)                     # sem rajada no mesmo servidor
-        codigo, dados = baixar(URL["rg"] % m)
+        codigo, dados = baixar_documento("rg", m, MAX_TENTATIVAS_REVISITA)[:2]   # o que ja abriu vem do cache
         temas = None
         if codigo == 200 and dados and dados.startswith(b"%PDF"):
             try:
@@ -759,16 +869,22 @@ def publicados():
 
 
 # ------------------------------------------------------------------ obtencao
-def obter(tipo, n, situacao="nova", anuncio=None, hist_produto=None):
-    """Baixa e le uma edicao (uma tentativa). estado: ok | inexistente (404; STJ sem o
+def obter(tipo, n, situacao="nova", anuncio=None, hist_produto=None, tentativas=1, prazo=None):
+    """Baixa e le uma edicao (ate `tentativas` pedidos, ver baixar_documento). estado: ok | inexistente (404; STJ sem o
     cabecalho do numero) | parser (abriu, tem marcas de destaque, 0 lidos) | sem_temas
     (abriu, sem nenhum destaque) | indeterminado (403, 0, outro codigo, nao e PDF) |
     superada (RG aberta cujos temas os boletins posteriores ja superaram todos).
-    hist_produto: historico() do produto (None = le o historico quando precisar)."""
+    hist_produto: historico() do produto (None = le o historico quando precisar).
+    No registro: tentativas (pedidos feitos; 0 = veio do cache da execucao), http_1a_tentativa
+    (quando houve mais de um pedido) e cache (True quando nao houve pedido)."""
     url = URL[tipo] % n
-    codigo, dados = baixar(url)
+    codigo, dados, feitos, primeiro, do_cache = baixar_documento(tipo, n, tentativas, prazo)
     r = {"tipo": tipo, "numero": n, "id": "%s%d" % (tipo, n), "url": url, "http": codigo,
-         "situacao": situacao, "ok": False}
+         "situacao": situacao, "ok": False, "tentativas": feitos}
+    if feitos > 1:
+        r["http_1a_tentativa"] = primeiro
+    if do_cache:
+        r["cache"] = True
     if situacao == "atrasada":
         if anuncio is None:
             try:
@@ -821,31 +937,24 @@ def obter(tipo, n, situacao="nova", anuncio=None, hist_produto=None):
 
 
 class Coleta:
-    """Faz os pedidos espacados e controla o orcamento de novas tentativas."""
+    """Faz os pedidos espacados e controla o orcamento da insistencia: no maximo ORCAMENTO_EXTRAS
+    pedidos alem do 1o de cada documento e nenhum depois de PRAZO_S (contado do 1o pedido)."""
 
     def __init__(self):
         self.pedidos = 0
-        self.retentativas = MAX_RETENTATIVAS
+        self.extras = ORCAMENTO_EXTRAS
+        self.prazo = None
 
-    def pedir(self, tipo, n, situacao, anuncio=None, hist_produto=None):
+    def pedir(self, tipo, n, situacao, anuncio=None, hist_produto=None, tentativas=1):
         if self.pedidos:
             dormir(1.5)                     # sem rajada no mesmo servidor
+        else:
+            self.prazo = relogio() + PRAZO_S
         self.pedidos += 1
-        r = obter(tipo, n, situacao, anuncio, hist_produto)
-        r["tentativas"] = 1
+        r = obter(tipo, n, situacao, anuncio, hist_produto,
+                  tentativas=max(1, min(tentativas, 1 + self.extras)), prazo=self.prazo)
+        self.extras -= max(0, (r.get("tentativas") or 1) - 1)
         return r
-
-    def com_retentativa(self, r, anuncio=None, hist_produto=None):
-        """403/0 sem 404 antes: espera curta e 1 nova tentativa (o WAF do STF limita rajadas)."""
-        if r.get("estado") != "indeterminado" or self.retentativas <= 0:
-            return r
-        self.retentativas -= 1
-        dormir(espera_retentativa())
-        self.pedidos += 1
-        r2 = obter(r["tipo"], r["numero"], r["situacao"], anuncio, hist_produto)
-        r2["tentativas"] = 2
-        r2["http_1a_tentativa"] = r["http"]
-        return r2
 
 
 def coletar(hist):
@@ -870,7 +979,7 @@ def coletar(hist):
                 continue
             if tipo in parado:
                 break
-            r = c.pedir(tipo, n, situacao, h.get(n), h)
+            r = c.pedir(tipo, n, situacao, h.get(n), h, MAX_TENTATIVAS)
             resultados.append(r)
             if r["estado"] == "inexistente":
                 parado.add(tipo)            # parar no 404
@@ -878,16 +987,14 @@ def coletar(hist):
         for n in range(base + 1, base + 4):
             if falhas >= 2:
                 break                       # dois numeros novos seguidos sem edicao: parar
-            r = c.pedir(tipo, n, "nova", None, h)
+            # depois de um "ainda nao publicada" o numero seguinte nao existe: 1 pedido basta
+            r = c.pedir(tipo, n, "nova", None, h, 1 if inexistente is not None else MAX_TENTATIVAS)
             if r["estado"] == "indeterminado":
                 if inexistente is not None:
                     r["estado"] = "nao_verificavel"
                     r["motivo"] = "%d ainda não publicada; %d não verificável" % (inexistente, n)
-                else:
-                    r = c.com_retentativa(r, None, h)
-                if not r["ok"] and r["estado"] in ("indeterminado", "nao_verificavel"):
-                    resultados.append(r)
-                    break                   # servidor recusou: nao insistir nos numeros seguintes
+                resultados.append(r)
+                break                       # servidor recusou ate o fim: nao insistir nos numeros seguintes
             resultados.append(r)
             if r["ok"]:
                 falhas = 0
@@ -905,7 +1012,7 @@ def coletar(hist):
         if tipo in parado:
             continue
         feitas += 1
-        r = c.pedir(tipo, n, "atrasada", hist[tipo].get(n), hist[tipo])
+        r = c.pedir(tipo, n, "atrasada", hist[tipo].get(n), hist[tipo], MAX_TENTATIVAS_REVISITA)
         r["revisita"] = True
         resultados.append(r)
         if r["estado"] == "inexistente":
@@ -1092,8 +1199,10 @@ def imprimir(resultados):
         extra = [] if r.get("ok") else [r.get("estado") or "?"]
         if r.get("itens_superados"):
             extra.append("%d superados" % len(r["itens_superados"]))
-        if r.get("tentativas") == 2:
-            extra.append("2 tentativas, 1a=%s" % r.get("http_1a_tentativa"))
+        if (r.get("tentativas") or 0) > 1:
+            extra.append("%d tentativas, 1a=%s" % (r["tentativas"], r.get("http_1a_tentativa")))
+        if r.get("cache"):
+            extra.append("cache")
         if r.get("revisita"):
             extra.append("revisita")
         for rid, cod in (r.get("temas_consultados") or {}).items():
@@ -1108,7 +1217,7 @@ def main():
         resultados = []
         c = Coleta()
         for tipo, n in pedidos:
-            resultados.append(c.pedir(tipo, int(n), "nova"))
+            resultados.append(c.pedir(tipo, int(n), "nova", tentativas=MAX_TENTATIVAS))
     else:
         resultados = coletar(historico())
     imprimir(resultados)

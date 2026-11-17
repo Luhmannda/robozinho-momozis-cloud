@@ -1,0 +1,252 @@
+{
+ "_origem": "pendencias_vivas e armadilhas do ledger no commit e36f2c1 (16/11/2026, antes da execucao de 17/11): a errata do TJAP ainda pendente e as regras antes da migracao do helper",
+ "pendencias_vivas": [
+  {
+   "id": "errata_2026_11_16",
+   "texto": "Na edição de 16/11, onde se leu que as inscrições do TJAP (Juiz de Direito Substituto, FGV) encerraram em 13/11, leia-se: a 2ª Retificação, publicada pela FGV em 13/11, prorrogou as inscrições até 16h de 18/11, com pagamento da taxa até 19/11.",
+   "desde": "2026-11-16",
+   "execucoes": 0,
+   "faixa": "ativa",
+   "politica": "Errata: publicada uma vez na edição seguinte e removida pelo montador."
+  },
+  {
+   "id": "planalto_push_mudo",
+   "texto": "PUSH Planalto: resenhas de 09, 10, 12 e 13/11 recebidas (as de 12 e 13/11 com edições extras); fluxo aparentemente diário de novo; manter 1 sonda por dia.",
+   "desde": "2026-07-06",
+   "execucoes": 70,
+   "faixa": "longo_prazo",
+   "politica": "1 sonda por execução; se seguir diário, restaurar protocolo completo e remover."
+  },
+  {
+   "id": "tjdft_edital",
+   "texto": "TJDFT XLV (Cebraspe, ~R$ 37.765,55): sem edital; última informação oficial vista em 02/02/2026 sem previsão; secundárias citam 20 a 30 vagas.",
+   "desde": "2026-07-21",
+   "execucoes": 52,
+   "faixa": "longo_prazo",
+   "politica": "1a execucao da semana. Promover so com edital do ciclo 2026 (armadilha banca_edital_antigo: a pagina do Cebraspe com 30 vagas e do ciclo antigo).",
+   "coletor": "concursos",
+   "dominio_oficial": "www.cebraspe.org.br"
+  },
+  {
+   "id": "agu_pfn_edital",
+   "texto": "AGU/PFN: faltam banca organizadora e edital; banca examinadora citada em secundárias com numeração divergente (Portaria CSAGU/AGU nº 7 x Portaria AGU nº 369, ambas de 14/10).",
+   "desde": "2026-07-07",
+   "execucoes": 55,
+   "faixa": "longo_prazo",
+   "politica": "1a execucao da semana; linha compacta em Concursos.",
+   "coletor": "concursos",
+   "dominio_oficial": "www.gov.br"
+  },
+  {
+   "id": "crise_institucional_stf_pgr_acompanhar",
+   "texto": "Caso Master: Folha (13/11) diz que a PGR apresentará nos próximos dias ao STF a primeira denúncia contra Daniel Vorcaro; Valor (11/11) diz que a PF incluirá Fux, Gilmar e Mendonça nos novos relatórios até o fim do mês; sem confirmação oficial.",
+   "desde": "2026-09-02",
+   "execucoes": 43,
+   "faixa": "longo_prazo",
+   "politica": "Prioridade: qualquer desdobramento OFICIAL (STF, STJ/CNJ, PF, gabinetes). Declaração só da mídia vale no máximo FORTE INDICIO.",
+   "dominio_oficial": "noticias.stf.jus.br"
+  },
+  {
+   "id": "pge_rj_edital_verificar",
+   "texto": "PGE-RJ 19º: /concursos oficial (09/11) só com link de menu, sem orais; autorização de 05/11 refere-se ao concurso de analista/técnico, sem Procurador.",
+   "desde": "2026-09-30",
+   "execucoes": 28,
+   "faixa": "longo_prazo",
+   "politica": "Só a página oficial promove o selo; convocação para orais publicada: atualizar o registro e aposentar.",
+   "coletor": "concursos",
+   "dominio_oficial": "pge.rj.gov.br"
+  },
+  {
+   "id": "dpe_sp_edital_verificar",
+   "texto": "DPE-SP (FCC, 70 vagas): inscrições terminaram em 11/11 às 23h59 segundo o registro; a home oficial, lida em 16/11, ainda exibe a chamada 'Últimos dias para se inscrever', sem data nem menção a prorrogação; edital e data de prova não lidos.",
+   "desde": "2026-10-02",
+   "execucoes": 30,
+   "faixa": "longo_prazo",
+   "politica": "Edital lido no DOE/FCC: confirmar prova e aposentar.",
+   "coletor": "concursos",
+   "dominio_oficial": "www.defensoria.sp.def.br"
+  },
+  {
+   "id": "alepa_procurador_verificar",
+   "texto": "ALEPA: inscrições encerradas em 04/11 só segundo secundárias; home oficial lida em 09/11 sem menção a concurso.",
+   "desde": "2026-10-05",
+   "execucoes": 26,
+   "faixa": "longo_prazo",
+   "politica": "Confirmado em fonte oficial/CETAP: atualizar o registro e aposentar.",
+   "coletor": "concursos",
+   "dominio_oficial": "www.alepa.pa.gov.br"
+  },
+  {
+   "id": "trf2_oral_divergencia",
+   "texto": "TRF2 XIX: home oficial (09/11) sem concurso; prazo 06/11 sem desfecho confirmado; secundárias divergem e citam suspensão pelo CNJ sem data.",
+   "desde": "2026-09-30",
+   "execucoes": 30,
+   "faixa": "longo_prazo",
+   "politica": "Abrir a notícia oficial do TRF2 sobre o concurso, corrigir o registro e aposentar.",
+   "coletor": "concursos",
+   "dominio_oficial": "www.trf2.jus.br"
+  },
+  {
+   "id": "pge_al_resultado",
+   "desde": "2026-10-21",
+   "execucoes": 19,
+   "texto": "PGE-AL: Edital nº 12 de 19/10 (resultado final da objetiva e provisório das discursivas) consta do Cebraspe segundo o buscador, mas o documento não pôde ser lido (rede bloqueia o CDN); secundárias citam 20/10.",
+   "faixa": "longo_prazo",
+   "politica": "Ler o edital no Cebraspe se acessível; atualizar o registro; depois remover.",
+   "dominio_oficial": "www.cebraspe.org.br"
+  },
+  {
+   "id": "trt8_edital_verificar",
+   "desde": "2026-10-26",
+   "execucoes": 16,
+   "texto": "TRT8 edital 1/2026 (FCC): inscrições encerradas em 05/11, convocação prevista para 08/12 e prova em 17/01/2027, tudo só em secundárias; oficial bloqueada pela rede.",
+   "faixa": "longo_prazo",
+   "politica": "Confirmar no TRT8/FCC; depois atualizar o registro e remover.",
+   "dominio_oficial": "www.trt8.jus.br"
+  },
+  {
+   "id": "trf3_apoio_verificar",
+   "desde": "2026-11-06",
+   "execucoes": 7,
+   "texto": "TRF3 Analista/Técnico (Vunesp, Edital 01/2026): inscrições de 04/11 a 23/11 (23h59) e prova prevista para 31/01/2027 segundo secundárias; PDF oficial do edital localizado pelo buscador, mas não lido (página do TRF3 bloqueada pela rede).",
+   "faixa": "ativa",
+   "politica": "Confirmar na Vunesp/TRF3; promover selo só com fonte oficial; depois atualizar o registro e remover.",
+   "dominio_oficial": "www.trf3.jus.br"
+  },
+  {
+   "id": "dpe_pb_apoio_verificar",
+   "desde": "2026-11-06",
+   "execucoes": 4,
+   "texto": "DPE-PB Analista/Técnico (FCC): inscrições encerradas em 13/11 às 23h59 segundo secundárias, sem prorrogação localizada; prova em 28/02/2027; site oficial e FCC não lidos.",
+   "faixa": "longo_prazo",
+   "politica": "Só movimento NOVO oficial promove o selo; depois atualizar o registro."
+  },
+  {
+   "id": "pgm_suzano_verificar",
+   "desde": "2026-11-09",
+   "execucoes": 6,
+   "texto": "PGM Suzano/SP: retificação nº 01 ao Edital 02/2026 retiraria o cargo de Procurador Jurídico do concurso (PDF em site secundário, não lido); outras secundárias mantêm o cargo com inscrições até 25/11; sem fonte oficial.",
+   "faixa": "ativa",
+   "politica": "Confirmar no edital oficial; depois atualizar o registro e remover."
+  },
+  {
+   "id": "dpdf_apoio_verificar",
+   "desde": "2026-11-11",
+   "execucoes": 4,
+   "texto": "DPDF Analista: edital e inscrições (03/12 a 07/01/2027) só em secundárias divergentes; sem banca nem fonte oficial.",
+   "faixa": "longo_prazo"
+  },
+  {
+   "id": "pgm_campinas_setec_verificar",
+   "desde": "2026-11-16",
+   "execucoes": 1,
+   "texto": "SETEC Campinas/SP — Procurador (Edital 02/2026): 1 vaga + cadastro de reserva e inscrições até 04/12 segundo resumo de buscador com redação inconsistente; sem fonte oficial.",
+   "faixa": "ativa",
+   "politica": "Confirmar no edital oficial/banca; promover selo só com fonte oficial; não confirmado em 2 execuções: remover o registro."
+  }
+ ],
+ "armadilhas": [
+  {
+   "id": "congresso_mpv",
+   "fonte": "congressonacional.leg.br/materias/medidas-provisorias",
+   "sintoma": "Numeros de MPV fora da sequencia real e datas incoerentes na listagem (desvio de dias ou de dezenas de dias).",
+   "detectado_em_qtd": 11,
+   "detectado_em_primeira": "2026-07-13",
+   "detectado_em_ultimas": [
+    "2026-09-11",
+    "2026-09-18",
+    "2026-09-23"
+   ],
+   "regra": "A listagem nao e fonte de data. work/coleta_web.py abre a pagina de detalhe oficial e so aceita 'Publicada no DOU de ...'; sem ela (SEM_DATA_OFICIAL) → PENDENCIA DE VERIFICACAO, nunca CONFIRMADO. Busca por numero em WebSearch pode achar MPV homonima de outro ano."
+  },
+  {
+   "id": "websearch_data",
+   "fonte": "WebSearch (resumo do buscador)",
+   "sintoma": "Atribui a data de hoje a noticia antiga.",
+   "regra": "Noticia de WebSearch que va ao e-mail precisa ter a data confirmada na fonte primaria (slug, cabecalho ou pagina oficial). Nunca confiar na data implicita do resumo.",
+   "detectado_em_qtd": 4,
+   "detectado_em_primeira": "2026-07-07",
+   "detectado_em_ultimas": [
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-16"
+   ]
+  },
+  {
+   "id": "banca_edital_antigo",
+   "fonte": "cebraspe.org.br e paginas de bancas",
+   "sintoma": "Consulta sobre concurso do ano corrente devolve edital antigo de estrutura identica (ex.: TJDFT 2022/23, 30 vagas, R$32.004,65, quando o ciclo 2026 tem 20-24 vagas e ~R$37.765,55).",
+   "detectado_em_qtd": 18,
+   "detectado_em_primeira": "2026-07-24",
+   "detectado_em_ultimas": [
+    "2026-11-10",
+    "2026-11-12",
+    "2026-11-16"
+   ],
+   "regra": "Conferir o ano no conteudo (inscricoes, data de prova, subsidio). Edital antigo NAO e confirmacao de edital novo — manter o status anterior, sem upgrade para EDITAL PUBLICADO."
+  },
+  {
+   "id": "jota_link_wrapper_mismatch",
+   "fonte": "e-mails do JOTA (contato@jota.info), wrapper t.rdsv2.net",
+   "sintoma": "O link 'Leia mais' pode resolver para um artigo com titulo completamente diferente do anunciado.",
+   "regra": "Publicar o link so se o TITULO da pagina de destino bater com o anunciado. Em nuvem o WebFetch do wrapper e bloqueado — usar so WebSearch site:jota.info; 1 tentativa por item, senao publicar sem link.",
+   "detectado_em_qtd": 3,
+   "detectado_em_primeira": "2026-08-05",
+   "detectado_em_ultimas": [
+    "2026-08-05",
+    "2026-08-17",
+    "2026-11-11"
+   ]
+  },
+  {
+   "id": "cloud_egress_bloqueado",
+   "fonte": "WebFetch e curl direto, ambiente de nuvem (proxy de egress da sessao)",
+   "sintoma": "Dominio fora do allowlist do ambiente: curl devolve 000 e WebFetch devolve EGRESS_BLOQUEADO (o WebFetch fica bloqueado mesmo nos dominios liberados). E politica de rede da sessao, nao falha da fonte.",
+   "regra": "Leitura direta e sempre curl (scripts work/*.py); nunca WebFetch em dominio externo. 000/403 numa fonte: WebSearch para ela e aviso no quadro. Liberados: bible.com, dailyverses.net, conjur.com.br, migalhas.com.br, congressonacional.leg.br, t.rdsv2.net, www.jota.info, pge.rj.gov.br, www.defensoria.sp.def.br, www.alepa.pa.gov.br, www.trf2.jus.br e, desde 15/10, www.stf.jus.br, portal.stf.jus.br, ww2.stj.jus.br, processo.stj.jus.br (o servidor do STF exige user-agent de navegador). Seguem bloqueados: www.stj.jus.br, noticias.stf.jus.br, Senado, Camara, DOU/Planalto, static.trf2.jus.br, Cebraspe, FGV, FCC, gov.br — o inicio.py testa os dominios dos concursos todo dia.",
+   "detectado_em_qtd": 3,
+   "detectado_em_primeira": "2026-09-01",
+   "detectado_em_ultimas": [
+    "2026-09-01",
+    "2026-09-07",
+    "2026-11-12"
+   ]
+  },
+  {
+   "id": "stf_informativo_link_generico",
+   "fonte": "e-mails nao_responda@stf.jus.br (Push STF Informativo)",
+   "sintoma": "O corpo do e-mail so traz 'A edicao N/2026 do Informativo STF ja esta disponivel' com link generico para http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF — o mesmo link em toda edicao, sem parametro que aponte ao PDF/conteudo especifico do numero N.",
+   "detectado_em_qtd": 2,
+   "detectado_em_primeira": "2026-09-22",
+   "detectado_em_ultimas": [
+    "2026-09-22",
+    "2026-09-29"
+   ],
+   "regra": "Numero e data vem do assunto do e-mail. O conteudo vem de work/informativos.py, que monta a URL do PDF pelo numero (Informativo_stf_N.pdf; RG: EdioN.pdf) — nao depende do link do e-mail."
+  },
+  {
+   "id": "jota_texto_corrido_multiplos_fatos",
+   "fonte": "e-mails do JOTA (contato@jota.info) do tipo texto corrido (nao boletim itemizado)",
+   "sintoma": "E-mail do JOTA em prosa continua, sob um unico titulo, com varios fatos juridicos; o coletor condensou tudo numa linha com fonte generica.",
+   "detectado_em_qtd": 2,
+   "detectado_em_primeira": "2026-09-28",
+   "detectado_em_ultimas": [
+    "2026-09-28",
+    "2026-10-06"
+   ],
+   "regra": "Um item NOTICIA por fato, todos com o thread_id e o horario do e-mail original; conferir no corpo a atribuicao de cada trecho (Folha, Valor) — em 06/10 o coletor atribuiu ao Valor um trecho da Folha."
+  },
+  {
+   "id": "gmail_after_epoch",
+   "fonte": "mcp__Gmail__search_threads com after:<epoch>",
+   "sintoma": "Busca com after: numérico devolve {} mesmo havendo e-mails na janela (29/10: coletores Gmail e JOTA voltaram vazios).",
+   "regra": "Corrigido na origem em 04/11: inicio.py gera GMAIL_APOS (dia anterior ao início da janela) e os prompts usam after:AAAA/MM/DD + filtro pelo horário interno. Nunca voltar a epoch; vazio com epoch nunca vale como ausência.",
+   "detectado_em_qtd": 5,
+   "detectado_em_primeira": "2026-10-29",
+   "detectado_em_ultimas": [
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04"
+   ]
+  }
+ ]
+}

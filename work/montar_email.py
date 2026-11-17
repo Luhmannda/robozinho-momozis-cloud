@@ -137,14 +137,15 @@ FRASE_PLANALTO = "isso aqui só existe porque eles não param de inventar moda..
 ROTULO_FONTE = {  # id do source_status -> como aparece em "Fontes consultadas" e no rodape
     "gmail_push_stf": "Push STF (notícias)", "gmail_push_stf_informativos": "Push STF (informativos)",
     "gmail_stj_codju": "STJ CodJu", "gmail_push_planalto": "PUSH Planalto (Resenha Diária)",
-    "gmail_camara": "boletim da Agência Câmara", "congresso_ultimas_leis": "Congresso Nacional (últimas leis)",
+    "gmail_camara": "boletim da Agência Câmara", "camara_noticias": "Agência Câmara (site)",
+    "congresso_ultimas_leis": "Congresso Nacional (últimas leis)",
     "congresso_mpvs": "Congresso Nacional (medidas provisórias)",
     "informativos_docs": "documentos oficiais dos informativos (STF/STJ)",
     "gmail_jota": "JOTA (clipping, opinião e bastidores)", "conjur": "ConJur (mídia especializada)",
     "migalhas": "Migalhas (mídia especializada)", "youversion": "YouVersion (versículo)",
     "dailyverses": "DailyVerses.net (versículo)",
 }
-OFICIAIS = ["gmail_push_planalto", "congresso_ultimas_leis", "congresso_mpvs", "gmail_camara",
+OFICIAIS = ["gmail_push_planalto", "congresso_ultimas_leis", "congresso_mpvs", "camara_noticias", "gmail_camara",
             "gmail_push_stf", "gmail_push_stf_informativos", "gmail_stj_codju", "informativos_docs"]
 SECUNDARIAS = ["gmail_jota", "conjur", "migalhas", "youversion", "dailyverses"]
 STATUS_FONTE = ("ok", "vazio", "falha", "nao_tentada")
@@ -578,6 +579,17 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "resumo": e["ementa"], "url": e["url"], "fonte": "Congresso Nacional",
                 "data": datetime.strptime(dou, "%d/%m/%Y").date().isoformat() if dou else "",
                 "grupo": "Congresso Nacional — medidas provisórias", "chave": e["chave"] if dou else ""}
+    elif e and e["_fonte"] == "camara_noticias":
+        # noticia da Agencia Camara lida no site (cam1, cam2): sancao/veto/MP ([LEI]) ou votacao de Plenario
+        # a chave e a automatica (agencia-camara|ato|<titulo>|ano|data): a mesma do item escrito a partir do
+        # boletim por e-mail, para a noticia que ja saiu por um caminho nao voltar pelo outro
+        q = str(e.get("quando") or "")
+        dia = q[:10]
+        base = {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+                "titulo": e["titulo"], "url": e["url"], "fonte": "Agência Câmara",
+                "grupo": "Agência Câmara — Plenário, sanções e vetos",
+                "meta": "%s/%s%s" % (dia[8:10], dia[5:7], " " + q[11:16] if len(q) > 15 else "") if dia else "",
+                "data": dia, "hora": q[11:16] if len(q) > 15 else ""}
     elif e and e["_fonte"] in ("conjur", "migalhas"):
         veic = "ConJur" if e["_fonte"] == "conjur" else "Migalhas"
         q = e.get("quando") or ""
@@ -1923,10 +1935,14 @@ def preparar(ex, j, led, ev, v, op=None):
 
 
 def segunda_tentativa(itens, ev, avisos):
-    """Informativo citado por ref cujo documento nao abriu no passo 2 (o servidor do STF recusa
-    de forma intermitente): tenta mais uma vez agora, minutos depois. Abriu -> entra na evidencia
-    e sai com destaques. Nao abriu -> edicao nova segue como numero/data/link; edicao que ja
-    tinha sido anunciada sem destaques e descartada (devolvida no conjunto), sem repetir o aviso."""
+    """Informativo citado por ref cujo documento nao abriu no passo 2 (o firewall do STF recusa a
+    maior parte dos pedidos, ao acaso): insiste agora, minutos depois, ate MAX_TENTATIVAS_MONTADOR
+    pedidos por documento e PRAZO_MONTADOR_S no total. Abriu -> entra na evidencia e sai com
+    destaques; o PDF fica no cache da execucao, entao a proxima rodada do montador (depois de um
+    Edit) e a remontagem do passo 7 leem dali, sem rede — em 17/11/2026 o 1237 abriu numa rodada,
+    deu 403 nas seguintes e o e-mail saiu sem destaques. Nao abriu -> edicao nova segue como
+    numero/data/link; edicao que ja tinha sido anunciada sem destaques e descartada (devolvida no
+    conjunto), sem repetir o aviso."""
     descartar = set()
     alvos = [(it["ref"], re.fullmatch(r"(stf|rg|stj)(\d+)", str(it.get("ref") or ""))) for it in itens
              if it.get("ref")]
@@ -1939,11 +1955,13 @@ def segunda_tentativa(itens, ev, avisos):
     except Exception as e:  # noqa: BLE001 — a segunda tentativa e reforco, nunca bloqueia
         avisos.append("segunda tentativa dos informativos indisponível (%s)" % e)
         return descartar
+    prazo = informativos.relogio() + informativos.PRAZO_MONTADOR_S
     for ref, m in alvos:
         tipo, n = m.group(1), int(m.group(2))
         anunciada = pub.get(tipo, {}).get(n) is True
         try:
-            r = informativos.obter(tipo, n, "atrasada" if anunciada else "nova")
+            r = informativos.obter(tipo, n, "atrasada" if anunciada else "nova",
+                                   tentativas=informativos.MAX_TENTATIVAS_MONTADOR, prazo=prazo)
         except Exception:  # noqa: BLE001
             r = {}
         if r.get("ok"):

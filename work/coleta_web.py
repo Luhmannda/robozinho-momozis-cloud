@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 # =====================================================================
 # coleta_web.py — coleta deterministica das fontes web liberadas no
-# allowlist: Congresso (leis e MPVs), ConJur e Migalhas. Substitui o
-# curl+regex que o coletor Web improvisava a cada dia (e errava).
+# allowlist: Congresso (leis e MPVs), Agencia Camara, ConJur e Migalhas.
+# Substitui o curl+regex que o coletor Web improvisava a cada dia (e errava).
+#
+# - Agencia Camara (www.camara.leg.br/noticias/ultimas, 10 noticias por pagina):
+#   o boletim por e-mail falha sem aviso (nenhum em 16 e 17/11/2026, com 23
+#   noticias de 16/11 no site; tambem em 31/10-04/11 e 09/11) e a edicao ficava
+#   sem as votacoes do Plenario e as sancoes. O site e a fonte do boletim: o
+#   script le as paginas ate sair da janela e marca [LEI] (sancao, promulgacao,
+#   veto, medida provisoria) e [PLENARIO] (aprovacao/rejeicao em Plenario), com
+#   id (cam1, cam2); comissao, projeto apresentado e debate so sao contados.
 #
 # - Data/hora exata por item: ConJur e Migalhas expoem
 #   article:published_time na pagina da materia (confirmado em 24/09/2026);
@@ -15,7 +23,7 @@
 #   [REPETIDA?~chave] — o orquestrador nao precisa ler as chaves publicadas.
 # - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados).
 #
-# - Cada item publicavel ganha um id curto (lei15527, mpv1400, c7, m3): o
+# - Cada item publicavel ganha um id curto (lei15527, mpv1400, cam2, c7, m3): o
 #   orquestrador cita o id em $ROBOZINHO_TMP/execucao.json ({"ref": "c7", ...}) e o
 #   work/montar_email.py copia titulo, linha-fina, hora, URL e chave daqui —
 #   nada disso e redigitado (menos saida e nenhum erro de copia).
@@ -70,6 +78,20 @@ URLS_CONJUR = {"noticia": "https://conjur.com.br/noticias/",
                "artigo": "https://conjur.com.br/artigos/",
                "coluna": "https://conjur.com.br/colunas/"}
 URL_MIGALHAS = "https://www.migalhas.com.br/quentes"
+URL_CAMARA = "https://www.camara.leg.br/noticias/ultimas"
+MAX_PAGINAS_CAMARA = 8   # 10 noticias por pagina; um dia cheio de Plenario tem ~60
+# [LEI]: lei nova, sancao, promulgacao, veto ou medida provisoria. [PLENARIO]: aprovacao ou rejeicao em Plenario.
+# Titulo que comeca por "Projeto"/"Comissao"/"Proposta" e projeto apresentado ou votacao de comissao: nao marca
+# ("Projeto preve sancao para..." fala de penalidade, nao de lei sancionada).
+CAM_LEI = re.compile(r"\bsanciona(?:d[ao]s?|m|r)?\b|\bsan[cç][aã]o (?:d[aeo]|presidencial)\b|\bpromulga(?:d[ao]s?|m|r)?\b|"
+                     r"\bpromulga[cç][aã]o\b|\bvetos?\b|\bveta(?:d[ao]s?|m|r)?\b|\bmedidas? provis[oó]rias?\b|"
+                     r"\bvira lei\b|\bentra em vigor\b|\blei (?:[eé]|foi) publicada\b|\bpublicada (?:a )?lei\b", re.I)
+CAM_PLENARIO = re.compile(r"^(?:C[aâ]mara|Plen[aá]rio|Deputados|Congresso)\b.{0,45}?\b(?:aprova|aprovam|rejeita|rejeitam|"
+                          r"conclui|concluem|derruba|derrubam|mant[eé]m|mantêm)\b|"
+                          r"\benviam? ao Senado\b|\bseguem? para o Senado\b|"
+                          r"\b(?:seguem?|vai|v[aã]o) (?:para|[aà]) (?:a )?san[cç][aã]o\b", re.I)
+CAM_NAO_MARCA = re.compile(r"^(?:Projeto|Comiss[aã]o|Comiss[oõ]es|Proposta|Subcomiss[aã]o|Frente|Conselho)\b", re.I)
+CAM_DUVIDA = re.compile(r"plen[aá]rio|sancion|promulg|\bvetos?\b|medidas? provis[oó]rias?", re.I)
 IGNORAR_EXEC = ""   # re-execucao (inicio.py --refazer): a edicao de hoje nao conta como publicada
 PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
                    r"webin[aá]rio|curso|encontro|jornada)\b|\blan[cç]amento d[eo] livro\b", re.I)
@@ -275,6 +297,76 @@ def mpvs(inicio, fim, recorte, atos_pub):
             "dou": dou.strftime("%d/%m/%Y") if dou else "", "http_detalhe": c2, "url": url,
             "chave": "planalto|mpv|%s|%s|%s" % (numero, ano, dou.isoformat() if dou else "")})
     return out
+
+
+# ------------------------------------------------------------ Agencia Camara
+def marca_camara(titulo):
+    """'LEI', 'PLENARIO' ou '' (noticia que nao e lei nova nem votacao de Plenario)."""
+    if CAM_NAO_MARCA.match(titulo):
+        return ""
+    if CAM_LEI.search(titulo):
+        return "LEI"
+    return "PLENARIO" if CAM_PLENARIO.search(titulo) else ""
+
+
+def camara(inicio, fim, recorte, urls_pub):
+    """Ultimas noticias da Agencia Camara dentro da janela. So as marcadas [LEI]/[PLENARIO] viram
+    item; as demais sao contadas ("resto"), com os titulos duvidosos listados para conferencia."""
+    out = {"fonte": "camara_noticias", "http": 0, "tentativas": 0, "paginas": 0, "itens": [],
+           "lidas": 0, "na_janela": 0, "resto": 0, "duvidosos": [], "completa": False}
+    vistos = set()
+    for pag in range(1, MAX_PAGINAS_CAMARA + 1):
+        cod, t, n_tent = fetch_n(URL_CAMARA + ("?pagina=%d" % pag if pag > 1 else ""))
+        if pag == 1:
+            out["http"], out["tentativas"] = cod, n_tent
+        if cod != 200:
+            if pag > 1:
+                out["http_pagina"] = {"pagina": pag, "http": cod}    # as primeiras paginas valem; a janela fica incompleta
+            break
+        out["paginas"] = pag
+        antigo = False
+        blocos = re.findall(r'<article class="g-chamada[^"]*">(.*?)</article>', t, re.S)
+        for b in blocos:
+            a = re.search(r'g-chamada__titulo">\s*<a href="([^"]+)"[^>]*>(.*?)</a>', b, re.S)
+            d = re.search(r'g-chamada__data">\s*(\d\d/\d\d/\d{4})\s+(\d\d:\d\d)', b)
+            if not a or not d:
+                continue
+            url, titulo = html.unescape(a.group(1)).strip(), limpa(a.group(2))
+            if not titulo or url in vistos:
+                continue
+            vistos.add(url)
+            out["lidas"] += 1
+            quando = datetime.strptime(d.group(1) + " " + d.group(2), "%d/%m/%Y %H:%M").replace(tzinfo=TZ)
+            sit = classifica(quando, inicio, fim, recorte)
+            if sit == "FORA":
+                antigo = True
+                continue
+            if sit == "DEPOIS":
+                continue
+            out["na_janela"] += 1
+            marca = marca_camara(titulo)
+            if not marca:
+                out["resto"] += 1
+                if CAM_DUVIDA.search(titulo):
+                    out["duvidosos"].append(titulo)
+                continue
+            ret = re.search(r'g-chamada__retranca">\s*([^<]*)<', b)
+            out["itens"].append({
+                "situacao": "JA_PUBLICADA" if chave_url(url) in urls_pub else sit, "marca": marca,
+                "titulo": titulo, "retranca": limpa(ret.group(1)) if ret else "", "url": url, "quando": quando})
+        if antigo or not blocos:
+            out["completa"] = bool(blocos)      # chegou ao que e anterior a janela: nada ficou de fora
+            break
+    return out
+
+
+def camara_seguro(inicio, fim, recorte, urls_pub):
+    """A Agencia Camara e reforco: erro aqui nunca derruba as outras fontes."""
+    try:
+        return camara(inicio, fim, recorte, urls_pub)
+    except Exception as e:  # noqa: BLE001
+        return {"fonte": "camara_noticias", "http": 0, "tentativas": 0, "paginas": 0, "itens": [], "lidas": 0,
+                "na_janela": 0, "resto": 0, "duvidosos": [], "completa": False, "erro": "%s: %s" % (type(e).__name__, e)}
 
 
 # ------------------------------------------------------------ Midia
@@ -561,6 +653,9 @@ def imprimir(res, inicio, fim, recorte):
                 i["id"] = "%s%d" % (r["fonte"][0], seq[r["fonte"]])
     for r in res:
         itens = r["itens"]
+        if r["fonte"] == "camara_noticias":
+            out.extend(imprimir_camara(r))
+            continue
         cont = {}
         for i in itens:
             cont[i["situacao"]] = cont.get(i["situacao"], 0) + 1
@@ -621,13 +716,43 @@ def imprimir(res, inicio, fim, recorte):
     return out
 
 
+def imprimir_camara(r):
+    """Bloco da Agencia Camara no indice; atribui os ids cam1, cam2... aos itens publicaveis."""
+    pub = [i for i in r["itens"] if i["situacao"] in ("NOVA", "HERDADA")]
+    ja = sum(1 for i in r["itens"] if i["situacao"] == "JA_PUBLICADA")
+    out = ["\n== AGENCIA CAMARA (site; a mesma noticia do boletim por e-mail e UM item so, pelo ref) http=%s "
+           "paginas=%d na_janela=%d LEI/PLENARIO=%d%s" % (r["http"], r.get("paginas", 0), r.get("na_janela", 0), len(pub),
+                                                        " JA_PUBLICADA=%d" % ja if ja else "")]
+    if r.get("erro") or r["http"] != 200 or not r.get("lidas"):
+        out.append("ERRO: Agencia Camara nao lida no site (%s) — valem as linhas CAMARA do coletor Gmail (boletim); "
+                   "sem WebSearch" % (r.get("erro") or ("http=%s" % r["http"] if r["http"] != 200
+                                                        else "pagina lida, 0 noticias extraidas (layout?)")))
+        return out
+    for n, i in enumerate(pub, 1):
+        i["id"] = "cam%d" % n
+        out.append("[%s|%s] %s | %s | %s%s" % (i["situacao"], i["marca"], i["id"], hm(i), i["titulo"],
+                                               " — " + i["retranca"] if i.get("retranca") else ""))
+    if not pub:
+        out.append("SEM [LEI]/[PLENARIO] NA JANELA: %d noticia(s) lida(s) (comissoes, projetos, debates) — fonte ok"
+                   % r["na_janela"])
+    if r.get("resto"):
+        duv = r.get("duvidosos") or []
+        out.append("(+%d noticia(s) sem [LEI]/[PLENARIO]; titulos com \"Plenario\", \"sanciona\", \"promulga\", \"veto\" "
+                   "ou \"medida provisoria\" nao marcados: %s)" % (r["resto"], "; ".join(duv[:8]) if duv else "nenhum"))
+    if not r.get("completa"):
+        out.append("AVISO: a leitura parou antes do inicio da janela (%d paginas%s): pode faltar noticia mais antiga"
+                   % (r.get("paginas", 0), ", http=%s na pagina %s" % (r["http_pagina"]["http"], r["http_pagina"]["pagina"])
+                      if r.get("http_pagina") else ""))
+    return out
+
+
 # ------------------------------------------------------------ status das fontes
 def _entre_parenteses(s):
     return " (%s)" % s if s else ""
 
 
 def status_fontes(res):
-    """{id do source_status: (status, detalhe)} das 4 fontes deste script."""
+    """{id do source_status: (status, detalhe)} das 5 fontes deste script."""
     por = {r["fonte"]: r for r in res}
     st = {}
     r = por.get("congresso_leis")
@@ -649,6 +774,18 @@ def status_fontes(res):
             st["congresso_mpvs"] = ("falha", "pagina lida, 0 MPVs listadas (layout?)")
         else:
             st["congresso_mpvs"] = ("ok", "%d MPV(s) recente(s)" % len(r["itens"]))
+    r = por.get("camara_noticias")
+    if r:
+        if r.get("erro"):
+            st["camara_noticias"] = ("falha", r["erro"][:120])
+        elif r["http"] != 200:
+            st["camara_noticias"] = ("falha", "http=%s%s" % (r["http"], _entre_parenteses(tentativas_txt(r))))
+        elif not r.get("lidas"):
+            st["camara_noticias"] = ("falha", "pagina lida, 0 noticias extraidas (layout?)")
+        else:
+            st["camara_noticias"] = ("ok", "%d [LEI]/[PLENARIO] em %d noticia(s) da janela%s" % (
+                sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r.get("na_janela", 0),
+                "" if r.get("completa") else "; leitura incompleta"))
     for fonte in ("conjur", "migalhas"):
         r = por.get(fonte)
         if not r:
@@ -712,12 +849,13 @@ def main():
     historico = carregar_historico()
     atos_pub, urls_pub = carregar_publicados(historico)
 
-    with ThreadPoolExecutor(max_workers=4) as ex:
+    with ThreadPoolExecutor(max_workers=5) as ex:
         fl = ex.submit(leis, inicio, fim, recorte, atos_pub)
         fm = ex.submit(mpvs, inicio, fim, recorte, atos_pub)
+        fa = ex.submit(camara_seguro, inicio, fim, recorte, urls_pub)
         fc = ex.submit(conjur, inicio, fim, recorte, urls_pub)
         fg = ex.submit(migalhas, inicio, fim, recorte, urls_pub)
-        res = [fl.result(), fm.result(), fc.result(), fg.result()]
+        res = [fl.result(), fm.result(), fa.result(), fc.result(), fg.result()]
 
     marcar_promo_e_repetidas(res, historico)
     for linha in imprimir(res, inicio, fim, recorte):

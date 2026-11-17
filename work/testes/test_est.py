@@ -799,7 +799,11 @@ def paginas_oficiais_offline():
 
 
 # ------------------------------------------------------------------ inicio.py
-def rodar_inicio(agora, *args, estado_data="2026-11-16", extra_concursos=(), banca_mod=None, mod_concursos=None):
+def rodar_inicio(agora, *args, estado_data="2026-11-16", extra_concursos=(), banca_mod=None, mod_concursos=None,
+                 ledger_fx=None):
+    """ledger_fx: fixture com `pendencias_vivas` e `armadilhas` no lugar das do ledger vivo — o teste que
+    depende do texto delas nao pode quebrar quando a execucao do dia as muda (em 17/11/2026 a errata saiu
+    do ledger e o helper gravou a migracao das armadilhas: o teste da errata passou a falhar)."""
     import inicio
     d = tempfile.mkdtemp(dir=TMPDIR)
     t = os.path.join(d, "tmp")
@@ -808,6 +812,9 @@ def rodar_inicio(agora, *args, estado_data="2026-11-16", extra_concursos=(), ban
     shutil.copy(os.path.join(WORK, "munger-quotes.json"), d)
     led = json.load(open(os.path.join(WORK, "robozinho-aprendizado.json"), encoding="utf-8"))
     led["concursos"] = regs("2a9eac9") + list(extra_concursos)
+    if ledger_fx:
+        velho_led = json.loads(fx(ledger_fx))
+        led["pendencias_vivas"], led["armadilhas"] = velho_led["pendencias_vivas"], velho_led["armadilhas"]
     if mod_concursos:
         mod_concursos(led["concursos"])
     json.dump(led, open(os.path.join(d, "robozinho-aprendizado.json"), "w"), ensure_ascii=False)
@@ -882,7 +889,7 @@ def inicio_feriados_gap_extra():
 
 @teste
 def inicio_errata_rodape_gap_armadilhas():
-    out, j, t = rodar_inicio("2026-11-17T07:05:00-03:00")
+    out, j, t = rodar_inicio("2026-11-17T07:05:00-03:00", ledger_fx="ledger-1611.json")
     cc = open(os.path.join(t, "coletor-concursos.md"), encoding="utf-8").read()
     ok("errata_2026_11_16:" not in cc, "errata_* não é tarefa do coletor de concursos")
     ok("- errata_2026_11_16 [ativa" in out.split("PENDÊNCIAS VIVAS:")[1], "a errata segue no LEDGER (com o texto)")

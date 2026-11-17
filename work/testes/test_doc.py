@@ -284,7 +284,7 @@ def ids_de_source_status():
     r = ler("ROTINA.md")
     linha = next(l for l in r.splitlines() if l.startswith("- `source_status`"))
     dos_coletores = set(re.findall(r"`(gmail_[a-z_]+)`", linha))
-    dos_scripts = {"congresso_ultimas_leis", "congresso_mpvs", "conjur", "migalhas", "informativos_docs",
+    dos_scripts = {"congresso_ultimas_leis", "congresso_mpvs", "camara_noticias", "conjur", "migalhas", "informativos_docs",
                    "youversion", "dailyverses"}
     assert dos_coletores | dos_scripts == set(m.ROTULO_FONTE), \
         "ROTINA %s + scripts != montador %s" % (sorted(dos_coletores), sorted(m.ROTULO_FONTE))

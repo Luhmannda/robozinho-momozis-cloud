@@ -1245,6 +1245,94 @@ def t_core_resumo_truncado():
     ok(M.resolver({"ref": "c9"}, ev, [], [], None)["resumo"].endswith("no meio,"), "sem o campo: intacto")
 
 
+@teste
+def t_camara_site_por_ref():
+    """Agencia Camara lida no site pelo coleta_web.py (cam1, cam2): o ref vira item de Planalto/Legislacao com
+    selo de fonte oficial alternativa, link, data/hora e chave — nada redigitado pelo orquestrador."""
+    ex = fx(CENARIOS["1711"]["execucao"])
+    ex["items"].insert(0, {"ref": "cam1"})
+    ex["items"].insert(1, {"ref": "cam2", "impacto": "Auxílio prorrogado por medida provisória"})
+    ex.setdefault("source_status", {})["camara_noticias"] = "ok"
+    t = preparar_pasta("1711", execucao=ex)
+    cw = json.load(open(os.path.join(t, "coleta_web.json"), encoding="utf-8"))
+    cw.append({"fonte": "camara_noticias", "http": 200, "paginas": 3, "lidas": 29, "na_janela": 20, "resto": 18,
+               "duvidosos": [], "completa": True, "itens": [
+                   {"situacao": "NOVA", "marca": "PLENARIO", "id": "cam1", "retranca": "Política",
+                    "titulo": "Câmara aprova criação da Política Nacional de Residência em Saúde",
+                    "url": "https://www.camara.leg.br/noticias/1317771-camara-aprova-criacao-da-politica",
+                    "quando": "2026-11-16T20:53:00-03:00"},
+                   {"situacao": "NOVA", "marca": "LEI", "id": "cam2", "retranca": "Economia",
+                    "titulo": "Medida provisória prorroga Auxílio Gás do Povo até 2031",
+                    "url": "https://www.camara.leg.br/noticias/1317002-medida-provisoria-prorroga",
+                    "quando": "2026-11-16T11:57:00-03:00"}]})
+    json.dump(cw, open(os.path.join(t, "coleta_web.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    rc, out, err = rodar("1711", t)
+    ok(rc == 0 and linha(out, "MONTAGEM: OK"), "montagem com refs da Agência Câmara: rc=%s %s %s" % (rc, out[-600:], err[-300:]))
+    if rc != 0:
+        return
+    c = corpo(out)
+    sec = c.split("Planalto — Resenha Diária")[1].split("STF — Notícias")[0]
+    ok("Câmara aprova criação da Política Nacional de Residência em Saúde" in sec
+       and 'href="https://www.camara.leg.br/noticias/1317771-camara-aprova-criacao-da-politica"' in sec
+       and "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" in sec and "Agência Câmara — Plenário, sanções e vetos" in sec
+       and "16/11 20:53" in sec and "Medida provisória prorroga Auxílio Gás do Povo até 2031" in sec
+       and "Auxílio prorrogado por medida provisória" in sec, "itens da Agência Câmara na seção Planalto: %s" % sec[:900])
+    ok("Agência Câmara (site)" in c.split("Fontes oficiais consultadas")[1].split("Fontes secundárias")[0],
+       "Agência Câmara (site) nas fontes oficiais consultadas")
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
+    cam = [i for i in res["items"] if (i.get("chave") or "").startswith("agencia-camara|")]
+    ok(len(cam) == 2 and cam[0]["chave"] == "agencia-camara|ato|%s|2026|2026-11-16" % M.slug(cam[0]["titulo"], 56)
+       and cam[0]["data"] == "2026-11-16" and cam[0]["url"].startswith("https://www.camara.leg.br/noticias/1317771")
+       and cam[0]["categoria"] == "Planalto/Legislação", "resolvido: chave, data, url e categoria: %s" % cam)
+
+
+@teste
+def t_waf_segunda_tentativa_insiste_e_guarda():
+    """17/11/2026: o Informativo STF 1237 abriu na 1a rodada do montador, deu 403 nas seguintes e o e-mail
+    saiu com "Conteudo nao acessivel". A segunda tentativa insiste e o PDF aberto fica no cache da execucao."""
+    import informativos as I
+    tmp = os.environ["ROBOZINHO_TMP"]
+    velhos = (I.baixar, I.pdf_texto, I.dormir, os.environ.get("ROBOZINHO_INF_CACHE"))
+    texto = open(os.path.join(FIX_INF, "stf1233-layout.txt"), encoding="utf-8").read()
+    pedidos = []
+    respostas = [(403, b"<html>Error 403</html>")] * 3 + [(200, b"%PDF-1.4 fixture")]
+
+    def baixar(url):
+        pedidos.append(url)
+        return respostas.pop(0) if len(respostas) > 1 else respostas[0]
+
+    I.baixar, I.pdf_texto, I.dormir = baixar, (lambda dados, layout: texto), (lambda s: None)
+    os.environ["ROBOZINHO_INF_CACHE"] = "1"
+    with open(os.path.join(tmp, "janela.json"), "w") as f:
+        json.dump({"execution_id": "2026-11-17-7h"}, f)
+    try:
+        itens = [{"ref": "stf9237", "data": "2026-11-16", "url": "http://portal.stf.jus.br/x"}, {"ref": "c1"}]
+        ev, avisos = {"stf9237": {"ok": False, "estado": "indeterminado"}, "c1": {"ok": True}}, []
+        fora = M.segunda_tentativa(itens, ev, avisos)
+        ok(ev["stf9237"].get("ok") and len(ev["stf9237"]["itens"]) == 4 and len(pedidos) == 4 and fora == set()
+           and any("stf9237: documento abriu na segunda tentativa — 4 destaques" in a for a in avisos),
+           "segunda tentativa insiste até abrir (4 pedidos): %s / %s" % (len(pedidos), avisos))
+        respostas[:] = [(403, b"<html>Error 403</html>")]
+        del pedidos[:]
+        ev2, avisos2 = {"stf9237": {"ok": False, "estado": "indeterminado"}}, []
+        M.segunda_tentativa(itens, ev2, avisos2)
+        ok(ev2["stf9237"].get("ok") and ev2["stf9237"].get("cache") is True and pedidos == []
+           and ev2["stf9237"]["itens"] == ev["stf9237"]["itens"],
+           "rodada seguinte do montador lê o PDF do cache, sem rede: %s" % pedidos)
+        ev3, avisos3 = {"stf9238": {"ok": False, "estado": "indeterminado"}}, []
+        M.segunda_tentativa([{"ref": "stf9238"}], ev3, avisos3)
+        ok(not ev3["stf9238"].get("ok") and len(pedidos) == I.MAX_TENTATIVAS_MONTADOR,
+           "documento que não abre: MAX_TENTATIVAS_MONTADOR pedidos e segue sem destaques: %s" % len(pedidos))
+    finally:
+        I.baixar, I.pdf_texto, I.dormir = velhos[:3]
+        if velhos[3] is None:
+            os.environ.pop("ROBOZINHO_INF_CACHE", None)
+        else:
+            os.environ["ROBOZINHO_INF_CACHE"] = velhos[3]
+        os.unlink(os.path.join(tmp, "janela.json"))
+        shutil.rmtree(os.path.join(tmp, "informativos-cache"), ignore_errors=True)
+
+
 def main():
     try:
         for t in TESTES:
