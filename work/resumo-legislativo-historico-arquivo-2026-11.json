@@ -440,6 +440,336 @@
       },
       "gmail_message_id": "1a19bcdd0ea3ef9e",
       "delivery_reconciled_at": "2026-11-03T07:11:04-03:00"
+    },
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Coletores Gmail e JOTA devolveram vazio/parcial com after:<epoch> (armadilha gmail_after_epoch); orquestrador refez as buscas com after:2026/11/01 e filtrou pelo horario interno. Push STF 03/11 e 02/11 lidos; so a audiencia das bets (02/11 09:00) cai na janela, demais noticias do push sao anteriores a janela. Boletim da Camara, CodJu, Informativos STF/RG e PUSH Planalto sem e-mail na janela. Informativo STJ 908: informativos.py 403 (pagina bloqueada), sem e-mail do CodJu que comprove edicao; nada publicado. JOTA: um boletim Direito na Midia (03/11 07:00), todos clippings O Globo/Valor sem link. Concursos: nenhum prazo confirmado em fonte oficial alem de DPE-SP (ledger); ALEPA/TRT8/PGM Curitiba/TRF2 seguem so em secundarias."
+      ],
+      "errors": [],
+      "items": [
+        {
+          "chave": "stf|noticia|audiencia-publica-bets|2026|2026-11-02",
+          "fonte": "Push STF + ConJur",
+          "categoria": "STF Notícias",
+          "titulo": "STF realiza nesta terça (3) audiência pública sobre proibição das bets",
+          "data": "2026-11-02",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-realiza-nesta-terca-3-audiencia-publica-sobre-proibicao-das-bets/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "ConJur 02/11 11:50: Fux autoriza ministerios da Saude e da Justica a participar"
+        },
+        {
+          "chave": "informativos|stj|908|2026|2026-11-03",
+          "fonte": "informativos.py",
+          "categoria": "Informativos",
+          "titulo": "Informativos: sem edição nova confirmada nesta janela",
+          "data": "2026-11-03",
+          "url": "https://processo.stj.jus.br/",
+          "status": "PENDÊNCIA",
+          "observacao": "STJ 908 http 403; sem e-mail CodJu"
+        },
+        {
+          "chave": "conjur|noticia|stj-pensao-por-morte-prazo|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STJ julga se pensão por morte reabre prazo para rever ato administrativo",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/stj-julga-se-pensao-por-morte-reabre-prazo-para-rever-ato-administrativo/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "conjur|noticia|stf-consulta-publica-reforma-tributaria|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "STF reabre consulta pública sobre contencioso da reforma tributária",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/cestf-reabre-consulta-publica-sobre-contencioso-da-reforma-tributaria/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "conjur|noticia|cnj-violencia-processual-genero|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "CNJ define diretrizes contra violência processual de gênero",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/cnj-define-diretrizes-contra-violencia-processual-de-genero/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "conjur|noticia|agu-recorre-prfs-direitos-humanos|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Mídia",
+          "titulo": "AGU recorre para derrubar formação de PRFs em Direitos Humanos",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/agu-recorre-para-derrubar-formacao-de-prfs-em-direitos-humanos/",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467660|2026|2026-11-02",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Justiça bloqueia R$ 10,8 bilhões de alvos da operação Carbono Oculto",
+          "data": "2026-11-02",
+          "url": "https://www.migalhas.com.br/quentes/467660",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467662|2026|2026-11-02",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Defensoria quer condenação de R$ 50 milhões ao RJ por operação que deixou 122 mortos",
+          "data": "2026-11-02",
+          "url": "https://www.migalhas.com.br/quentes/467662/defensoria-quer-que-rj-pague-r-50-mi-por-operacao-com-122-mortos",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "migalhas|noticia|467432|2026|2026-11-02",
+          "fonte": "Migalhas",
+          "categoria": "Mídia",
+          "titulo": "Justiça mantém em concurso candidata que questiona erros em prova",
+          "data": "2026-11-02",
+          "url": "https://www.migalhas.com.br/quentes/467432/justica-mantem-em-concurso-candidata-que-questiona-erros-em-prova",
+          "status": "MÍDIA ESPECIALIZADA"
+        },
+        {
+          "chave": "jota|noticia|fachin-nega-pedido-flavio-moraes|2026|2026-11-03",
+          "fonte": "JOTA (clipping O Globo)",
+          "categoria": "Mídia",
+          "titulo": "Fachin deve negar pedido de Flávio para tirar investigação de Moraes",
+          "data": "2026-11-03",
+          "url": "https://www.jota.info/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link proprio; sem confirmacao oficial localizada"
+        },
+        {
+          "chave": "jota|noticia|cnj-acordos-precatorios|2026|2026-11-03",
+          "fonte": "JOTA (clipping O Globo)",
+          "categoria": "Mídia",
+          "titulo": "CNJ prevê assinar acordos com B3, Cerc, Núclea e Colégio Notarial para monitorar precatórios",
+          "data": "2026-11-03",
+          "url": "https://www.jota.info/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link proprio; sem confirmacao oficial localizada"
+        },
+        {
+          "chave": "jota|noticia|trf3-faltas-aviso-previo|2026|2026-11-03",
+          "fonte": "JOTA (clipping Valor Econômico)",
+          "categoria": "Mídia",
+          "titulo": "TRF-3 permite excluir da contribuição patronal faltas descontadas no aviso-prévio trabalhado",
+          "data": "2026-11-03",
+          "url": "https://www.jota.info/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "sem link proprio"
+        },
+        {
+          "chave": "conjur|art|improbidade-teto-20-anos|2026|2026-11-03",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Teto de 20 anos na improbidade administrativa: contar do fato ou do ajuizamento?",
+          "data": "2026-11-03",
+          "url": "https://conjur.com.br/2026-nov-03/teto-de-20-anos-na-improbidade-administrativa-contar-do-fato-ou-do-ajuizamento/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|art|recolhimento-noturno-pena-substituida|2026|2026-11-03",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Quando a pena acaba antes de começar: recolhimento noturno e pena substituída",
+          "data": "2026-11-03",
+          "url": "https://conjur.com.br/2026-nov-03/quando-a-pena-acaba-antes-de-comecar-recolhimento-noturno-e-pena-substituida/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|art|consumacao-nao-e-tempo|2026|2026-11-03",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Consumação não é tempo: da aplicação da Lei 12.234/10 pelo STJ aos crimes tributários",
+          "data": "2026-11-03",
+          "url": "https://conjur.com.br/2026-nov-03/consumacao-nao-e-tempo-da-aplicacao-da-lei-12-234-10-pelo-stj-aos-crimes-tributarios/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|art|devedor-contumaz-recuperacao-judicial|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Devedor contumaz e recuperação judicial: ruptura na lógica do sistema",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/devedor-contumaz-e-recuperacao-judicial-ruptura-na-logica-do-sistema/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|art|mediacao-institucional-ad-hoc|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Mediação institucional ou ad hoc: escolha também protege mediador",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/mediacao-institucional-ou-ad-hoc-escolha-tambem-protege-mediador/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|col|usucapiao-tabular|2026|2026-11-02",
+          "fonte": "ConJur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Usucapião tabular: a visão de Ebert Vianna Chamoun",
+          "data": "2026-11-02",
+          "url": "https://conjur.com.br/2026-nov-02/usucapiao-tabular-a-visao-de-ebert-vianna-chamoun/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|bastidor|gonet-parecer-encerra-inquerito-fake-news|2026|2026-11-03",
+          "fonte": "JOTA (coluna Malu Gaspar, O Globo)",
+          "categoria": "Fofoquinha",
+          "titulo": "Gonet deve enviar nesta semana parecer favorável ao encerramento do inquérito das fake news",
+          "data": "2026-11-03",
+          "url": "https://www.jota.info/",
+          "status": "SEM CONFIRMAÇÃO OFICIAL",
+          "observacao": "sem link proprio"
+        },
+        {
+          "chave": "jota|bastidor|vaga-trf1-mendanha|2026|2026-11-03",
+          "fonte": "JOTA (coluna Malu Gaspar, O Globo)",
+          "categoria": "Fofoquinha",
+          "titulo": "Vaga no TRF-1: governo diz que Lula deve escolher Fausto Mendanha",
+          "data": "2026-11-03",
+          "url": "https://www.jota.info/",
+          "status": "RUMOR",
+          "observacao": "sem link proprio"
+        },
+        {
+          "chave": "dailyverses|versiculo|joao-15-11|2026|2026-11-03",
+          "fonte": "DailyVerses.net",
+          "categoria": "Versículo",
+          "titulo": "João 15:11 (ARC)",
+          "data": "2026-11-03",
+          "url": "https://dailyverses.net/pt/2026/11/3",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|idx107|2026|2026-11-03",
+          "fonte": "A sabedoria de Charlie Munger",
+          "categoria": "Munger",
+          "titulo": "Conheça o limite das suas aptidões",
+          "data": "2026-11-03",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "vazio",
+        "gmail_camara": "vazio",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "falha",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto: sonda vazia hoje; seção Planalto sem norma nova na janela (Congresso: última lei 15.526, DOU 30/09).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA: só secundárias; fim das inscrições 04/11 não confirmado em fonte oficial; home oficial sem menção (03/11).",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8: fim das inscrições 05/11 só em secundárias; oficial bloqueada.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: página oficial (03/11) sem oral nem inscrição definitiva; prazo 06/11 só em secundárias.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado sem publicação localizada; surgiu citação de Edital nº 11 PGE/AL de 23/09 (Cebraspe), não lido.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: inscrições até 11/11 (notícia oficial de 30/10); edital e prova não lidos.",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "armadilhas_detectadas": [
+          "gmail_after_epoch"
+        ],
+        "pendencias": {
+          "pge_al_resultado": {
+            "texto": "PGE-AL: resultado sem publicação localizada (03/11); citação de Edital nº 11 PGE/AL de 23/09 (Cebraspe) não lida — verificar se altera o cronograma.",
+            "faixa": "ativa",
+            "politica": "Ler o Edital nº 11 no Cebraspe se acessível; atualizar o registro; depois remover."
+          }
+        }
+      },
+      "execution_id": "2026-11-03-7h",
+      "date": "2026-11-03",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-11-02T07:08:45-03:00",
+      "window_end": "2026-11-03T07:07:11-03:00",
+      "run_started_at": "2026-11-03T07:07:11-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 03/11/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r-7617355042490439994",
+      "run_finished_at": "2026-11-03T07:11:04-03:00",
+      "coletores": {
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 16242,
+          "chamadas": 8,
+          "duracao_ms": 12534,
+          "chamadas_modelo": 4,
+          "contexto_total": 47167,
+          "cache_gravado": 16240,
+          "saida": 2005
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 35876,
+          "chamadas": 9,
+          "duracao_ms": 38887,
+          "chamadas_modelo": 7,
+          "contexto_total": 132232,
+          "cache_gravado": 35874,
+          "saida": 4818
+        },
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 24978,
+          "chamadas": 11,
+          "duracao_ms": 59696,
+          "chamadas_modelo": 6,
+          "contexto_total": 106605,
+          "cache_gravado": 24976,
+          "saida": 4353
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 177711,
+        "chamadas": 25,
+        "duracao_ms": 226435,
+        "chamadas_modelo": 7,
+        "contexto_total": 990379,
+        "cache_gravado": 96781,
+        "saida": 30156
+      },
+      "gmail_message_id": "1a1a0e666d1f769f",
+      "delivery_reconciled_at": "2026-11-04T07:12:05-03:00"
     }
   ]
 }
