@@ -3,7 +3,7 @@
  "bancas": {
   "fgv": {
    "tjap26": {
-    "lido_em": "2026-11-17",
+    "lido_em": "2026-11-18",
     "urls": {
      "2026-10-13|Inscrição": "2026-11-17",
      "2026-10-30|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -19,7 +19,7 @@
     }
    },
    "tjpb26": {
-    "lido_em": "2026-11-17",
+    "lido_em": "2026-11-18",
     "urls": {
      "2026-10-20|Inscrição": "2026-11-17",
      "2026-11-05|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -33,7 +33,7 @@
     }
    },
    "tjrsjuiz26": {
-    "lido_em": "2026-11-17",
+    "lido_em": "2026-11-18",
     "urls": {
      "2026-09-15|Inscrição": "2026-11-17",
      "2026-09-29|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -72,7 +72,7 @@
     }
    },
    "tjscjuiz26": {
-    "lido_em": "2026-11-17",
+    "lido_em": "2026-11-18",
     "urls": {
      "2026-10-19|Inscrição": "2026-11-17",
      "2026-11-09|Consulta individual - Resultado preliminar da análise dos pedidos de isenção": "2026-11-17",
@@ -84,7 +84,7 @@
     }
    },
    "trf5juiz26": {
-    "lido_em": "2026-11-17",
+    "lido_em": "2026-11-18",
     "urls": {
      "2026-08-28|Inscrição": "2026-11-17",
      "2026-09-15|Consulta individual - pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -132,5 +132,6 @@
     }
    }
   }
- }
+ },
+ "paginas": {}
 }
