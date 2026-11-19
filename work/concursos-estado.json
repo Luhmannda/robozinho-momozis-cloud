@@ -3,7 +3,7 @@
  "bancas": {
   "fgv": {
    "tjap26": {
-    "lido_em": "2026-11-18",
+    "lido_em": "2026-11-19",
     "urls": {
      "2026-10-13|Inscrição": "2026-11-17",
      "2026-10-30|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -19,21 +19,24 @@
     }
    },
    "tjpb26": {
-    "lido_em": "2026-11-18",
+    "lido_em": "2026-11-19",
     "urls": {
      "2026-10-20|Inscrição": "2026-11-17",
      "2026-11-05|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
      "2026-11-06|Interposição de recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição": "2026-11-17",
+     "2026-11-18|Respostas aos recursos contra o resultado preliminar da análise dos pedidos de isenção da taxa de inscrição": "2026-11-19",
      "https://conhecimento.fgv.br/sites/default/files/concursos/06.11-extrato-3a-retificacao-do-edital-tjpb.pdf": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/29.10-extrato-2a-retificacao-do-edital-tjpb.pdf": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/edital-retificado-tjpb_11.11.pdf": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/extrato-1a-retificacao-do-edital-tjpb.pdf": "2026-11-17",
+     "https://conhecimento.fgv.br/sites/default/files/concursos/tjpb-resultado-definitivo-da-analise-dos-pedidos-de-isencao-deferido.pdf": "2026-11-19",
+     "https://conhecimento.fgv.br/sites/default/files/concursos/tjpb-resultado-definitivo-da-analise-dos-pedidos-de-isencao-indeferido.pdf": "2026-11-19",
      "https://conhecimento.fgv.br/sites/default/files/concursos/tjpb-resultado-preliminar-da-analise-dos-pedidos-de-isencao-deferido.pdf": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/tjpb-resultado-preliminar-da-analise-dos-pedidos-de-isencao-indeferido.pdf": "2026-11-17"
     }
    },
    "tjrsjuiz26": {
-    "lido_em": "2026-11-18",
+    "lido_em": "2026-11-19",
     "urls": {
      "2026-09-15|Inscrição": "2026-11-17",
      "2026-09-29|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -72,7 +75,7 @@
     }
    },
    "tjscjuiz26": {
-    "lido_em": "2026-11-18",
+    "lido_em": "2026-11-19",
     "urls": {
      "2026-10-19|Inscrição": "2026-11-17",
      "2026-11-09|Consulta individual - Resultado preliminar da análise dos pedidos de isenção": "2026-11-17",
@@ -84,7 +87,7 @@
     }
    },
    "trf5juiz26": {
-    "lido_em": "2026-11-18",
+    "lido_em": "2026-11-19",
     "urls": {
      "2026-08-28|Inscrição": "2026-11-17",
      "2026-09-15|Consulta individual - pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -133,5 +136,74 @@
    }
   }
  },
- "paginas": {}
+ "paginas": {
+  "trf2_juiz": {
+   "desde": "2026-11-19",
+   "hash": "0f2ce3c07424",
+   "lido_em": "2026-11-19",
+   "trechos_hash": [
+    "7efd75e97444",
+    "810cb92dad5c",
+    "6542e6b63985",
+    "22af3fb7c6d7",
+    "fda322bebc1b",
+    "94587b2cf6be",
+    "277b87d89e36",
+    "f3d3af788da2",
+    "2804ad18664c",
+    "31b4a27e3b49",
+    "a9afb3d655a1",
+    "e4f96d968954",
+    "713573e5488d",
+    "d58c1c3ebf0f",
+    "b406d8409ed2",
+    "92ad4a1efeed",
+    "4554718df9b6",
+    "aba7ab40fa8f",
+    "1e087f1cdfd8",
+    "a5b553d5eb6d",
+    "1ea0787b9694",
+    "08955b2141cd",
+    "d30935805915",
+    "c57399ea0bf1",
+    "b87327c25070",
+    "a76c644ce79b",
+    "06819a4760d1",
+    "e6eead9e3989",
+    "f8858137a8dd",
+    "3687d5322b8a",
+    "500488f5e791",
+    "6969441142f1",
+    "4ddcbb27fc46",
+    "f39b71f1862b",
+    "ea9b079a7d93",
+    "91f2d8f743d3",
+    "0d00d316d432",
+    "534a29af892f",
+    "5821a3f0d387",
+    "17e97c3cc7ba",
+    "fa559bc58bb6",
+    "fefdf74a1795",
+    "0ff98e5b0828",
+    "c568898faf0b",
+    "8be6f6c11c64",
+    "120f6125c091",
+    "b04640898f64",
+    "d92b7ee39bf0",
+    "90d36b86c02a",
+    "dac55683fb0a",
+    "88e5f53af0eb",
+    "0deea0d7fef4",
+    "a5c1625c9004",
+    "fa18cd8c8bfd",
+    "8f66a6aa4b8f",
+    "54ac926a5fe6",
+    "62c4b7d21d9e",
+    "bf1642f6fc4a",
+    "29b3c92fce2f",
+    "9f73edfd431f"
+   ],
+   "url": "https://www.trf2.jus.br/trf2/consultas-e-servicos/concursos-publicos-para-magistrados"
+  }
+ }
 }

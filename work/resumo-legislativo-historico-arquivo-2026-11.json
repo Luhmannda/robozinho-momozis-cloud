@@ -1170,6 +1170,591 @@
       },
       "gmail_message_id": "1a1a60cbdc31445a",
       "delivery_reconciled_at": "2026-11-05T07:15:04-03:00"
+    },
+    {
+      "delivery": "sent",
+      "verification_notes": [
+        "Planalto: resenha PUSH de 03/11 (decretos 13.142 a 13.145) é anterior à janela e não foi republicada; sonda do dia sem resenha nova.",
+        "Congresso: sem norma nova na janela (última Lei 15.526, 29/09); MPVs sem item novo.",
+        "STF Notícias: push de 05/11 traz só títulos exceto a primeira notícia; nenhum item [ANTES].",
+        "JOTA: thread de 04/11 07:00:50 (Fux/bets) ficou fora por ser 6 min anterior à janela. Itens de digest sem resumo próprio; clipping sem link.",
+        "Concursos: nenhum NOVO; sem confirmação oficial de desfecho de ALEPA, TRT8, PGM Curitiba e TRF2 (oficiais bloqueadas ou sem menção).",
+        "Informativo STJ 908 e Informativo STF 1236 não publicados; STJ CodJu sem e-mail (cadência semanal).",
+        "Falha de montagem: create_draft foi chamado com marcador em vez do HTML de concursos_html.py; envio automático ocorreu antes da correção."
+      ],
+      "errors": [
+        "Rascunho criado com placeholder no lugar das seções de Concursos; Apps Script enviou antes de update_draft (draft não encontrado). Errata registrada."
+      ],
+      "items": [
+        {
+          "chave": "stf|noticia|ato-obsceno-criterios|2026|2026-11-04",
+          "fonte": "stf",
+          "categoria": "STF Notícias",
+          "titulo": "STF começa a discutir critérios para definir crime de ato obsceno em locais públicos",
+          "data": "2026-11-04",
+          "url": "https://noticias.stf.jus.br/postsnoticias/stf-comeca-a-discutir-criterios-para-definir-crime-de-ato-obsceno-em-locais-publicos/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "04/11 20:13; relator Fux votou pela constitucionalidade da norma do Código Penal"
+        },
+        {
+          "chave": "stf|noticia|presidente-recebe-especialistas-ue|2026|2026-11-04",
+          "fonte": "stf",
+          "categoria": "STF Notícias",
+          "titulo": "Presidente do STF recebe especialistas da União Europeia que acompanharam eleições no Brasil",
+          "data": "2026-11-04",
+          "url": "https://noticias.stf.jus.br/postsnoticias/presidente-do-stf-recebe-especialistas-da-uniao-europeia-que-acompanharam-eleicoes-no-brasil/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "04/11 20:24; push traz só o título"
+        },
+        {
+          "chave": "stf|noticia|dialogos-supremo-transformacoes-digitais|2026|2026-11-04",
+          "fonte": "stf",
+          "categoria": "STF Notícias",
+          "titulo": "'Diálogos com o Supremo' debate transformações digitais na Justiça com pesquisadores franceses",
+          "data": "2026-11-04",
+          "url": "https://noticias.stf.jus.br/postsnoticias/dialogos-com-o-supremo-debate-transformacoes-digitais-na-justica-com-pesquisadores-franceses/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "04/11 18:56; push traz só o título"
+        },
+        {
+          "chave": "stf|noticia|cnc-escala-6x1|2026|2026-11-04",
+          "fonte": "stf",
+          "categoria": "STF Notícias",
+          "titulo": "Confederação do comércio questiona no STF prazo para fim da escala 6×1",
+          "data": "2026-11-04",
+          "url": "https://noticias.stf.jus.br/postsnoticias/confederacao-do-comercio-questiona-no-stf-prazo-para-fim-da-escala-6x1/",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "04/11 17:44; Migalhas 18:15 e JOTA (CNI e CNC) noticiaram o mesmo fato"
+        },
+        {
+          "chave": "stf|tese|tema-1258|2026|2026-11-03",
+          "fonte": "stf",
+          "categoria": "STF Jurisprudência",
+          "titulo": "Tema 1.258 (RE 1.362.742): crédito de ICMS nas operações internas anteriores — acórdão publicado",
+          "data": "2026-11-03",
+          "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "Repercussão Geral em Pauta nº 396"
+        },
+        {
+          "chave": "stf|tese|tema-1486|2026|2026-11-03",
+          "fonte": "stf",
+          "categoria": "STF Jurisprudência",
+          "titulo": "Tema 1.486 (RE 1.555.476): jornada de fisioterapeutas e terapeutas ocupacionais — trânsito em julgado",
+          "data": "2026-11-03",
+          "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "Repercussão Geral em Pauta nº 396"
+        },
+        {
+          "chave": "camara|plenario|postes-energia-teles|2026|2026-11-05",
+          "fonte": "camara",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Câmara aprova regras para o uso de postes por empresas de energia e teles",
+          "data": "2026-11-05",
+          "url": "https://www.camara.leg.br/noticias/1315992-camara-aprova-regras-para-o-uso-de-postes-por-empresas-de-energia-e-teles",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "Boletim Agência Câmara 05/11 06:04; o boletim não detalha o texto além do título"
+        },
+        {
+          "chave": "camara|plenario|urgencia-fies|2026|2026-11-05",
+          "fonte": "camara",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Deputados aprovam urgência para projeto que cria nova modalidade para Fies",
+          "data": "2026-11-05",
+          "url": "https://www.camara.leg.br/noticias/1315954-deputados-aprovam-urgencia-para-projeto-que-cria-nova-modalidade-para-fies",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "Boletim Agência Câmara 05/11 06:04; o boletim não detalha o texto além do título"
+        },
+        {
+          "chave": "camara|plenario|programa-psicossocial|2026|2026-11-05",
+          "fonte": "camara",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Câmara aprova criação de programa para acompanhamento psicossocial de crianças e adolescentes",
+          "data": "2026-11-05",
+          "url": "https://www.camara.leg.br/noticias/1316057-camara-aprova-criacao-de-programa-para-acompanhamento-psicossocial-de-criancas-e-adolescentes",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "Boletim Agência Câmara 05/11 06:04; o boletim não detalha o texto além do título"
+        },
+        {
+          "chave": "camara|plenario|drones-presidios|2026|2026-11-05",
+          "fonte": "camara",
+          "categoria": "Planalto/Legislação",
+          "titulo": "Câmara aprova proposta que criminaliza sobrevoo não autorizado de drones perto de presídios",
+          "data": "2026-11-05",
+          "url": "https://www.camara.leg.br/noticias/1315957-camara-aprova-proposta-que-criminaliza-sobrevoo-nao-autorizado-de-drones-perto-de-presidios",
+          "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA",
+          "observacao": "Boletim Agência Câmara 05/11 06:04; o boletim não detalha o texto além do título"
+        },
+        {
+          "chave": "stf|informativo|1235|2026|2026-11-04",
+          "fonte": "stf",
+          "categoria": "Informativos",
+          "titulo": "Informativo STF nº 1235 (04/11/2026)",
+          "data": "2026-11-04",
+          "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1235.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "4 destaques copiados do PDF oficial"
+        },
+        {
+          "chave": "stf|informativo|repercussao-geral-396|2026|2026-11-03",
+          "fonte": "stf",
+          "categoria": "Informativos",
+          "titulo": "Repercussão Geral em Pauta nº 396 (27/10 a 03/11/2026)",
+          "data": "2026-11-03",
+          "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf",
+          "status": "CONFIRMADO POR FONTE OFICIAL",
+          "observacao": "9 destaques no PDF oficial"
+        },
+        {
+          "chave": "concurso|alepa_procurador|inscricoes-encerradas-04-11|2026|2026-11-05",
+          "fonte": "concurso",
+          "categoria": "Concursos - Carreira",
+          "titulo": "ALEPA — Procurador: inscrições encerradas em 04/11 segundo secundárias",
+          "data": "2026-11-05",
+          "url": "https://cj.estrategia.com/portal/concurso-procurador-alepa-edital-publicado-2026/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO",
+          "observacao": "Sem prorrogação localizada; home oficial sem menção"
+        },
+        {
+          "chave": "concurso|pgm_curitiba|inscricoes-ate-05-11|2026|2026-11-05",
+          "fonte": "concurso",
+          "categoria": "Concursos - Carreira",
+          "titulo": "PGM Curitiba — Procurador: inscrições até 23h59 de hoje (secundária)",
+          "data": "2026-11-05",
+          "url": "https://cj.estrategia.com/portal/concurso-pgm-curitiba-pr-edital-publicado/",
+          "status": "PENDÊNCIA DE VERIFICAÇÃO",
+          "observacao": "Sem prorrogação localizada"
+        },
+        {
+          "chave": "concurso|trf5_juiz|data-prova-divergente|2026|2026-11-05",
+          "fonte": "concurso",
+          "categoria": "Concursos - Carreira",
+          "titulo": "TRF5 — Juiz Federal: data da prova diverge nas secundárias (20/12 ou 29/11)",
+          "data": "2026-11-05",
+          "url": "https://magistrarcursos.com.br/blog/concurso-trf5-edital-para-juiz-federal-e-publicado-sao-11-vagas-e-salario-de-r-377-mil/",
+          "status": "INSCRIÇÕES ENCERRADAS",
+          "observacao": "Nada oficial lido"
+        },
+        {
+          "chave": "concurso|agu|banca-examinadora-portaria-7|2026|2026-11-05",
+          "fonte": "concurso",
+          "categoria": "Concursos - Carreira",
+          "titulo": "AGU/PFN — banca examinadora de PFN constituída pela Portaria CSAGU/AGU nº 7 (14/10)",
+          "data": "2026-11-05",
+          "url": "https://cj.estrategia.com/portal/concurso-agu-unificado-bancas-examinadoras-definidas/",
+          "status": "EM PLANEJAMENTO",
+          "observacao": "Secundária; portaria não lida; banca organizadora segue indefinida"
+        },
+        {
+          "chave": "conjur|noticia|ato-obsceno-cinco-votos|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "Supremo tem cinco votos para manter crime de ato obsceno em público",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/supremo-tem-cinco-votos-para-manter-crime-de-ato-obsceno-em-publico/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "20:58; Migalhas (Fux 20:11 e Mendonça 19:58) cobriu os debates"
+        },
+        {
+          "chave": "conjur|noticia|stf-loterias-municipais|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "STF começa a julgar se municípios podem explorar loterias e serviços de apostas",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/stf-comeca-a-julgar-se-municipios-podem-criar-e-explorar-loterias-e-servicos-de-apostas/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "18:38"
+        },
+        {
+          "chave": "jota|noticia|senado-aprova-pec-seguranca|2026|2026-11-04",
+          "fonte": "jota",
+          "categoria": "Mídia",
+          "titulo": "Senado aprova PEC da Segurança sem reduzir maioridade penal",
+          "data": "2026-11-04",
+          "url": "https://www.jota.info/legislativo/senado-aprova-pec-da-seguranca-sem-reduzir-maioridade-penal",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "JOTA Principal 04/11; ConJur 19:49 também noticiou; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "conjur|noticia|stj-pix-desercao|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "STJ afasta deserção de recurso que teve custas pagas por meio do Pix",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/stj-afasta-desercao-de-recurso-que-teve-custas-pagas-por-pix/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "18:56; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "conjur|noticia|stj-farmaceutico-presencial|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "Farmácias devem garantir atendimento presencial de farmacêuticos, define STJ",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/farmacias-devem-ter-farmaceuticos-presencialmente-em-todas-unidades-define-stj/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "12:31; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "conjur|noticia|stj-cooperativa-medica|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "Cooperativa médica não pode restringir título de especialista, diz STJ",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/cooperativa-medica-nao-pode-restringir-titulo-de-especialista-diz-stj/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "15:51; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "conjur|noticia|cni-horas-extras-pausas-termicas|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Mídia",
+          "titulo": "CNI questiona pagamento de horas extras por falta de pausas térmicas",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/cni-questiona-pagamento-de-horas-extras-por-falta-de-pausas-termicas/",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "21:59"
+        },
+        {
+          "chave": "migalhas|noticia|oab-adiamento-reforma-tributaria|2026|2026-11-04",
+          "fonte": "migalhas",
+          "categoria": "Mídia",
+          "titulo": "OAB pede adiamento da reforma tributária para 2028",
+          "data": "2026-11-04",
+          "url": "https://www.migalhas.com.br/quentes/467893/oab-pede-adiamento-da-reforma-tributaria-para-2028",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "18:29; ConJur 17:55 noticiou PEC de deputada com o mesmo adiamento"
+        },
+        {
+          "chave": "jota|noticia|corte-especial-stj-condena-desembargadora|2026|2026-11-05",
+          "fonte": "jota",
+          "categoria": "Mídia",
+          "titulo": "Corte Especial do STJ condena desembargadora Sandra Inês Rusciolelli (Operação Faroeste)",
+          "data": "2026-11-05",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "Clipping Folha de S.Paulo no e-mail JOTA 05/11 07:00; sem link; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "jota|noticia|cnj-certidoes-obito-acao-policial|2026|2026-11-05",
+          "fonte": "jota",
+          "categoria": "Mídia",
+          "titulo": "CNJ aprova regras para que certidões de óbito incluam o contexto de mortes relacionadas à atuação policial",
+          "data": "2026-11-05",
+          "url": "",
+          "status": "MÍDIA ESPECIALIZADA",
+          "observacao": "Clipping O Estado de S. Paulo no e-mail JOTA 05/11 07:00; sem link; ConJur 14:18 de 04/11 analisou o tema; sem confirmação oficial localizada"
+        },
+        {
+          "chave": "jota|opiniao|impeachment-ministros-stf|2026|2026-11-04",
+          "fonte": "jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Impeachment de ministros do STF subiu no telhado",
+          "data": "2026-11-04",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/o-mundo-fora-dos-autos/impeachment-de-ministros-do-stf-subiu-no-telhado",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "Cássio Casagrande"
+        },
+        {
+          "chave": "jota|opiniao|eficacia-horizontal-big-techs|2026|2026-11-04",
+          "fonte": "jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Eficácia horizontal 2.0: o STF diante das Big Techs",
+          "data": "2026-11-04",
+          "url": "https://www.jota.info/opiniao-e-analise/colunas/observatorio-constitucional/eficacia-horizontal-2-0-o-stf-diante-das-big-techs",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "Gabriel Campos Soares da Fonseca e Jorge Octávio Lavocat Galvão"
+        },
+        {
+          "chave": "jota|opiniao|bets-seguranca-juridica|2026|2026-11-04",
+          "fonte": "jota",
+          "categoria": "Opinião/Análise",
+          "titulo": "Proibição das bets e o alerta para o investidor estrangeiro: segurança jurídica em risco?",
+          "data": "2026-11-04",
+          "url": "https://www.jota.info/coberturas-especiais/jurisprudente/proibicao-das-bets-e-o-alerta-para-o-investidor-estrangeiro-seguranca-juridica-em-risco",
+          "status": "OPINIÃO/ANÁLISE",
+          "observacao": "João Carlos Mendonça, Pedro Henrique Fontes e Maria Luísa Zamprogno"
+        },
+        {
+          "chave": "conjur|opiniao|exclusao-advocacia-revisao-tese-stj|2026|2026-11-05",
+          "fonte": "conjur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Exclusão da advocacia na proposta de revisão de tese do STJ",
+          "data": "2026-11-05",
+          "url": "https://conjur.com.br/2026-nov-05/exclusao-da-advocacia-na-proposta-de-revisao-de-tese-do-stj/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|racionalidade-prova-penal|2026|2026-11-05",
+          "fonte": "conjur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Racionalidade da prova penal e dever de enfrentar elementos favoráveis à defesa",
+          "data": "2026-11-05",
+          "url": "https://conjur.com.br/2026-nov-05/racionalidade-da-prova-penal-e-dever-de-enfrentar-elementos-favoraveis-a-defesa/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "conjur|opiniao|coragem-indeferir-ultima-ratio|2026|2026-11-04",
+          "fonte": "conjur",
+          "categoria": "Opinião/Análise",
+          "titulo": "Coragem para indeferir diante da manchete e da inversão da ultima ratio",
+          "data": "2026-11-04",
+          "url": "https://conjur.com.br/2026-nov-04/coragem-para-indeferir-diante-da-manchete-e-da-inversao-da-ultima-ratio/",
+          "status": "OPINIÃO/ANÁLISE"
+        },
+        {
+          "chave": "jota|fofoca|pgr-revisao-criminal-bolsonaro|2026|2026-11-05",
+          "fonte": "jota",
+          "categoria": "Fofoquinha",
+          "titulo": "PGR deve recomendar a rejeição do novo pedido de revisão criminal de Jair Bolsonaro",
+          "data": "2026-11-05",
+          "url": "",
+          "status": "FORTE INDÍCIO",
+          "observacao": "O Globo via e-mail JOTA 05/11 07:00; sem link; sem confirmação oficial"
+        },
+        {
+          "chave": "dailyverses|versiculo|proverbios-10-17|2026|2026-11-05",
+          "fonte": "dailyverses",
+          "categoria": "Versículo",
+          "titulo": "Provérbios 10:17 (ARC)",
+          "data": "2026-11-05",
+          "url": "https://dailyverses.net/pt/2026/11/5",
+          "status": "VERSÍCULO DO DIA"
+        },
+        {
+          "chave": "munger|citacao|inveja-da-fisica|2026|2026-11-05",
+          "fonte": "munger",
+          "categoria": "Munger",
+          "titulo": "Cuidado com a 'inveja da física'",
+          "data": "2026-11-05",
+          "url": "",
+          "status": "SABEDORIA DO DIA"
+        }
+      ],
+      "source_status": {
+        "gmail_push_stf": "ok",
+        "gmail_push_stf_informativos": "ok",
+        "gmail_stj_codju": "ok",
+        "gmail_push_planalto": "ok",
+        "gmail_camara": "ok",
+        "gmail_jota": "ok",
+        "congresso_ultimas_leis": "ok",
+        "congresso_mpvs": "ok",
+        "conjur": "ok",
+        "migalhas": "ok",
+        "youversion": "nao_tentada",
+        "dailyverses": "ok"
+      },
+      "pendencias": [
+        {
+          "id": "planalto_push_mudo",
+          "texto": "PUSH Planalto: sem resenha na janela (última: 03/11, decretos 13.142 a 13.145); seguir com 1 sonda por dia.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_rj_edital_verificar",
+          "texto": "PGE-RJ 19º: páginas oficiais lidas em 05/11 só com links de menu, sem convocação de orais.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "dpe_sp_edital_verificar",
+          "texto": "DPE-SP: home oficial de 05/11 segue com a manchete de inscrições abertas (até 11/11); edital e prova não lidos.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "alepa_procurador_verificar",
+          "texto": "ALEPA: inscrições encerradas em 04/11 só segundo secundárias; sem prorrogação localizada; site oficial sem menção.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "trf2_oral_divergencia",
+          "texto": "TRF2 XIX: home oficial (05/11) sem oral nem inscrição definitiva; prazo 06/11 só em secundárias.",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "pge_al_resultado",
+          "texto": "PGE-AL: resultado sem publicação localizada; Edital nº 11 PGE/AL de 23/09 não lido; datas de prova divergentes em secundárias.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "trt8_edital_verificar",
+          "texto": "TRT8 edital 1/2026 (FCC): inscrições até 05/11 só em secundárias; oficial bloqueada.",
+          "faixa": "ativa"
+        },
+        {
+          "id": "agu_pfn_edital",
+          "texto": "AGU/PFN: faltam banca organizadora e edital; banca examinadora de PFN citada em secundária (Portaria CSAGU/AGU nº 7, 14/10).",
+          "faixa": "longo_prazo"
+        },
+        {
+          "id": "errata_2026_11_05",
+          "texto": "Edição de 05/11: as seções Concursos (Carreira e Apoio) saíram com o marcador CONCURSOS_PLACEHOLDER no lugar do conteúdo. Correto: DPE-SP inscrições até 11/11; PGM Curitiba e TRT8 até 05/11 (secundárias); ALEPA encerrou 04/11 (secundária); demais registros sem mudança.",
+          "faixa": "ativa"
+        }
+      ],
+      "ledger_updates": {
+        "pendencias": {
+          "pge_rj_edital_verificar": {
+            "texto": "PGE-RJ 19º: páginas oficiais lidas em 05/11 só com links de menu, sem convocação de orais.",
+            "faixa": "longo_prazo",
+            "politica": "Só a página oficial promove o selo; convocação para orais publicada: atualizar o registro e aposentar."
+          },
+          "dpe_sp_edital_verificar": {
+            "texto": "DPE-SP: home oficial de 05/11 segue com a manchete de inscrições abertas (até 11/11); edital e prova não lidos.",
+            "faixa": "longo_prazo",
+            "politica": "Edital lido no DOE/FCC: confirmar prova e aposentar."
+          },
+          "alepa_procurador_verificar": {
+            "texto": "ALEPA: inscrições encerradas em 04/11 só segundo secundárias; sem prorrogação localizada; site oficial sem menção.",
+            "faixa": "longo_prazo",
+            "politica": "Confirmado em fonte oficial/CETAP: atualizar o registro e aposentar."
+          },
+          "trf2_oral_divergencia": {
+            "texto": "TRF2 XIX: home oficial (05/11) sem oral nem inscrição definitiva; prazo 06/11 só em secundárias.",
+            "faixa": "longo_prazo",
+            "politica": "Abrir a notícia oficial do TRF2 sobre o concurso, corrigir o registro e aposentar."
+          },
+          "planalto_push_mudo": {
+            "texto": "PUSH Planalto: sem resenha na janela (última: 03/11, decretos 13.142 a 13.145); seguir com 1 sonda por dia.",
+            "faixa": "longo_prazo",
+            "politica": "1 sonda por execução; se seguir diário, restaurar protocolo completo e remover."
+          },
+          "pge_al_resultado": {
+            "texto": "PGE-AL: resultado sem publicação localizada; Edital nº 11 PGE/AL de 23/09 não lido; datas de prova divergentes em secundárias.",
+            "faixa": "ativa",
+            "politica": "Ler o Edital nº 11 no Cebraspe se acessível; atualizar o registro; depois remover."
+          },
+          "agu_pfn_edital": {
+            "texto": "AGU/PFN: faltam banca organizadora e edital; banca examinadora de PFN citada em secundária (Portaria CSAGU/AGU nº 7, 14/10).",
+            "faixa": "longo_prazo"
+          },
+          "errata_2026_11_05": {
+            "texto": "Edição de 05/11: as seções Concursos (Carreira e Apoio) saíram com o marcador CONCURSOS_PLACEHOLDER no lugar do conteúdo. Correto: DPE-SP inscrições até 11/11; PGM Curitiba e TRT8 até 05/11 (secundárias); ALEPA encerrou 04/11 (secundária); demais registros sem mudança.",
+            "faixa": "ativa",
+            "politica": "Publicar no quadro de pendências da próxima edição e remover."
+          }
+        },
+        "concursos": {
+          "alepa_procurador": {
+            "linha": "ALEPA (Assembleia Legislativa do Pará) — Procurador (Concurso nº 003/2026): edital só em fontes secundárias; 5 vagas imediatas, banca CETAP, taxa R$ 118,00; inscrições de 01/10 a 04/11, encerradas segundo secundárias (sem prorrogação localizada); prova em 13/12; site oficial sem menção a concurso em 05/11",
+            "selo": "PENDÊNCIA DE VERIFICAÇÃO",
+            "prazos": [
+              {
+                "data": "2026-12-13",
+                "evento": "prova",
+                "confirmado": false
+              }
+            ],
+            "verificado_em": "2026-11-05",
+            "fonte": "secundária (Estratégia Concursos)"
+          },
+          "pgm_curitiba": {
+            "linha": "PGM Curitiba — Procurador do Município: Edital Normativo 6/2026 (FAFIPA), 5 vagas, R$ 38.087,99, taxa R$ 250,00; inscrições de 07/10 até 23h59 de 05/11 (hoje), objetiva 13/12, discursiva 31/01/2027 (só fontes secundárias; houve retificação; sem prorrogação localizada)",
+            "selo": "PENDÊNCIA DE VERIFICAÇÃO",
+            "prazos": [
+              {
+                "data": "2026-11-05",
+                "evento": "fim das inscrições (fonte secundária)",
+                "confirmado": false
+              },
+              {
+                "data": "2026-12-13",
+                "evento": "prova objetiva",
+                "confirmado": false
+              }
+            ],
+            "verificado_em": "2026-11-05",
+            "fonte": "secundária (Estratégia Concursos)"
+          },
+          "trf5_juiz": {
+            "linha": "TRF5 — Juiz Federal Substituto (XVI concurso): inscrições encerradas em 28/09; 11 vagas imediatas + CR, banca FGV, subsídio R$ 37.765,55; prova objetiva em 20/12/2026 segundo uma secundária (remarcada), outras de agosto citam 29/11; nada oficial lido",
+            "selo": "INSCRIÇÕES ENCERRADAS",
+            "prazos": [
+              {
+                "data": "2026-12-20",
+                "evento": "prova objetiva (data diverge nas secundárias)",
+                "confirmado": false
+              }
+            ],
+            "verificado_em": "2026-11-05",
+            "fonte": "secundária (Magistrar)"
+          },
+          "agu": {
+            "linha": "AGU/PFN — 170 vagas autorizadas (50 AGU, 50 PFN, 50 Procurador Federal e 20 Procurador do Bacen); banca organizadora ainda indefinida; banca examinadora de PFN citada por secundária (Portaria CSAGU/AGU nº 7, 14/10, não lida); edital previsto até o fim de 2026",
+            "selo": "EM PLANEJAMENTO",
+            "verificado_em": "2026-11-05",
+            "fonte": "secundária (Estratégia Concursos)"
+          },
+          "dpe_sp": {
+            "verificado_em": "2026-11-05"
+          },
+          "pge_rs": {
+            "verificado_em": "2026-11-05"
+          },
+          "pge_ba": {
+            "verificado_em": "2026-11-05"
+          }
+        }
+      },
+      "execution_id": "2026-11-05-7h",
+      "date": "2026-11-05",
+      "type": "diaria",
+      "timezone": "America/Sao_Paulo",
+      "window_start": "2026-11-04T07:07:22-03:00",
+      "window_end": "2026-11-05T07:07:29-03:00",
+      "run_started_at": "2026-11-05T07:07:29-03:00",
+      "email_subject": "Robozinho dos Momozis até Passar - 05/11/2026 - 7h",
+      "recipients": [
+        "pereirafranciscofilho@gmail.com",
+        "luizaxbarreto@gmail.com"
+      ],
+      "draft_id": "r-2449087749116860519",
+      "run_finished_at": "2026-11-05T07:15:03-03:00",
+      "coletores": {
+        "concursos": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 36403,
+          "chamadas": 13,
+          "duracao_ms": 73063,
+          "chamadas_modelo": 4,
+          "contexto_total": 70326,
+          "cache_gravado": 36401,
+          "saida": 6824
+        },
+        "gmail": {
+          "modelo": "claude-haiku-5-5",
+          "tokens": 54878,
+          "chamadas": 16,
+          "duracao_ms": 73645,
+          "chamadas_modelo": 5,
+          "contexto_total": 103690,
+          "cache_gravado": 54876,
+          "saida": 17704
+        },
+        "jota": {
+          "modelo": "claude-sonnet-5-5",
+          "tokens": 118446,
+          "chamadas": 14,
+          "duracao_ms": 94781,
+          "chamadas_modelo": 8,
+          "contexto_total": 499055,
+          "cache_gravado": 118444,
+          "saida": 9616
+        }
+      },
+      "orquestrador": {
+        "modelo": "claude-sonnet-5-5",
+        "tokens": 218843,
+        "chamadas": 19,
+        "duracao_ms": 445418,
+        "chamadas_modelo": 8,
+        "contexto_total": 1358364,
+        "cache_gravado": 137176,
+        "saida": 60777
+      },
+      "gmail_message_id": "1a1ab336cbcf5600",
+      "delivery_reconciled_at": "2026-11-06T07:13:29-03:00"
     }
   ]
 }
