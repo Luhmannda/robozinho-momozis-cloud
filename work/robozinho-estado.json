@@ -1,20 +1,19 @@
 {
-  "gerado_em": "2026-11-19T07:18:02-03:00",
-  "gerado_por": "2026-11-19-7h",
+  "gerado_em": "2026-11-20T07:17:28-03:00",
+  "gerado_por": "2026-11-20-7h",
   "aviso": "Arquivo gerado automaticamente por Update-Historico.py. Nao editar a mao. Substitui a leitura integral do historico no inicio da execucao.",
   "ultima_execucao": {
-    "execution_id": "2026-11-19-7h",
-    "date": "2026-11-19",
-    "email_subject": "Robozinho dos Momozis até Passar - 19/11/2026 - 7h",
+    "execution_id": "2026-11-20-7h",
+    "date": "2026-11-20",
+    "email_subject": "Robozinho dos Momozis até Passar - 20/11/2026 - 7h",
     "delivery": "draft",
-    "draft_id": "r-1300507009527220252",
-    "window_end": "2026-11-19T07:07:20-03:00"
+    "draft_id": "r-8975525876350891649",
+    "window_end": "2026-11-20T07:07:04-03:00"
   },
   "total_execucoes_arquivo": 10,
   "metricas": {
-    "execucoes_registradas": 67,
+    "execucoes_registradas": 68,
     "itens_ultimas_10": [
-      30,
       41,
       36,
       36,
@@ -23,12 +22,12 @@
       44,
       29,
       42,
-      33
+      33,
+      44
     ],
-    "media_itens": 36.8,
-    "itens_ultima": 33,
+    "media_itens": 38.2,
+    "itens_ultima": 44,
     "itens_noticia_ultimas_10": [
-      24,
       27,
       28,
       27,
@@ -37,42 +36,42 @@
       30,
       22,
       38,
-      28
+      28,
+      37
     ],
-    "media_itens_noticia": 28.2,
-    "itens_noticia_ultima": 28,
+    "media_itens_noticia": 29.5,
+    "itens_noticia_ultima": 37,
     "coletores_ultimas_10": {
       "gmail": {
         "execucoes": 10,
-        "tokens_total": 306770,
-        "chamadas_total": 140,
+        "tokens_total": 301183,
+        "chamadas_total": 138,
         "medidas": 10,
-        "tokens_media": 30677,
-        "chamadas_media": 14.0,
-        "contexto_total_media": 75074
+        "tokens_media": 30118,
+        "chamadas_media": 13.8,
+        "contexto_total_media": 73081
       },
       "jota": {
         "execucoes": 10,
-        "tokens_total": 885531,
-        "chamadas_total": 105,
+        "tokens_total": 862881,
+        "chamadas_total": 103,
         "medidas": 10,
-        "tokens_media": 88553,
-        "chamadas_media": 10.5,
-        "contexto_total_media": 364248
+        "tokens_media": 86288,
+        "chamadas_media": 10.3,
+        "contexto_total_media": 350140
       },
       "concursos": {
         "execucoes": 10,
-        "tokens_total": 383975,
+        "tokens_total": 389893,
         "chamadas_total": 143,
         "medidas": 10,
-        "tokens_media": 38398,
+        "tokens_media": 38989,
         "chamadas_media": 14.3,
-        "contexto_total_media": 118251
+        "contexto_total_media": 119145
       }
     },
-    "orquestrador_contexto_media": 1295664,
+    "orquestrador_contexto_media": 1304841,
     "orquestrador_custo_relativo_ultimas_10": [
-      525429,
       547842,
       695351,
       605085,
@@ -81,8 +80,9 @@
       579227,
       728361,
       886571,
-      697130
+      697130,
+      723341
     ],
-    "orquestrador_custo_relativo_mediana": 604492
+    "orquestrador_custo_relativo_mediana": 650218
   }
 }

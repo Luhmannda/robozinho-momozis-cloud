@@ -3,7 +3,7 @@
  "bancas": {
   "fgv": {
    "tjap26": {
-    "lido_em": "2026-11-19",
+    "lido_em": "2026-11-20",
     "urls": {
      "2026-10-13|Inscrição": "2026-11-17",
      "2026-10-30|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -19,7 +19,7 @@
     }
    },
    "tjpb26": {
-    "lido_em": "2026-11-19",
+    "lido_em": "2026-11-20",
     "urls": {
      "2026-10-20|Inscrição": "2026-11-17",
      "2026-11-05|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -36,7 +36,7 @@
     }
    },
    "tjrsjuiz26": {
-    "lido_em": "2026-11-19",
+    "lido_em": "2026-11-20",
     "urls": {
      "2026-09-15|Inscrição": "2026-11-17",
      "2026-09-29|Consulta individual - indeferimento dos pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -75,7 +75,7 @@
     }
    },
    "tjscjuiz26": {
-    "lido_em": "2026-11-19",
+    "lido_em": "2026-11-20",
     "urls": {
      "2026-10-19|Inscrição": "2026-11-17",
      "2026-11-09|Consulta individual - Resultado preliminar da análise dos pedidos de isenção": "2026-11-17",
@@ -87,7 +87,7 @@
     }
    },
    "trf5juiz26": {
-    "lido_em": "2026-11-19",
+    "lido_em": "2026-11-20",
     "urls": {
      "2026-08-28|Inscrição": "2026-11-17",
      "2026-09-15|Consulta individual - pedidos de isenção da taxa de inscrição": "2026-11-17",
@@ -109,6 +109,7 @@
      "2026-11-05|Respostas aos recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos negros (pretos e pardos)": "2026-11-17",
      "2026-11-05|Respostas aos recursos contra o resultado preliminar de homologação de inscrições nas vagas destinadas aos quilombolas": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/edital-01-de-2026-xvi-concurso-juiz-federal-retificado.pdf": "2026-11-17",
+     "https://conhecimento.fgv.br/sites/default/files/concursos/edital-de-17-de-novembro-de-2026-edital-de-17-de-novembro-de-2026-dou-imprensa-nacional.pdf": "2026-11-20",
      "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-1a-retificacao.pdf": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-2a-retificacao.pdf": "2026-11-17",
      "https://conhecimento.fgv.br/sites/default/files/concursos/trf5-banca-examinadora-fgv.pdf": "2026-11-17",
@@ -138,9 +139,9 @@
  },
  "paginas": {
   "trf2_juiz": {
-   "desde": "2026-11-19",
-   "hash": "0f2ce3c07424",
-   "lido_em": "2026-11-19",
+   "desde": "2026-11-20",
+   "hash": "626887da896b",
+   "lido_em": "2026-11-20",
    "trechos_hash": [
     "7efd75e97444",
     "810cb92dad5c",
@@ -186,6 +187,7 @@
     "fefdf74a1795",
     "0ff98e5b0828",
     "c568898faf0b",
+    "74bce0840085",
     "8be6f6c11c64",
     "120f6125c091",
     "b04640898f64",
@@ -200,8 +202,7 @@
     "54ac926a5fe6",
     "62c4b7d21d9e",
     "bf1642f6fc4a",
-    "29b3c92fce2f",
-    "9f73edfd431f"
+    "29b3c92fce2f"
    ],
    "url": "https://www.trf2.jus.br/trf2/consultas-e-servicos/concursos-publicos-para-magistrados"
   }
