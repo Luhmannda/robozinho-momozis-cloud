@@ -44,7 +44,11 @@
 #        titulo                      (sem link: so a checagem de historico; idem
 #                                     titulo<TAB>sem link ou qualquer coisa que nao seja URL/L<n>)
 # SAIDA (uma linha por item, na ordem da entrada, campos separados por TAB):
-#        OK<TAB>titulo<TAB>url-final (sem utm_/rd_)
+#        OK<TAB>titulo<TAB>url-final (sem utm_/rd_)[<TAB>DD/MM HH:MM<TAB>autor<TAB>linha-fina]
+#              (21/11: os metadados da pagina ja baixada — article:published_time, author e
+#              og:description, ate 200 caracteres — vao junto quando existem; publicada antes
+#              do inicio da janela: "DD/MM HH:MM (antes da janela)". 9 de 19 itens do JOTA de
+#              17-20/11 sairam com a data do e-mail, nao a da materia, e varios sem resumo.)
 #        SEM_MATCH<TAB>titulo<TAB>titulo-da-pagina
 #        ERRO<TAB>titulo<TAB>motivo
 #        RECUSADO<TAB>titulo<TAB>motivo          (destino proibido: nenhum pedido a ele)
@@ -53,6 +57,10 @@
 #        BLOQUEADO<TAB><host> http=<codigo> — usar o fallback por WebSearch
 #              (primeira linha; depois so as JA_PUBLICADA/SEM_LINK; sai com 3)
 #        AVISO<TAB>-<TAB>historico indisponivel: sem checagem JA_PUBLICADA
+#        JA SAIU DD/MM — Mídia: <titulo> [fonte] · ... | Fofoquinha: ...   (no fim; com historico)
+#              Midia e Fofoquinha das 2 ultimas edicoes (repeticao.ja_saiu): a mesma historia com
+#              outro titulo ("Dino da mais prazo" x "Mais tempo de reflexao") e o coletor que
+#              compara — vai como JA_PUBLICADA ou como desdobramento dito no titulo.
 # =====================================================================
 
 import argparse
@@ -64,6 +72,8 @@ import subprocess
 import sys
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -72,6 +82,8 @@ import jota_extrair  # noqa: E402
 import repeticao  # noqa: E402
 
 TMP = os.environ.get("ROBOZINHO_TMP", "/tmp")
+TZ = ZoneInfo("America/Sao_Paulo")
+MAX_LINHA_FINA = 200
 UA = "Mozilla/5.0 (X11; Linux x86_64) Robozinho/1.0"
 HOSTS_JOTA = {"www.jota.info", "jota.info"}
 RASTREIO = {"t.rdsv2.net"}        # wrappers resolvidos salto a salto (sem baixar nada)
@@ -256,6 +268,35 @@ def titulo_pagina(corpo):
     return html.unescape(m.group(1)).strip() if m else ""
 
 
+def _metas(corpo):
+    """{property ou name: content} dos <meta> da pagina (a 1a ocorrencia vale; qualquer ordem de atributos)."""
+    out = {}
+    for tag in re.findall(r"<meta\b[^>]*>", corpo or "", re.I):
+        chave = re.search(r'\b(?:property|name)\s*=\s*"([^"]+)"', tag, re.I)
+        valor = re.search(r'\bcontent\s*=\s*"([^"]*)"', tag, re.I)
+        if chave and valor:
+            out.setdefault(chave.group(1).lower(), html.unescape(valor.group(1)).strip())
+    return out
+
+
+def metadados(corpo):
+    """(publicada_em: datetime | None, autor, linha_fina) da pagina do jota.info ja baixada (nenhum pedido a mais).
+    Linha-fina = og:description (ou description), ate MAX_LINHA_FINA caracteres, cortada em palavra."""
+    m = _metas(corpo)
+    quando = None
+    for k in ("article:published_time", "og:published_time"):
+        try:
+            quando = datetime.fromisoformat(m[k].replace("Z", "+00:00")).astimezone(TZ)
+            break
+        except (KeyError, ValueError):
+            continue
+    autor = m.get("author") or m.get("article:author") or ""
+    fina = " ".join((m.get("og:description") or m.get("description") or "").split())
+    if len(fina) > MAX_LINHA_FINA:
+        fina = fina[:MAX_LINHA_FINA - 1].rsplit(" ", 1)[0] + "…"
+    return quando, autor, fina
+
+
 def limpo(s):
     return re.sub(r"[\t\r\n]+", " ", s or "").strip()
 
@@ -296,10 +337,12 @@ def ler_indice(caminho):
 
 
 class Contexto:
-    def __init__(self, historico=None, urls=None):
+    def __init__(self, historico=None, urls=None, inicio=None, ja_saiu=None):
         self.idx_hist = historico[0] if historico else None      # repeticao.indice
         self.urls_pub = historico[1] if historico else {}         # {url normalizada: chave}
         self.indice = urls or {}
+        self.inicio = inicio                                      # inicio da janela (datetime) ou None
+        self.ja_saiu = ja_saiu or []                              # linhas "JA SAIU DD/MM — ..."
 
     def repetida(self, titulo):
         if self.idx_hist is None:
@@ -334,7 +377,15 @@ def resolve(item, ctx):
     chave = ctx.urls_pub.get(repeticao.normalizar_url(detalhe))
     if chave:
         return "JA_PUBLICADA\t%s\t%s" % (t, chave)
-    return "OK\t%s\t%s" % (t, detalhe)
+    quando, autor, fina = metadados(corpo)
+    if not (quando or autor or fina):
+        return "OK\t%s\t%s" % (t, detalhe)
+    data = ""
+    if quando:
+        data = quando.strftime("%d/%m %H:%M")
+        if ctx.inicio and quando < ctx.inicio:
+            data += " (antes da janela)"
+    return "OK\t%s\t%s\t%s\t%s\t%s" % (t, detalhe, data, limpo(autor), limpo(fina))
 
 
 def sondar():
@@ -350,19 +401,27 @@ def sondar():
 def carregar_contexto(a):
     hist = None
     avisos = []
+    janela = {}
+    try:
+        janela = json.load(open(a.janela, encoding="utf-8"))
+    except Exception:
+        pass
+    inicio = None
+    try:
+        inicio = datetime.fromisoformat(janela["inicio"])
+    except (KeyError, TypeError, ValueError):
+        pass
+    ja_saiu = []
     if not a.sem_historico:
-        ignorar = ""
-        try:
-            ignorar = json.load(open(a.janela, encoding="utf-8")).get("ignorar_execucao") or ""
-        except Exception:
-            pass
+        ignorar = janela.get("ignorar_execucao") or ""
         execs = repeticao.carregar_historico(a.historico)
         if execs:
             hist = (repeticao.indice(execs, ignorar_exec_id=ignorar or None),
                     repeticao.urls_publicadas(execs, ignorar_exec_id=ignorar or None))
+            ja_saiu = repeticao.ja_saiu(execs, ignorar_exec_id=ignorar or None)
         else:
             avisos.append("AVISO\t-\thistorico indisponivel: sem checagem JA_PUBLICADA")
-    return Contexto(hist, ler_indice(a.urls)), avisos
+    return Contexto(hist, ler_indice(a.urls), inicio, ja_saiu), avisos
 
 
 def main(argv=None):
@@ -389,10 +448,14 @@ def main(argv=None):
         for it in itens:
             if it not in precisa_rede:
                 print(resolve(it, ctx))
+        for linha in ctx.ja_saiu:
+            print(linha)
         return 3
     with ThreadPoolExecutor(max_workers=6) as ex:
         for r in ex.map(lambda it: resolve(it, ctx), itens):
             print(r)
+    for linha in ctx.ja_saiu:
+        print(linha)
     return 0
 
 

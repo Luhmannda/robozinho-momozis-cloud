@@ -772,7 +772,9 @@ def rodar_resolver(linhas, mapa, extra=(), urls=None, janela=None):
                                + list(extra))
     finally:
         resolver_jota.curl, resolver_jota.sondar = antigo_c, antigo_s
-    return codigo, out.splitlines(), rede
+    linhas = out.splitlines()
+    rede.ja_saiu = [l for l in linhas if l.startswith("JA SAIU ")]    # lista do fim (com historico)
+    return codigo, [l for l in linhas if not l.startswith("JA SAIU ")], rede
 
 
 W = "https://t.rdsv2.net/ls/click?upn=u001.FIXTURE-%02d"
@@ -919,6 +921,30 @@ def resolver_historico_e_indice():
 
 
 @teste
+def resolver_metadados_da_pagina_e_ja_saiu():
+    """(21/11, achado 12) A linha OK traz a data da materia (article:published_time), o autor e a linha-fina
+    (og:description) da pagina ja baixada: 9 de 19 itens do JOTA sairam com a data do e-mail e varios sem resumo.
+    Materia anterior ao inicio da janela: '(antes da janela)'. No fim, a lista JA SAIU das 2 ultimas edicoes."""
+    destino = "https://www.jota.info/justica/stj-fara-audiencia-sobre-cartao-de-credito-consignado-e-criterios"
+    tit = "STJ fará audiência sobre cartão de crédito consignado e critérios para contrato abusivo"
+    mapa = {W % 1: (302, destino, ""), destino: (200, "", pagina_fixture("jota-stj-consignado.html"))}
+    janela = {"ignorar_execucao": "", "inicio": "2026-11-16T07:05:00-03:00"}
+    _, out, rede = rodar_resolver([tit + "\t" + W % 1], mapa, ["--sem-historico"], janela=janela)
+    assert out == ["OK\t%s\t%s\t16/11 17:02\tLucas Mendes\tSTJ marcou para 27 de novembro uma audiência pública "
+                   "sobre o funcionamento do cartão de crédito consignado." % (tit, destino)], out
+    assert not rede.ja_saiu                                   # sem historico, sem lista
+    janela["inicio"] = "2026-11-17T07:05:00-03:00"
+    _, out, rede = rodar_resolver([tit + "\t" + W % 1], mapa, janela=janela)
+    assert out[0].split("\t")[3] == "16/11 17:02 (antes da janela)", out
+    assert rede.ja_saiu and rede.ja_saiu[0].startswith("JA SAIU 13/11 — Mídia: "), rede.ja_saiu
+    # pagina sem metadado nenhum: a linha OK de sempre (3 campos)
+    q, a, f = resolver_jota.metadados(pagina("x"))
+    assert (q, a, f) == (None, "", "")
+    longa = '<meta content="%s" property="og:description">' % ("palavra " * 40)
+    assert resolver_jota.metadados(longa)[2].endswith("…") and len(resolver_jota.metadados(longa)[2]) <= 200
+
+
+@teste
 def resolver_reexecucao_e_bloqueio():
     # re-execucao: a edicao ignorada nao conta como publicada
     t = "Gilmar Mendes interrompe julgamento com maioria formada para derrubar lei que restringe cota racial"
@@ -939,7 +965,8 @@ def resolver_reexecucao_e_bloqueio():
         resolver_jota.sondar = antigo
     linhas = saida.splitlines()
     assert codigo == 3 and linhas[0].startswith("BLOQUEADO\thttps://t.rdsv2.net/ http=000"), linhas
-    assert len(linhas) == 2 and linhas[1].startswith("JA_PUBLICADA"), linhas
+    assert len(linhas) == 4 and linhas[1].startswith("JA_PUBLICADA"), linhas
+    assert linhas[2].startswith("JA SAIU 13/11 — ") and linhas[3].startswith("JA SAIU 12/11 — "), linhas[2:]
 
 
 # ------------------------------------------------------------ jota_extrair
