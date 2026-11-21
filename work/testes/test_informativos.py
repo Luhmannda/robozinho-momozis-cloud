@@ -1229,6 +1229,22 @@ def t_revisitas_stj():
            and rede.pedidos.count("stf1230") == I.MAX_TENTATIVAS_REVISITA, rede.pedidos)
     checar("revisitas: a do STJ que não abriu não derruba a fonte; as do STF ficam no detalhe",
            st["status"] == "ok" and "revisita sem abrir: stf1231 http 403, stf1230 http 403" in st["detalhe"], st)
+    # a vaga do STJ nao estica a execucao: passado o PRAZO_S (cada espera "dura" 40 s), fica para amanha
+    t = [0.0]
+    velho_relogio, velha_espera = I.relogio, I.dormir
+    I.relogio = lambda: t[0]
+    I.dormir = lambda seg: t.__setitem__(0, t[0] + 40)
+    rede = Rede({"stf1231": [(403, b"")], "stf1230": [(403, b"")], "stf1238": [(403, b"")],
+                 "stj903": [(200, "stj909.html")], "stj911": [(200, "stj910.html")]})
+    I.baixar = rede.baixar
+    json.dump({"execution_id": "2026-11-20-7h", "data": "2026-11-20"}, open(os.path.join(TMP, "janela.json"), "w"))
+    try:
+        I.coletar(hist)
+    finally:
+        I.relogio, I.dormir = velho_relogio, velha_espera
+        os.unlink(os.path.join(TMP, "janela.json"))
+    checar("revisitas: depois do PRAZO_S a vaga do STJ não faz pedido (o tempo da execução não cresce)",
+           "stj903" not in rede.pedidos, rede.pedidos)
 
 
 def t_status_fonte():

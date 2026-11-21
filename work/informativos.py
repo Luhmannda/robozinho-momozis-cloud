@@ -24,7 +24,8 @@
 #   - as REVISITAS: ate MAX_REVISITAS_ANTIGAS edicoes mais antigas do STF/RG e,
 #     a parte, MAX_REVISITAS_STJ do STJ (ate JANELA_REVISITA numeros para tras)
 #     anunciadas sem conteudo, as mais recentes primeiro, parando no 404 — saem
-#     no sub-bloco EM ATRASO.
+#     no sub-bloco EM ATRASO. A vaga do STJ (o STF barrado nao a toma) nao estica
+#     a execucao: passado o PRAZO_S, fica para o dia seguinte.
 #     Na RG em Pauta, o tema "em votacao"/"em pauta" de uma edicao que ja tem
 #     dois boletins posteriores publicados sai de "itens" (vai para
 #     "itens_superados"): a situacao dele e de semanas atras e o resultado ja
@@ -1121,7 +1122,8 @@ def coletar(hist):
     base-1), as novas (sonda curta no STF/RG logo depois de uma edicao: tentativas_novo) e, no
     fim, as revisitas antigas — ate MAX_REVISITAS_ANTIGAS do STF/RG e, a parte, ate
     MAX_REVISITAS_STJ do STJ (sem firewall, 1 pedido: o STF barrado nao toma a vaga dele;
-    em 20/11/2026 o stj903 seguia parado porque o stf1231 e o stf1230 levavam as duas vagas).
+    em 20/11/2026 o stj903 seguia parado porque o stf1231 e o stf1230 levavam as duas vagas),
+    so antes do PRAZO_S (o tempo da execucao nao cresce).
     Uma revisita 'superada' (aberta, todos os temas superados) conta como feita. No fim, o tema de
     RG herdada que tambem esta numa RG posterior aberta agora fica so na posterior (deduplicar_temas)."""
     c, resultados, antigas, parado = Coleta(), [], [], set()
@@ -1178,6 +1180,8 @@ def coletar(hist):
         vaga = "stj" if tipo == "stj" else "stf"    # STF e RG dividem as vagas; o STJ tem a sua
         if feitas.get(vaga, 0) >= teto[vaga] or tipo in parado:
             continue
+        if vaga == "stj" and c.prazo is not None and relogio() >= c.prazo:
+            continue                    # a vaga do STJ nao estica a execucao: passado o PRAZO_S, fica para amanha
         feitas[vaga] = feitas.get(vaga, 0) + 1
         r = c.pedir(tipo, n, "atrasada", hist[tipo].get(n), hist[tipo], MAX_TENTATIVAS_REVISITA)
         r["revisita"] = True
