@@ -174,8 +174,25 @@ helper() {   # $1 = arquivo de entrada (uma copia: o helper o normaliza no lugar
   [[ $rc -eq 0 ]] && grep -q '^STATUS: OK' "$T/relatorio.txt" 2>/dev/null
 }
 
+# estado de work/ antes do helper (com a migracao que o inicio.py aplicou): se o helper nao terminar com
+# STATUS: OK, os arquivos voltam a isto — nada fica gravado pela metade diante do hook de parada (verified[14])
+ANTES="$T/finalizar-antes"
+guardar_antes() {
+  rm -rf "$ANTES" && mkdir -p "$ANTES" || return 1
+  local f
+  for f in $(arquivos_estado); do cp -p "$f" "$ANTES/" || return 1; done
+}
+restaurar_antes() {
+  local f
+  for f in $(arquivos_estado); do [[ -e "$ANTES/$(basename "$f")" ]] || rm -f "$f"; done   # criado pelo helper
+  for f in "$ANTES"/*; do [[ -e "$f" ]] && cp -p "$f" "work/$(basename "$f")"; done
+  echo "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper (nada gravado pela metade)"
+}
+guardar_antes || { echo "PERSISTENCIA ABORTADA: copia do estado antes do helper falhou em $ANTES — nada foi commitado."; exit 2; }
+
 cp "$COPIA" "$T/finalizar-rodada1.json"
 if ! helper "$T/finalizar-rodada1.json"; then
+  restaurar_antes
   echo "PERSISTENCIA ABORTADA: o helper nao terminou com STATUS: OK — nada foi commitado."
   exit 2
 fi

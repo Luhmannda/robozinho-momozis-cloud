@@ -645,6 +645,10 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
         add_log("Ledger: armadilha nova %s" % x["id"])
 
 
+ALERTA_FALLBACK = ("ALERTA: mecânico dos concursos com fallback (%s — %s: %s): passo pulado, como no e-mail (o "
+                   "montador cai igual); a próxima execução refaz com a banca lida de novo")
+
+
 def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
     """Depois dos ledger_updates: carimbo da banca lida hoje e selo por data (nunca sobre selo
     escrito hoje; bancas.selo_do_dia, a regra do montador: suspenso, com ALERTA, enquanto o edital lido hoje
@@ -654,18 +658,29 @@ def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
     regs = led.get("concursos") or []
     n = 0
     hj = date.fromisoformat(hoje)
-    if banca_res:      # o registro que ainda DIVERGE DO REGISTRO (nao corrigido hoje) nao e carimbado
-        for ident, campos in bancas.carimbos(banca_res, regs, hj, upd=conc).items():
-            reg = next((c for c in regs if c.get("id") == ident), None)
-            u = conc.get(ident) or {}
-            campos = {k: v for k, v in campos.items() if k not in u}   # o julgamento de hoje prevalece
-            if reg is None or not campos:
-                continue
-            reg.update(campos)
-            n += 1
-            add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
-    ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
-    pend = bancas.divergencias_pendentes(banca_res, regs, hj, conc) if banca_res else {}
+    # as MESMAS quedas do montador (montar_email.estado_concursos): excecao na leitura da banca = sem carimbo e/ou
+    # sem contexto, como no e-mail ja criado — o ledger nao diverge do e-mail e a execucao do dia nao se perde
+    carimbos = {}
+    if banca_res:
+        try:
+            carimbos = bancas.carimbos(banca_res, regs, hj, upd=conc)
+        except (KeyError, ValueError, TypeError) as e:
+            add_log(ALERTA_FALLBACK % ("bancas.carimbos", type(e).__name__, e))
+    for ident, campos in carimbos.items():     # o registro que ainda DIVERGE DO REGISTRO nao e carimbado
+        reg = next((c for c in regs if c.get("id") == ident), None)
+        u = conc.get(ident) or {}
+        campos = {k: v for k, v in campos.items() if k not in u}   # o julgamento de hoje prevalece
+        if reg is None or not campos:
+            continue
+        reg.update(campos)
+        n += 1
+        add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
+    try:
+        ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
+        pend = bancas.divergencias_pendentes(banca_res, regs, hj, conc) if banca_res else {}
+    except (KeyError, ValueError, TypeError) as e:
+        ctx, pend = {}, {}
+        add_log(ALERTA_FALLBACK % ("bancas.contexto_selos/divergencias_pendentes", type(e).__name__, e))
     for reg in regs:
         u = conc.get(reg.get("id")) or {}
         if "selo" in u:
@@ -824,8 +839,15 @@ def gravar_ledger(caminho, led):
 def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     """ledger_updates + mecanicos (sempre; idempotentes) e contadores (1 vez por execution_id).
     Antes o guard por execution_id vinha primeiro e descartava em silencio os ledger_updates de
-    um --refazer (E14/F7)."""
-    led = read_json(caminho)
+    um --refazer (E14/F7). Le, calcula (calcular_ledger) e grava."""
+    led = calcular_ledger(read_json(caminho), ex, add_log, execucoes, banca_res)
+    gravar_ledger(caminho, led)
+    return led
+
+
+def calcular_ledger(led, ex, add_log, execucoes=None, banca_res=None):
+    """O ledger da gravacao, so em memoria (o main grava junto com o resto: sem gravacao parcial).
+    Preserva toda chave que nao conhece (ex.: migracoes_aplicadas, do work/migracoes.py)."""
     hoje = ex["date"]
 
     def anteriores():           # a execucao de hoje ja esta no historico: nao conta na inicializacao
@@ -845,8 +867,8 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     if led.get("atualizado_por_execucao") == ex["execution_id"]:
         add_log("Ledger: contadores ja aplicados para %s — ledger_updates reaplicados, contadores nao."
                 % ex["execution_id"])
-        gravar_ledger(caminho, led)
-        return
+        texto_ledger(led)
+        return led
     fontes = {f.get("id"): f for f in led.get("fontes") or []}
     for fid, v in (ex.get("source_status") or {}).items():
         f = fontes.get(fid)
@@ -895,13 +917,23 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
         add_log("Ledger: pendencia %s saiu na edicao mas nao existe no ledger." % novo)
     led["atualizado_em"] = now_iso_with_offset()
     led["atualizado_por_execucao"] = ex["execution_id"]
-    gravar_ledger(caminho, led)
+    texto_ledger(led)                   # valida (json.loads) antes de aceitar
     add_log("Ledger: contadores aplicados e JSON validado.")
+    return led
 
 
 def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=None):
     """URLs vistas na banca e hash das paginas oficiais (work/concursos-estado.json): so avancam quando a
-    execucao e registrada (o inicio.py so le)."""
+    execucao e registrada (o inicio.py so le). Calcula (calcular_estado_concursos) e grava."""
+    estado = calcular_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path)
+    if estado is not None:
+        import bancas
+        bancas.gravar_estado(caminho, estado)
+    return estado
+
+
+def calcular_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=None):
+    """O concursos-estado.json da gravacao, so em memoria; None = nada a gravar."""
     pags = None
     if paginas_path:
         try:
@@ -910,7 +942,7 @@ def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=N
         except (OSError, ValueError):
             pags = None
     if not banca_res and not pags:
-        return
+        return None
     import bancas
     estado = bancas.carregar_estado(caminho)
     partes = []
@@ -924,9 +956,9 @@ def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=N
         except Exception as e:  # noqa: BLE001
             add_log("AVISO: paginas_oficiais nao gravadas no estado (%s)" % e)
     if not partes:
-        return
-    bancas.gravar_estado(caminho, estado)
+        return None
     add_log("Estado de concursos: %s (%s)" % ("; ".join(partes), os.path.basename(caminho)))
+    return estado
 
 
 def read_json(path):
@@ -949,18 +981,19 @@ def now_iso_with_offset():
         return datetime.now().astimezone().isoformat(timespec="seconds")
 
 
-def metricas_derivadas(historico, execucoes_principal):
+def metricas_derivadas(historico, execucoes_principal, gravacoes=None):
     """Numeros que antes eram mantidos a mao no ledger (metricas.itens_ultimas_10,
     media). Calculados do historico para nao depender de aritmetica manual.
     Tambem agrega o uso dos coletores (campo opcional `coletores` de cada
-    execucao: {nome: {tokens, chamadas, duracao_ms, modelo}})."""
+    execucao: {nome: {tokens, chamadas, duracao_ms, modelo}}). gravacoes: o arquivo
+    morto ainda nao gravado nesta rodada (Gravacoes) conta como o que sera gravado."""
     pasta = os.path.dirname(os.path.abspath(historico_path_global))
     arquivadas = 0
     for nome in historico.get("archive_files") or []:
         caminho = os.path.join(pasta, nome)
-        if os.path.exists(caminho):
+        if (gravacoes.existe(caminho) if gravacoes else os.path.exists(caminho)):
             try:
-                arquivadas += len(read_json(caminho).get("executions") or [])
+                arquivadas += len((gravacoes.ler(caminho) if gravacoes else read_json(caminho)).get("executions") or [])
             except Exception:
                 pass
 
@@ -1075,6 +1108,79 @@ def em_recesso(iso):
 historico_path_global = ""
 
 
+class Gravacoes:
+    """As gravacoes de estado do helper, adiadas para o fim e feitas todas ou nenhuma (verified[14]: antes o
+    historico e o estado eram gravados e so depois o ledger era calculado; uma excecao ali deixava o historico
+    gravado sem o ledger). Tudo e calculado em memoria; `aplicar` grava em ordem, guardando o conteudo de antes
+    de cada arquivo, e se uma gravacao (ou a conferencia final) falha devolve todos ao que eram."""
+
+    def __init__(self):
+        self.fila = []           # (caminho, texto | None, funcao | None)
+        self.dados = {}          # caminho absoluto -> dados (quem le o que ainda vai ser gravado)
+
+    def json(self, caminho, dados):
+        """Mesmo formato do write_json_no_bom (indent 2, UTF-8 sem BOM)."""
+        self.texto(caminho, json.dumps(dados, ensure_ascii=False, indent=2), dados)
+
+    def texto(self, caminho, texto, dados=None):
+        self.fila = [x for x in self.fila if x[0] != caminho] + [(caminho, texto, None)]
+        if dados is not None:
+            self.dados[os.path.abspath(caminho)] = dados
+
+    def funcao(self, caminho, gravar):
+        """Gravacao feita por funcao de outro modulo (ex.: bancas.gravar_estado), com a mesma restauracao."""
+        self.fila = [x for x in self.fila if x[0] != caminho] + [(caminho, None, gravar)]
+
+    def existe(self, caminho):
+        return os.path.abspath(caminho) in self.dados or os.path.exists(caminho)
+
+    def ler(self, caminho):
+        d = self.dados.get(os.path.abspath(caminho))
+        return d if d is not None else read_json(caminho)
+
+    def aplicar(self, add_log, conferir=None):
+        antes = []
+        atual = None
+        try:
+            for caminho, texto, gravar in self.fila:
+                atual = caminho
+                anterior = None
+                if os.path.exists(caminho):
+                    with open(caminho, "rb") as f:
+                        anterior = f.read()
+                antes.append((caminho, anterior))
+                if gravar is not None:
+                    gravar()
+                else:
+                    gravar_texto(caminho, texto)
+            atual = "conferencia"
+            if conferir:
+                conferir()
+        except BaseException as e:
+            for caminho, anterior in reversed(antes):
+                try:
+                    if anterior is None:
+                        if os.path.exists(caminho):
+                            os.remove(caminho)
+                    else:
+                        parcial = "%s.%d.volta" % (caminho, os.getpid())
+                        with open(parcial, "wb") as f:
+                            f.write(anterior)
+                        os.replace(parcial, caminho)
+                except OSError:
+                    pass
+            add_log("ERRO: gravacao interrompida em %s (%s: %s) — os %d arquivo(s) ja gravados voltaram ao que eram"
+                    % (os.path.basename(atual or "?"), type(e).__name__, e, len(antes)))
+            raise
+
+
+def onde_falhou(e):
+    """arquivo:linha do ponto mais interno da excecao (o relatorio diz onde o codigo quebrou)."""
+    import traceback
+    tb = traceback.extract_tb(e.__traceback__)
+    return "%s:%d" % (os.path.basename(tb[-1].filename), tb[-1].lineno) if tb else "?"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--nova-execucao", required=True, dest="nova_execucao_path")
@@ -1106,21 +1212,53 @@ def main():
     args = parser.parse_args()
 
     log = []
+    emitido = []
 
     def add_log(linha):
         log.append(linha)
 
     def emitir(status_final):
+        """O relatorio sai SEMPRE (inclusive em erro interno): e o que o finalizar.sh e a §R11 leem."""
         add_log(status_final)
+        emitido.append(status_final)
         texto = "\n".join(log)
         if args.relatorio_path:
-            with open(args.relatorio_path, "w", encoding="utf-8", newline="") as f:
-                f.write(texto)
+            try:
+                with open(args.relatorio_path, "w", encoding="utf-8", newline="") as f:
+                    f.write(texto)
+            except OSError as e:
+                texto += "\nAVISO: relatorio nao gravado em %s (%s)" % (args.relatorio_path, e)
         print(texto)
 
+    try:
+        executar(args, add_log, emitir)
+    except SystemExit as e:
+        if emitido or e.code in (0, None):
+            raise                       # saida deliberada, ja com o relatorio (ex.: ERRO DE VALIDACAO, exit 2)
+        erro_interno(args, emitir, "SystemExit", e.code, None)
+    except BaseException as e:  # noqa: BLE001 — o relatorio sai sempre; nada fica gravado pela metade
+        import traceback
+        traceback.print_exc()
+        erro_interno(args, emitir, type(e).__name__, e, onde_falhou(e))
+
+
+def erro_interno(args, emitir, tipo, msg, onde):
+    """STATUS: ERRO INTERNO: falha do codigo ou de um dado inesperado, nao do execucao.json. As gravacoes de
+    estado sao todas ou nenhuma (Gravacoes): nada foi gravado. Exit 4 (o finalizar.sh nao commita)."""
+    det = "%s: %s%s" % (tipo, msg, " (%s)" % onde if onde else "")
+    if args.validar:
+        emitir("VALIDACAO: ERRO INTERNO %s — nada foi gravado." % det)
+    else:
+        emitir("STATUS: ERRO INTERNO %s — nada foi gravado no estado; nada commitado. Repita o finalizar.sh uma vez; "
+               "persistindo, nao edite codigo nem o execucao.json para contornar" % det)
+    sys.exit(4)
+
+
+def executar(args, add_log, emitir):
     # -------------------------------------------------------------
     # 1. Carregar historico e nova execucao
     # -------------------------------------------------------------
+    g = Gravacoes()
     if not os.path.exists(args.historico_path):
         envelope = {
             "schema_version": 1,
@@ -1130,10 +1268,14 @@ def main():
             "archive_files": [],
             "executions": [],
         }
-        write_json_no_bom(args.historico_path, envelope)
+        if args.validar:
+            historico = envelope
+        else:
+            g.json(args.historico_path, envelope)
+            historico = json.loads(json.dumps(envelope))
         add_log("AVISO: historico inexistente; envelope novo criado.")
-
-    historico = read_json(args.historico_path)
+    else:
+        historico = read_json(args.historico_path)
     historico.setdefault("executions", [])
     historico.setdefault("archive_files", [])
 
@@ -1180,7 +1322,7 @@ def main():
                 carimbos = bancas.carimbos(banca_res, led_atual.get("concursos") or [],
                                            date.fromisoformat(nova_exec["date"]),
                                            upd=((nova_exec.get("ledger_updates") or {}).get("concursos") or {}))
-            except (KeyError, ValueError):
+            except (KeyError, ValueError, TypeError):
                 carimbos = {}
         erros += validar_ledger_updates(nova_exec.get("ledger_updates"), led_atual, hoje=nova_exec.get("date"),
                                         ex_id=nova_exec.get("execution_id"), carimbos=carimbos)
@@ -1221,6 +1363,7 @@ def main():
         add_log("RE-EXECUCAO sem rascunho novo: registro %s preservado (%d itens, delivery=%s, janela ate %s)."
                 % (original.get("execution_id"), len(original.get("items") or []),
                    original.get("delivery"), original.get("window_end")))
+        g.aplicar(add_log)              # so o envelope novo, se o historico nao existia
         emitir("STATUS: OK — nada a gravar (duplicata; historico, estado e ledger intactos)")
         return
 
@@ -1244,7 +1387,7 @@ def main():
         for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor",
                       "impacto", "resenha", "desdobramento", "resumo_truncado"):
             it.pop(campo, None)
-    # grava a versao normalizada, para o historico ficar consistente
+    # grava a versao normalizada, para o historico ficar consistente (a entrada e uma copia do finalizar.sh)
     write_json_no_bom(args.nova_execucao_path, nova_exec)
 
     # -------------------------------------------------------------
@@ -1299,15 +1442,14 @@ def main():
     # -------------------------------------------------------------
     # 4. Arquivamento: manter no maximo max_execucoes no arquivo
     #    principal (nunca apagar - apenas mover para o arquivo morto
-    #    do mes)
+    #    do mes). Tudo em memoria: a gravacao e no fim (Gravacoes).
     # -------------------------------------------------------------
+    pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
     total = len(historico["executions"])
     if total > args.max_execucoes:
         excedente = total - args.max_execucoes
         para_arquivar = historico["executions"][:excedente]
         historico["executions"] = historico["executions"][excedente:]
-
-        pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
 
         for item in para_arquivar:
             data_ref = item.get("date") or datetime.now().strftime("%Y-%m-%d")
@@ -1316,8 +1458,8 @@ def main():
                 pasta_hist, f"resumo-legislativo-historico-arquivo-{ano_mes}.json"
             )
 
-            if os.path.exists(arquivo_morto):
-                arq = read_json(arquivo_morto)
+            if g.existe(arquivo_morto):
+                arq = g.ler(arquivo_morto)
             else:
                 arq = {
                     "schema_version": historico.get("schema_version"),
@@ -1333,7 +1475,7 @@ def main():
             )
             if not ja_arquivado:
                 arq["executions"].append(item)
-                write_json_no_bom(arquivo_morto, arq)
+                g.json(arquivo_morto, arq)
                 add_log(
                     "Arquivado: "
                     + item.get("execution_id", "")
@@ -1352,21 +1494,21 @@ def main():
                 historico["archive_files"] = lista_arq + [nome_arq]
 
     # E13: arquivo morto listado que nao existe (ex.: ...-2026-06.json) sai da lista
-    pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
-    sumidos = [a for a in historico["archive_files"] if a and not os.path.exists(os.path.join(pasta_hist, a))]
+    sumidos = [a for a in historico["archive_files"] if a and not g.existe(os.path.join(pasta_hist, a))]
     if sumidos:
         historico["archive_files"] = [a for a in historico["archive_files"] if a and a not in sumidos]
         add_log("archive_files: retirados %s (arquivo inexistente)" % ", ".join(sumidos))
 
     # -------------------------------------------------------------
-    # 5. Gravar historico principal
+    # 5. Historico principal (texto final, conferido antes de gravar)
     # -------------------------------------------------------------
-    write_json_no_bom(args.historico_path, historico)
+    texto_hist = json.dumps(historico, ensure_ascii=False, indent=2)
+    verif = json.loads(texto_hist)
+    g.texto(args.historico_path, texto_hist, verif)
 
     # -------------------------------------------------------------
-    # 6. Validar relendo do disco
+    # 6. Validar o texto que sera gravado (e, depois da gravacao, relido do disco)
     # -------------------------------------------------------------
-    verif = read_json(args.historico_path)
     add_log("Execucoes no arquivo principal: " + str(len(verif["executions"])))
     add_log(
         "IDs: "
@@ -1377,15 +1519,13 @@ def main():
         e.get("execution_id") == nova_exec["execution_id"] for e in verif["executions"]
     )
     if not gravada:
-        raise SystemExit("FALHA: a nova execucao nao foi encontrada apos a gravacao.")
+        raise SystemExit("FALHA: a nova execucao nao foi encontrada no historico a gravar.")
 
     # Deteccao de mojibake: sequencias tipicas de UTF-8 lido como
     # ANSI/cp1252 e regravado. Regex identica (em codepoints) a
-    # work/Update-Historico.ps1: Ã[ -¿] ou â
-    with open(args.historico_path, "r", encoding="utf-8") as f:
-        bruto = f.read()
-    padrao_mojibake = "Ã[ -¿]|â"
-    suspeitas = re.findall(padrao_mojibake, bruto)
+    # work/Update-Historico.ps1: Ã[ -¿] ou â
+    padrao_mojibake = "Ã[ -¿]|â"
+    suspeitas = re.findall(padrao_mojibake, texto_hist)
     if suspeitas:
         add_log(
             f"ALERTA DE ENCODING: {len(suspeitas)} ocorrencia(s) de mojibake "
@@ -1395,10 +1535,9 @@ def main():
         add_log("Encoding: nenhuma marca de mojibake detectada.")
 
     # -------------------------------------------------------------
-    # 6-A. Emitir o resumo de estado (robozinho-estado.json)
+    # 6-A. Resumo de estado (robozinho-estado.json)
     # -------------------------------------------------------------
-    pasta_estado = os.path.dirname(os.path.abspath(args.historico_path))
-    estado_path = os.path.join(pasta_estado, "robozinho-estado.json")
+    estado_path = os.path.join(pasta_hist, "robozinho-estado.json")
 
     ultima = verif["executions"][-1]
 
@@ -1408,7 +1547,7 @@ def main():
 
     global historico_path_global
     historico_path_global = args.historico_path
-    metricas = metricas_derivadas(verif, todas)
+    metricas = metricas_derivadas(verif, todas, g)
 
     estado = {
         "gerado_em": now_iso_with_offset(),
@@ -1430,7 +1569,7 @@ def main():
         "metricas": metricas,
     }
 
-    write_json_no_bom(estado_path, estado)
+    g.json(estado_path, estado)
     add_log(f"Estado emitido: robozinho-estado.json (ultima execucao {ultima.get('execution_id')})")
     add_log(
         "Metricas: itens_ultima=%d (noticia=%d) media_itens_10=%s (noticia=%s) execucoes_registradas=%d"
@@ -1455,7 +1594,7 @@ def main():
                 % metricas["itens_noticia_ultima"])
 
     # -------------------------------------------------------------
-    # 7. Ledger: ledger_updates, mecanicos dos concursos e contadores (opcional)
+    # 7. Ledger: ledger_updates, mecanicos dos concursos e contadores (opcional), em memoria
     # -------------------------------------------------------------
     if args.ledger_path:
         if os.path.exists(args.ledger_path):
@@ -1463,17 +1602,35 @@ def main():
                 out = list(todas)
                 for nome in historico.get("archive_files") or []:
                     try:
-                        out += read_json(os.path.join(pasta_hist, nome)).get("executions") or []
+                        out += g.ler(os.path.join(pasta_hist, nome)).get("executions") or []
                     except Exception:  # noqa: BLE001
                         pass
                 return out
-            aplicar_ledger(args.ledger_path, nova_exec, add_log, todas_execucoes, banca_res)
-            atualizar_estado_concursos(args.estado_concursos or os.path.join(pasta_hist, "concursos-estado.json"),
-                                       banca_res, nova_exec["date"], add_log,
-                                       os.path.join(os.path.dirname(os.path.abspath(args.bancas)), "paginas_oficiais.json"))
+            led = calcular_ledger(read_json(args.ledger_path), nova_exec, add_log, todas_execucoes, banca_res)
+            g.texto(args.ledger_path, texto_ledger(led), led)
+            caminho_ce = args.estado_concursos or os.path.join(pasta_hist, "concursos-estado.json")
+            try:          # URLs vistas e paginas oficiais sao reforco: falha aqui nao derruba a gravacao do dia
+                estado_ce = calcular_estado_concursos(
+                    caminho_ce, banca_res, nova_exec["date"], add_log,
+                    os.path.join(os.path.dirname(os.path.abspath(args.bancas)), "paginas_oficiais.json"))
+            except Exception as e:  # noqa: BLE001
+                estado_ce = None
+                add_log("AVISO: estado de concursos nao atualizado (%s: %s, %s) — os arquivos da banca de hoje "
+                        "voltam como novos amanha" % (type(e).__name__, e, onde_falhou(e)))
+            if estado_ce is not None:
+                import bancas
+                g.funcao(caminho_ce, lambda: bancas.gravar_estado(caminho_ce, estado_ce))
         else:
             add_log("AVISO: ledger nao encontrado: " + args.ledger_path)
 
+    # -------------------------------------------------------------
+    # 8. Gravar tudo (todas ou nenhuma) e conferir o historico relido do disco
+    # -------------------------------------------------------------
+    def conferir():
+        relido = read_json(args.historico_path)
+        if not any(e.get("execution_id") == nova_exec["execution_id"] for e in relido.get("executions") or []):
+            raise SystemExit("FALHA: a nova execucao nao foi encontrada apos a gravacao.")
+    g.aplicar(add_log, conferir)
     emitir("STATUS: OK")
 
 

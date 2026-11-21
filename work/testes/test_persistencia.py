@@ -214,6 +214,9 @@ def execucao_antiga(dia, modelo="claude-fable-5-2", fator=1.0):
 def pasta_helper(execucoes=None, ledger=None):
     d = tempfile.mkdtemp(dir=TMPDIR)
     led = ledger or ler(os.path.join(FIX, "ledger.json"))
+    for p in led.get("pendencias_vivas") or []:
+        if p["id"] == "estourada_x" and ledger is None:
+            p["execucoes"] = 5               # a estourada e so da fixture das migracoes
     led.setdefault("migracoes_aplicadas", [{"id": "2026-11-21-a-escopo", "aplicada_em": "2026-11-23"}])
     gravar(os.path.join(d, "led.json"), led)
     if execucoes is None:
@@ -266,6 +269,114 @@ def helper_preserva_migracoes_movimento_e_buscas_gmail():
     rc, out = rodar_helper(d, dict(ex, ledger_updates={"concursos": {"tjrs_juiz": {"movimento": False}}}),
                            "--draft-id", "r1")
     ok(rc == 0 and "STATUS: OK" in out and "tjrs_juiz atualizada" not in out, out)
+
+
+def helper_em_processo(d, ex, *extra):
+    """uh.main() no proprio processo (para trocar funcoes de bancas/uh); devolve (rc, saida)."""
+    gravar(os.path.join(d, "ex.json"), ex)
+    argv = ["Update-Historico.py", "--nova-execucao", os.path.join(d, "ex.json"), "--historico",
+            os.path.join(d, "hist.json"), "--ledger", os.path.join(d, "led.json"), "--janela",
+            os.path.join(d, "janela.json"), "--bancas", os.path.join(d, "bancas.json"), "--fontes-status",
+            os.path.join(d, "fs.json"), "--estado-concursos", os.path.join(d, "ce.json"),
+            "--relatorio-path", os.path.join(d, "relatorio.txt")] + list(extra)
+    salvo, buf, err, rc = sys.argv, io.StringIO(), io.StringIO(), 0
+    sys.argv = argv
+    try:
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(err):
+            uh.main()
+    except SystemExit as e:
+        rc = e.code if isinstance(e.code, int) else 1
+    finally:
+        sys.argv = salvo
+    return rc, buf.getvalue() + err.getvalue()
+
+
+def banca_minima(d, dia="2026-11-23"):
+    gravar(os.path.join(d, "bancas.json"), {"data": dia, "banca": "FGV", "http": 200, "concursos": []})
+
+
+def arquivos_de_estado(d):
+    return {n: md5(os.path.join(d, n)) for n in sorted(os.listdir(d))
+            if n.endswith(".json") and n not in ("ex.json", "janela.json", "bancas.json", "fs.json")}
+
+
+@teste
+def mecanico_dos_concursos_cai_como_o_montador():
+    import bancas
+    d = pasta_helper()
+    banca_minima(d)
+    reais = bancas.carimbos, bancas.contexto_selos
+
+    def quebra(*a, **k):
+        raise KeyError("prazos")
+    bancas.carimbos = bancas.contexto_selos = quebra
+    try:
+        rc, out = helper_em_processo(d, {"delivery": "draft", "items": itens(12),
+                                         "ledger_updates": {"pendencias": {"estourada_x": {"faixa": "longo_prazo"}}}},
+                                     "--draft-id", "r1")
+    finally:
+        bancas.carimbos, bancas.contexto_selos = reais
+    ok(rc == 0 and out.rstrip().endswith("STATUS: OK"), out[-800:])
+    ok("ALERTA: mecânico dos concursos com fallback (bancas.carimbos — KeyError: 'prazos')" in out
+       and "ALERTA: mecânico dos concursos com fallback (bancas.contexto_selos/divergencias_pendentes — KeyError" in out,
+       out)
+    led = ler(os.path.join(d, "led.json"))
+    ok(led["atualizado_por_execucao"] == "2026-11-23-7h" and ler(os.path.join(d, "hist.json"))["executions"][-1][
+        "execution_id"] == "2026-11-23-7h", "a execucao do dia foi gravada inteira")
+
+
+@teste
+def erro_interno_relatorio_sempre_e_nada_gravado():
+    d = pasta_helper(execucoes=[execucao_antiga(x) for x in (16, 17, 18, 19, 20)])
+    banca_minima(d)
+    antes = arquivos_de_estado(d)
+    real = uh.calcular_ledger
+
+    def quebra(*a, **k):
+        raise ValueError("dado inesperado")
+    uh.calcular_ledger = quebra
+    try:
+        rc, out = helper_em_processo(d, {"delivery": "draft", "items": itens(12)}, "--draft-id", "r1",
+                                     "--max-execucoes", "3")
+    finally:
+        uh.calcular_ledger = real
+    rel = open(os.path.join(d, "relatorio.txt"), encoding="utf-8").read()
+    ok(rc == 4 and re.search(r"^STATUS: ERRO INTERNO ValueError: dado inesperado \(test_persistencia\.py:\d+\) — "
+                             r"nada foi gravado no estado; nada commitado", rel, re.M), rel[-600:])
+    ok("Arquivado: 2026-11-16-7h" in rel, "o relatorio traz o log acumulado ate a falha")
+    ok(arquivos_de_estado(d) == antes and not os.path.exists(os.path.join(d, "robozinho-estado.json")),
+       "nada gravado: %r x %r" % (arquivos_de_estado(d), antes))
+    ok(not [n for n in os.listdir(d) if "arquivo-2026-11" in n], "o arquivo morto do mes nao nasceu")
+
+
+@teste
+def gravacao_que_falha_no_meio_volta_tudo():
+    d = pasta_helper(execucoes=[execucao_antiga(x) for x in (16, 17, 18, 19, 20)])
+    gravar(os.path.join(d, "robozinho-estado.json"), {"ultima_execucao": {"execution_id": "2026-11-20-7h"}})
+    antes = arquivos_de_estado(d)
+    real = uh.gravar_texto
+
+    def falha_no_ledger(caminho, texto):
+        if caminho.endswith("led.json"):
+            raise OSError(28, "No space left on device")
+        real(caminho, texto)
+    uh.gravar_texto = falha_no_ledger
+    try:
+        rc, out = helper_em_processo(d, {"delivery": "draft", "items": itens(12)}, "--draft-id", "r1",
+                                     "--max-execucoes", "3")
+    finally:
+        uh.gravar_texto = real
+    ok(rc == 4 and "ERRO: gravacao interrompida em led.json (OSError" in out and "voltaram ao que eram" in out
+       and "STATUS: ERRO INTERNO OSError" in out, out[-800:])
+    ok(arquivos_de_estado(d) == antes, "historico, arquivo morto e estado voltaram: %r" % arquivos_de_estado(d))
+
+
+@teste
+def validar_nao_grava_nem_o_envelope():
+    d = pasta_helper()
+    os.remove(os.path.join(d, "hist.json"))
+    rc, out = helper_em_processo(d, {"delivery": "draft", "items": itens(12)}, "--validar")
+    ok(rc == 0 and "VALIDACAO: OK" in out and not os.path.exists(os.path.join(d, "hist.json")), out[-400:])
 
 
 def main():
