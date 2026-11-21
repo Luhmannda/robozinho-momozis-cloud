@@ -11,7 +11,7 @@
 #   esforco, pesos por modelo, US$ com a tabela de precos, 1a chamada antes do
 #   run_started_at); ALERTA_ECONOMIA pelo TOTAL contra a media das ultimas 10 com
 #   o mesmo modelo do orquestrador; finalizar.sh num repositorio git descartavel
-#   (push com espera configuravel, branch de socorro, estado restaurado quando o
+#   (push com espera configuravel, sem branch extra no remoto, estado restaurado quando o
 #   helper falha, trava de sanidade, sessao fora da origin/main, migracao reaplicada
 #   na reaplicacao).
 # USO: python3 work/testes/test_persistencia.py   (imprime OK/FALHOU; sai != 0 em falha)
@@ -744,17 +744,17 @@ def hook(base, script):
 
 
 @teste
-def finalizar_push_falho_vai_para_a_branch_de_socorro():
+def finalizar_push_falho_guarda_copia_sem_branch_extra():
+    """Push recusado em definitivo: copia em tar do estado do dia (ESTADO:) e nenhuma outra branch no remoto — a
+    tarefa agendada so autoriza push na main (21/11/2026: a branch robozinho/socorro-<exec> foi retirada)."""
     base, sess, t, g, run = repo_finalizar()
     run(sys.executable, "work/montar_email.py")
-    # o remoto recusa a main (como em 09/10) e aceita outra branch
+    # o remoto recusa a main (como em 09/10) e aceitaria outra branch
     hook(base, 'while read a b ref; do [ "$ref" = refs/heads/main ] && { echo "main protegida" >&2; exit 1; }; done; exit 0\n')
     rc, out = run(*FINALIZAR)
-    sha = g(sess, "rev-parse", "--short", "HEAD").stdout.strip()
-    ok(rc == 3 and "PUSH: FALHOU (apos 5 tentativas)" in out
-       and "SOCORRO: commit %s (estado do dia) enviado para a branch robozinho/socorro-2026-11-17-7h" % sha in out, out[-900:])
-    remoto = g(base, "--git-dir", os.path.join(base, "origin.git"), "rev-parse", "robozinho/socorro-2026-11-17-7h").stdout
-    ok(remoto.strip() == g(sess, "rev-parse", "HEAD").stdout.strip(), "o commit do estado esta no remoto")
+    ok(rc == 3 and "PUSH: FALHOU (apos 5 tentativas)" in out and "SOCORRO" not in out, out[-900:])
+    refs = g(base, "--git-dir", os.path.join(base, "origin.git"), "for-each-ref", "--format=%(refname)").stdout.split()
+    ok(refs == ["refs/heads/main"], "nenhuma branch nova no remoto: %s" % refs)
     ok(re.search(r"^ESTADO: copia do estado do dia em .* — para reaplicar: tar -xzf", out, re.M), "ESTADO continua")
 
 

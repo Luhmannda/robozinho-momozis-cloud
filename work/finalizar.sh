@@ -48,8 +48,8 @@
 #      - rede com prazo: cada push/fetch ate ROBOZINHO_LIMITE_REDE s (20), esperas
 #        ROBOZINHO_PUSH_ESPERAS ("0 5 15 30 40"): pior caso abaixo de 300 s (o Bash do
 #        passo 7 roda com timeout 300000);
-#      - falha definitiva: alem da copia em tar, o commit do estado do dia vai para a
-#        branch robozinho/socorro-<exec> no remoto ("SOCORRO: ...").
+#      - falha definitiva: copia em tar do estado do dia (ESTADO: ...). Nenhuma outra branch
+#        e criada no remoto: a tarefa agendada so autoriza push na main.
 #
 # USO: bash work/finalizar.sh --draft-id ID --message-id MSG_ID \
 #                             [--anterior EXEC_ID] [--trailer "linhas de atribuicao do commit"]
@@ -219,7 +219,7 @@ EXEC=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['executio
 BACKUP_ARQ="$T/robozinho-estado-backup-$EXEC.tar.gz"
 BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0
 # rede com prazo (verified[44]): cada push/fetch tem LIMITE_REDE s; as esperas entre as 5 tentativas somam 90 s.
-# Pior caso (rede caida): ~90 s de espera + 5 x 20 s de push + fetch + socorro + 2 rodadas do helper < 300 s, o
+# Pior caso (rede caida): ~90 s de espera + 5 x 20 s de push + fetch + 2 rodadas do helper < 300 s, o
 # timeout do Bash do passo 7. Os dois sao configuraveis (testes: ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0").
 ESPERAS=(${ROBOZINHO_PUSH_ESPERAS:-0 5 15 30 40})
 LIMITE_REDE=${ROBOZINHO_LIMITE_REDE:-20}
@@ -297,17 +297,6 @@ commitar() {
   fi
 }
 
-socorro() {   # o commit do estado do dia vai para uma branch propria no remoto: deixa de depender desta sessao
-  local c="${SHA:-$SHA1}" s
-  [[ -n "$c" ]] || return 0
-  if s=$(rede git push -q origin "$(git rev-parse "$c")":"refs/heads/robozinho/socorro-$EXEC" 2>&1); then
-    echo "SOCORRO: commit $c (estado do dia) enviado para a branch robozinho/socorro-$EXEC — o estado não depende" \
-         "mais desta sessão"
-  else
-    echo "SOCORRO: a branch robozinho/socorro-$EXEC também não foi aceita ($(tail -1 <<< "${s:-sem resposta em ${LIMITE_REDE} s}"))"
-  fi
-}
-
 falhou() {
   echo "PUSH: FALHOU ($1) — registrar no relatorio final."
   if [[ -n "$BACKUP" && $reaplicado -eq 1 && "$ESTADO_DE" == "rodada1" ]]; then
@@ -319,7 +308,6 @@ falhou() {
     echo "ESTADO: copia do estado do dia em $BACKUP (commit local ${SHA:-nenhum}) —" \
          "para reaplicar: tar -xzf $BACKUP e commitar os arquivos work/ na main"
   fi
-  socorro
   exit 3
 }
 
