@@ -25,6 +25,10 @@
 #   - (volta 3) selo por data suspenso e prazo escrito hoje contra o edital: os modelos da §R12 sao o que helper,
 #     montador e inicio imprimem, a correcao que a ROTINA manda resolve e as linhas de gravacao vao a 2a
 #     notificacao; linha-fina cortada (resumo_truncado) nao se completa nem se copia; README com as regras novas.
+#   - (rodada de 21/11) buscas_gmail -> gmail_* (a ROTINA nao os escreve), STJ_TESES, LEGIN/camara_legin e resenha
+#     no ref, banca_slug/movimento, linhas novas do passo 1 e da banca (MOVIMENTO sem registro some no dia seguinte),
+#     escopo do apoio, ERRO INTERNO/TRAVA/RESTAURADO/REAPLICACAO e push so na main, migracoes reais sem ALERTA e
+#     REGRAS_ATUALIZADAS vivas, marcas do coleta_web e Afetacao, §R1 com window_end, notificacao unica (§R13 nova).
 # Opcional (rede): DOC_TESTE_INICIO=1 roda o inicio.py numa copia descartavel
 # e confere que nenhum placeholder sobra nos prompts gerados.
 #
@@ -52,7 +56,14 @@ ROTINA_ANTERIOR_BYTES = 19253          # ROTINA.md de b80a3bd (execucao de 16/11
 # Volta 3 (+~640 bytes, o procedimento na §R12): selo por data suspenso no passo 1, o que fazer com ele e com o
 # prazo escrito hoje contra o edital no passo 3, as duas linhas de gravacao na 2a notificacao e a linha-fina cortada
 # no passo 2. Era 21.000.
-ROTINA_TETO_BYTES = 21650
+# Rodada de 21/11/2026 (+~1,35 KB, o maximo combinado com o dono): as regras das frentes bancas, concursos, montador,
+# informativos, fontes, persistencia e migracao (banca_slug/CANDIDATO, PAGINA OFICIAL, escopo do apoio, buscas_gmail,
+# STJ_TESES, LEGIN e marcas de relevancia, JA SAIU, movimento, resenha no ref, pendencia para o leitor, notificacao
+# unica depois do finalizar.sh, ERRO INTERNO/TRAVA). Para caber, o ramo raro do create_draft com erro foi para a §R13,
+# o Agent em segundo plano para a §R3 e o detalhe do DIVERGE/prazo escrito hoje ficou so na §R12; o que a propria linha
+# do script ja manda fazer (JA PUBLICADAS, ERRO dos informativos, rotina, NENHUM ATO FORA, cobertura parcial) e o que
+# a armadilha do ledger ja diz (link do JOTA, MPV SEM_DATA_OFICIAL) sairam do texto. Era 21.650.
+ROTINA_TETO_BYTES = 23000
 DOCS = ["ROTINA.md", "README.md", "docs/referencia-operacional.md", "robozinho-dos-momozis-prompt.md"] + \
     sorted(os.path.relpath(p, RAIZ) for p in glob.glob(os.path.join(WORK, "prompts", "coletor-*.md"))) + \
     sorted(os.path.relpath(p, RAIZ) for p in glob.glob(os.path.join(RAIZ, ".claude", "agents", "coletor-*.md")))
@@ -182,6 +193,17 @@ def textos_contraditorios_antigos_sairam():
         "corrija `prazos`/`linha` (senão: sem carimbo e AVISO ACIONÁVEL)": ["ROTINA.md"],
         "não conta como banca lida no selo": ["docs/referencia-operacional.md"],
         "tira do carimbo e do selo por data o registro": ["README.md"],
+        # rodada de 21/11/2026
+        "Corpo por anexo de referência": ["README.md"],                # o Apps Script nao muda (decisao do dono)
+        "2ª notificação": ["ROTINA.md", "docs/referencia-operacional.md", "README.md"],   # uma notificacao so
+        "robozinho/socorro": DOCS,                                     # push so na main
+        "Limitação ao leitor só para edição anunciada": ["ROTINA.md"],  # informativos_docs e do montador
+        "STJ Jurisprudência | só oficial: teses do CodJu": ["ROTINA.md"],
+        "Decisão pendente do dono: modelo do orquestrador": ["README.md"],   # Fable, decidido
+        "acima de 1,3 × a mediana das 10 execuções": ["README.md"],    # ALERTA_ECONOMIA antigo
+        "some os do Gmail (linhas `BUSCAS` dos coletores)": ["ROTINA.md"],   # os gmail_* saem de buscas_gmail
+        "e a nota de confirmação (STJ Jurisprudência": ["robozinho-dos-momozis-prompt.md"],   # sem nota por item
+        "uma sonda só: `presidencia.gov.br": ["docs/referencia-operacional.md"],   # agora from:presidencia.gov.br
     }
     achados = ["%s em %s" % (t, rel) for t, onde in proibidos.items() for rel in onde if t in ler(rel)]
     assert not achados, "; ".join(achados)
@@ -470,13 +492,16 @@ def selo_ao_entrar_na_familia_bate_com_selos_py():
 
 @teste
 def create_draft_com_erro_confere_rascunho_e_enviada():
+    # (21/11) o ramo foi para a §R13; o passo 6 guarda o ponteiro e a proibicao de recriar sem conferir
     r = ler("ROTINA.md")
     passo6 = r[r.index("## 6. "):r.index("## 7 e 8. ")]
-    erro = passo6[passo6.index("**Erro ou timeout**"):]
-    antes = erro[:erro.index("1 nova tentativa")]
+    assert "**Erro ou timeout** → §R13 antes de qualquer nova tentativa" in passo6 and "**não recrie**" in passo6
+    r13 = secao("docs/referencia-operacional.md", "### R13.", None)
+    antes = r13[:r13.index("1 nova tentativa")]
     assert '`list_drafts` com `subject:"<ASSUNTO>"`' in antes, "erro do create_draft sem list_drafts"
     assert '`search_threads` com `subject:"<ASSUNTO>" in:sent`' in antes, "erro do create_draft sem in:sent"
     assert "**não recrie**" in antes and "nada nas duas" in antes
+    assert "**não** rode o `finalizar.sh`" in r13
 
 
 @teste
@@ -590,11 +615,14 @@ def linhas_do_finalizar_citadas_existem_no_codigo():
 @teste
 def segunda_notificacao_cobre_o_que_os_scripts_mandam_notificar():
     r = ler("ROTINA.md")
-    ultima = r[r.index("**Última mensagem: uma linha**"):r.index("## Regras editoriais")]
+    ultima = r[r.index("**Última mensagem: a notificação**"):r.index("## Regras editoriais")]
     for t in ("PERSISTENCIA ABORTADA", "PUSH: FALHOU", "ALERTA: o execucao.json editado depois da montagem mudou os itens",
               "ALERTA: modelo do orquestrador mudou", "ALERTA_ECONOMIA", "ALERTA: edicao anterior … sem --message-id",
-              "AVISO: diferenca local", "§R6"):
-        assert t in ultima, "2a notificacao sem %r" % t
+              "AVISO: diferenca local", "§R6",
+              # (21/11, persistencia) linhas novas que vao ao dono
+              "STATUS: ERRO INTERNO", "TRAVA:", "ALERTA: mecânico dos concursos com fallback",
+              "ALERTA: migracao … recusada", "`USO:`"):
+        assert t in ultima, "notificacao sem %r" % t
     # toda linha de script que pede "diga/avise na notificacao" esta na lista, pelo comeco fixo dela
     achadas = 0
     for rel in ("work/finalizar.sh", "work/Update-Historico.py"):
@@ -603,9 +631,17 @@ def segunda_notificacao_cobre_o_que_os_scripts_mandam_notificar():
             assert fixo in ultima, "%s: %r pede notificacao e nao esta na 2a" % (rel, fixo)
             achadas += 1
     assert achadas >= 2, "nenhuma linha 'notificacao' achada nos scripts (o teste ficou cego)"
-    # a 1a notificacao vai na mesma mensagem do finalizar.sh: o ALERTA dele so chega ao dono pela 2a
+    # (21/11) uma notificacao so, na mensagem seguinte a do finalizar.sh: antes ela ia junto e saia otimista (o ALERTA
+    # do finalizar.sh so chegava ao dono por uma 2a notificacao)
     p78 = r[r.index("## 7 e 8. "):r.index("**Última mensagem")]
-    assert p78.index("bash work/finalizar.sh") < p78.index("`PushNotification`")
+    assert "bash work/finalizar.sh" in p78 and "PushNotification" not in p78, "notificacao na mensagem do finalizar.sh"
+    assert "depois de ler a saída do `finalizar.sh`" in ultima and "a única do dia" in ultima
+    assert "**6 turnos** (passo 1 · 2 · 3–5 · 6 · 7 · 8)" in r and "Bash (`timeout: 300000`): `bash work/finalizar.sh" in p78
+    # o finalizar.sh cabe no timeout: as esperas do push mais 5 tentativas de ROBOZINHO_LIMITE_REDE s ficam abaixo de 300 s
+    fin = ler("work/finalizar.sh")
+    esperas = re.search(r'ROBOZINHO_PUSH_ESPERAS:-([\d ]+)', fin).group(1).split()
+    limite = int(re.search(r'ROBOZINHO_LIMITE_REDE:-(\d+)', fin).group(1))
+    assert sum(map(int, esperas)) + len(esperas) * limite < 300, (esperas, limite)
 
 
 @teste
@@ -879,7 +915,7 @@ def selo_suspenso_e_prazo_contra_edital_batem_com_o_codigo():
     h = helper()
     r = ler("ROTINA.md")
     r12 = secao("docs/referencia-operacional.md", "### R12.", None)
-    ultima = r[r.index("**Última mensagem: uma linha**"):r.index("## Regras editoriais")]
+    ultima = r[r.index("**Última mensagem: a notificação**"):r.index("## Regras editoriais")]
     passo1 = r[r.index("- **`ALERTA:`**"):r.index("- **Ledger:**")]
     concursos = r[r.index("**Concursos — a seção sai"):r.index("## 4 e 5. ")]
 
@@ -1016,6 +1052,229 @@ def readme_cita_as_regras_novas_da_volta_3():
         codigo = ler("work/" + script)
         for t in textos:
             assert t in codigo, "%s sem %r" % (script, t)
+
+
+# ------------------------------------------------------------------ rodada de 21/11/2026 (integracao das frentes)
+@teste
+def buscas_gmail_deriva_os_gmail_oficiais():
+    """A ROTINA manda copiar a linha BUSCAS do coletor-gmail em `buscas_gmail` e NAO escrever os gmail_* oficiais: o
+    montador so os deriva quando o id nao foi escrito (status_gmail), entao um 'ok' escrito esconderia o silencio."""
+    import montar_email as m
+    r = ler("ROTINA.md")
+    linha = next(l for l in r.splitlines() if l.startswith("- `source_status`"))
+    derivados = set(re.findall(r"`(gmail_[a-z_]+)`", linha.split("saem de `buscas_gmail`")[0])) - {"gmail_jota"}
+    assert derivados == set(m.BUSCA_GMAIL.values()), (derivados, m.BUSCA_GMAIL)
+    assert "gmail_jota" not in m.BUSCA_GMAIL.values() and "não os escreva" in linha and "só `falha`" in linha
+    assert '"buscas_gmail": "<linha BUSCAS do coletor-gmail>"' in r
+    assert "A linha `BUSCAS` do coletor-gmail vai inteira em `\"buscas_gmail\"`" in r
+    g = ler("work/prompts/coletor-gmail.md")
+    assert "BUSCAS | a=<na janela>/<total> b=… c=… d=… e=…" in g and "`a=2/3 b=0/1 c=0/0 d=1/1 e=0/2`" in g
+    achados = {x.group(1): x.group(3) for x in m.RE_BUSCA_GMAIL.finditer("a=2/3 b=0/1 c=0/0 d=1/1 e=0/2")}
+    assert set(achados) == set("abcde") and all(achados.values()), achados
+    # quarta-feira a quinta-feira, sem feriado nem recesso: silencio do push diario e 'vazio', o semanal e 'ok'
+    j = {"inicio": "2026-11-18T07:05:00-03:00", "fim": "2026-11-19T07:05:00-03:00", "data": "2026-11-19"}
+    ex = {"buscas_gmail": "a=0/2 b=0/0 c=0/0 d=0/1 e=0/0 | abertas=0"}
+    m.status_gmail(ex, j, [])
+    assert ex["source_status"] == {"gmail_push_stf": "vazio", "gmail_push_stf_informativos": "ok",
+                                   "gmail_stj_codju": "ok", "gmail_push_planalto": "vazio", "gmail_camara": "ok"}, \
+        ex["source_status"]
+    escrito = {"buscas_gmail": ex["buscas_gmail"], "source_status": {"gmail_push_stf": "ok"}}
+    m.status_gmail(escrito, j, [])
+    assert escrito["source_status"]["gmail_push_stf"] == "ok", "o escrito prevalece (por isso a ROTINA nao o escreve)"
+
+
+@teste
+def stj_teses_vai_para_stj_jurisprudencia():
+    import montar_email as m
+    r = ler("ROTINA.md")
+    linha = next(l for l in r.splitlines() if l.startswith("| STJ Jurisprudência |"))
+    modelo = re.search(r'`titulo` "([^"]+)"', linha).group(1)
+    assert "`STJ_TESES`" in linha and modelo == "Jurisprudência em Teses nº N — <tema>", linha
+    assert "STJ_TESES | <número da edição> | <tema da edição, exato> | <data do e-mail> |" in ler(
+        "work/prompts/coletor-gmail.md")
+    it = {"categoria": "Informativos", "titulo": modelo.replace("N", "270").replace("<tema>", "Direito Penal"),
+          "data": "2026-11-20"}
+    m.teses_stj(it, [])
+    assert it["categoria"] == "STJ Jurisprudência" and it["fonte"] == m.JT_FONTE, it
+    assert "Jurisprudência em Teses" in m.ROTULO_FONTE["gmail_stj_codju"] or m.item_oficial({"fonte": m.JT_FONTE})
+
+
+@teste
+def legin_e_resenha_no_ref():
+    """Os ids do LEGIN citados na ROTINA sao os que o coleta_web atribui, a fonte do status e camara_legin, e o ref
+    de lei/MPV/decreto com `resenha` do PUSH sai com grupo, fonte e selo do PUSH (FONTES_ATO_RESENHA)."""
+    import montar_email as m
+    r = ler("ROTINA.md")
+    for t in ("`dec13173`", "`lc239`", "`ec141`", "`dleg…`", "fonte `camara_legin`",
+              '`lei…`/`mpv…`/`dec…` que também veio na resenha do PUSH: `{"ref", "resenha"}`'):
+        assert t in r, "ROTINA sem %r" % t
+    cw = ler("work/coleta_web.py")
+    assert '"camara_legin"' in cw and "dec13173, lc239, ec141, dleg123" in cw
+    assert {"congresso_leis", "congresso_mpv", "legin"} <= set(m.FONTES_ATO_RESENHA)
+    novo = {}
+    m.resenha_no_ref(novo, {"ref": "dec13173", "resenha": "Resenha Diária PUSH Legislação - 19/11/2026 (edição "
+                                                          "extra) | recebida 19/11 21:10"},
+                     {"_fonte": "legin"}, "dec13173", [])
+    assert novo.get("grupo") and novo.get("fonte") == "PUSH Planalto" and \
+        novo.get("status") == "CONFIRMADO POR FONTE OFICIAL", novo
+    assert "rotina (créditos, LOA, LDO, PPA, PLN)" in r and "ementa inteira" in r
+
+
+@teste
+def concursos_campos_novos_e_movimento():
+    import montar_email as m
+    h = helper()
+    r = ler("ROTINA.md")
+    esquema = r[r.index('"concursos": {id: {'):r.index('| {remover: true, desfecho}}, "armadilhas_detectadas"')]
+    assert "banca_slug" in esquema and "movimento" in esquema, esquema
+    assert {"banca_slug", "movimento"} <= h.CAMPOS_EDITAVEIS["concursos"] and "movimento" in h.NAO_GRAVA
+    assert '`"movimento": false`' in r and "`ENCERRADO` → `remover` com `desfecho`" in r
+    for v, esperado in ((False, True), ("false", True), (True, False), (None, False)):
+        campos = {} if v is None else {"movimento": v}
+        assert m.sem_movimento(campos) is esperado and h.sem_movimento(campos) is esperado, v
+    assert h.RE_BANCA_SLUG.fullmatch("exames/enam/6exame") and not h.RE_BANCA_SLUG.fullmatch("Tjap26")
+    assert "RODIZIO | <id do registro> | IGUAL|MUDOU|ENCERRADO" in ler("work/prompts/coletor-concursos.md")
+    assert "<tipo: inscricoes_inicio|inscricoes_fim|prova|outro>" in ler("work/prompts/coletor-concursos.md")
+
+
+@teste
+def linhas_novas_do_passo_1_e_da_banca_existem():
+    """O que a ROTINA e a §R12 mandam procurar na saida do passo 1 e o que os scripts imprimem; a linha MOVIMENTO
+    sem registro some no dia seguinte (por isso a ROTINA manda avaliar no mesmo dia)."""
+    import bancas
+    from datetime import date
+    r = ler("ROTINA.md")
+    r12 = secao("docs/referencia-operacional.md", "### R12.", "### R13.")
+    for t in ("`vínculo pela fonte`", "`CANDIDATO`", "`CANDIDATO a registro NOVO`", "`NOVA EDIÇÃO?`",
+              "`- MOVIMENTO sem registro` → avalie hoje como NOVO", "`PAGINA OFICIAL`", "`LIDA (1ª vez)`", "`RELIDA`",
+              "`FORA DO ESCOPO`", "`REDE do ambiente: LIBERADO…`", "`MIGRACAO … aplicada`",
+              "`ALERTA: migracao … recusada`", "passadas as inscrições, `EM ANDAMENTO`"):
+        assert t in r, "ROTINA sem %r" % t
+    for script, textos in (
+            ("bancas.py", ['[vínculo pela fonte: grave banca_slug="%s"]', "'CANDIDATO %s ← %s |",
+                           "'CANDIDATO a registro NOVO %s ← %s |", "'NOVA EDIÇÃO? %s |", '"- MOVIMENTO sem registro: ']),
+            ("paginas_oficiais.py", ['"MUDOU"', '"LIDA (1ª vez)"', '"RELIDA (formato novo: confira com o registro)"']),
+            ("inicio.py", ["FORA DO ESCOPO (apoio só", '"REDE do ambiente: %s"', "LIBERADO pelo proxy",
+                           "COBERTA PELO PRAZO de %s (acima)", "SÓ VIGIAR MOVIMENTO NOVO",
+                           "PRAZO VENCIDO (só secundária; desfecho já buscado pelo coletor, sem busca hoje)"]),
+            ("migracoes.py", ['"MIGRACAO %s: aplicada (%d concursos, %d pendências)%s"',
+                              '"ALERTA: migracao %s recusada: %s"'])):
+        codigo = codigo_unido("work/" + script)
+        for t in textos:
+            assert t in codigo, "%s nao imprime %r" % (script, t)
+    for t in ("[vínculo pela fonte: grave banca_slug=", "`CANDIDATO <id> ← <slug>", "`NOVA EDIÇÃO? <slug>",
+              "`- MOVIMENTO sem registro: <slug>", "**no mesmo dia**", "`COBERTA PELO PRAZO de <id>`",
+              "`SÓ VIGIAR MOVIMENTO NOVO`", "`RELIDA (formato novo: confira com o registro)`"):
+        assert t in r12, "§R12 sem %r" % t
+    a = {"data": "2026-11-20", "titulo": "Resultado da Prova Oral", "url": "https://conhecimento.fgv.br/x.pdf"}
+    c, hoje = {"arquivos": [a]}, date(2026, 11, 23)
+    assert bancas.movimento(c, {}, hoje) == [a]                                       # nunca visto: aparece
+    assert bancas.movimento(c, {bancas.chave_arquivo(a): "2026-11-23"}, hoje) == [a]  # visto hoje: ainda novo
+    assert bancas.movimento(c, {bancas.chave_arquivo(a): "2026-11-22"}, hoje) == []   # visto ontem: sumiu
+
+
+@teste
+def escopo_do_apoio_igual_ao_codigo():
+    import escopo
+    r = ler("ROTINA.md")
+    ufs = re.search(r"Escopo do dono: carreiras finais, todo o país; apoio, só ([A-Z, ]+) ou órgão nacional", r)
+    assert ufs and tuple(u.strip() for u in ufs.group(1).split(",")) == escopo.UFS_APOIO, ufs and ufs.group(1)
+    for rel in ("robozinho-dos-momozis-prompt.md", "README.md", "docs/referencia-operacional.md"):
+        assert "SP, RJ, MG, ES, PR, SC" in ler(rel) and "RS" in ler(rel), rel
+    assert "SP, RJ, MG, ES, PR, SC ou RS" in escopo.TEXTO_ESCOPO_APOIO
+
+
+@teste
+def finalizar_e_helper_linhas_novas_e_push_so_na_main():
+    """(persistencia) As linhas novas que a ROTINA e a §R11 citam sao impressas; a trava de sanidade nao se repete;
+    nenhuma outra branch e empurrada (a tarefa agendada so autoriza push na main)."""
+    h = helper()
+    r = ler("ROTINA.md")
+    r11 = secao("docs/referencia-operacional.md", "### R11.", "### R12.")
+    fin = codigo_unido("work/finalizar.sh")
+    hl = codigo_unido("work/Update-Historico.py")
+    for t in ('"RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper',
+              "PERSISTENCIA ABORTADA: trava de sanidade (linhas TRAVA acima",
+              "Não edite o estado nem o código: avise o dono com as linhas TRAVA",
+              "sed 's/^/REAPLICACAO: /'", '"ESTADO: '):
+        assert t in fin, "finalizar.sh sem %r" % t
+    assert "STATUS: ERRO INTERNO %s — nada foi gravado no estado" in hl and '"USO: custo total US$ %.2f' in hl
+    assert h.ALERTA_FALLBACK.startswith("ALERTA: mecânico dos concursos com fallback")
+    for t in ("`REAPLICACAO:`", "`RESTAURADO:`", "`STATUS: ERRO INTERNO`", "`ESTADO:`", "`TRAVA:`", "`USO:`"):
+        assert t in r, "ROTINA sem %r" % t
+    assert "a da trava de sanidade (`TRAVA:`) não: só notifique" in r
+    for t in ("**`STATUS: ERRO INTERNO", "**`TRAVA: …`**", "**`RESTAURADO:", "`REAPLICACAO: …`"):
+        assert t in r11, "§R11 sem %r" % t
+    pushes = re.findall(r"git push[^\n]*", fin)
+    assert pushes and all("origin main" in x for x in pushes), pushes
+    assert "socorro" not in re.sub(r"(?m)^\s*#.*$", "", fin), "branch de socorro voltou ao finalizar.sh"
+    assert "a tarefa agendada só autoriza push na `main`" in r or "só autoriza push nela" in r
+
+
+@teste
+def migracoes_reais_aplicam_sem_alerta_e_regras_de_armadilha_vivas():
+    """As migracoes de work/migracoes/ aplicam sobre uma copia do ledger vivo sem ALERTA e uma vez so; toda regra de
+    REGRAS_ATUALIZADAS ainda casa o ledger (texto antigo ou ja o novo: senao a migracao morreu calada); a nota de
+    fonte das migracoes cabe no limite e o essencial do CodJu aparece no LEDGER impresso (NOTA_CURTA)."""
+    import migracoes
+    import inicio
+    from datetime import date
+    h = helper()
+    d = tempfile.mkdtemp(prefix="test_doc_migr_")
+    try:
+        shutil.copy(os.path.join(WORK, "robozinho-aprendizado.json"), d)
+        shutil.copytree(os.path.join(WORK, "migracoes"), os.path.join(d, "migracoes"))
+        linhas = migracoes.aplicar(date(2026, 11, 23), work_dir=d)
+        assert not [x for x in linhas if x.startswith("ALERTA")], linhas
+        assert migracoes.aplicar(date(2026, 11, 23), work_dir=d) == [], "reaplicou"
+        with open(os.path.join(d, "robozinho-aprendizado.json"), encoding="utf-8") as f:
+            led = json.load(f)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    ids = {os.path.basename(p)[:-5] for p in glob.glob(os.path.join(WORK, "migracoes", "*.json"))}
+    assert ids <= {x["id"] for x in led.get("migracoes_aplicadas") or []}, ids
+    vivo = {a["id"]: a.get("regra") for a in ledger().get("armadilhas", [])}
+    for ident, mig in h.REGRAS_ATUALIZADAS.items():
+        if ident in vivo:
+            assert vivo[ident] in mig["antigas"] or vivo[ident] == mig["regra"], "%s: regra antiga mudou" % ident
+    for p in glob.glob(os.path.join(WORK, "migracoes", "*.json")):
+        with open(p, encoding="utf-8") as f:
+            for ident, campos in ((json.load(f).get("ledger_updates") or {}).get("fontes") or {}).items():
+                assert len(campos.get("nota") or "") <= h.LIMITE["nota"], ident
+    codju = next(x for x in led["fontes"] if x["id"] == "gmail_stj_codju")["nota"]
+    assert "Jurisprudência em Teses" in codju[:inicio.NOTA_CURTA] and "STJ Jurisprudência" in codju[:inicio.NOTA_CURTA]
+
+
+@teste
+def informativos_e_coleta_web_marcas_novas():
+    import montar_email as m
+    r = ler("ROTINA.md")
+    for t in ("`[Afetação · Tema N]`", "`informativos_docs: falha`", "`[CONC]`", "`[STJ]`", "`vinculante`",
+              "`[ASSESSORIA X]`", "`(mesma história: …)`", "`JA SAIU`", "`AVISO: cobertura parcial`",
+              "`NENHUM ATO FORA…`", "`rotina — …`"):
+        assert t in r, "ROTINA sem %r" % t
+    inf, cw, rj = ler("work/informativos.py"), codigo_unido("work/coleta_web.py"), ler("work/resolver_jota.py")
+    assert '"Afetação"' in inf and "sonda curta" in inf and "def status_informativos" in ler("work/montar_email.py")
+    html = m.texto_destaque("stj", {"tipo": "Afetação", "precedente": "Tema 1484", "ramo": "Direito Civil",
+                                    "destaque": "Definir se cabe X."})
+    assert "Afetação · Tema 1484" in html, html
+    for t in ('out.append("[CONC]")', '"[ASSESSORIA %s]"', '" (mesma história: %s)"', "== JA SAIU",
+              "AVISO: cobertura parcial do %s", "NENHUM ATO FORA DO CONGRESSO E DO HISTORICO", "] rotina — %d %s"):
+        assert t in cw, "coleta_web.py sem %r" % t
+    assert "JA SAIU" in rj
+
+
+@teste
+def r1_exige_window_end():
+    h = helper()
+    trecho, bloco = secao("docs/referencia-operacional.md", "### R1.", "### R2."), None
+    assert '"window_end": "<AAAA-MM-DDTHH:MM:SS-03:00>"' in trecho and "Janela de cobertura" in trecho
+    erros = h.erros_window_end_r1({"delivery": "draft_ja_existente"}, ["campo obrigatorio ausente: window_end"],
+                                  "2026-11-23T07:07:00-03:00")
+    assert len(erros) == 1 and "§R1" in erros[0], erros
+    ok = h.erros_window_end_r1({"delivery": "draft_ja_existente", "window_start": "2026-11-20T07:07:04-03:00",
+                                "window_end": "2026-11-23T07:12:00-03:00"}, [], "2026-11-23T09:30:00-03:00")
+    assert ok == [], ok
 
 
 def inicio_preenche_os_prompts():
