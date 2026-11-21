@@ -1595,6 +1595,8 @@ def t_mon_saiu_do_acompanhamento():
     ok("Saiu do acompanhamento: <b>PGM Curitiba</b> — inscrições encerradas em 05/11 sem prorrogação." in pgm
        and html.count("Saiu do acompanhamento") == 1, "linha no bloco PGM")
     ok("PGM Curitiba — Procurador" not in html, "o registro removido nao sai")
+    ok(M.linha_removido({"orgao": "PGM Curitiba", "desfecho": ""}, 0).endswith(
+        "Saiu do acompanhamento: <b>PGM Curitiba</b>.</td></tr>"), "sem desfecho: sem travessao solto")
     ctx2, _, _ = ctx_1811({})
     ok(not ctx2["removidos"] and "Saiu do acompanhamento" not in M.sec_concursos(
         ctx2["regs"], date(2026, 11, 18), ctx2["novos"], ctx2["alterados"]), "sem remocao hoje: nada")

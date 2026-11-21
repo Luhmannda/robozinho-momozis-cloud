@@ -1260,10 +1260,12 @@ def linha_compacta(regs, zebra, hoje=None):
 
 
 def linha_removido(r, zebra):
-    """Concurso removido hoje (ledger_updates.concursos.<id>.remover): uma linha esmaecida no bloco, so no dia."""
-    return '<tr%s><td style="color:%s">Saiu do acompanhamento: <b>%s</b> — %s</td></tr>' % (
+    """Concurso removido hoje (ledger_updates.concursos.<id>.remover): uma linha esmaecida no bloco, so no dia.
+    Sem desfecho (o helper o exige; montagem fora do fluxo): so o orgao, sem travessao solto."""
+    desfecho = str(r.get("desfecho") or "").strip()
+    return '<tr%s><td style="color:%s">Saiu do acompanhamento: <b>%s</b>%s</td></tr>' % (
         ' bgcolor="#f4f6fa"' if zebra else "", APOIO_COR, esc(r.get("orgao") or r.get("id")),
-        esc(ponto(r.get("desfecho") or "")))
+        (" — " + esc(ponto(desfecho))) if desfecho else ".")
 
 
 TABELA_CONCURSOS = ('<table width="100%" cellpadding="7" cellspacing="0" style="border-collapse:collapse;'
