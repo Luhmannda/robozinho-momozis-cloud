@@ -1331,6 +1331,17 @@ def inicio_preenche_os_prompts():
         shutil.rmtree(d, ignore_errors=True)
 
 
+@teste
+def regras_que_a_rotina_deixou_para_o_cabecalho_do_inicio():
+    """O ajuste final da ROTINA (21/11/2026) tirou dela o que o cabecalho do LEDGER impresso pelo inicio.py ja diz:
+    'o ledger vence' (em conflito com o prompt mestre), 'nao tentar' (fontes bloqueadas/descontinuadas) e 'checklist
+    antes de publicar' (armadilhas). Se o cabecalho mudar, essas regras somem da leitura do orquestrador."""
+    ini = codigo_unido("work/inicio.py")
+    for t in ("em conflito com o prompt mestre, o ledger vence", "não tentar (bloqueado/descontinuado/indisponível)",
+              "ARMADILHAS (checklist antes de publicar"):
+        assert t in ini, "inicio.py nao imprime mais %r (a ROTINA conta com ele)" % t
+
+
 if os.environ.get("DOC_TESTE_INICIO") == "1":
     teste(inicio_preenche_os_prompts)
 

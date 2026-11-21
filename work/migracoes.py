@@ -299,7 +299,8 @@ def aplicar(hoje, work_dir=None, tmp_dir=None):
             gravar_resumo(hj, base, feitas, tmp_dir)
         except (OSError, TypeError, ValueError) as e:
             linhas.append("ALERTA: %s não gravado (%s: %s): o ledger já está migrado, mas o e-mail de hoje não "
-                          "marcará NOVO/Atualizado hoje/Saiu do acompanhamento pelas migrações"
+                          "marcará NOVO/Atualizado hoje/Saiu do acompanhamento pelas migrações — diga o que elas mudaram no "
+                          "card de Concursos do resumo e na notificação"
                           % (RESUMO, type(e).__name__, e))
     return linhas
 
