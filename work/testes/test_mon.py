@@ -1973,6 +1973,26 @@ def t_mon_rodape_contra_limitacoes():
     ok("Nenhuma fonte falhou" in M.suporte_txt({"conjur": "ok"}) and M.fontes_que_falharam({"conjur": "falha"}) == [
         M.rotulo_fonte("conjur")], "rodape e lista de falhas pela mesma regra")
 
+@teste
+def t_mon_falha_de_informativo_em_outra_categoria():
+    """R4: informativo citado por ref que saiu sem conteudo e foi escrito em outra categoria (STF Jurisprudência):
+    a falha aparece no rodape como na secao Informativos (antes, so com categoria 'Informativos')."""
+    d = tempfile.mkdtemp(dir=BASE_TMP)
+    fs = os.path.join(d, "fontes_status.json")
+    j = {"execution_id": "2026-11-23-7h"}
+    with open(fs, "w", encoding="utf-8") as f:
+        json.dump({"informativos_docs": {"status": "ok", "detalhe": "abertas: stf1237", "script": "informativos.py",
+                                         "execution_id": "2026-11-23-7h", "sem_abrir": ["rg399"], "falhas": []}}, f)
+    it = M.resolver({"ref": "rg399", "categoria": "STF Jurisprudência", "data": "2026-11-21",
+                     "url": "https://portal.stf.jus.br/rg399"}, {}, [])
+    ok(it["categoria"] == "STF Jurisprudência" and it.get("sem_conteudo"), "ref em outra categoria: %s" % it)
+    ex = {"source_status": {"informativos_docs": "ok"}}
+    M.status_informativos(ex, [it], fs, j)
+    ok(ex["source_status"]["informativos_docs"] == "falha"
+       and ex["_falha_informativos"] == "documento oficial da Repercussão Geral em Pauta nº 399"
+       and "Fontes que falharam nesta execução: documento oficial da Repercussão Geral em Pauta nº 399"
+       in M.suporte_txt(ex["source_status"], {}, ex), "falha no rodape: %s" % ex)
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do

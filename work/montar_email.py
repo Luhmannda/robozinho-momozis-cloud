@@ -2218,8 +2218,9 @@ def status_informativos(ex, itens, caminho, j):
     except Exception:  # noqa: BLE001 — acessorio
         e = None
     base = ((e.get("status_script") or e.get("status")) if e else ss.get("informativos_docs"))
-    sem = [it["titulo"] for it in itens if it.get("categoria") == "Informativos" and it.get("sem_conteudo")
-           and it.get("titulo")]
+    # R4: em qualquer categoria — o ref de informativo escrito em outra secao (STF Jurisprudência…) tambem sai sem
+    # conteudo, e a condicao de categoria escondia a falha do rodape (sem_conteudo e DERIVADO: so o resolver o poe)
+    sem = [it["titulo"] for it in itens if it.get("sem_conteudo") and it.get("titulo")]
     nomes = list(sem)
     if base == "falha" and e:
         nomes += [x for x in (nome_informativo(i) for i in e.get("falhas") or []) if x and x not in nomes]
