@@ -34,7 +34,17 @@
 #     - helper, montador e inicio chamam esta funcao por bancas.selo_do_dia
 #       (contexto da banca lida hoje): com divergencia pendente (o edital lido
 #       hoje contesta o fim das inscricoes do registro ou o prazo escrito hoje)
-#       o selo por data fica SUSPENSO, com aviso acionavel.
+#       o selo por data fica SUSPENSO, com aviso acionavel;
+#     - PROVA EM BREVE sem prova (de qualquer confirmacao) nos proximos 14 dias
+#       — a prova passou, foi adiada ou a proxima e distante — sai da familia:
+#       PENDENCIA DE VERIFICACAO, com o motivo pedindo PROVA REALIZADA ou a data
+#       nova (antes ficava PROVA EM BREVE depois da prova, ou voltava a
+#       INSCRICOES ENCERRADAS com a banca lida). Sem prazo de prova, o selo fica.
+#   _dm: DD/MM sem ano herda o ano da proxima data completa do mesmo trecho;
+#     cada ano e tentado sozinho (29/02); inicio_inscricoes exige inicio antes do
+#     fim e a menos de um ano dele.
+#   candidato_remocao: "confirmados" ou, sem prazo confirmado, "secundária"
+#     (todas as datas vencidas ha mais de 30 dias e nenhuma futura).
 #   classe_prazo: "inscricao definitiva" (2a fase da magistratura) e eventos
 #     acessorios da prova (resultado, gabarito, recurso, locais, convocacao...)
 #     sao "outro" — nao abrem inscricao nem viram PROVA EM BREVE. O `tipo` escrito
@@ -202,31 +212,56 @@ RE_LINHA_INI = re.compile(r"inscri[çc][õo]es[^;]{0,40}?\bd[eao]s?\s+(?:\d{1,2}
 RE_LINHA_FIM = re.compile(r"inscri[çc][õo]es[^;]{0,80}?(?:\bat[ée]|\ba|encerrad[ao]s?\s+em|terminaram\s+em|"
                           r"encerram\s+em|terminam\s+em)\s+(?:[àa]s\s+)?(?:\d{1,2}h\d{0,2}\s+(?:de|do dia)\s+)?"
                           + DM, re.I)
+RE_DATA_COMPLETA = re.compile(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b")
+
+
+def _ymd(y, mth, d):
+    try:
+        return date(y, mth, d)
+    except ValueError:          # 29/02 fora de ano bissexto, mes 13...
+        return None
 
 
 def _dm(m, ref):
-    """DD/MM[/AAAA] -> date, com o ano mais proximo de `ref` quando falta."""
+    """DD/MM[/AAAA] -> date. Sem o ano: herda o da proxima data completa do MESMO trecho (ate o ';'), a data sem
+    ano vindo antes dela e a menos de um ano ("inscrições de 26/01 a 26/02 e prova em 19/04/2026" -> 2026, nao
+    2027; "de 02/06 a 01/07/2027" -> 2027); sem ancora no trecho, o ano mais proximo de `ref`. Cada ano e
+    tentado sozinho: 29/02 nao derruba os outros candidatos."""
     d, mth, y = int(m.group(1)), int(m.group(2)), m.group(3)
-    try:
-        if y:
-            y = int(y)
-            return date(y + 2000 if y < 100 else y, mth, d)
-        cands = [date(ref.year + k, mth, d) for k in (-1, 0, 1)]
-    except ValueError:
-        return None
-    return min(cands, key=lambda x: abs((x - ref).days))
+    if y:
+        y = int(y)
+        return _ymd(y + 2000 if y < 100 else y, mth, d)
+    c = RE_DATA_COMPLETA.search((m.string or "")[m.end():].split(";", 1)[0])
+    ancora = _ymd(int(c.group(3)), int(c.group(2)), int(c.group(1))) if c else None
+    if ancora:
+        for ano in (ancora.year, ancora.year - 1):
+            x = _ymd(ano, mth, d)
+            if x and x <= ancora and (ancora - x).days < 366:
+                return x
+    cands = [x for x in (_ymd(ref.year + k, mth, d) for k in (-1, 0, 1)) if x]
+    return min(cands, key=lambda x: abs((x - ref).days)) if cands else None
 
 
 def inicio_inscricoes(reg, hoje):
     """Data de inicio das inscricoes: prazo confirmado da classe, senao o "inscricoes das ... de DD/MM"
-    da linha (texto copiado da fonte oficial quando o selo e da familia de datas)."""
+    da linha (texto copiado da fonte oficial quando o selo e da familia de datas). O inicio lido na linha
+    tem de vir antes do fim (prazo confirmado ou o da propria linha) e a menos de um ano dele: senao tenta o
+    ano anterior e, ainda incoerente, devolve None (sem inicio conhecido, nada de INSCRICOES ABERTAS)."""
     cands = [_data(p.get("data")) for p in _prazos(reg)
              if classe_prazo(p) == "inscricoes_inicio" and p.get("confirmado")]
     cands = [c for c in cands if c]
     if cands:
         return min(cands)
     m = RE_LINHA_INI.search(reg.get("linha") or "")
-    return _dm(m, hoje) if m else None
+    ini = _dm(m, hoje) if m else None
+    fim, _ = fim_inscricoes(reg)
+    if fim is None:
+        mf = RE_LINHA_FIM.search(reg.get("linha") or "")
+        fim = _dm(mf, hoje) if mf else None
+    if ini is None or fim is None or 0 <= (fim - ini).days < 365:
+        return ini
+    alt = _ymd(ini.year - 1, ini.month, ini.day)
+    return alt if alt and 0 <= (fim - alt).days < 365 else None
 
 
 def fim_inscricoes_registro(reg, hoje):
@@ -251,6 +286,26 @@ def proxima_prova(reg, hoje, extras=None):
 
 
 # ------------------------------------------------------------------ selo por data
+def _saida_prova_em_breve(reg, hoje, extras=None):
+    """Motivo para tirar PROVA EM BREVE da familia quando nenhuma prova do registro (de qualquer confirmacao) cai
+    em [hoje, hoje + PROVA_BREVE_DIAS]: a prova passou ou foi para longe (adiada, 2a prova distante). None se ha
+    prova na janela ou nenhum prazo de prova (sem dado: o selo fica). O selo cai para SELO_SEM_CONFIRMACAO e o
+    orquestrador escreve PROVA REALIZADA (aplicada) ou a data nova; antes ficava PROVA EM BREVE semanas depois da
+    prova (tjrs, trf5) ou voltava a INSCRICOES ENCERRADAS (tjap, tjsc com a banca lida)."""
+    provas = [d for d in (_data(p.get("data")) for p in _prazos(reg, extras) if classe_prazo(p) == "prova") if d]
+    if not provas or any(0 <= (d - hoje).days <= PROVA_BREVE_DIAS for d in provas):
+        return None
+    passadas = [d for d in provas if d < hoje]
+    if passadas:
+        fato = "a prova de %s já passou sem confirmação oficial de que foi aplicada" % max(passadas).strftime("%d/%m")
+    else:
+        fato = "a próxima prova (%s) ficou a mais de %d dias" % (min(provas).strftime("%d/%m"), PROVA_BREVE_DIAS)
+    # "prorrogação não confirmada" casa o ACIONAVEL do montador: o rascunho espera a decisao do orquestrador
+    return ("PROVA EM BREVE → %s: %s (adiamento ou prorrogação não confirmada) — confirme na fonte oficial e "
+            "escreva em ledger_updates.concursos: aplicada → selo PROVA REALIZADA; adiada → prazos com a data nova "
+            "(confirmado, fonte oficial) e o selo que ela dá" % (SELO_SEM_CONFIRMACAO, fato))
+
+
 def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, inicio_inscricoes_banca=None,
                   prazos_podados=None):
     """(selo, motivo|None). Ver o cabecalho do modulo. `hoje` e date (ou AAAA-MM-DD)."""
@@ -259,7 +314,7 @@ def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, ini
     if atual not in FAMILIA_DATA or hoje is None:
         return atual, None
     fim, pz_fim = fim_inscricoes(reg, extras=prazos_podados)
-    prova, prova_passada = proxima_prova(reg, hoje, extras=prazos_podados)
+    prova, _ = proxima_prova(reg, hoje, extras=prazos_podados)
     ini = _data(inicio_inscricoes_banca) or inicio_inscricoes(reg, hoje)
     ret = _data(ultima_retificacao)
     cands, porque = [], {}
@@ -301,10 +356,12 @@ def selo_por_data(reg, hoje, banca_lida_hoje=False, ultima_retificacao=None, ini
     if prova is not None and (prova - hoje).days <= PROVA_BREVE_DIAS:
         cands.append("PROVA EM BREVE")
         porque["PROVA EM BREVE"] = "prova em %s" % prova.strftime("%d/%m")
+    if atual == "PROVA EM BREVE" and not set(cands) & {"PROVA EM BREVE", "ENCERRA HOJE", "ENCERRA EM BREVE",
+                                                       "INSCRIÇÕES ABERTAS"}:
+        saida = _saida_prova_em_breve(reg, hoje, prazos_podados)
+        if saida:
+            return SELO_SEM_CONFIRMACAO, saida
     if not cands:
-        if atual == "PROVA EM BREVE" and prova_passada and prova is None:
-            return atual, ("confirmar: a prova de %s já passou — atualize o selo (PROVA REALIZADA?)"
-                           % prova_passada.strftime("%d/%m"))
         return atual, None
     novo = min(cands, key=(PRECEDENCIA + (SELO_SEM_CONFIRMACAO,)).index)
     if novo == atual:
@@ -328,15 +385,20 @@ def relativos(texto):
 
 # ------------------------------------------------------------------ ciclo de vida
 def candidato_remocao(reg, hoje, dias=30):
-    """Todos os prazos confirmados venceram ha mais de `dias` e nao ha etapa futura (prazo de qualquer
-    confirmacao com data >= hoje). Sem prazo confirmado, nunca e candidato."""
+    """Candidato a remocao: nao ha etapa futura (prazo de qualquer confirmacao com data >= hoje) e
+    - "confirmados": todos os prazos confirmados venceram ha mais de `dias`;
+    - "secundária": sem prazo confirmado, todas as datas (so de fonte secundaria) venceram ha mais de `dias`
+      (o concurso encerrado so em secundaria ficava no registro para sempre).
+    "" (falso) sem prazo nenhum: o registro sem datas sai pelo RODIZIO ... ENCERRADO do coletor."""
     hoje = _data(hoje)
     datas = [(_data(p.get("data")), bool(p.get("confirmado"))) for p in _prazos(reg)]
     datas = [(d, c) for d, c in datas if d]
+    if not datas or any(d >= hoje for d, _ in datas):
+        return ""
     conf = [d for d, c in datas if c]
-    if not conf or any(d >= hoje for d, _ in datas):
-        return False
-    return all((hoje - d).days > dias for d in conf)
+    if conf:
+        return "confirmados" if all((hoje - d).days > dias for d in conf) else ""
+    return "secundária" if all((hoje - d).days > dias for d, _ in datas) else ""
 
 
 CAMPOS_MUDANCA = ("linha", "selo", "prazos")
