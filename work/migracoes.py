@@ -287,9 +287,12 @@ def aplicar(hoje, work_dir=None, tmp_dir=None):
         feitas.append((ident, resumir(upd, led, novo, hj)))
         led, mudou = novo, True
         n, m = contagem(upd)
-        linhas.append("MIGRACAO %s: aplicada (%d concursos, %d pendências)%s" % (
-            ident, n, m, (" — %d remoç%s já feita%s antes" % (ja_feitas, "ão" if ja_feitas == 1 else "ões",
-                                                              "" if ja_feitas == 1 else "s")) if ja_feitas else ""))
+        nf = len(upd.get("fontes") or {}) if isinstance(upd.get("fontes"), dict) else 0
+        extra = (" + %d nota%s de fonte" % (nf, "" if nf == 1 else "s")) if nf else ""
+        if ja_feitas:
+            extra += " — %d remoç%s já feita%s antes" % (ja_feitas, "ão" if ja_feitas == 1 else "ões",
+                                                        "" if ja_feitas == 1 else "s")
+        linhas.append("MIGRACAO %s: aplicada (%d concursos, %d pendências)%s" % (ident, n, m, extra))
     if mudou:
         uh.gravar_ledger(caminho, led)
         try:

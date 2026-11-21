@@ -1183,6 +1183,22 @@ def finalizar_caminho_feliz_sem_alarme():
     ok(g(sess, "status", "--porcelain").stdout == "", "árvore limpa")
 
 
+
+@teste
+def remover_id_ja_removido_vira_aviso():
+    """Ensaio final (21/11/2026): o julgamento do dia que repete o `remover` de um id que a migracao de hoje ja tirou
+    (ex.: trt8_apoio) nao trava o montador com 'id inexistente' — vira AVISO e nada e aplicado. Fonte inexistente
+    continua ERRO."""
+    led = {"concursos": [{"id": "enam", "bloco": "Magistratura Estadual"}], "pendencias_vivas": [], "fontes": []}
+    upd = {"concursos": {"trt8_apoio": {"remover": True, "desfecho": "fora do escopo regional"}},
+           "pendencias": {"trt8_edital_verificar": {"remover": True, "desfecho": "registro removido"}}}
+    erros = uh.validar_ledger_updates(upd, led, hoje="2026-11-23", ex_id="2026-11-23-7h")
+    ok(not any("inexistente" in e for e in erros), "remover de id ausente nao e ERRO: %s" % erros)
+    av = uh.avisos_ledger_updates(upd, led, "2026-11-23")
+    ok(sum("remover ignorado" in a for a in av) == 2, "AVISO para os dois: %s" % av)
+    erros_f = uh.validar_ledger_updates({"fontes": {"nao_existe": {"nota": "x"}}}, led, hoje="2026-11-23")
+    ok(any("inexistente" in e for e in erros_f), "fonte inexistente segue ERRO: %s" % erros_f)
+
 def main():
     for t in TESTES:
         try:

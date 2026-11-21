@@ -959,8 +959,9 @@ def movimento_ignorado(upd, antes):
         mudados = [k for k in ("selo", "prazos") if k in campos and campos[k] != antes[ident].get(k)]
         if mudados:
             del campos["movimento"]
-            out.append("ledger_updates.concursos.%s.movimento: false ignorado — %s mudou hoje: sai \"Atualizado hoje\" "
-                       "e o registro conta como mudado (movimento: false vale só para a linha reescrita sem fato novo)"
+            out.append("ledger_updates.concursos.%s.movimento: false ignorado — %s mudou hoje: o registro conta como "
+                       "mudado (histórico e mudou_em); \"Atualizado hoje\" sai com verificado_em de hoje — escreva-o se "
+                       "a verificação foi hoje (movimento: false vale só para a linha reescrita sem fato novo)"
                        % (ident, " e ".join(mudados)))
     return out
 

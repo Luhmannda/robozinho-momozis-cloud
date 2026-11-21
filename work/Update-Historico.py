@@ -422,6 +422,10 @@ def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
             if novo:
                 if campos.get("remover") and reaplicacao and campos.get("desfecho"):
                     continue            # ja removido na 1a aplicacao desta mesma execucao
+                if campos.get("remover") and secao != "fontes":
+                    # ja nao existe (ex.: removido hoje pela migracao de dado, que o e-mail ja mostra): nada a
+                    # remover — AVISO em avisos_ledger_updates, sem rodada extra do montador
+                    continue
                 if secao == "fontes" or campos.get("remover"):
                     erros.append(rot + ": id inexistente no ledger")
                     continue
@@ -520,6 +524,12 @@ def avisos_ledger_updates(upd, led, hoje, banca_res=None):
     """Avisos (nao travam): nota de fonte usada como diario do dia; movimento da banca nao refletido."""
     avisos = []
     upd = upd if isinstance(upd, dict) else {}
+    for secao in ("concursos", "pendencias"):
+        ids = {x.get("id") for x in led.get(LISTA_DO_LEDGER[secao]) or []}
+        for ident, campos in (upd.get(secao) or {}).items():
+            if isinstance(campos, dict) and campos.get("remover") and ident not in ids:
+                avisos.append("ledger_updates.%s.%s: remover ignorado — o id já não está no ledger (removido antes, "
+                              "ex.: pela migração de hoje, que o e-mail já mostra)" % (secao, ident))
     try:
         dm = date.fromisoformat(hoje).strftime("%d/%m") if hoje else ""
     except ValueError:
