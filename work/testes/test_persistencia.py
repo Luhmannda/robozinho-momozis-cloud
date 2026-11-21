@@ -404,6 +404,167 @@ def r1_exige_window_end_do_rascunho_achado():
     ok(rc == 0 and ler(os.path.join(d, "hist.json"))["executions"][-1]["window_end"] == "2026-11-23T07:05:00-03:00", out)
 
 
+# ------------------------------------------------------------------ medicao do gasto (medir_uso + helper)
+def transcricoes(raiz, orq_msgs, coletores):
+    """~/.claude/projects falso: sessao.jsonl (orquestrador) + subagents/agent-*.jsonl."""
+    proj = os.path.join(raiz, "proj")
+    os.makedirs(os.path.join(proj, "sessao", "subagents"), exist_ok=True)
+    with open(os.path.join(proj, "sessao.jsonl"), "w") as f:
+        f.write("\n".join(json.dumps(m) for m in orq_msgs) + "\n")
+    for n, (marca, msgs) in enumerate(coletores):
+        p = os.path.join(proj, "sessao", "subagents", "agent-%d.jsonl" % n)
+        with open(p, "w") as f:
+            f.write(json.dumps({"type": "user", "timestamp": msgs[0]["timestamp"],
+                                "message": {"content": "Read de /tmp/%s.md" % marca}}) + "\n")
+            f.write("\n".join(json.dumps(m) for m in msgs) + "\n")
+        os.utime(p, (1000 + n, 1000 + n))
+
+
+def msg(i, ts, modelo, ent, lido, grav, saida, grav1h=0, ferramentas=("Bash",), esforco="xhigh", pensou=0, speed=None):
+    u = {"input_tokens": ent, "cache_read_input_tokens": lido, "cache_creation_input_tokens": grav,
+         "cache_creation": {"ephemeral_1h_input_tokens": grav1h, "ephemeral_5m_input_tokens": grav - grav1h},
+         "output_tokens": saida, "output_tokens_details": {"thinking_tokens": pensou},
+         "server_tool_use": {"web_search_requests": 0}}
+    if speed:
+        u["speed"] = speed
+    return {"type": "assistant", "timestamp": ts, "effort": esforco, "message": {
+        "id": i, "model": modelo, "usage": u, "content": [{"type": "tool_use", "name": n} for n in ferramentas]}}
+
+
+@teste
+def medir_uso_buscas_esforco_pesos_e_dolar():
+    raiz = tempfile.mkdtemp(dir=TMPDIR)
+    F, S, H = "claude-fable-5-2", "claude-sonnet-5-5", "claude-haiku-5-5"
+    transcricoes(raiz, [
+        # 1a chamada (le a ROTINA e chama o inicio.py): registros ANTES do run_started_at (10:07:04Z)
+        msg("o1", "2026-11-20T10:07:02Z", F, 2, 29625, 19482, 454, 19482, ferramentas=("Read",)),
+        msg("o1", "2026-11-20T10:07:03Z", F, 2, 29625, 19482, 454, 19482, ferramentas=("Bash",)),
+        msg("o2", "2026-11-20T10:09:00Z", F, 10, 500000, 100000, 40000, 100000, pensou=20000),
+    ], [("coletor-concursos", [msg("c1", "2026-11-20T10:07:30Z", S, 4, 30000, 20000, 3000, ferramentas=("WebSearch",) * 5,
+                                   esforco="medium"),
+                               msg("c2", "2026-11-20T10:08:00Z", S, 4, 31000, 18000, 2500,
+                                   ferramentas=("WebSearch", "WebSearch", "Bash"), esforco="medium")]),
+        ("coletor-gmail", [msg("g1", "2026-11-20T10:07:30Z", H, 4, 100000, 30000, 6000, esforco="medium")])])
+    antigo = medir_uso.RAIZ
+    medir_uso.RAIZ = raiz
+    try:
+        ex = {"run_started_at": "2026-11-20T07:07:04-03:00"}
+        log = []
+        uh.medir_e_preencher(ex, log.append)
+    finally:
+        medir_uso.RAIZ = antigo
+    o, c, g = ex["orquestrador"], ex["coletores"]["concursos"], ex["coletores"]["gmail"]
+    ok(o["chamadas_modelo"] == 2 and o["chamadas"] == 3, "1a chamada inteira, com a margem: %r" % o)
+    ok(o["esforco"] == "xhigh" and c["esforco"] == "medium" and o["saida_raciocinio"] == 20000, "esforco e raciocinio")
+    ok(c["websearch"] == 7 and o["websearch"] == 0 and c["websearch_usd_est"] == round(7 * 0.055, 4), c)
+    # pesos do proprio modelo: Fable le a 0,025 e grava 1 h a 2x
+    ok(o["custo_relativo"] - o["fechamento_estimado"]["custo_relativo"] ==
+       round(12 + 529625 * 0.025 + 119482 * 2 + 40454 * 5), o["custo_relativo"])
+    ok(medir_uso.custo_relativo(10, 3000, 600, 350) == 2810, "sem modelo: os pesos antigos")
+    # US$: chamada a chamada; o Haiku com 130 mil tokens de prompt cobra 5x
+    usd_o = (12 * 8 + 529625 * 0.20 + 119482 * 16 + 40454 * 40) / 1e6
+    ok(abs(o["custo_usd"] - o["fechamento_estimado"]["custo_usd"] - usd_o) < 1e-3, (o["custo_usd"], usd_o))
+    usd_g = 5 * (4 * 0.10 + 100000 * 0.01 + 30000 * 0.125 + 6000 * 0.50) / 1e6
+    ok(abs(g["custo_usd"] - usd_g) < 1e-4, (g["custo_usd"], usd_g))
+    t = ex["custo_usd"]
+    ok(t["buscas"] == 7 and abs(t["total"] - (o["custo_usd"] + c["custo_usd"] + g["custo_usd"] + 7 * 0.055)) < 1e-3
+       and t["precos_em"] == medir_uso.PRECOS_EM, t)
+    ok(any(l.startswith("Custo da execucao (preco de lista da API") for l in log)
+       and "orquestrador=fable-5-2/xhigh/" in log[0] and "(7 buscas)" in log[0], log)
+    # modelo fora da tabela: None, sem chutar, com AVISO
+    ok(medir_uso.custo_usd(1, 1, 1, 1, "claude-desconhecido-9") is None, "sem preco")
+    ex2 = {"orquestrador": {}, "coletores": {}}
+    m = {"orquestrador": dict(o, modelo="claude-novo-1", custo_usd=None), "coletores": {},
+         "custo_usd": medir_uso.custo_execucao(dict(o, modelo="claude-novo-1", custo_usd=None), {})}
+    real = medir_uso.medir
+    medir_uso.medir = lambda *a, **k: m
+    log = []
+    try:
+        uh.medir_e_preencher(ex2, log.append)
+    finally:
+        medir_uso.medir = real
+    ok(any("AVISO: modelo sem preço na tabela" in l and "claude-novo-1" in l for l in log), log)
+
+
+@teste
+def custo_usd_de_execucao_antiga_recalculado():
+    # 20/11 (Fable, gravacao 1 h, chamada final estimada): US$ 6,22 no orquestrador, como na transcricao do cliente
+    e = {"orquestrador": {"modelo": "claude-fable-5-2", "entrada": 15, "cache_lido": 972846, "cache_gravado": 189262,
+                          "cache_gravado_1h": 189262, "saida": 72315, "tokens": 134000, "contexto_total": 1162123,
+                          "fechamento_estimado": {"cache_lido": 134000, "cache_gravado": 2000, "saida": 700}},
+         "coletores": {"jota": {"modelo": "claude-sonnet-5-5", "entrada": 12, "cache_lido": 117436,
+                                "cache_gravado": 42914, "cache_gravado_1h": 0, "saida": 5643}}}
+    c = uh.custo_usd_execucao(e)
+    ok(abs(c["orquestrador"] - 6.22) < 0.02 and abs(c["coletores"]["jota"] - 0.18) < 0.01 and c["estimado"], c)
+    # sem os tipos separados (antes de 17/11): leitura = contexto - gravacao; gravacao do orquestrador como 1 h
+    e = {"orquestrador": {"modelo": "claude-fable-5-2", "contexto_total": 1000000, "cache_gravado": 150000,
+                          "saida": 45000, "tokens": 100000}}
+    c = uh.custo_usd_execucao(e)
+    esperado = (850000 * 0.20 + 150000 * 16 + 45000 * 40 + 100000 * 0.20 + 2000 * 16 + 700 * 40) / 1e6
+    ok(abs(c["total"] - esperado) < 1e-3, (c, esperado))
+    ok(uh.custo_usd_execucao({"orquestrador": {"modelo": "x-9", "contexto_total": 10}}) is None, "modelo sem preco")
+    ok(uh.custo_usd_execucao({"custo_usd": {"total": 7.1, "orquestrador": 6.0, "coletores": {"g": 0.1}, "buscas": 3}})
+       == {"total": 7.1, "orquestrador": 6.0, "coletores": {"g": 0.1}, "buscas": 3, "estimado": False}, "medido")
+
+
+def ex_medida(dia, modelo, orq_usd, col_usd=0.35, buscas=9, chamadas=8):
+    return {"execution_id": "2026-11-%02d-7h" % dia, "date": "2026-11-%02d" % dia,
+            "orquestrador": {"modelo": modelo, "contexto_total": 10, "chamadas_modelo": chamadas, "esforco": "xhigh",
+                             "custo_usd": orq_usd},
+            "coletores": {"jota": {"modelo": "claude-sonnet-5-5", "custo_usd": col_usd}},
+            "custo_usd": {"total": round(orq_usd + col_usd + buscas * 0.055, 4), "orquestrador": orq_usd,
+                          "coletores": {"jota": col_usd}, "buscas": buscas}}
+
+
+@teste
+def alerta_economia_total_contra_media_do_mesmo_modelo():
+    F, O = "claude-fable-5-2", "claude-opus-5-5"
+    base = [ex_medida(d, F, 6.0) for d in (9, 10, 11, 12, 13)] + [ex_medida(14, O, 3.0)]
+    # +30% so nos coletores e nas buscas (o orquestrador igual): o TOTAL passa de 1,3x a media
+    log = []
+    uh.alertas_uso(base + [ex_medida(16, F, 6.0, col_usd=1.2, buscas=40)], log.append)
+    al = [l for l in log if l.startswith("ALERTA_ECONOMIA")]
+    ok(len(al) == 1 and "a media das ultimas 5 com claude-fable-5-2" in al[0] and "buscas 40" in al[0]
+       and "esforco xhigh" in al[0], log)
+    ok(any(l.startswith("AVISO: coletor jota US$ 1.20 = 3.43x") for l in log), log)
+    ok(any("ALERTA: modelo do orquestrador mudou: claude-opus-5-5 (2026-11-14-7h) -> claude-fable-5-2" in l
+           and "(preco por token de entrada 2x)" in l for l in log), log)
+    # dentro de 1,3x: nada
+    log = []
+    uh.alertas_uso(base + [ex_medida(16, F, 7.0)], log.append)
+    ok(not [l for l in log if l.startswith("ALERTA_ECONOMIA")], log)
+    # o Fable nao entra na media do Opus; com menos de 3 do mesmo modelo, sem ALERTA_ECONOMIA
+    log = []
+    uh.alertas_uso(base + [ex_medida(16, O, 9.0)], log.append)
+    ok(not [l for l in log if l.startswith("ALERTA") or "mudou" in l], log)
+    log = []
+    uh.alertas_uso(base[:5] + [ex_medida(16, O, 9.0)], log.append)       # troca Fable -> Opus: so o ALERTA da troca
+    ok(not [l for l in log if l.startswith("ALERTA_ECONOMIA")] and any("modelo do orquestrador mudou" in l
+                                                                       and "(preco por token de entrada 0.5x)" in l
+                                                                       for l in log), log)
+    # media de 10, nao mediana: a base usa so as 10 ultimas do mesmo modelo
+    longa = [ex_medida(d, F, 2.0) for d in range(1, 6)] + [ex_medida(d, F, 6.0) for d in range(6, 16)]
+    ok(len(uh.base_economia(longa, F)) == 10 and all(c["total"] > 6 for _, c in uh.base_economia(longa, F)), "10")
+    # troca de esforco: AVISO (nao vai a notificacao)
+    log = []
+    nova = ex_medida(16, F, 6.0)
+    nova["orquestrador"]["esforco"] = "high"
+    uh.alertas_uso(base[:5] + [nova], log.append)
+    ok(any(l.startswith("AVISO: esforco do orquestrador mudou: xhigh (2026-11-13-7h) -> high") for l in log), log)
+
+
+@teste
+def metricas_de_custo_no_estado():
+    F = "claude-fable-5-2"
+    exs = [ex_medida(d, F, 6.0) for d in (9, 10, 11)]
+    d = pasta_helper(execucoes=exs)
+    rc, out = rodar_helper(d, dict(ex_medida(23, F, 6.1), delivery="draft", items=itens(12)), "--draft-id", "r1")
+    ok(rc == 0, out)
+    m = ler(os.path.join(d, "robozinho-estado.json"))["metricas"]
+    ok(m["custo_usd_media_mesmo_modelo"] == {"modelo": F, "execucoes": 4, "media": 6.87}
+       and len(m["custo_usd_ultimas_10"]) == 4 and m["custo_usd_ultimas_10"][-1]["execution_id"] == "2026-11-23-7h", m)
+
+
 def main():
     for t in TESTES:
         try:

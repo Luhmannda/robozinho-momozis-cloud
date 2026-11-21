@@ -71,8 +71,20 @@
 #                    execution_id.
 #   Entrega        : "sent" so com --reconciliar-message-id (prova do in:sent);
 #                    sem ela, fica "draft" com delivery_check e ALERTA.
-#   Uso            : custo_relativo do orquestrador (medir_uso.py); ALERTA_ECONOMIA
-#                    acima de 1,3x a mediana das ultimas 10; ALERTA de troca de modelo.
+#   Uso            : medir_uso.py (pesos e precos por modelo, buscas, esforco);
+#                    custo_usd = orquestrador + coletores + buscas (US$ de lista);
+#                    ALERTA_ECONOMIA: esse TOTAL acima de 1,3x a MEDIA das ultimas 10
+#                    execucoes com o mesmo modelo do orquestrador (minimo 3);
+#                    ALERTA de troca de modelo; AVISO de troca de esforco e de coletor caro.
+#   Gravacao       : tudo calculado em memoria e gravado no fim, todas ou nenhuma
+#                    (Gravacoes: falha no meio devolve os arquivos ao que eram).
+#                    Excecao = relatorio emitido com "STATUS: ERRO INTERNO <tipo>: <msg>
+#                    (<arquivo>:<linha>)", exit 4. Mecanico dos concursos com a queda do
+#                    montador + ALERTA (o ledger nao diverge do e-mail).
+#   §R1            : delivery draft_ja_existente sem registro de hoje exige window_end
+#                    escrito (data do rascunho/envio achado), nunca o fim da janela.
+#   Migracoes      : o ledger guarda migracoes_aplicadas (work/migracoes.py); o helper
+#                    preserva toda chave que nao conhece.
 # Temporarios em $ROBOZINHO_TMP (padrao /tmp).
 # =====================================================================
 
@@ -777,12 +789,18 @@ def mesclar_fontes_status(ex, caminho, add_log):
         ss[fid] = status
 
 
+MARGEM_MEDICAO_S = 120     # lows[0]: a 1a chamada do orquestrador (le a ROTINA, chama o inicio.py) e anterior ao
+                           # run_started_at (a hora do inicio.py): sem margem, os registros dela antes dele ficavam fora
+
+
 def medir_e_preencher(ex, add_log):
-    """Uso real (tokens por tipo, chamadas, modelo servido, custo relativo) do orquestrador
-    e dos coletores, lido das transcricoes locais. Falha so gera aviso."""
+    """Uso real (tokens por tipo, chamadas, modelo servido, esforco, custo relativo, US$ de lista, buscas) do
+    orquestrador e dos coletores, lido das transcricoes locais. Falha so gera aviso."""
     try:
         import medir_uso
-        m = medir_uso.medir(medir_uso._ts(ex.get("run_started_at") or ""))
+        from datetime import timedelta
+        desde = medir_uso._ts(ex.get("run_started_at") or "")
+        m = medir_uso.medir(desde - timedelta(seconds=MARGEM_MEDICAO_S) if desde else None)
     except Exception as e:  # noqa: BLE001 — medicao e acessoria
         add_log("AVISO: uso nao medido (%s) — coletores ficam como informados" % e)
         return
@@ -794,11 +812,27 @@ def medir_e_preencher(ex, add_log):
         col.setdefault(nome, {}).update(u)
     if m.get("orquestrador"):
         ex["orquestrador"] = m["orquestrador"]
-    resumo = ["%s=%s/%dk/custo %s" % (n, (u.get("modelo") or "?").replace("claude-", ""),
-                                      (u.get("contexto_total") or 0) // 1000,
-                                      "%.0fk" % (u["custo_relativo"] / 1000) if u.get("custo_relativo") else "?")
-              for n, u in [("orquestrador", m.get("orquestrador") or {})] + sorted(col.items())]
-    add_log("Uso medido (modelo/contexto processado/custo relativo em tokens de entrada): " + " ".join(resumo))
+    if m.get("custo_usd"):
+        ex["custo_usd"] = m["custo_usd"]
+    resumo = ["%s=%s%s/%dk/custo %s/%s" % (
+        n, (u.get("modelo") or "?").replace("claude-", ""), ("/" + u["esforco"]) if u.get("esforco") else "",
+        (u.get("contexto_total") or 0) // 1000,
+        "%.0fk" % (u["custo_relativo"] / 1000) if u.get("custo_relativo") else "?",
+        ("US$ %.2f" % u["custo_usd"]) if u.get("custo_usd") is not None else "US$ ?")
+        + ((" (%d buscas)" % u["websearch"]) if u.get("websearch") else "")
+        for n, u in [("orquestrador", m.get("orquestrador") or {})] + sorted(col.items())]
+    add_log("Uso medido (modelo/esforço/contexto processado/custo relativo em tokens de entrada/US$ de lista): "
+            + " ".join(resumo))
+    c = ex.get("custo_usd") or {}
+    if c.get("total") is not None:
+        add_log("Custo da execucao (preco de lista da API, tabela de %s): US$ %.2f = orquestrador %.2f + coletores "
+                "%.2f + %d busca(s) ~%.2f (estimativa)" % (c.get("precos_em"), c["total"], c.get("orquestrador") or 0,
+                                                           sum(v or 0 for v in (c.get("coletores") or {}).values()),
+                                                           c.get("buscas") or 0, c.get("buscas_usd_est") or 0))
+    elif c.get("sem_preco"):
+        add_log("AVISO: modelo sem preço na tabela de work/medir_uso.py (%s) — custo em US$ não calculado; atualize "
+                "PRECOS_USD_MTOK" % ", ".join("%s=%s" % (n, ((ex.get("orquestrador") if n == "orquestrador" else
+                                                               col.get(n)) or {}).get("modelo")) for n in c["sem_preco"]))
 
 
 # Migracao idempotente das regras de armadilha que o codigo tornou falsas (o LEDGER impresso pelo inicio.py e
@@ -1064,6 +1098,14 @@ def metricas_derivadas(historico, execucoes_principal, gravacoes=None):
     orq = [int((e.get("orquestrador") or {}).get("contexto_total") or 0) for e in ult10
            if (e.get("orquestrador") or {}).get("contexto_total")]
     custos = [c for c in (custo_relativo_execucao(e) for e in ult10) if c]
+    usd = []
+    for e in ult10:
+        c = custo_usd_execucao(e)
+        if c and c.get("total"):
+            usd.append({"execution_id": e.get("execution_id"), "modelo": modelo_orq(e), "total": round(c["total"], 2),
+                        **({"estimado": True} if c["estimado"] else {})})
+    ultimo_modelo = modelo_orq(execucoes_principal[-1]) if execucoes_principal else None
+    base = base_economia(execucoes_principal, ultimo_modelo) if ultimo_modelo else []
 
     # E13: sem "coletores_ultima"/"orquestrador_ultima" (copias de executions[-1], sem leitor)
     return {
@@ -1078,6 +1120,11 @@ def metricas_derivadas(historico, execucoes_principal, gravacoes=None):
         "orquestrador_contexto_media": round(sum(orq) / len(orq)) if orq else None,
         "orquestrador_custo_relativo_ultimas_10": custos,
         "orquestrador_custo_relativo_mediana": round(mediana(custos)) if custos else None,
+        # custo total (orquestrador + coletores + buscas) em US$ de lista, e a media que o ALERTA_ECONOMIA usa
+        "custo_usd_ultimas_10": usd,
+        "custo_usd_media_mesmo_modelo": ({"modelo": ultimo_modelo, "execucoes": len(base),
+                                          "media": round(sum(c["total"] for _, c in base) / len(base), 2)}
+                                         if base else None),
     }
 
 
@@ -1108,27 +1155,139 @@ def custo_relativo_execucao(e):
         return None
 
 
+MIN_BASE_ECONOMIA = 3      # execucoes anteriores com o mesmo modelo do orquestrador para haver media
+
+
+def custo_usd_execucao(e):
+    """{'total', 'orquestrador', 'coletores', 'buscas', 'estimado'} em US$ de lista (work/medir_uso.py). Execucao
+    medida desde 21/11/2026: o `custo_usd` gravado. Antiga: recalculado dos tokens guardados, pela mesma tabela —
+    leitura = contexto_total - cache_gravado quando o tipo nao foi separado; a gravacao do orquestrador sem o TTL
+    separado conta como 1 h (como em todas as medidas de 17 a 20/11), a dos coletores como 5 min; a chamada final
+    estimada como no medir_uso; buscas nao contadas = 0. Modelo fora da tabela: None."""
+    c = e.get("custo_usd") or {}
+    if c.get("total") is not None:
+        return {"total": c["total"], "orquestrador": c.get("orquestrador"), "coletores": c.get("coletores") or {},
+                "buscas": c.get("buscas") or 0, "estimado": False}
+    o = e.get("orquestrador") or {}
+    if not o.get("modelo") or not (o.get("contexto_total") or o.get("cache_lido") is not None):
+        return None
+    try:
+        import medir_uso
+    except Exception:  # noqa: BLE001
+        return None
+
+    def usd(u, orquestrador):
+        if u.get("custo_usd") is not None:
+            return u["custo_usd"]
+        grav = int(u.get("cache_gravado") or 0)
+        lido = u.get("cache_lido")
+        if lido is None:
+            lido = max(0, int(u.get("contexto_total") or 0) - grav)
+        g1 = u.get("cache_gravado_1h")
+        g1 = (grav if orquestrador else 0) if g1 is None else int(g1)
+        return medir_uso.custo_usd(int(u.get("entrada") or 0), int(lido), grav, int(u.get("saida") or 0),
+                                   u.get("modelo"), g1)
+    total_o = usd(o, True)
+    if total_o is None:
+        return None
+    if o.get("custo_usd") is None:          # chamada final: a estimada gravada, ou a mesma estimativa do medir_uso
+        f = o.get("fechamento_estimado") or {"cache_lido": int(o.get("tokens") or 0),
+                                             "cache_gravado": medir_uso.FECHAMENTO["cache_gravado"],
+                                             "saida": medir_uso.FECHAMENTO["saida"]}
+        g1 = f.get("cache_gravado_1h", f.get("cache_gravado") if o.get("cache_gravado_1h") in (None, o.get("cache_gravado"))
+                   else 0)
+        total_o += medir_uso.custo_usd(0, int(f.get("cache_lido") or 0), int(f.get("cache_gravado") or 0),
+                                       int(f.get("saida") or 0), o.get("modelo"), g1 or 0) or 0
+    cols, buscas = {}, int(o.get("websearch") or 0)
+    for nome, u in sorted((e.get("coletores") or {}).items()):
+        if not isinstance(u, dict) or not u.get("modelo"):
+            continue
+        v = usd(u, False)
+        if v is None:
+            return None
+        cols[nome] = round(v, 4)
+        buscas += int(u.get("websearch") or 0)
+    total = total_o + sum(cols.values()) + medir_uso.buscas_usd_est(buscas)
+    return {"total": round(total, 4), "orquestrador": round(total_o, 4), "coletores": cols, "buscas": buscas,
+            "estimado": True}
+
+
+def modelo_orq(e):
+    return (e.get("orquestrador") or {}).get("modelo")
+
+
+def base_economia(execucoes_anteriores, modelo):
+    """As ultimas 10 execucoes anteriores com o mesmo modelo do orquestrador e custo calculavel: [(e, custo)]."""
+    out = []
+    for e in reversed(execucoes_anteriores):
+        if modelo_orq(e) != modelo:
+            continue
+        c = custo_usd_execucao(e)
+        if c and c.get("total"):
+            out.append((e, c))
+        if len(out) == 10:
+            break
+    return out[::-1]
+
+
 def alertas_uso(execucoes, add_log):
-    """ALERTA_ECONOMIA (custo relativo do orquestrador > 1,3x a mediana das 10 anteriores) e ALERTA de
-    troca do modelo do orquestrador em relacao a execucao anterior (K5: a troca de 13/11 passou calada)."""
+    """ALERTA_ECONOMIA: o custo TOTAL da execucao (orquestrador + coletores + buscas, em US$ de lista) acima de 1,3x a
+    MEDIA das ultimas 10 execucoes com o mesmo modelo do orquestrador (no minimo 3; critic_verified[4]/verified[19]:
+    antes so o orquestrador, sem buscas, numa mediana que misturava modelos). ALERTA de troca do modelo do
+    orquestrador em relacao a execucao anterior (K5: a troca de 13/11 passou calada); AVISO de troca de esforco e
+    de coletor que encareceu."""
     if not execucoes:
         return
     atual = execucoes[-1]
-    anteriores = [e for e in execucoes[:-1] if (e.get("orquestrador") or {}).get("contexto_total")][-10:]
     o = atual.get("orquestrador") or {}
-    c = custo_relativo_execucao(atual)
-    base = [x for x in (custo_relativo_execucao(e) for e in anteriores) if x]
-    med = mediana(base)
-    if c and med and c > 1.3 * med:
-        add_log("ALERTA_ECONOMIA: custo relativo do orquestrador %.0fk = %.2fx a mediana das ultimas %d (%.0fk) — "
-                "chamadas_modelo %s, gravacao de cache %s, saida %s, modelo %s"
-                % (c / 1000, c / med, len(base), med / 1000, o.get("chamadas_modelo"), o.get("cache_gravado"),
-                   o.get("saida"), o.get("modelo")))
+    cur = custo_usd_execucao(atual)
+    base = base_economia(execucoes[:-1], o.get("modelo")) if o.get("modelo") else []
+    media = sum(c["total"] for _, c in base) / len(base) if base else None
+    if cur and cur.get("total") and len(base) >= MIN_BASE_ECONOMIA and cur["total"] > 1.3 * media:
+        add_log("ALERTA_ECONOMIA: custo total da execucao US$ %.2f = %.2fx a media das ultimas %d com %s (US$ %.2f) — "
+                "orquestrador US$ %.2f (chamadas_modelo %s, gravacao de cache %s, saida %s, esforco %s), coletores "
+                "US$ %.2f, buscas %d (~US$ %.2f)%s"
+                % (cur["total"], cur["total"] / media, len(base), o.get("modelo"), media, cur["orquestrador"] or 0,
+                   o.get("chamadas_modelo"), o.get("cache_gravado"), o.get("saida"), o.get("esforco") or "?",
+                   sum(cur["coletores"].values()), cur["buscas"], _buscas_usd(cur["buscas"]),
+                   "; base com valores recalculados de execucoes antigas" if any(c["estimado"] for _, c in base) else ""))
+    if cur and base and len(base) >= MIN_BASE_ECONOMIA:
+        for nome, v in sorted((cur.get("coletores") or {}).items()):
+            hist = [c["coletores"][nome] for _, c in base if (c.get("coletores") or {}).get(nome) is not None]
+            if len(hist) < MIN_BASE_ECONOMIA or not v:
+                continue
+            m = sum(hist) / len(hist)
+            if v > 1.5 * m and v - m > 0.05 * media:      # so o que pesa no total (o Haiku dobrando e ruido)
+                add_log("AVISO: coletor %s US$ %.2f = %.2fx a media das ultimas %d (+US$ %.2f, %.0f%% do total medio)"
+                        % (nome, v, v / m, len(hist), v - m, 100 * (v - m) / media))
     ant = next((e for e in reversed(execucoes[:-1]) if (e.get("orquestrador") or {}).get("modelo")), None)
     if ant and o.get("modelo") and ant["orquestrador"]["modelo"] != o["modelo"]:
-        add_log("ALERTA: modelo do orquestrador mudou: %s (%s) -> %s (%s) — a escolha do modelo e do dono "
+        razao = _razao_preco(ant["orquestrador"]["modelo"], o["modelo"])
+        add_log("ALERTA: modelo do orquestrador mudou: %s (%s) -> %s (%s)%s — a escolha do modelo e do dono "
                 "(README); se nao foi decidida, avise na notificacao"
-                % (ant["orquestrador"]["modelo"], ant.get("execution_id"), o["modelo"], atual.get("execution_id")))
+                % (ant["orquestrador"]["modelo"], ant.get("execution_id"), o["modelo"], atual.get("execution_id"),
+                   (" (preco por token de entrada %.2gx)" % razao) if razao else ""))
+    ant_e = next((e for e in reversed(execucoes[:-1]) if (e.get("orquestrador") or {}).get("esforco")), None)
+    if ant_e and o.get("esforco") and ant_e["orquestrador"]["esforco"] != o["esforco"]:
+        add_log("AVISO: esforco do orquestrador mudou: %s (%s) -> %s (%s) — muda custo e julgamento; a escolha e do dono"
+                % (ant_e["orquestrador"]["esforco"], ant_e.get("execution_id"), o["esforco"], atual.get("execution_id")))
+
+
+def _buscas_usd(n):
+    try:
+        import medir_uso
+        return medir_uso.buscas_usd_est(n)
+    except Exception:  # noqa: BLE001
+        return 0.0
+
+
+def _razao_preco(de, para):
+    try:
+        import medir_uso
+        a, b = medir_uso.preco(de), medir_uso.preco(para)
+        return b[0] / a[0] if a and b else None
+    except Exception:  # noqa: BLE001
+        return None
 
 
 NAO_NOTICIA = {"Concursos - Carreira", "Concursos - Apoio", "Versículo", "Munger"}

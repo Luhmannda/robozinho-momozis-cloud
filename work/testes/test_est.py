@@ -599,7 +599,8 @@ def helper_completo():
     rc, out = rodar_helper(d, ex, "--draft-id", "r1", "--reconciliar-id", "2026-11-13-7h")
     ok(rc == 0 and "STATUS: OK" in out, out)
     ok("ALERTA: edicao anterior 2026-11-13-7h sem --message-id" in out, "E2")
-    ok("ALERTA_ECONOMIA:" in out and "ALERTA: modelo do orquestrador mudou: claude-sonnet-5-5" in out, "uso: " + out)
+    # ALERTA_ECONOMIA so contra execucoes do MESMO modelo (a base aqui e Sonnet): fica so o da troca (test_persistencia)
+    ok("ALERTA_ECONOMIA:" not in out and "ALERTA: modelo do orquestrador mudou: claude-sonnet-5-5" in out, "uso: " + out)
     ok("vale o do script" in out, "fontes_status mesclado")
     h = json.load(open(os.path.join(d, "hist.json")))
     ant = next(e for e in h["executions"] if e["execution_id"] == "2026-11-13-7h")
@@ -665,8 +666,9 @@ def medir_uso_tipos_e_custo():
     ok(o["entrada"] == 10 and o["cache_lido"] == 3000 and o["cache_gravado"] == 600 and o["saida"] == 350, o)
     base = medir_uso.custo_relativo(10, 3000, 600, 350)
     ok(base == round(10 + 300 + 750 + 1750), "pesos 1/0,1/1,25/5: %d" % base)
-    ok(o["fechamento_estimado"]["cache_lido"] == 2100 and o["custo_relativo"] == base +
-       o["fechamento_estimado"]["custo_relativo"], "fechamento estimado")
+    ok(o["fechamento_estimado"]["cache_lido"] == 2100 and o["custo_relativo"] ==        # pesos do Fable, gravacao 1 h
+       medir_uso.custo_relativo(10, 3000, 600, 350, "claude-fable-5-2", 600) + o["fechamento_estimado"]["custo_relativo"],
+       "fechamento estimado")
     g = m["coletores"]["gmail"]
     ok(g["relancamentos"] == 1 and g["chamadas_modelo"] == 2 and g["saida"] == 10, "relançamento somado: %r" % g)
     ok(uh.custo_relativo_execucao({"orquestrador": {"contexto_total": 1000, "cache_gravado": 100, "saida": 10,
