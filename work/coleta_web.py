@@ -1,8 +1,25 @@
 #!/usr/bin/env python3
 # =====================================================================
 # coleta_web.py — coleta deterministica das fontes web liberadas no
-# allowlist: Congresso (leis e MPVs), Agencia Camara, ConJur e Migalhas.
+# allowlist: Congresso (leis e MPVs), LEGIN (decretos e demais atos do DOU),
+# Agencia Camara, ConJur e Migalhas.
 # Substitui o curl+regex que o coletor Web improvisava a cada dia (e errava).
+#
+# (21/11/2026) Cobertura e indice:
+# - ConJur pela WP REST API do dominio (janela inteira, hora, tipo, linha-fina e
+#   corpo numa requisicao; fallback: listagem HTML paginada) e Migalhas paginado
+#   (?pagina=N), com teto, parada pela data, trava de pagina repetida e orcamento
+#   de tempo; leitura incompleta = "cobertura": "parcial" no JSON, AVISO no indice
+#   e o detalhe "parcial: ..." no status (que continua "ok": a lista fechada do
+#   source_status nao tem "parcial").
+# - Do corpo ja baixado: "lead" (2 paragrafos verbatim), "ficha" (tribunal ·
+#   orgao · processo/tema · vinculante), "nota_oficial" ("Com informacoes da
+#   assessoria do STF") e o "autor" de artigo/coluna; linha-fina cortada vira o lead.
+# - LEGIN (Legislacao Informatizada da Camara): ids dec13173, lc239, ec141...
+# - Indice: noticias por relevancia para prova, [CONC]/[STJ]/ficha/[ASSESSORIA X],
+#   a mesma historia do dia numa linha, paginas seguintes so com titulo e termo de
+#   prova, rotina orcamentaria numa linha, PROMO/opiniao disfarcada so contadas e,
+#   no fim, a lista JA SAIU (Midia e Fofoquinha das 2 ultimas edicoes).
 #
 # - Agencia Camara (www.camara.leg.br/noticias/ultimas, 10 noticias por pagina):
 #   o boletim por e-mail falha sem aviso (nenhum em 16 e 17/11/2026, com 23
@@ -48,7 +65,8 @@
 #        ROBOZINHO_TMP (padrao /tmp) e a pasta de todos os arquivos temporarios.
 # SAIDA: indice compacto em stdout (sem URL); JSON completo em $ROBOZINHO_TMP/coleta_web.json.
 #        Fonte com erro aparece como "ERRO ... usar WebSearch" (MPV: conferir antes
-#        as PLANALTO_ATO do coletor Gmail). Ultima linha: SOURCE_STATUS {...}.
+#        as PLANALTO_ATO do coletor Gmail). Ultima linha: SOURCE_STATUS {...}
+#        (inclui "camara_legin").
 # =====================================================================
 
 import argparse
