@@ -93,6 +93,7 @@ URL_CONJUR_PG = "https://conjur.com.br/noticias/?tipo=noticias&per_page=15&pg=%d
 POR_PAGINA_CONJUR = 15
 MAX_PAGINAS_CONJUR = 5           # dia util ~2 paginas; segunda ~4
 MAX_PAGINAS_MIGALHAS = 7         # dia util 4-5; segunda 6-7
+ORCAMENTO_PAGINACAO = 40         # s: as paginas seguintes param aqui (o aguardar_coleta espera ~90 s pelos 3 scripts)
 TIPOS_WP = {"tipos-noticias": "noticia", "tipos-artigos": "artigo", "tipos-colunas": "coluna",
             "tipos-estudio": "estudio"}            # "Estudio ConJur" = conteudo patrocinado (PROMO)
 URL_CAMARA = "https://www.camara.leg.br/noticias/ultimas"
@@ -1082,10 +1083,13 @@ def conjur_html(inicio, fim, recorte, urls_pub):
                 novo(url, dia, tit, tipo, 1)
         if tipo != "noticia" or pags[u][0] != 200:
             continue
-        pag, ultima = 1, lista
+        pag, ultima, t0 = 1, lista, time.time()
         while ultima and min(d for _, d, _ in ultima) >= inicio.date():
             if pag >= MAX_PAGINAS_CONJUR:
                 break                       # teto: completa=False
+            if time.time() - t0 > ORCAMENTO_PAGINACAO:
+                out["orcamento"] = pag + 1
+                break
             pag += 1
             url_p = URL_CONJUR_PG % pag
             cod, t = fetch_many([url_p])[url_p]
@@ -1127,7 +1131,7 @@ def conjur_html(inicio, fim, recorte, urls_pub):
                 if a:
                     it["autor"] = a
     _cobertura(out, inicio)
-    if out.get("sem_url_nova") or out.get("http_pagina"):
+    if out.get("sem_url_nova") or out.get("http_pagina") or out.get("orcamento"):
         out["completa"], out["cobertura"] = False, "parcial"
     return out
 
@@ -1160,8 +1164,12 @@ def migalhas(inicio, fim, recorte, urls_pub):
     tambem nao abre; o resto abre (hora exata, linha-fina limpa, lead, ficha) — 8 em paralelo."""
     out = {"fonte": "migalhas", "http": 0, "tentativas": 0, "itens": [], "paginas": 0, "completa": False}
     unicos = {}
+    t0 = time.time()
     for pag in range(1, MAX_PAGINAS_MIGALHAS + 1):
-        cod, t, n_tent = fetch_n(URL_MIGALHAS + ("?pagina=%d" % pag if pag > 1 else ""))
+        if pag > 1 and time.time() - t0 > ORCAMENTO_PAGINACAO:
+            out["orcamento"] = pag            # site lento: o que foi lido vale, cobertura parcial
+            break
+        cod, t, n_tent = fetch_n(URL_MIGALHAS + ("?pagina=%d" % pag if pag > 1 else ""), repetir_timeout=pag == 1)
         if pag == 1:
             out["http"], out["tentativas"] = cod, n_tent
         if cod != 200:
@@ -1206,7 +1214,7 @@ def migalhas(inicio, fim, recorte, urls_pub):
                 enriquecer(it, pagina, "migalhas")
         out["itens"].append(it)
     _cobertura(out, inicio)
-    if out.get("sem_url_nova") or out.get("http_pagina"):
+    if out.get("sem_url_nova") or out.get("http_pagina") or out.get("orcamento"):
         out["completa"], out["cobertura"] = False, "parcial"
     return out
 
@@ -1438,6 +1446,7 @@ def _aviso_cobertura(r, inicio):
         quando = "sem data na última página"
     motivo = ("http=%s na página %s" % (r["http_pagina"]["http"], r["http_pagina"]["pagina"]) if r.get("http_pagina")
               else "a página %s repetiu a anterior" % r["sem_url_nova"] if r.get("sem_url_nova")
+              else "site lento: parou antes da página %s" % r["orcamento"] if r.get("orcamento")
               else "teto de %s página(s)" % r.get("paginas", "?"))
     return ["AVISO: cobertura parcial do %s (%s; %s): pode faltar notícia mais antiga — leve a verification_notes"
             % ("ConJur" if r["fonte"] == "conjur" else "Migalhas", motivo, quando)]

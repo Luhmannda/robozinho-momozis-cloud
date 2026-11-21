@@ -750,6 +750,16 @@ def coleta_migalhas_paginado():
     with Rede(lambda u: (200, pags["1"]) if "quentes" in u and "/quentes/" not in u else resp(u)):
         out = coleta_web.migalhas(*_janela(*J2011), set())
     assert out["sem_url_nova"] == 2 and out["cobertura"] == "parcial", out
+    # site lento: o orcamento de tempo para as paginas seguintes (o aguardar_coleta espera ~90 s pelos 3 scripts)
+    antigo = coleta_web.ORCAMENTO_PAGINACAO
+    coleta_web.ORCAMENTO_PAGINACAO = -1
+    try:
+        with Rede(resp) as rede:
+            out = coleta_web.migalhas(*_janela(*J2011), set())
+    finally:
+        coleta_web.ORCAMENTO_PAGINACAO = antigo
+    assert out["orcamento"] == 2 and out["paginas"] == 1 and out["cobertura"] == "parcial", out
+    assert any("site lento: parou antes da página 2" in l for l in coleta_web.imprimir([out], *_janela(*J2011)))
 
 
 @teste
