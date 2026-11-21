@@ -759,8 +759,10 @@ PRECEDENTE_STJ = re.compile(r"\(\s*(?:(?P<antes>Repetitivo|RQF)\s+)?Tema(?:\s+(?
                             r"\s+(?P<n>[\d.]+)\s*\)", re.I)
 ROTULOS_STJ = ("Processo", "Ramo do Direito", "Tema", "Destaque", "Informações do Inteiro Teor",
                "Informações Adicionais", "Compartilhe:")
-# uma linha do rotulo "Processo": numero (com "AgInt no", "ProRQF no"...) e o resto (relator, orgao, data, tema)
-PROCESSO_STJ = re.compile(r"^(?P<num>(?:[A-Za-z]+\s+no\s+)*[A-Z][A-Za-z]*\s+[\d.]+(?:-[A-Z]{2})?)\s*,\s*(?P<resto>\S.*)$")
+# uma linha do rotulo "Processo": numero (com "AgInt no", "AgInt nos EDcl no", "ProRQF no"...) e o resto (relator,
+# orgao, data, tema)
+PROCESSO_STJ = re.compile(r"^(?P<num>(?:[A-Za-z]+\s+n[oa]s?\s+)*[A-Z][A-Za-z]*\s+[\d.]+(?:-[A-Z]{2})?)\s*,\s*"
+                          r"(?P<resto>\S.*)$")
 NOTA_STJ = re.compile(r"[?&]livre=@CNOT=(\d+)")
 
 
@@ -1202,7 +1204,7 @@ def linha_item(tipo, it):
     else:
         partes = (it.get("orgao") or it.get("tipo"),)
     rotulo = " · ".join(x for x in partes if x) or it.get("secao") or "?"
-    return "[%s] %s — %s" % (rotulo, it["ramo"], curto(it["tema"], 150))
+    return "[%s] %s%s" % (rotulo, (it["ramo"] + " — ") if it.get("ramo") else "", curto(it["tema"], 150))
 
 
 def ddmm(iso):

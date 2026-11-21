@@ -460,7 +460,13 @@ def t_stj_910_publicada():
            == "REsp 1-SP, Rel. X, julgado em 1/1/2026 (Tema 1)."
            and I.processo_stj(["REsp 1-SP, Rel. X, julgado em 1/1/2026.", "REsp 2-RJ, Rel. Y, julgado em 1/1/2026."])
            == "REsp 1-SP, Rel. X, julgado em 1/1/2026. REsp 2-RJ, Rel. Y, julgado em 1/1/2026."
-           and I.processo_stj(["Processo em segredo de justiça, Rel. X."]) == "Processo em segredo de justiça, Rel. X.")
+           and I.processo_stj(["Processo em segredo de justiça, Rel. X."]) == "Processo em segredo de justiça, Rel. X."
+           and I.processo_stj(["AgInt nos EDcl no AREsp 1-SP, Rel. X.", "AgInt nos EDcl no AREsp 2-SP, Rel. X."])
+           == "AgInt nos EDcl no AREsp 1-SP e AgInt nos EDcl no AREsp 2-SP, Rel. X.")
+    t1469 = next(i for i in itens if i["precedente"] == "Tema 1469")
+    checar("stj910: índice sem o ramo (Tema 1469) não deixa '  — ' solto",
+           I.linha_item("stj", t1469).startswith("[Repetitivo · Tema 1469 · Primeira Seção] Exigência de regularidade"),
+           I.linha_item("stj", t1469)[:90])
     try:
         import montar_email as M
         html_a = M.texto_destaque("stj", a)
