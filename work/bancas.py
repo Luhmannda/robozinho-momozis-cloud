@@ -146,9 +146,16 @@ TRECHOS = [  # (rotulo, regex sobre o edital com espacos normalizados)
 TRECHOS_ALT = {
     "vagas": r"provimento de \d+ \([^)]{1,40}\) cargos[^.;]{0,90}",
     "remuneração": r"VENCIMENTO:?\s*R\$\s?[\d.]+,\d{2}",
-    "prova objetiva": r"[^.;]{0,90}ser(?:[ãa]o|á) realizadas?,? (?:no dia|na data prov[áa]vel de) %s"
+    "prova objetiva": r"[^.;]{0,90}(?P<verbo>ser(?:[ãa]o|á)) realizadas?,? (?:no dia|na data prov[áa]vel de) %s"
                       r"(?:,? (?:com duração de \d+h, )?das \d{1,2}h às \d{1,2}h)?" % DATA,
 }
+# o "será realizada no dia" da alternativa so e a prova se a frase fala dela antes (rev1 C10: casava sessao publica,
+# entrega de titulos...): "provas?" na frase (desde o ultimo ". ", ate FRASE_MAX caracteres antes; o TJPB lista os
+# cargos com ';' entre "A Prova Objetiva" e "serão realizadas"), sem resultado/recurso/sessao/... antes dela
+FRASE_MAX = 450
+RE_PROVA_PALAVRA = re.compile(r"\bprovas?\b", re.I)
+RE_ANTES_DA_PROVA = re.compile(r"resultado|gabarito|recurso|sess[ãa]o|identifica|vista|cart[ãa]o|\bloca(?:l|is)\b|"
+                               r"convoca|homolog", re.I)
 RE_RETIFICADO = re.compile(r"\((?:retificad[oa]|atualizad[oa]|consolidad[oa])\s+em\s+(\d{2})/(\d{2})/(\d{4})\)", re.I)
 RE_RETIFICACAO = re.compile(r"retifica|prorroga|errata", re.I)
 RE_RELEITURA = re.compile(r"retifica|prorroga|errata|\bedital\b", re.I)
@@ -391,12 +398,23 @@ def texto_pdf(url):
     return re.sub(r"\s+", " ", t), ""
 
 
+def prova_na_frase(t, i):
+    """A frase de `t` que vai ate a posicao `i` (desde o ultimo ". ", no maximo FRASE_MAX caracteres) tem a palavra
+    prova(s), sem resultado/recurso/sessao/... antes dela? (o sujeito do "será realizada" da alternativa)"""
+    antes = t[max(0, i - FRASE_MAX):i]
+    k = antes.rfind(". ")
+    frase = antes[k + 2:] if k >= 0 else antes
+    m = RE_PROVA_PALAVRA.search(frase)
+    return bool(m) and not RE_ANTES_DA_PROVA.search(frase[:m.start()])
+
+
 def trechos(t):
     out = {}
     for rotulo, padrao in TRECHOS:
         m = re.search(padrao, t)
         if not m and rotulo in TRECHOS_ALT:
-            m = re.search(TRECHOS_ALT[rotulo], t)
+            m = next((x for x in re.finditer(TRECHOS_ALT[rotulo], t)
+                      if "verbo" not in x.groupdict() or prova_na_frase(t, x.start("verbo"))), None)
         if m:
             out[rotulo] = m.group(0).strip()[:230]
     return out

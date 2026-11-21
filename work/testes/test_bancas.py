@@ -13,7 +13,8 @@
 #   registro; TRECHOS_ALT (TJPB e ENAM ganham vagas/vencimento/prova; TJSC e
 #   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade);
 #   listagem ilegivel le os vinculados (rev1 C3); NOVA EDICAO de vinculado sem
-#   ano (rev1 C4); teto do paralelo limita o processo e o curl/pdftotext (C5).
+#   ano (rev1 C4); teto do paralelo limita o processo e o curl/pdftotext (C5);
+#   "será realizada no dia" so vira prova objetiva com "prova" na frase (C10).
 # USO: python3 work/testes/test_bancas.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -624,6 +625,15 @@ def trechos_alternativos_so_quando_o_principal_falha():
         "prova objetiva": "Prova Objetiva Seletiva, de caráter eliminatório e classificatório, está prevista para o dia "
                           "24 de janeiro de 2027"}, ensure_ascii=False), "TJAP mudou: %r" % tjap)
     ok(bancas.TRECHOS[1][0] == "inscrições" and "LEIA" not in bancas.TRECHOS[1][1], "índice do LEIA-SE")
+    # rev1 C10: o "será realizada no dia" da alternativa so e a prova com "prova" na frase antes dele (o TJPB tem
+    # "10.1 A Prova Objetiva e a Prova Discursiva ... para os cargos de ...; ...; ... serão realizadas no dia")
+    for frase in ("Edital. A sessão pública de identificação das provas práticas será realizada no dia 10 de dezembro "
+                  "de 2026, das 10h às 12h.", "A entrega dos títulos será realizada no dia 10 de dezembro de 2026.",
+                  "Prova objetiva aplicada. 4.1 A perícia médica será realizada no dia 3 de fevereiro de 2027.",
+                  "O resultado da prova será realizado no dia 10 de dezembro de 2026."):
+        ok("prova objetiva" not in bancas.trechos(frase), (frase, bancas.trechos(frase)))
+    ok(bancas.trechos("Sessão em 1 de março de 2027. 8.1. A prova será realizada no dia 7 de março de 2027.")
+       ["prova objetiva"] == "A prova será realizada no dia 7 de março de 2027", "a prova continua")
 
 
 # ------------------------------------------------------------------ helper: banca_slug
