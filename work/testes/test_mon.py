@@ -2076,10 +2076,14 @@ def t_mon_migracao_do_dia_visivel():
     'Atualizado hoje' (verificado em 21/11, sem 'herdada'), 'Saiu do acompanhamento' com o desfecho e os itens
     concurso|<id>|novo/atualizado no historico — uma vez so, mesmo com o update do dia tocando o id."""
     t, linhas = pasta_migrada()
-    ok(linhas == ["MIGRACAO 2026-11-21-escopo-e-concursos: aplicada (14 concursos, 5 pendências)"], linhas)
+    # o work/migracoes real pode ter outras migracoes (ex.: 2026-11-21-b-notas-do-ledger, so notas de fonte): vale a
+    # linha da de escopo e concursos, e todas aplicadas sem ALERTA
+    ok([l for l in linhas if "escopo-e-concursos" in l]
+       == ["MIGRACAO 2026-11-21-escopo-e-concursos: aplicada (14 concursos, 5 pendências)"]
+       and all(l.startswith("MIGRACAO ") for l in linhas), "; ".join(linhas))
     res = json.load(open(os.path.join(t, "migracoes-hoje.json"), encoding="utf-8"))
     ok(res["data"] == "2026-11-23" and res["base_execucao"] == "2026-11-20-7h"
-       and res["migracoes"] == ["2026-11-21-escopo-e-concursos"]
+       and "2026-11-21-escopo-e-concursos" in res["migracoes"]
        and {k: v for k, v in res["concursos"].items() if isinstance(v, str)} == {"enam": "novo", "pge_rj": "alterado",
                                                                                   "dpe_sp": "alterado"}
        and sorted(k for k, v in res["concursos"].items() if isinstance(v, dict))
@@ -2101,8 +2105,9 @@ def t_mon_migracao_do_dia_visivel():
        "do dono de 20/11/2026).</td></tr>" in apoio and apoio.count("Saiu do acompanhamento") == 5
        and html.count("Saiu do acompanhamento") == 5, "5 saidas no quadro de apoio, com o desfecho")
     ok("TRT8 — Analista" not in html, "o registro removido nao sai")
-    ok("AVISO: migração de hoje (2026-11-21-escopo-e-concursos) já nas marcas do dia — NOVO: ENAM; Atualizado hoje: "
-       "PGE-RJ, DPE-SP; Saiu do acompanhamento: TRT8, DPE-PB" in out, "AVISO comum com as marcas da migracao")
+    aviso_mig = next((l for l in out.splitlines() if l.startswith("AVISO: migração de hoje (")), "")
+    ok("2026-11-21-escopo-e-concursos" in aviso_mig and "já nas marcas do dia — NOVO: ENAM; Atualizado hoje: "
+       "PGE-RJ, DPE-SP; Saiu do acompanhamento: TRT8, DPE-PB" in aviso_mig, "AVISO comum com as marcas da migracao")
     # pendencias da migracao ligadas a concurso: nao vao ao quadro (o registro ja diz), como as do update do dia
     ok("Saiu do acompanhamento: PGE-RJ" not in quadro_leitor(html), "pendencia ligada a concurso fica fora do quadro")
     resolvido = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
