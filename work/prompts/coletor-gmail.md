@@ -10,7 +10,7 @@ Horários sempre em America/Sao_Paulo: a data do e-mail vem em UTC (−3h). Not�
 - a) `from:naoresponda@stf.jus.br after:{{GMAIL_APOS}}` — STF Notícias
 - b) `from:nao_responda@stf.jus.br after:{{GMAIL_APOS}}` — Informativo STF **e** Repercussão Geral em Pauta (produtos distintos; esta busca cobre os dois)
 - c) `from:stj.codju@stj.jus.br after:{{GMAIL_APOS}}` — STJ CodJu: Informativo (semanal) e Jurisprudência em Teses (assunto "Jurisprudência Em Teses - EDIÇÃO N. …"); vazio é normal
-- d) `from:presidencia.gov.br in:anywhere after:{{GMAIL_APOS}}` — PUSH Planalto (o domínio cobre `no-reply-push-legislacao@` e o legado `sistemapushsaj@`). Só esta sonda; `PLANALTO_ATO` só de remetente `@presidencia.gov.br` (edição do Robozinho ou do Migalhas que cite a resenha não é fonte).
+- d) `from:presidencia.gov.br in:anywhere after:{{GMAIL_APOS}}` — PUSH Planalto (o domínio cobre `no-reply-push-legislacao@` e o legado `sistemapushsaj@`, e deixa de fora edições do Robozinho e do Migalhas que citam a resenha: não são fonte). Só esta sonda.
 - e) `from:boletins@camara.gov.br in:anywhere after:{{GMAIL_APOS}} -subject:"Acompanhe seu Deputado"` — boletim da Agência Câmara de Notícias. `in:anywhere` de propósito: o boletim às vezes vai para a lixeira.
 
 **Passo 2 — numa única mensagem, `mcp__Gmail__get_thread` (`messageFormat: PLAIN_TEXT`) só das threads da janela.** Não abra a thread cujas mensagens listadas na busca são todas anteriores a {{INICIO_BR}} (a busca mostra só as 5 mensagens mais antigas de cada thread: com `messageCount` maior que as listadas, abra). As não abertas só contam no `BUSCAS`. Thread na lixeira cujo `get_thread` for negado: use o resumo da busca e marque "lista incompleta (lixeira)".
