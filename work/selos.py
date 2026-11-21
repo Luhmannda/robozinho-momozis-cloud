@@ -36,10 +36,13 @@
 #       hoje contesta o fim das inscricoes do registro ou o prazo escrito hoje)
 #       o selo por data fica SUSPENSO, com aviso acionavel;
 #     - PROVA EM BREVE sem prova (de qualquer confirmacao) nos proximos 14 dias
-#       — a prova passou, foi adiada ou a proxima e distante — sai da familia:
-#       PENDENCIA DE VERIFICACAO, com o motivo pedindo PROVA REALIZADA ou a data
-#       nova (antes ficava PROVA EM BREVE depois da prova, ou voltava a
-#       INSCRICOES ENCERRADAS com a banca lida). Sem prazo de prova, o selo fica.
+#       e com prova JA PASSADA sai da familia: PENDENCIA DE VERIFICACAO, com o
+#       motivo pedindo PROVA REALIZADA ou a data nova (antes ficava PROVA EM BREVE
+#       depois da prova, ou voltava a INSCRICOES ENCERRADAS com a banca lida).
+#       Prova adiada ou distante sem prova passada segue as regras normais (fica,
+#       ou INSCRICOES ENCERRADAS com a banca lida, e volta a PROVA EM BREVE quando
+#       a data entra na janela): tira-la da familia a deixava em PENDENCIA para
+#       sempre. Sem prazo de prova, o selo fica.
 #   _dm: DD/MM sem ano herda o ano da proxima data completa do mesmo trecho;
 #     cada ano e tentado sozinho (29/02); inicio_inscricoes exige inicio antes do
 #     fim e a menos de um ano dele.
@@ -287,19 +290,21 @@ def proxima_prova(reg, hoje, extras=None):
 
 # ------------------------------------------------------------------ selo por data
 def _saida_prova_em_breve(reg, hoje, extras=None):
-    """Motivo para tirar PROVA EM BREVE da familia quando nenhuma prova do registro (de qualquer confirmacao) cai
-    em [hoje, hoje + PROVA_BREVE_DIAS]: a prova passou ou foi para longe (adiada, 2a prova distante). None se ha
-    prova na janela ou nenhum prazo de prova (sem dado: o selo fica). O selo cai para SELO_SEM_CONFIRMACAO e o
-    orquestrador escreve PROVA REALIZADA (aplicada) ou a data nova; antes ficava PROVA EM BREVE semanas depois da
-    prova (tjrs, trf5) ou voltava a INSCRICOES ENCERRADAS (tjap, tjsc com a banca lida)."""
+    """Motivo para tirar PROVA EM BREVE da familia quando uma prova do registro (de qualquer confirmacao) JA PASSOU
+    e nenhuma cai em [hoje, hoje + PROVA_BREVE_DIAS]. None se ha prova na janela, nenhum prazo de prova (sem dado:
+    o selo fica) ou nenhuma prova passada: a prova adiada ou distante segue as regras normais do selo por data (fica
+    PROVA EM BREVE, ou INSCRICOES ENCERRADAS com a banca lida, e volta a PROVA EM BREVE quando a data entra na
+    janela) — tira-la da familia a deixava em PENDENCIA para sempre (rev1 C1). O selo cai para SELO_SEM_CONFIRMACAO
+    e o orquestrador escreve PROVA REALIZADA (aplicada) ou a data nova; antes ficava PROVA EM BREVE semanas depois
+    da prova (tjrs, trf5) ou voltava a INSCRICOES ENCERRADAS (tjap, tjsc com a banca lida)."""
     provas = [d for d in (_data(p.get("data")) for p in _prazos(reg, extras) if classe_prazo(p) == "prova") if d]
-    if not provas or any(0 <= (d - hoje).days <= PROVA_BREVE_DIAS for d in provas):
-        return None
     passadas = [d for d in provas if d < hoje]
-    if passadas:
-        fato = "a prova de %s já passou sem confirmação oficial de que foi aplicada" % max(passadas).strftime("%d/%m")
-    else:
-        fato = "a próxima prova (%s) ficou a mais de %d dias" % (min(provas).strftime("%d/%m"), PROVA_BREVE_DIAS)
+    if not passadas or any(0 <= (d - hoje).days <= PROVA_BREVE_DIAS for d in provas):
+        return None
+    fato = "a prova de %s já passou sem confirmação oficial de que foi aplicada" % max(passadas).strftime("%d/%m")
+    futuras = [d for d in provas if d >= hoje]
+    if futuras:
+        fato += ", e a próxima (%s) está a mais de %d dias" % (min(futuras).strftime("%d/%m"), PROVA_BREVE_DIAS)
     # "prorrogação não confirmada" casa o ACIONAVEL do montador: o rascunho espera a decisao do orquestrador
     return ("PROVA EM BREVE → %s: %s (adiamento ou prorrogação não confirmada) — confirme na fonte oficial e "
             "escreva em ledger_updates.concursos: aplicada → selo PROVA REALIZADA; adiada → prazos com a data nova "

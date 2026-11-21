@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # =====================================================================
 # test_concursos.py — testes da frente CONCURSOS (sem pytest, sem rede):
-#   selos.py: PROVA EM BREVE sai da familia quando a prova passa ou sai da janela
-#   de 14 dias (sem regressao a INSCRICOES ENCERRADAS com a banca lida; o motivo
-#   casa o ACIONAVEL do montador); candidato a remocao por datas so de
+#   selos.py: PROVA EM BREVE sai da familia quando a prova passa (sem regressao a
+#   INSCRICOES ENCERRADAS com a banca lida; o motivo casa o ACIONAVEL do
+#   montador); prova adiada/distante sem prova passada segue as regras normais e
+#   volta a PROVA EM BREVE na janela de 14 dias; candidato a remocao por datas so de
 #   secundaria; _dm herda o ano do mesmo trecho e le 29/02; inicio coerente.
 #   paginas_oficiais.py (paginas reduzidas do TRF2 e da PGE-RJ de 21/11/2026):
 #   item = titulo + continuacao (o nome da Portaria nº 578 inteiro), ato sem
@@ -89,10 +90,22 @@ def prova_em_breve_sai_da_familia():
     duas = dict(tjrs, prazos=tjrs["prazos"] + [{"data": "2027-03-07", "evento": "prova discursiva", "confirmado": True}])
     s, m = selos.selo_por_data(duas, D("2026-12-14"))
     ok(s == selos.SELO_SEM_CONFIRMACAO and "13/12" in m, (s, m))
-    # adiada: so a data nova, a mais de 14 dias
+    ok("a próxima (07/03) está a mais de 14 dias" in m, m)
+    # adiada (rev1 C1): so a data nova, a mais de 14 dias, sem prova passada -> regras normais, nao PENDENCIA (antes
+    # caia para PENDENCIA e nunca voltava); a data entra na janela: PROVA EM BREVE; passa: sai da familia
     adiada = dict(tjrs, prazos=[{"data": "2027-02-07", "evento": "prova objetiva (adiada)", "confirmado": True}])
-    s, m = selos.selo_por_data(adiada, D("2026-12-14"))
-    ok(s == selos.SELO_SEM_CONFIRMACAO and "a próxima prova (07/02) ficou a mais de 14 dias" in m, (s, m))
+    ok(selos.selo_por_data(adiada, D("2026-12-14")) == ("PROVA EM BREVE", None), "adiada distante: fica")
+    ok(selos.selo_por_data(adiada, D("2027-01-25")) == ("PROVA EM BREVE", None), "adiada na janela")
+    s, m = selos.selo_por_data(adiada, D("2027-02-08"))
+    ok(s == selos.SELO_SEM_CONFIRMACAO and "a prova de 07/02 já passou" in m, (s, m))
+    # adiada com a banca lida e o fim das inscricoes vencido: INSCRICOES ENCERRADAS (regra normal) e volta a
+    # PROVA EM BREVE quando a prova entra na janela
+    adi_b = dict(adiada, prazos=adiada["prazos"] + [{"data": "2026-11-18", "evento": "fim das inscrições",
+                                                      "confirmado": True}])
+    s, m = selos.selo_por_data(adi_b, D("2026-12-14"), banca_lida_hoje=True, ultima_retificacao="2026-11-13")
+    ok(s == "INSCRIÇÕES ENCERRADAS", (s, m))
+    ok(selos.selo_por_data(dict(adi_b, selo=s), D("2027-01-25"), banca_lida_hoje=True,
+                           ultima_retificacao="2026-11-13")[0] == "PROVA EM BREVE", "volta à janela da prova")
     # prova (a confirmar) na janela: fica; sem prazo de prova: fica (sem dado)
     sec = dict(tjrs, prazos=[{"data": "2026-12-20", "evento": "prova (fonte secundária)", "confirmado": False}])
     ok(selos.selo_por_data(sec, D("2026-12-14")) == ("PROVA EM BREVE", None), "secundária na janela")
