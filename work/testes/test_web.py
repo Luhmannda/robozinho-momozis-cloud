@@ -39,6 +39,9 @@ import jota_extrair     # noqa: E402
 import versiculo        # noqa: E402
 
 TZ = ZoneInfo("America/Sao_Paulo")
+# sem rede: pedido que o teste nao simulou vira http 0 sem pausa (a API do ConJur cai no fallback HTML)
+coleta_web._fetch1 = lambda url, timeout: (0, "", False)
+coleta_web.PAUSA_REPETICAO = 0
 RESULTADOS = []
 
 
@@ -474,6 +477,10 @@ def coleta_resumo_truncado_e_propaganda():
         for x in ((C1_URL, C1_TIT), (C15_URL, C15_TIT))))
     paginas[C1_URL] = (200, pagina_fixture("conjur-c1-1711.html"))
     paginas[C15_URL] = (200, pagina_fixture("conjur-c15-1711.html"))
+    # 2a pagina da listagem (21/11: paginada ate o dia anterior ao inicio da janela): so uma noticia de 15/11
+    pg2 = coleta_web.URL_CONJUR_PG % 2
+    paginas[pg2] = (200, '<h2 class="conjur-posts-tipo-titulo"><a href="https://conjur.com.br/2026-nov-15/velha/">'
+                         'Velha</a></h2>')
     pedidos = []
     antigo = coleta_web.fetch_many
 
@@ -487,13 +494,25 @@ def coleta_resumo_truncado_e_propaganda():
         out = coleta_web.conjur(inicio, fim, fim.replace(day=16, hour=7), set())
     finally:
         coleta_web.fetch_many = antigo
-    assert sorted(pedidos) == sorted(list(coleta_web.URLS_CONJUR.values()) + [C1_URL, C15_URL]), pedidos  # 1 por pagina
+    assert sorted(pedidos) == sorted(list(coleta_web.URLS_CONJUR.values()) + [pg2, C1_URL, C15_URL]), pedidos
+    assert out["via"] == "html" and out["completa"] and out["paginas"] == 2, out
     it = {i["url"]: i for i in out["itens"]}
-    assert it[C1_URL]["resumo_truncado"] is True and it[C1_URL]["resumo"].endswith("fazem a invasão de")
+    # (21/11) a linha-fina cortada ("... fazem a invasao de") sem paragrafo que a complete vira o lead da materia
+    # (verbatim, ate o fim de frase): 3a Secao e HC 967.966 estavam na pagina ja baixada
+    assert "resumo_truncado" not in it[C1_URL] and it[C1_URL]["resumo_origem"] == "lead", it[C1_URL]
+    assert it[C1_URL]["resumo"].startswith("A 3ª Seção do Superior Tribunal de Justiça precisa estabelecer") \
+        and it[C1_URL]["resumo"].endswith(".") and len(it[C1_URL]["resumo"]) <= coleta_web.MAX_COMPLEMENTO
+    assert "HC 967.966" in it[C1_URL]["lead"] and it[C1_URL]["ficha"] == "STJ · 3ª Seção · HC 967.966", it[C1_URL]
     assert "resumo_truncado" not in it[C15_URL] and "clique aqui" not in it[C15_URL]["resumo"]
     linhas = coleta_web.imprimir([out], inicio, fim, fim.replace(day=16, hour=7))
-    c1 = [l for l in linhas if "| " + C1_TIT in l]
-    assert c1 and c1[0].endswith("fazem a invasão de…"), c1
+    c1 = [l for l in linhas if C1_TIT in l]
+    assert c1 and "[STJ · 3ª Seção · HC 967.966]" in c1[0] and "fazem a invasão de…" not in c1[0], c1
+    # sem o lead (pagina sem paragrafo): a marca de corte de sempre, e o indice termina em "…"
+    sem_corpo = pagina_fixture("conjur-c1-1711.html").split("<p>")[0]
+    it2 = {"tipo": "noticia", "titulo": C1_TIT, "url": C1_URL}
+    it2["resumo"], it2["resumo_truncado"] = coleta_web.resumo_da_pagina(sem_corpo, C1_TIT, C1_URL)
+    coleta_web.enriquecer(it2, sem_corpo, "conjur")
+    assert it2["resumo_truncado"] is True and it2["resumo"].endswith("fazem a invasão de") and "lead" not in it2
     # Migalhas: a linha-fina da listagem passa pela mesma limpeza (pagina ja baixada)
     mu = "https://www.migalhas.com.br/quentes/445566/stj-julga-tema"
     mu2 = "https://www.migalhas.com.br/quentes/445567/tst-mantem-multa"
