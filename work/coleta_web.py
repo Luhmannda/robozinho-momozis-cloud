@@ -7,7 +7,8 @@
 #
 # (21/11/2026) Cobertura e indice:
 # - ConJur pela WP REST API do dominio (janela inteira, hora, tipo, linha-fina e
-#   corpo numa requisicao; fallback: listagem HTML paginada) e Migalhas paginado
+#   corpo numa requisicao; fallback: listagem HTML paginada, tambem quando a API
+#   responde 200 sem nenhum post com link e date_gmt) e Migalhas paginado
 #   (?pagina=N), com teto, parada pela data, trava de pagina repetida e orcamento
 #   de tempo; leitura incompleta = "cobertura": "parcial" no JSON, AVISO no indice
 #   e o detalhe "parcial: ..." no status (que continua "ok": a lista fechada do
@@ -38,7 +39,8 @@
 #   materias contra as URLs ja publicadas; e, por semelhanca de titulo
 #   (work/repeticao.py), materia que ja saiu por OUTRA fonte ganha a marca
 #   [REPETIDA?~chave] — o orquestrador nao precisa ler as chaves publicadas.
-# - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados).
+# - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados); nunca
+#   titulo com verbo de decisao, tribunal ou julgador (eh_promo/eh_opiniao_disfarcada).
 #
 # - Cada item publicavel ganha um id curto (lei15527, mpv1400, cam2, c7, m3): o
 #   orquestrador cita o id em $ROBOZINHO_TMP/execucao.json ({"ref": "c7", ...}) e o
@@ -48,6 +50,14 @@
 # - Rede: 1 nova tentativa apos ~3 s em http 0/429/5xx (16/11: um http 0
 #   transitorio nas MPVs custou ToolSearch + WebSearch inuteis). Em tempo
 #   esgotado (curl -m 20) so a listagem tenta de novo; as paginas de materia nao.
+# - Tempo (rev2 R8): o aguardar_coleta espera 90 s pelos 3 scripts e o pior caso
+#   passava disso (API do ConJur 30+3+30 s por pagina; LEGIN e Camara sem
+#   orcamento). Agora: prazo de rede do processo (PRAZO_REDE = 50 s desde o inicio
+#   do main): nenhum pedido sai depois dele e o curl -m de cada um e cortado no que
+#   resta; API do ConJur com curl -m 15 e sem nova tentativa em tempo esgotado;
+#   paginas seguintes do LEGIN com o orcamento de paginacao (40 s), como ConJur e
+#   Migalhas. Pedido cortado ou nao feito = linha "AVISO: prazo de rede..." no
+#   indice e "prazo de rede esgotado" no detalhe do status da fonte.
 # - Linha-fina (ConJur: og:description da materia; Migalhas: listagem) sem
 #   propaganda ("(clique aqui para garantir o seu exemplar)", Anuario) e sem o
 #   "[…]" do WordPress; frase cortada e completada pela propria pagina (ja
@@ -87,6 +97,11 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 TMP = os.environ.get("ROBOZINHO_TMP", "/tmp")
 HISTORICO = os.path.join(AQUI, "resumo-legislativo-historico.json")
 PAUSA_REPETICAO = 3      # segundos antes da nova tentativa (http 0/429/5xx)
+PRAZO_REDE = 50          # s desde o inicio do main: nenhum pedido passa daqui (o coleta_web inteiro fica em ~55 s)
+MIN_PEDIDO = 3           # s: com menos que isto no prazo, o pedido nem sai
+MARGEM_CURL = 2          # s alem do curl -m ate o subprocess ser morto
+_PRAZO = [None]          # time.monotonic() do fim do prazo; None = sem prazo (testes, uso como modulo)
+CORTES = []              # (url, "nao_feito" | "cortado"): pedidos que o prazo impediu ou encurtou
 MESES = {m: i + 1 for i, m in enumerate(
     "jan fev mar abr mai jun jul ago set out nov dez".split())}
 
@@ -134,21 +149,34 @@ CAM_INTERNO = re.compile(r"\bPRC\b|projeto de resolu[çc][ãa]o|\bselos?\b|\bmed
                          r"\bSemana Nacional\b|\bM[êe]s Nacional\b|honra ao m[ée]rito|t[íi]tulo de cidad", re.I)
 CAM_DUVIDA = re.compile(r"plen[aá]rio|sancion|promulg|\bvetos?\b|medidas? provis[oó]rias?", re.I)
 IGNORAR_EXEC = ""   # re-execucao (inicio.py --refazer): a edicao de hoje nao conta como publicada
-PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
+# PROMO e opiniao disfarcada saem do indice (so contadas): na duvida, NAO esconder. (rev2 R3) "live|podcast" em
+# qualquer posicao, "feira d..." solto e sujeito + verbo a 60 caracteres escondiam julgado real ("Advogado pagara custas
+# apos Justica apontar litigancia predatoria"; "TSE: live de Bolsonaro... abuso de poder"; "Juiz anula prova obtida em
+# podcast"): live/webinario/videocast/podcast e feira so no inicio do titulo ou com verbo de evento, e nada com verbo
+# de decisao, tribunal ou julgador no titulo vira PROMO nem opiniao disfarcada (eh_promo, eh_opiniao_disfarcada).
+PROMO = re.compile(r"^\W*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
                    r"webin[aá]rio|curso|encontro|jornada)\b|\blan[cç]amento d[eo] livro\b|"
                    # (21/11, Migalhas p. 2-6) cursinho, evento, feira, live, lancamento
-                   r"\baula (?:ao vivo|gratuita|inaugural)\b|\b(?:live|webin[aá]rio|videocast|podcast)\b|"
-                   r"(?<![-\w])feira d[aeo]s?\b|\b(?:realiza|promove|participa d[aoe]s?|homenage\w*)\b.{0,40}?(?<![-\w])(?:feira|congresso|"
+                   r"\baula (?:ao vivo|gratuita|inaugural)\b|^\W*(?:live|webin[aá]rio|videocast|podcast|feira d[aeo]s?)\b|"
+                   r"\b(?:realiza|promove|participa d[aoe]s?|homenage\w*)\b.{0,40}?(?<![-\w])(?:feira|congresso|"
                    r"semin[aá]rio|evento|encontro|jornada|debate|palestra|f[óo]rum|webin[aá]rio|curso|aula|videocast|"
-                   r"podcast|live|pr[eê]mio)\b|\b(?:livros?|obras?|biografia)\b.{0,60}?\bser[aáã]o? lan[cç]ad[oa]s?\b|"
+                   r"podcast|live|pr[eê]mio)\b|"
+                   r"\b(?:aborda|apresenta|debate|discute|comenta|analisa|explica|estreia|lan[cç]a|transmite|"
+                   r"entrevista)\w*\b.{0,40}?\b(?:live|webin[aá]rio|videocast|podcast)\b|"
+                   r"\b(?:livros?|obras?|biografia)\b.{0,60}?\bser[aáã]o? lan[cç]ad[oa]s?\b|"
                    r"\blan[cç]a (?:livro|obra|biografia)\b", re.I)
-# Opiniao disfarcada de noticia (so contada, como PROMO): "Especialista: ...", "Advogado aponta ...",
-# "..., alerta advogado"
-OPINIAO_DISFARCADA = re.compile(r"^\s*especialistas?\s*:|^\s*(?:especialistas?|advogad[oa]s?|tributaristas?|"
-                                r"professor[ae]?s?|juristas?|consultor[ae]?s?)\b.{0,60}?\b(?:aponta|alerta|explica|"
-                                r"comenta|analisa|avalia|orienta|esclarece|lista|recomenda)\w*\b|"
-                                r",\s*(?:aponta|alerta|explica|avalia|diz|afirma)\s+(?:advogad[oa]|especialista|"
+# Opiniao disfarcada de noticia (so contada, como PROMO): "Especialista: ...", "Advogado aponta ..." (o verbo logo
+# depois do sujeito, no inicio), "..., alerta advogado"
+OPINIAO_DISFARCADA = re.compile(r"^\W*especialistas?\s*:|^\W*(?:especialistas?|advogad[oa]s?|tributaristas?|"
+                                r"professor(?:a|es|as)?|juristas?|consultor(?:a|es|as)?)\s+(?:aponta|alerta|explica|"
+                                r"comenta|analisa|avalia|orienta|esclarece|lista|recomenda)m?\b|"
+                                r",\s*(?:aponta|alerta|explica|avalia|diz|afirma)m?\s+(?:advogad[oa]|especialista|"
                                 r"tributarista|professor[a]?|jurista)s?\s*$", re.I)
+# veto (rev2 R3): tribunal (sigla, sem os conselhos CNJ/CNMP) ou julgador no titulo; o verbo de decisao e o DECISAO
+TRIBUNAL_TITULO = re.compile(r"\b(?:STF|STJ|TST|TSE|STM|TCU|TNU|TJM?|TRE|TRF|TRT)(?:[-/ ]?(?:[A-Z]{2}|\d{1,2}))?\b")
+JULGADOR_TITULO = re.compile(r"\b(?:supremo|tribuna(?:l|is)|ju[íi]z(?:a|es|as)?|desembargador(?:a|es|as)?|"
+                             r"ministr[oa]s?|relator(?:a|es|as)?|turmas?|plen[áa]rio|corte|colegiado|magistrad[oa]s?)\b",
+                             re.I)
 
 
 def _fetch1(url, timeout):
@@ -156,7 +184,7 @@ def _fetch1(url, timeout):
     try:
         r = subprocess.run(["curl", "-s", "-L", "-m", str(timeout), "-A", UA,
                             "-w", "\n%{http_code}", url],
-                           capture_output=True, timeout=timeout + 5)
+                           capture_output=True, timeout=timeout + MARGEM_CURL)
         out = r.stdout.decode("utf-8", "replace")
     except subprocess.TimeoutExpired:
         return 0, "", True
@@ -173,15 +201,52 @@ def repetir(codigo):
     return codigo == 0 or codigo == 429 or codigo >= 500
 
 
+def _restante():
+    """Segundos ate o fim do prazo de rede (None: sem prazo)."""
+    return None if _PRAZO[0] is None else _PRAZO[0] - time.monotonic()
+
+
+def _no_prazo(url, timeout):
+    """curl -m do pedido dentro do prazo de rede, ou None (sem tempo: o pedido nao sai e fica em CORTES)."""
+    r = _restante()
+    if r is None:
+        return timeout
+    if r < MIN_PEDIDO:
+        CORTES.append((url, "nao_feito"))
+        return None
+    return max(1, min(timeout, int(r)))
+
+
+def _fetch_prazo(url, timeout):
+    t = _no_prazo(url, timeout)
+    if t is None:
+        return None
+    codigo, corpo, esgotado = _fetch1(url, t)
+    if esgotado and t < timeout:
+        CORTES.append((url, "cortado"))
+    return codigo, corpo, esgotado
+
+
 def fetch_n(url, timeout=20, repetir_timeout=True):
     """(codigo, corpo, tentativas): GET com 1 nova tentativa apos ~3 s em http
     0/429/5xx. Tempo esgotado so tenta de novo se repetir_timeout (senao uma
-    fonte lenta soma 20 s por pagina). 403/404 = 1 tentativa so."""
-    codigo, corpo, esgotado = _fetch1(url, timeout)
+    fonte lenta soma 20 s por pagina). 403/404 = 1 tentativa so. Dentro do prazo
+    de rede (PRAZO_REDE): sem tempo, (0, "", 0) sem pedido; a nova tentativa so
+    se ainda couber."""
+    r = _fetch_prazo(url, timeout)
+    if r is None:
+        return 0, "", 0
+    codigo, corpo, esgotado = r
     if repetir(codigo) and (repetir_timeout or not esgotado):
+        resta = _restante()
+        if resta is not None and resta - PAUSA_REPETICAO < MIN_PEDIDO:
+            CORTES.append((url, "nao_feito"))     # sem tempo para a nova tentativa
+            return codigo, corpo, 1
         time.sleep(PAUSA_REPETICAO)
-        codigo, corpo, _ = _fetch1(url, timeout)
-        return codigo, corpo, 2
+        r = _fetch_prazo(url, timeout)
+        if r is None:
+            return codigo, corpo, 1
+        return r[0], r[1], 2
     return codigo, corpo, 1
 
 
@@ -452,9 +517,15 @@ def legin(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
            "mais_recente": "", "itens": [], "no_congresso": 0, "ja_publicadas": []}
     limite = inicio.date() - timedelta(days=LEGIN_DIAS_ATO)
     vistos, normas = set(), []
+    t0, pedidas = time.time(), 0
     for ano in sorted({limite.year, fim.year}, reverse=True):
         for pag in range(1, MAX_PAGINAS_LEGIN + 1):
-            cod, t, n = fetch_n(url_legin(ano, pag))
+            # (rev2 R8) paginas seguintes a 1a: orcamento de tempo e sem nova tentativa em tempo esgotado
+            if pedidas and time.time() - t0 > ORCAMENTO_PAGINACAO:
+                out["orcamento"] = {"ano": ano, "pagina": pag}
+                break
+            cod, t, n = fetch_n(url_legin(ano, pag), repetir_timeout=not pedidas)
+            pedidas += 1
             if not out["paginas"]:
                 out["http"], out["tentativas"] = cod, n
             if cod != 200:
@@ -478,7 +549,7 @@ def legin(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
                 normas.append((x, nm))
             if not datas or min(datas) < limite:
                 break
-        if out["http"] != 200:
+        if out["http"] != 200 or out.get("orcamento"):
             break
     listados_congresso = None
     cand = []
@@ -945,9 +1016,12 @@ def enriquecer(it, corpo, fonte):
 
 
 # ------------------------------------------------------------ ConJur
+TIMEOUT_CONJUR_API = 15    # s (rev2 R8): sem nova tentativa em tempo esgotado — a listagem HTML e o fallback
+
+
 def _pagina_api(url):
     """(http, [posts] | None, tentativas) de uma pagina da WP REST API."""
-    cod, t, n = fetch_n(url, timeout=30)
+    cod, t, n = fetch_n(url, timeout=TIMEOUT_CONJUR_API, repetir_timeout=False)
     if cod != 200:
         return cod, None, n
     try:
@@ -992,7 +1066,10 @@ def _item_api(p, inicio, fim, recorte):
         quando = datetime.fromisoformat(p["date_gmt"] + "+00:00").astimezone(TZ)
     except (KeyError, TypeError, ValueError):
         return None
-    tipo = next((TIPOS_WP[c] for c in p.get("class_list") or [] if c in TIPOS_WP), "noticia")
+    classes = p.get("class_list") or []
+    if isinstance(classes, dict):   # o WordPress serializa a lista com buracos como objeto {"0": "post-1", "3": ...}
+        classes = list(classes.values())
+    tipo = next((TIPOS_WP[c] for c in classes if isinstance(c, str) and c in TIPOS_WP), "noticia")
     titulo = limpa(((p.get("title") or {}).get("rendered")) or "")
     y = p.get("yoast_head_json") or {}
     corpo = ((p.get("content") or {}).get("rendered")) or ""
@@ -1013,14 +1090,19 @@ def _item_api(p, inicio, fim, recorte):
 def conjur(inicio, fim, recorte, urls_pub):
     """ConJur pela WP REST API (a janela inteira, com hora exata e corpo); sem ela, a listagem HTML paginada."""
     api = conjur_api(inicio, fim)
-    if not api["ok"]:
+    itens = [x for x in (_item_api(p, inicio, fim, recorte) for p in api["posts"]) if x] if api["ok"] else []
+    if not itens:
+        # (rev2 R2) 200 com lista vazia ou so posts sem link/date_gmt (campo renomeado, _fields ignorado) dava 0 itens
+        # sem fallback; a janela de um dia util nunca tem 0 posts: a listagem HTML decide
         out = conjur_html(inicio, fim, recorte, urls_pub)
-        out["api"] = {"http": api["http"], "motivo": api.get("motivo", "")}
+        out["api"] = ({"http": api["http"], "motivo": api.get("motivo", "")} if not api["ok"]
+                      else {"http": api["http"], "motivo": "API sem posts utilizáveis"})
         return out
     out = {"fonte": "conjur", "via": "api", "http": {"api": api["http"]}, "tentativas": api["tentativas"],
            "paginas": api["paginas"], "itens": [], "completa": api["completa"]}
+    if len(itens) < len(api["posts"]):
+        out["api_descartados"] = len(api["posts"]) - len(itens)     # post sem link/date_gmt: fica de fora (no JSON)
     vistos, unicos = set(), []
-    itens = [x for x in (_item_api(p, inicio, fim, recorte) for p in api["posts"]) if x]
     for it in sorted(itens, key=lambda i: i["quando"], reverse=True):
         if it["url"] in vistos:
             continue
@@ -1237,6 +1319,22 @@ def migalhas(inicio, fim, recorte, urls_pub):
     return out
 
 
+def julgado_no_titulo(titulo):
+    """Verbo de decisao (DECISAO), tribunal ou julgador no titulo: o item nunca vira PROMO nem opiniao disfarcada."""
+    t = titulo or ""
+    return bool(DECISAO.search(t) or TRIBUNAL_TITULO.search(t) or JULGADOR_TITULO.search(t))
+
+
+def eh_promo(titulo):
+    """Sorteio, evento, curso, live/podcast, lancamento de livro (so contado) — nunca com julgado no titulo."""
+    return bool(PROMO.search(titulo or "")) and not julgado_no_titulo(titulo)
+
+
+def eh_opiniao_disfarcada(titulo):
+    """'Especialista: ...', 'Advogado alerta ...', '..., alerta advogado' (so contado) — nunca com julgado no titulo."""
+    return bool(OPINIAO_DISFARCADA.search(titulo or "")) and not julgado_no_titulo(titulo)
+
+
 def marcar_promo_e_repetidas(res, h=None):
     """PROMO: sorteio/evento promocional (nao e noticia). REPETIDA?: mesma
     materia ja publicada por outra fonte nas ultimas edicoes.
@@ -1250,10 +1348,10 @@ def marcar_promo_e_repetidas(res, h=None):
         for i in r["itens"]:
             if i["situacao"] not in ("NOVA", "HERDADA", "SEM_DATA"):
                 continue
-            if PROMO.search(i["titulo"]):
+            if eh_promo(i["titulo"]):
                 i["situacao"], i["promo"] = "PROMO", "promo"
                 continue
-            if OPINIAO_DISFARCADA.search(i["titulo"]) and i.get("tipo", "noticia") == "noticia":
+            if eh_opiniao_disfarcada(i["titulo"]) and i.get("tipo", "noticia") == "noticia":
                 i["situacao"], i["promo"] = "PROMO", "opiniao_disfarcada"
                 continue
             m = repeticao.procurar(repeticao.tokens(i["titulo"]), idx)
@@ -1492,19 +1590,43 @@ def imprimir_midia(r, ids):
                    "JSON e o id vale)" % fora)
     return out
 
-# Atos de rotina no indice (21/11): o mesmo criterio do montar_email.eh_rotina (G7) — credito orcamentario, aumento
-# de capital, acordo de turismo/servicos aereos, nunca cooperacao penal. Numa linha so, com os ids: em 20/11 as 13
-# leis de credito do PLN ocupavam 13 linhas (~4,5 KB) do indice. O e-mail nao muda: cada ref continua citado e o
-# montador poe a ementa inteira no fim da secao.
-ROTINA_ATO = re.compile(r"abre\s+aos?\s+or[çc]amentos?|cr[ée]dito\s+(?:suplementar|especial|extraordin[áa]rio)|"
-                        r"aumento\s+(?:do|de)\s+capital|\bacordo\b.{0,160}?\b(?:turismo|servi[çc]os\s+a[ée]reos|"
-                        r"transporte\s+a[ée]reo)", re.I)
-ROTINA_EXCETO = re.compile(r"coopera[çc][ãa]o\s+jur[íi]dica|mat[ée]ria\s+penal|extradi[çc]|transfer[êe]ncia\s+de\s+"
-                           r"(?:pessoas\s+)?(?:presos|condenad|apenad)|assist[êe]ncia\s+jur[íi]dica|crime|penal", re.I)
+# Atos de rotina no indice (21/11): numa linha so, com os ids (em 20/11 as leis de credito do PLN ocupavam 13 linhas,
+# ~4,5 KB, do indice). O e-mail nao muda: cada ref continua citado e o montador poe a ementa inteira no fim da secao.
+# (rev2 R9) O criterio e o do proprio montador — montar_email.eh_rotina (credito orcamentario e credito de R$, LOA, LDO
+# e PPA, cargos em comissao, capital de estatal, acordo de turismo/servicos aereos; nunca cooperacao penal) ou materia
+# PLN (congresso_leis) —, importado, nao copiado: a copia antiga divergia (LOA/LDO, PLN e credito de R$ ficavam numa
+# linha propria no indice e iam ao fim da secao no e-mail). Sem o montador, nada e agrupado (cada ato na sua linha).
+_ROTINA_MONTADOR = []
 
 
-def eh_rotina_ato(ementa):
-    return bool(ROTINA_ATO.search(ementa or "")) and not ROTINA_EXCETO.search(ementa or "")
+def _eh_rotina_montador():
+    if not _ROTINA_MONTADOR:
+        try:
+            import montar_email
+            _ROTINA_MONTADOR.append(montar_email.eh_rotina)
+        except Exception:  # noqa: BLE001
+            _ROTINA_MONTADOR.append(None)
+    return _ROTINA_MONTADOR[0]
+
+
+def eh_rotina_ato(i):
+    """O ato (item de congresso_leis ou do LEGIN) vai ao fim da secao como rotina no e-mail? O mesmo item que o
+    montador monta (titulo 'Lei nº 15.531, de 18/11/2026' + ementa) passa pelo montar_email.eh_rotina; materia PLN e
+    rotina pelo campo (montar_email: _pln)."""
+    if str(i.get("materia") or "").strip().upper().startswith("PLN"):
+        return True
+    f = _eh_rotina_montador()
+    if f is None:
+        return False
+    try:
+        n = "{:,}".format(int(i["numero"])).replace(",", ".")
+    except (KeyError, TypeError, ValueError):
+        n = str(i.get("numero") or "")
+    try:
+        return bool(f({"titulo": "%s nº %s, de %s" % (i.get("tipo") or "", n, i.get("data_ato") or ""),
+                       "resumo": i.get("ementa") or ""}))
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def linhas_rotina(itens, rotulo):
@@ -1515,16 +1637,19 @@ def linhas_rotina(itens, rotulo):
         if not g:
             continue
         dous = sorted({i.get("dou", "")[:5] for i in g if i.get("dou")})
-        out.append("[%s] rotina — %d %s de crédito, orçamento ou acordo de rotina (o montador agrupa no fim, com a "
-                   "ementa inteira; cite cada ref): %s%s" % (sit, len(g), rotulo, ", ".join(i["id"] for i in g),
-                                                             " (DOU %s)" % ", ".join(dous) if dous else ""))
+        out.append("[%s] rotina — %d %s de rotina: orçamento (créditos, LOA, LDO, PPA), cargos, capital ou acordo (o "
+                   "montador agrupa no fim, com a ementa inteira; cite cada ref): %s%s" % (
+                       sit, len(g), rotulo, ", ".join(i["id"] for i in g), " (DOU %s)" % ", ".join(dous) if dous else ""))
     return out
 
-def imprimir(res, inicio, fim, recorte, ja_saiu=None):
+
+def imprimir(res, inicio, fim, recorte, ja_saiu=None, cortes=None):
     """Indice compacto (linhas de texto). Atribui os ids (lei15527, mpv1400, dec13173, c7, m3). ja_saiu: linhas
-    da repeticao.ja_saiu (Midia e Fofoquinha das 2 ultimas edicoes), impressas no fim."""
+    da repeticao.ja_saiu (Midia e Fofoquinha das 2 ultimas edicoes), impressas no fim. cortes: pedidos que o prazo
+    de rede impediu ou encurtou (AVISO logo depois da JANELA)."""
     out = ["JANELA %s -> %s (herdada = antes de %s) | cite o id em {\"ref\": ...}; URL, hora e chave "
            "saem do JSON" % (inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M"))]
+    out.extend(aviso_prazo(cortes))
     seq = {"conjur": 0, "migalhas": 0}
     for r in res:                     # ids primeiro (a ordem de sempre: os refs nao mudam)
         for i in r["itens"]:
@@ -1576,7 +1701,7 @@ def imprimir(res, inicio, fim, recorte, ja_saiu=None):
                 if i["situacao"] == "JA_PUBLICADA":
                     continue
                 i["id"] = "lei%s" % i["numero"]
-                if eh_rotina_ato(i["ementa"]) and not i.get("veto"):
+                if eh_rotina_ato(i) and not i.get("veto"):     # com veto: linha propria (o veto aparece)
                     rot.append(i)
                     continue
                 out.append("[%s] %s | %s nº %s de %s (DOU %s) — %s%s | %s" % (
@@ -1629,12 +1754,15 @@ def imprimir_legin(r):
         out.append("ERRO: LEGIN nao lido (%s) — atos do Executivo so pela resenha PUSH; sem WebSearch"
                    % (r.get("erro") or ("http=%s" % r["http"] if r["http"] != 200 else "0 normas extraidas (layout?)")))
         return out
+    if r.get("orcamento"):
+        out.append("AVISO: LEGIN lido em parte (site lento: parou antes da página %s de %s): pode faltar ato mais "
+                   "antigo — leve a verification_notes" % (r["orcamento"]["pagina"], r["orcamento"]["ano"]))
     if r.get("ja_publicadas"):
         out.append("JA PUBLICADOS (nao repetir, nem pela resenha PUSH): " + "; ".join(r["ja_publicadas"][:6]))
     rot = []
     for i in pub:
         i["id"] = "%s%s" % (i["prefixo"], i["numero"])
-        if eh_rotina_ato(i["ementa"]):
+        if eh_rotina_ato(i):
             rot.append(i)
             continue
         out.append("[%s] %s | %s nº %s de %s (DOU %s%s) — %s%s" % (
@@ -1683,8 +1811,50 @@ def _entre_parenteses(s):
     return " (%s)" % s if s else ""
 
 
-def status_fontes(res):
-    """{id do source_status: (status, detalhe)} das 5 fontes deste script."""
+def fonte_da_url(url):
+    """id do source_status da fonte de um pedido ('' se nao reconhece)."""
+    u = (url or "").lower()
+    for trecho, ident in (("conjur.com.br", "conjur"), ("migalhas.com.br", "migalhas"),
+                          ("/legislacao/busca", "camara_legin"), ("/legin/", "camara_legin"),
+                          ("camara.leg.br/noticias", "camara_noticias"), ("ultimas-leis", "congresso_ultimas_leis"),
+                          ("medidas-provisorias", "congresso_mpvs")):
+        if trecho in u:
+            return ident
+    return ""
+
+
+def cortes_por_fonte(cortes):
+    """{id do source_status: n} dos pedidos que o prazo de rede impediu ou encurtou."""
+    out = {}
+    for url, _ in cortes or []:
+        f = fonte_da_url(url) or "outra"
+        out[f] = out.get(f, 0) + 1
+    return out
+
+
+def aviso_prazo(cortes):
+    """Linha AVISO do indice quando o prazo de rede (PRAZO_REDE) cortou ou impediu pedidos; [] se nao."""
+    if not cortes:
+        return []
+    nf = sum(1 for _, k in cortes if k == "nao_feito")
+    por = cortes_por_fonte(cortes)
+    return ["AVISO: prazo de rede do coleta_web esgotado (%d s): %d pedido(s) não feito(s) e %d cortado(s) — %s. O "
+            "que foi lido vale; fonte sem a 1ª página sai como ERRO e leitura incompleta como parcial — leve a "
+            "verification_notes" % (PRAZO_REDE, nf, len(cortes) - nf,
+                                    ", ".join("%s %d" % kv for kv in sorted(por.items())))]
+
+
+def status_fontes(res, cortes=None):
+    """{id do source_status: (status, detalhe)} das fontes deste script; cortes: pedidos que o prazo de rede
+    impediu ou encurtou (CORTES), ditos no detalhe da fonte."""
+    st = _status_fontes(res)
+    for f, n in cortes_por_fonte(cortes).items():
+        if f in st:
+            st[f] = (st[f][0], "%s; prazo de rede esgotado (%d pedido(s) cortado(s) ou não feito(s))" % (st[f][1], n))
+    return st
+
+
+def _status_fontes(res):
     por = {r["fonte"]: r for r in res}
     st = {}
     r = por.get("congresso_leis")
@@ -1727,8 +1897,11 @@ def status_fontes(res):
         elif not r.get("listadas"):
             st["camara_legin"] = ("falha", "pagina lida, 0 normas extraidas (layout?)")
         else:
-            st["camara_legin"] = ("ok", "%d ato(s) fora do Congresso e do historico em %d normas listadas" % (
-                sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r["listadas"]))
+            st["camara_legin"] = ("ok", "%d ato(s) fora do Congresso e do historico em %d normas listadas%s" % (
+                sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r["listadas"],
+                "; parcial: site lento (parou antes da página %s de %s)" % (r["orcamento"]["pagina"],
+                                                                         r["orcamento"]["ano"])
+                if r.get("orcamento") else ""))
     for fonte in ("conjur", "migalhas"):
         r = por.get(fonte)
         if not r:
@@ -1821,6 +1994,8 @@ def main():
     ap.add_argument("--historico", default=HISTORICO,
                     help="historico principal (padrao: work/resumo-legislativo-historico.json)")
     a = ap.parse_args()
+    _PRAZO[0] = time.monotonic() + PRAZO_REDE       # (rev2 R8) prazo de rede do processo inteiro
+    del CORTES[:]
     HISTORICO = a.historico
     inicio, fim = carregar_janela(a.janela)
     recorte = fim - timedelta(hours=24)
@@ -1841,7 +2016,7 @@ def main():
     marcar_promo_e_repetidas(res, historico)
     import repeticao
     for linha in imprimir(res, inicio, fim, recorte,
-                          ja_saiu=repeticao.ja_saiu(historico, ignorar_exec_id=IGNORAR_EXEC or None)):
+                          ja_saiu=repeticao.ja_saiu(historico, ignorar_exec_id=IGNORAR_EXEC or None), cortes=CORTES):
         print(linha)
 
     def ser(o):
@@ -1849,7 +2024,7 @@ def main():
     with open(a.saida, "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1, default=ser)
     print("\n(JSON completo: %s)" % a.saida)
-    st = status_fontes(res)
+    st = status_fontes(res, CORTES)
     try:
         gravar_status(st, "coleta_web.py")
     except Exception as e:

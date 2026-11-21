@@ -189,6 +189,16 @@ def repeticao_falsos_positivos_e_ja_saiu():
     # o mesmo valor (outra redacao) continua casando
     assert p(credito_1111, t("Câmara aprova crédito de 18,5 bilhões para exportadores afetados pelo tarifaço dos EUA"))
     assert repeticao.valores("R$ 300 milhões e R$ 1.200 mi; 6,50 bi") == {"300mi", "1200mi", "6v5bi"}
+    assert repeticao.valores("R$ 2 tri, 1 trilhão, R$ 1 milhão e 3 bilhões") == {"2tr", "1tr", "1mi", "3bi"}
+    # (rev2 R5) a unidade e a palavra inteira: titulos reais do historico que viravam valor ("mi" de minutos/militares,
+    # "tr" de tribunais, "mi" do "mil" de milhar) e vetavam a semelhanca com outra redacao do mesmo fato
+    for s in ("Limite de 30 minutos para comunicação de sinistro é abusivo, decide STJ",
+              "STM mantém condenação de 7 militares por 'chá de manta' que fez soldado perder baço",
+              "Quatro ministros do STF mandam devolucao de penduricalhos por juizes de 7 tribunais",
+              "STJ multa advogados em R$ 20 mil por uso de prompt injection em petição", "5 ministros", "3 trimestres"):
+        assert repeticao.valores(s) == frozenset(), s
+    assert p(t("Limite de 30 minutos para comunicação de sinistro é abusivo, decide STJ"),
+             t("STJ decide que limite de 30 minutos para comunicar sinistro é abusivo"))
     # MP em qualquer posicao: identidade fraca (numero diferente nunca casa)
     assert t("Câmara aprova crédito de R$ 6,5 bi (MP 1.397/26)").ident == ("mpv", "1397")
     assert not p(t("Senado aprova MP 1.397 sobre crédito a exportadores do tarifaço"),
@@ -658,6 +668,53 @@ def coleta_conjur_pela_api():
         assert coleta_web.conjur(*_janela(*J2011), set())["via"] == "html"
 
 
+@teste
+def coleta_conjur_api_class_list_objeto():
+    """(rev2 R7) O WordPress serializa o class_list com buracos (array_unique/filter) como objeto {"0": ..., "3": ...}:
+    o tipo sai dos valores — antes todo post virava noticia (artigo/coluna no meio das noticias, Estudio sem PROMO)."""
+    posts = json.load(open(os.path.join(FIX, "conjur-api-2011.json"), encoding="utf-8"))
+    for p in posts:
+        p["class_list"] = {str(n * 2): c for n, c in enumerate(p["class_list"])}
+    api, art = json.dumps(posts), pagina_fixture("conjur-artigo-c19-2011.html")
+    inicio, fim = J2011[0], datetime.fromisoformat("2026-11-20T16:00:00-03:00")
+    with Rede(lambda u: (200, api) if "/wp-json/" in u else (200, art)):
+        out = coleta_web.conjur(*_janela(inicio, fim), set())
+    tipos = {i["titulo"][:20]: (i["tipo"], i["situacao"]) for i in out["itens"]}
+    assert tipos["Sequestro de bens: o"] == ("artigo", "NOVA") and tipos["Tema 222 do TST: nem"][0] == "coluna", tipos
+    assert tipos["Livros sobre advocac"] == ("noticia", "PROMO"), tipos           # tipos-estudio
+    assert [i["tipo"] for i in out["itens"]][-2:] == ["artigo", "coluna"]
+    # valor que nao e texto no class_list nao derruba o item
+    posts[0]["class_list"] = {"0": None, "1": 7, "2": "tipos-artigos"}
+    with Rede(lambda u: (200, json.dumps(posts[:1])) if "/wp-json/" in u else (200, art)):
+        assert coleta_web.conjur(*_janela(inicio, fim), set())["itens"][0]["tipo"] == "artigo"
+
+
+@teste
+def coleta_conjur_api_sem_posts_utilizaveis():
+    """(rev2 R2) API 200 com lista vazia ou so posts sem link/date_gmt (campo renomeado, _fields ignorado): antes 0
+    itens sem fallback e o ConJur 'falha' no dia; agora a listagem HTML, com o motivo no cabecalho e no status."""
+    posts = json.load(open(os.path.join(FIX, "conjur-api-2011.json"), encoding="utf-8"))
+    art = pagina_fixture("conjur-artigo-c19-2011.html")
+    inicio, fim = J2011[0], datetime.fromisoformat("2026-11-20T16:00:00-03:00")
+    listagem = _h2("2026-nov-19/b/", "Notícia da listagem")
+    meta = '<meta property="article:published_time" content="2026-11-19T12:00:00-03:00">'
+    sem_campos = [{k: v for k, v in p.items() if k not in ("link", "date_gmt")} for p in posts]
+    for resposta in ("[]", json.dumps(sem_campos), json.dumps([dict(p, date_gmt=None) for p in posts])):
+        with Rede(lambda u: (200, resposta) if "/wp-json/" in u else (200, listagem if u.endswith("/noticias/")
+                                                                       else meta)) as rede:
+            out = coleta_web.conjur(*_janela(*J2011), set())
+        assert out["via"] == "html" and out["api"] == {"http": 200, "motivo": "API sem posts utilizáveis"}, out
+        assert [i["titulo"] for i in out["itens"]] == ["Notícia da listagem"] and out["itens"][0]["situacao"] == "NOVA"
+        assert any(coleta_web.URLS_CONJUR["noticia"] == p for p in rede.pedidos)
+        assert "via listagem HTML (API: API sem posts utilizáveis)" in coleta_web.status_fontes([out])["conjur"][1]
+        assert any("via html (API: API sem posts utilizáveis)" in l for l in coleta_web.imprimir([out],
+                                                                                                 *_janela(*J2011)))
+    # parte dos posts sem link: os outros valem (via API), e a contagem fica no JSON
+    with Rede(lambda u: (200, json.dumps(sem_campos[:2] + posts[2:])) if "/wp-json/" in u else (200, art)):
+        out = coleta_web.conjur(*_janela(inicio, fim), set())
+    assert out["via"] == "api" and out["api_descartados"] == 2 and len(out["itens"]) == len(posts) - 2, out
+
+
 def _h2(url, tit="T"):
     return '<h2 class="conjur-posts-tipo-titulo"><a href="https://conjur.com.br/%s">%s</a></h2>' % (url, tit)
 
@@ -746,6 +803,10 @@ def coleta_migalhas_paginado():
               "STF realiza audiência pública sobre a escala 6x1", "Advogado é preso suspeito de sequestrar namorada",
               "Professor é condenado por assédio"):
         assert not coleta_web.PROMO.search(t) and not coleta_web.OPINIAO_DISFARCADA.search(t), t
+    for t in ("Juiz decide na sexta-feira de manhã sobre prisão", "TJ-SP realiza mutirão na segunda-feira",
+              "STF realiza audiência pública sobre a escala 6x1", "Advogado é preso suspeito de sequestrar namorada",
+              "Professor é condenado por assédio"):
+        assert not coleta_web.eh_promo(t) and not coleta_web.eh_opiniao_disfarcada(t), t
     # pagina 2 sem URL nova (o site ignorou ?pagina=): para, parcial
     with Rede(lambda u: (200, pags["1"]) if "quentes" in u and "/quentes/" not in u else resp(u)):
         out = coleta_web.migalhas(*_janela(*J2011), set())
@@ -760,6 +821,55 @@ def coleta_migalhas_paginado():
         coleta_web.ORCAMENTO_PAGINACAO = antigo
     assert out["orcamento"] == 2 and out["paginas"] == 1 and out["cobertura"] == "parcial", out
     assert any("site lento: parou antes da página 2" in l for l in coleta_web.imprimir([out], *_janela(*J2011)))
+
+
+@teste
+def coleta_promo_nao_esconde_julgado():
+    """(rev2 R3) PROMO e opiniao disfarcada tiram o item do indice: nunca um julgado. live/podcast/videocast/webinario
+    e feira so no inicio do titulo ou com verbo de evento; opiniao so com o verbo logo depois do sujeito no inicio (ou
+    ', alerta advogado' no fim); nada com verbo de decisao, tribunal ou julgador. Os 991 titulos publicados ate 20/11
+    (Midia, STJ/STF Noticias, Fofoquinha, Opiniao) nao viram PROMO nem opiniao; a propaganda real continua so contada."""
+    julgados = ["Advogado pagará custas após Justiça apontar litigância predatória",
+                "TSE: live de Bolsonaro no Alvorada configurou abuso de poder político",
+                "Live de Bolsonaro foi abuso de poder, diz TSE", "Juiz anula prova obtida em podcast",
+                "Advogado não pode ser preso por defender cliente em podcast, avalia STJ",
+                "Feira de rua sem licença deve ser fechada, decide TJ-SP", "Justiça anula sorteio de vagas em creche",
+                "Especialista: STF errou ao modular efeitos", "Advogado apontado como chefe de facção é condenado",
+                "Advogados alertam que decisão do STJ muda cálculo de honorários",
+                "Desembargador participa de live e é alvo de reclamação no CNJ"]
+    for t in julgados:
+        assert not coleta_web.eh_promo(t) and not coleta_web.eh_opiniao_disfarcada(t), t
+    assert coleta_web.OPINIAO_DISFARCADA.search(julgados[0]) is None             # antes: "Advogado ... apontar"
+    propaganda = ["Sorteio de livros para leitores do Migalhas", "Live debate a reforma tributária nesta quinta",
+                  "Podcast do Migalhas conversa com tributarista", "Webinário gratuito discute LGPD",
+                  "CropLife Brasil aborda endividamento do agro em episódio do videocast \"Caminhos do Agro\"",
+                  "Escritório transmite ao vivo podcast sobre compliance",
+                  "OAB/RJ realiza \"Feira de Estágios de 2026\" no dia 25/11", "Feira do livro jurídico abre inscrições",
+                  "Biografia do criminalista Nélio Machado será lançada em 1º/12, no Rio",
+                  "AJER promove debate sobre inclusão racial e ascensão de negros no Direito"]
+    for t in propaganda:
+        assert coleta_web.eh_promo(t), t
+    opiniao = ["Advogado aponta impactos de inspeções do CNJ no mercado de precatórios",
+               "Especialistas apontam riscos da tokenização de imóveis", "Professora avalia a nova lei de alimentos",
+               "Pena maior pode equiparar homicídios culposo e doloso, alerta advogado",
+               "Especialista: GTA 6 amplia debate sobre licenciamento digital e direitos dos gamers"]
+    for t in opiniao:
+        assert coleta_web.eh_opiniao_disfarcada(t), t
+    # live/podcast/feira no meio do titulo, sem verbo de evento: nao e PROMO
+    for t in ("Influenciador é investigado por declarações em live", "Município regula feira de artesanato"):
+        assert not coleta_web.eh_promo(t), t
+    # o historico publicado: nenhum titulo escondido
+    pub = ler("titulos-publicados-ate-2011.json")["titulos"]
+    assert sum(len(v) for v in pub.values()) == 991 and len(pub["Mídia"]) == 438
+    escondidos = [(c, t) for c, ts in pub.items() for t in ts
+                  if coleta_web.eh_promo(t) or coleta_web.eh_opiniao_disfarcada(t)]
+    assert not escondidos, escondidos
+    # de ponta a ponta: o julgado fica NOVA (com id no indice), a propaganda vira PROMO
+    r = {"fonte": "migalhas", "itens": [{"situacao": "NOVA", "titulo": t, "url": "https://www.migalhas.com.br/quentes/"
+                                         "%d/x" % n} for n, t in enumerate(julgados + propaganda + opiniao)]}
+    coleta_web.marcar_promo_e_repetidas([r], [])
+    sit = {i["titulo"]: i["situacao"] for i in r["itens"]}
+    assert all(sit[t] == "NOVA" for t in julgados) and all(sit[t] == "PROMO" for t in propaganda + opiniao), sit
 
 
 @teste
@@ -813,8 +923,8 @@ def _res_indice():
 @teste
 def coleta_indice_relevancia_marcas_e_ruido():
     """(achado 11a, 40, 21/11) Indice de 20/11 (dados reais): concurso primeiro ([CONC]), [STJ], ficha e
-    [ASSESSORIA X]; a mesma historia do dia numa linha (c3 + m10); fala/evento sem linha-fina; as 13 leis de credito
-    do PLN numa linha de rotina (o e-mail nao muda: cada ref e citado); paginas seguintes so com titulo e so com termo
+    [ASSESSORIA X]; a mesma historia do dia numa linha (c3 + m10); fala/evento sem linha-fina; as 16 leis do PLN
+    (creditos, LOA e LDO) numa linha de rotina (o e-mail nao muda: cada ref e citado); paginas seguintes so com titulo e so com termo
     de prova (o resto contado, o id continua valendo); JA SAIU no fim. E nao cresce: menos linhas que o de 20/11."""
     res = _res_indice()
     linhas = coleta_web.imprimir(res, *_janela(*J2011), ja_saiu=["JA SAIU 19/11 — Mídia: X [JOTA]"])
@@ -827,9 +937,10 @@ def coleta_indice_relevancia_marcas_e_ruido():
     assert "(mesma história: m10 «Dino critica jornalismo" in c3 and "] m10 |" not in txt, c3
     c10 = next(l for l in nots if "] c10 |" in l)
     assert c10.endswith("Salomão defende papel da democracia para o desenvolvimento"), c10      # fala: sem linha-fina
-    rot = [l for l in linhas if l.startswith("[NOVA] rotina — 13 lei(s)")]
+    rot = [l for l in linhas if l.startswith("[NOVA] rotina — 16 lei(s)")]
     assert rot and "lei15531" in rot[0] and "lei15545" in rot[0] and "(DOU 19/11)" in rot[0], rot
-    assert "] lei15541 | Lei nº 15541" in txt and "] lei15531 |" not in txt   # altera a LOA: linha propria
+    # (rev2 R9) altera a LOA/LDO (materia PLN): rotina, como no montador (antes: linha propria no indice)
+    assert "lei15541" in rot[0] and "lei15534" in rot[0] and "] lei15541 |" not in txt and "] lei15531 |" not in txt
     ids = {i["id"] for r in res for i in r["itens"] if i.get("id")}
     assert {"lei%d" % n for n in range(15530, 15546)} <= ids                     # todos citaveis
     assert linhas[-2].startswith("\n== JA SAIU") and linhas[-1] == "JA SAIU 19/11 — Mídia: X [JOTA]"
@@ -853,6 +964,148 @@ def coleta_indice_relevancia_marcas_e_ruido():
     # tamanho: o indice de 20/11 (69 linhas, 13.255 bytes) nao cresce com o formato novo
     base = coleta_web.imprimir(_res_indice(), *_janela(*J2011))
     assert len(base) < 69 and len("\n".join(base).encode()) < 13255, (len(base), len("\n".join(base).encode()))
+
+
+@teste
+def coleta_rotina_igual_ao_montador():
+    """(rev2 R9) O indice agrupa como rotina exatamente os atos que o montador poe no fim da secao: o item que o
+    montar_email.resolver monta do ref (titulo + ementa) passa pelo montar_email.eh_rotina, e materia PLN e rotina. Antes
+    a copia do padrao no coleta_web divergia: LOA/LDO (lei15530/15534/15541 de 20/11), credito de R$ e cargos em
+    comissao ficavam numa linha propria no indice e iam ao fim no e-mail."""
+    import montar_email
+    res = _res_indice()
+    leg = {"fonte": "legin", "http": 200, "listadas": 4, "itens": []}
+    for n, ementa in enumerate(["Remaneja cargos em comissão e funções de confiança no Ministério da Fazenda.",
+                                "Estima a receita e fixa a despesa da União para o exercício financeiro de 2027.",
+                                "Promulga o Acordo de Cooperação Jurídica em Matéria Penal entre o Brasil e a Itália.",
+                                "Dispõe sobre a duração normal do trabalho e o repouso semanal remunerado."]):
+        leg["itens"].append({"situacao": "NOVA", "tipo": "Decreto", "tipo_chave": "decreto", "prefixo": "dec",
+                             "numero": str(13180 + n), "data_ato": "19/11/2026", "dou": "19/11/2026",
+                             "ementa": ementa, "url": "https://x/%d" % n, "chave": "planalto|decreto|%d" % (13180 + n)})
+    res.insert(2, leg)
+    res[0]["itens"].append(dict(res[0]["itens"][0], numero="15599", veto="Veto parcial nº 40", situacao="NOVA"))
+    linhas = coleta_web.imprimir(res, *_janela(*J2011))
+    agrupados = {x.strip(" ()").split(" ")[0] for l in linhas if " rotina — " in l for x in l.split(": ")[-1].split(", ")}
+    ev = {i["id"]: dict(i, _fonte=r["fonte"]) for r in res for i in r["itens"] if i.get("id")}
+    for ident, e in ev.items():
+        if e["_fonte"] not in ("congresso_leis", "legin"):
+            continue
+        it = montar_email.resolver({"ref": ident}, json.loads(json.dumps(ev, default=str)), [])
+        montador = bool(montar_email.eh_rotina(it) or it.get("_pln"))
+        if e.get("veto"):
+            assert ident not in agrupados and montador, ident         # com veto: linha propria (o veto aparece)
+            continue
+        assert (ident in agrupados) == montador, (ident, montador, it.get("resumo"))
+    assert {"dec13180", "dec13181"} <= agrupados and not {"dec13182", "dec13183"} & agrupados, agrupados
+    assert any(l.startswith("[NOVA] lei15599 |") and "veto: Veto parcial" in l for l in linhas)
+    # sem o montador (import quebrado): nada e agrupado, cada ato na sua linha (nada some)
+    antigo = coleta_web._ROTINA_MONTADOR[:]
+    coleta_web._ROTINA_MONTADOR[:] = [None]
+    try:
+        assert not coleta_web.eh_rotina_ato({"ementa": "Abre ao Orçamento Fiscal crédito suplementar"})
+        assert coleta_web.eh_rotina_ato({"ementa": "x", "materia": "PLN 3/2026"})
+    finally:
+        coleta_web._ROTINA_MONTADOR[:] = antigo
+
+
+@contextlib.contextmanager
+def _ajustes(**valores):
+    """Troca constantes/funcoes do coleta_web e devolve as antigas no fim (tambem o prazo de rede e os cortes)."""
+    antigos = {k: getattr(coleta_web, k) for k in valores}
+    prazo, cortes = coleta_web._PRAZO[0], coleta_web.CORTES[:]
+    for k, v in valores.items():
+        setattr(coleta_web, k, v)
+    try:
+        yield
+    finally:
+        for k, v in antigos.items():
+            setattr(coleta_web, k, v)
+        coleta_web._PRAZO[0] = prazo
+        coleta_web.CORTES[:] = cortes
+
+
+@teste
+def coleta_tempo_no_pior_caso():
+    """(rev2 R8) O aguardar_coleta espera 90 s pelos 3 scripts e o pior caso passava disso (API do ConJur 30+3+30 s por
+    pagina; LEGIN e Camara sem orcamento). API do ConJur: curl -m 15 e sem nova tentativa em tempo esgotado; paginas
+    seguintes do LEGIN: orcamento de paginacao e sem nova tentativa em tempo esgotado; prazo de rede do processo
+    (PRAZO_REDE): o curl -m e cortado no que resta, nada sai depois dele, e o corte vira AVISO no indice e detalhe no
+    status. De ponta a ponta (main com toda a rede travada): termina no prazo."""
+    import time as _t
+    pedidos = []
+
+    def trava(url, timeout):                  # rede travada: o curl so volta no -m (sem dormir: tempo simulado)
+        pedidos.append((url, timeout))
+        return 0, "", True
+    listagem = _h2("2026-nov-19/b/", "Notícia da listagem")
+    # API do ConJur: 1 pedido de 15 s (antes 30 + 3 + 30) e a listagem HTML
+    with _ajustes(_fetch1=trava):
+        out = coleta_web.conjur(*_janela(*J2011), set())
+    api = [t for u, t in pedidos if "/wp-json/" in u]
+    assert api == [15] and out["via"] == "html" and out["api"]["http"] == 0, (api, out.get("api"))
+    # prazo de rede: o -m e cortado no que resta; sem tempo, o pedido nem sai; a nova tentativa so se couber
+    pedidos.clear()
+    with _ajustes(_fetch1=trava, PAUSA_REPETICAO=3):
+        coleta_web._PRAZO[0] = _t.monotonic() + 10.5
+        assert coleta_web.fetch_n("https://www.migalhas.com.br/quentes", 20, repetir_timeout=False) == (0, "", 1)
+        assert pedidos[0][1] in (9, 10) and coleta_web.CORTES[-1] == ("https://www.migalhas.com.br/quentes",
+                                                                      "cortado"), (pedidos, coleta_web.CORTES)
+        coleta_web._PRAZO[0] = _t.monotonic() + 5            # 5 s < pausa (3) + minimo (3): sem nova tentativa
+        assert coleta_web.fetch_n("https://conjur.com.br/noticias/", 20)[2] == 1 and len(pedidos) == 2
+        assert coleta_web.CORTES[-2:] == [("https://conjur.com.br/noticias/", "cortado"),
+                                          ("https://conjur.com.br/noticias/", "nao_feito")], coleta_web.CORTES
+        coleta_web._PRAZO[0] = _t.monotonic() - 1
+        assert coleta_web.fetch_n("https://www.camara.leg.br/noticias/ultimas", 20) == (0, "", 0)
+        assert len(pedidos) == 2 and coleta_web.CORTES[-1][1] == "nao_feito"
+        cortes = coleta_web.CORTES[:]
+    linhas = coleta_web.imprimir([], *_janela(*J2011), cortes=cortes)
+    # conjur: o pedido cortado em 4-5 s e a nova tentativa que nao coube
+    assert linhas[1].startswith("AVISO: prazo de rede do coleta_web esgotado (50 s): 2 pedido(s) não feito(s) e 2 "
+                                "cortado(s) — camara_noticias 1, conjur 2, migalhas 1."), linhas
+    st = coleta_web.status_fontes([{"fonte": "migalhas", "http": 0, "tentativas": 1, "itens": []}], cortes)
+    assert st["migalhas"] == ("falha", "http=0 (1 tentativa); prazo de rede esgotado (1 pedido(s) cortado(s) ou não "
+                                       "feito(s))"), st
+    assert coleta_web.imprimir([], *_janela(*J2011))[1:] == []           # sem corte, sem AVISO
+    # LEGIN: a 2a pagina obedece ao orcamento de paginacao (e nao repete em tempo esgotado)
+    busca = pagina_fixture("legin-busca-2111.html")
+    chamadas = []
+
+    def fn(url, timeout=20, repetir_timeout=True):
+        chamadas.append(repetir_timeout)
+        return 200, (busca if "pagina=" not in url else ""), 1
+    with _ajustes(fetch_n=fn, fetch_many=lambda urls: {u: (404, "") for u in urls}):
+        r = coleta_web.legin(*_janela(*J2011), set())
+        assert chamadas == [True, False] and not r.get("orcamento"), chamadas      # 2a pagina: sem nova tentativa
+        chamadas.clear()
+        with _ajustes(ORCAMENTO_PAGINACAO=-1):
+            r = coleta_web.legin(*_janela(*J2011), set())
+    assert chamadas == [True] and r["orcamento"] == {"ano": 2026, "pagina": 2} and r["paginas"] == 1, r
+    assert any(l.startswith("AVISO: LEGIN lido em parte (site lento: parou antes da página 2 de 2026)")
+               for l in coleta_web.imprimir_legin(r))
+    assert coleta_web.status_fontes([r])["camara_legin"][1].endswith("; parcial: site lento (parou antes da página 2 "
+                                                                    "de 2026)")
+    # de ponta a ponta: main() com TODA a rede travada (cada pedido so volta no seu -m, em tempo real) e prazo de 2 s
+    def dorme(url, timeout):
+        _t.sleep(timeout)
+        return 0, "", True
+    janela = os.path.join(TMPDIR, "janela-prazo.json")
+    json.dump({"inicio": J2011[0].isoformat(), "fim": J2011[1].isoformat(), "execution_id": "x"},
+              open(janela, "w", encoding="utf-8"))
+    argv = sys.argv
+    sys.argv = ["coleta_web.py", "--janela", janela, "--saida", os.path.join(TMPDIR, "cw-prazo.json"),
+                "--historico", os.path.join(FIX, "historico-ate-1311.json")]
+    try:
+        with _ajustes(_fetch1=dorme, PRAZO_REDE=2, MIN_PEDIDO=0.2, PAUSA_REPETICAO=0.1):
+            t0 = _t.monotonic()
+            _, saida = saida_de(coleta_web.main)
+            dur = _t.monotonic() - t0
+    finally:
+        sys.argv = argv
+    assert dur < 2 + 1.5, dur                       # prazo + o pedido de 1 s que comecou no fim + processamento
+    assert "AVISO: prazo de rede do coleta_web esgotado (2 s)" in saida, saida[:600]
+    st = json.loads(saida.strip().splitlines()[-1][len("SOURCE_STATUS "):])
+    assert set(st.values()) == {"falha"} and {"conjur", "migalhas", "camara_legin", "camara_noticias",
+                                               "congresso_ultimas_leis", "congresso_mpvs"} <= set(st), st
 
 
 @teste
