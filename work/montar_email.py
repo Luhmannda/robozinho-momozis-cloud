@@ -1824,6 +1824,25 @@ def nome_informativo(rid):
     return NOME_INF[m.group(1)] % int(m.group(2)) if m.group(2) else NOME_INF[m.group(1)].replace(" nº %d", "")
 
 
+JT_TITULO = re.compile(r"(?i)^\s*jurisprud[êe]ncia em teses\b")
+JT_FONTE = "Jurisprudência em Teses (STJ)"
+
+
+def teses_stj(it, avisos):
+    """Jurisprudência em Teses (linha STJ_TESES do coletor-gmail, e-mail do CodJu) vai em STJ Jurisprudência — a secao
+    feita para ela —, nunca em Informativos nem em STJ Notícias; sem "fonte", a dela (oficial também sem URL). Item
+    de mídia (fonte não oficial) fica onde está."""
+    if it.get("ref") or not JT_TITULO.match(str(it.get("titulo") or "")):
+        return
+    if it.get("categoria") in ("Informativos", "STJ Notícias") and it.get("status") != "MÍDIA ESPECIALIZADA" \
+            and (not it.get("fonte") or item_oficial(it)):
+        avisos.append("%s: Jurisprudência em Teses vai em STJ Jurisprudência (era %s)" % (
+            str(it["titulo"])[:60], it["categoria"]))
+        it["categoria"] = "STJ Jurisprudência"
+    if it.get("categoria") == "STJ Jurisprudência" and not it.get("fonte"):
+        it["fonte"] = JT_FONTE
+
+
 def rotulo_fonte(fid, ex=None):
     """Como a fonte aparece ao leitor; informativos_docs em falha nomeia o produto (status_informativos)."""
     if fid == "informativos_docs" and ex and ex.get("_falha_informativos"):
@@ -1850,6 +1869,7 @@ def preparar(ex, j, led, ev, v, op=None):
             continue
         if it.get("categoria") in ("Versículo", "Munger", "Concursos - Carreira", "Concursos - Apoio"):
             continue                    # gerados aqui; versao escrita a mao e descartada
+        teses_stj(it, avisos)           # Jurisprudência em Teses -> STJ Jurisprudência
         cat = it.get("categoria")
         if cat not in CATEGORIAS_NOTICIA:
             erros.append("%s: categoria %r fora de %s" % ((it.get("titulo") or it.get("ref") or "item")[:50],

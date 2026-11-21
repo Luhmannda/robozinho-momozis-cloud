@@ -1402,6 +1402,35 @@ def t_informativos_docs_falha_so_com_leitor_sem_conteudo():
        and M.chave_auto(teses).split("|")[1] == "tese", "STJ_TESES: oficial com e sem URL, chave de tese")
 
 
+@teste
+def t_teses_stj_vai_para_stj_jurisprudencia():
+    """Jurisprudência em Teses (linha STJ_TESES do coletor-gmail) vai em STJ Jurisprudência, a seção feita para ela
+    (vazia desde a reestruturação): escrita por engano em Informativos ou STJ Notícias, o montador a muda de seção."""
+    av = []
+    it = {"categoria": "Informativos", "titulo": "Jurisprudência em Teses nº 286 — Dosimetria da pena", "data": "2026-11-16"}
+    M.teses_stj(it, av)
+    ok(it["categoria"] == "STJ Jurisprudência" and it["fonte"] == M.JT_FONTE and M.item_oficial(it)
+       and av and "vai em STJ Jurisprudência (era Informativos)" in av[0], "JT em Informativos muda de seção: %s" % it)
+    midia = {"categoria": "STJ Notícias", "titulo": "Jurisprudência em Teses: STJ divulga edição", "fonte": "ConJur",
+             "status": "MÍDIA ESPECIALIZADA", "data": "2026-11-16"}
+    inf = {"categoria": "Informativos", "ref": "stj286", "titulo": "Jurisprudência em Teses"}
+    M.teses_stj(midia, av)
+    M.teses_stj(inf, av)
+    ok(midia["categoria"] == "STJ Notícias" and midia["fonte"] == "ConJur" and inf["categoria"] == "Informativos"
+       and len(av) == 1, "mídia e item com ref ficam onde estão")
+    ex = fx("execucao-1711.json")
+    ex["items"].append({"categoria": "Informativos", "titulo": "Jurisprudência em Teses nº 286 — Dosimetria da pena",
+                        "data": "2026-11-16", "url": "https://scon.stj.jus.br/SCON/jt/?action=file&num=286"})
+    t = preparar_pasta("1711", execucao=ex)
+    rc, out, _ = rodar("1711", t)
+    html = corpo(out)
+    sec = html.split("⚖️ STJ — Jurisprudência")[1].split("📚 Informativos")[0]
+    ok(rc == 0 and "Jurisprudência em Teses nº 286" in sec and "CONFIRMADO POR FONTE OFICIAL" in sec
+       and "Jurisprudência em Teses nº 286" not in html.split("📚 Informativos")[1].split("Concursos")[0]
+       and "Sem teses do CodJu" not in sec,
+       "JT sai em STJ Jurisprudência com selo oficial (rc=%s)" % rc)
+
+
 def main():
     try:
         for t in TESTES:
