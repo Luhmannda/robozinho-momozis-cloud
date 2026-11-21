@@ -673,12 +673,17 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
     return novo
 
 
+# fontes de ato federal lidas em pagina oficial (ALTERNATIVA) cujo ref aceita `resenha` (o mesmo ato na Resenha do
+# PUSH): outra fonte de lei/ato lida por script entra aqui. Noticia (Agencia Camara) nao: nao e o ato.
+FONTES_ATO_RESENHA = ("congresso_leis", "congresso_mpv")
+
+
 def resenha_no_ref(novo, it, e, ref, avisos):
     """Lei ou MPV do Congresso (lei…/mpv…) que tambem veio na Resenha Diaria do PUSH: `resenha` no ref da o grupo, a
     fonte ("PUSH Planalto") e o selo CONFIRMADO POR FONTE OFICIAL (ROTINA: PUSH -> oficial); grupo, fonte e status
     escritos vencem. Sem resenha, fica a pagina do Congresso (ALTERNATIVA). Antes (20/11) a resenha era descartada em
     silencio e o selo do PUSH saia sob "Congresso Nacional — últimas leis publicadas". A chave nao muda."""
-    if not (e and e.get("_fonte") in ("congresso_leis", "congresso_mpv") and it.get("resenha")) or it.get("grupo"):
+    if not (e and e.get("_fonte") in FONTES_ATO_RESENHA and it.get("resenha")) or it.get("grupo"):
         return
     g = grupo_resenha(it["resenha"])
     if not g:
