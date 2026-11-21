@@ -43,9 +43,10 @@
 #       ou INSCRICOES ENCERRADAS com a banca lida, e volta a PROVA EM BREVE quando
 #       a data entra na janela): tira-la da familia a deixava em PENDENCIA para
 #       sempre. Sem prazo de prova, o selo fica.
-#   _dm: DD/MM sem ano herda o ano da proxima data completa do mesmo trecho;
-#     cada ano e tentado sozinho (29/02); inicio_inscricoes exige inicio antes do
-#     fim e a menos de um ano dele.
+#   _dm: DD/MM sem ano herda o ano do fim do mesmo intervalo ou da proxima etapa
+#     datada do mesmo trecho (nunca de um ato citado: "conforme o Edital nº 1, de
+#     15/10/2026"); cada ano e tentado sozinho (29/02); inicio_inscricoes exige
+#     inicio antes do fim e a menos de um ano dele.
 #   candidato_remocao: "confirmados" ou, sem prazo confirmado, "secundária"
 #     (todas as datas vencidas ha mais de 30 dias e nenhuma futura).
 #   classe_prazo: "inscricao definitiva" (2a fase da magistratura) e eventos
@@ -216,6 +217,14 @@ RE_LINHA_FIM = re.compile(r"inscri[çc][õo]es[^;]{0,80}?(?:\bat[ée]|\ba|encerr
                           r"encerram\s+em|terminam\s+em)\s+(?:[àa]s\s+)?(?:\d{1,2}h\d{0,2}\s+(?:de|do dia)\s+)?"
                           + DM, re.I)
 RE_DATA_COMPLETA = re.compile(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b")
+# fim do MESMO intervalo, logo depois da data sem ano: "19/10 até 16h de 26/11/2026", "02/06 a 01/07/2027"
+RE_FIM_INTERVALO = re.compile(r"\s*(?:a|at[ée]|[-–—])\s*(?:[àa]s\s+)?(?:\d{1,2}h\d{0,2}(?:min)?\s+(?:de|do\s+dia)\s+)?"
+                              r"(\d{1,2})/(\d{1,2})/(\d{4})\b", re.I)
+# o que separa a data sem ano de uma data completa que NAO e etapa do mesmo cronograma: citacao de ato ou de
+# noticia ("conforme o Edital nº 1, de 15/10/2026", "segundo matéria de 22/10/2026", "DOU de 03/09/2026")
+RE_CITACAO = re.compile(r"edital|portaria|resolu[çc]|aviso|\bato\b|comunicado|retifica|errata|publica|disponibiliz|"
+                        r"divulga|mat[ée]ria|not[íi]cia|conforme|segundo|\bDO[UEM]?\b|\bDJ[Ee]?\b|di[áa]rio|"
+                        r"\bn[º°]|\bn\.\s?º", re.I)
 
 
 def _ymd(y, mth, d):
@@ -226,15 +235,24 @@ def _ymd(y, mth, d):
 
 
 def _dm(m, ref):
-    """DD/MM[/AAAA] -> date. Sem o ano: herda o da proxima data completa do MESMO trecho (ate o ';'), a data sem
-    ano vindo antes dela e a menos de um ano ("inscrições de 26/01 a 26/02 e prova em 19/04/2026" -> 2026, nao
-    2027; "de 02/06 a 01/07/2027" -> 2027); sem ancora no trecho, o ano mais proximo de `ref`. Cada ano e
-    tentado sozinho: 29/02 nao derruba os outros candidatos."""
+    """DD/MM[/AAAA] -> date. Sem o ano: herda o da ancora do MESMO trecho (ate o ';'), a data sem ano vindo antes
+    dela e a menos de um ano; sem ancora, o ano mais proximo de `ref`. Ancora (rev1 C6):
+      - o fim do mesmo intervalo, logo depois da data ("de 02/06 a 01/07/2027" -> 2027; "de 20/12 a 15/01/2027"
+        -> 2026);
+      - senao, a proxima data completa do trecho so se for etapa do mesmo cronograma, sem citacao no meio
+        ("inscrições de 26/01 a 26/02 e prova em 19/04/2026" -> 2026, nao 2027). A data de um ato citado nao e
+        ancora: "de 20/10 até 26/11, conforme o Edital nº 1, de 15/10/2026" em 23/11/2026 dava 2025.
+    Cada ano e tentado sozinho: 29/02 nao derruba os outros candidatos."""
     d, mth, y = int(m.group(1)), int(m.group(2)), m.group(3)
     if y:
         y = int(y)
         return _ymd(y + 2000 if y < 100 else y, mth, d)
-    c = RE_DATA_COMPLETA.search((m.string or "")[m.end():].split(";", 1)[0])
+    resto = (m.string or "")[m.end():].split(";", 1)[0]
+    c = RE_FIM_INTERVALO.match(resto)
+    if not c:
+        c = RE_DATA_COMPLETA.search(resto)
+        if c and RE_CITACAO.search(resto[:c.start()]):
+            c = None
     ancora = _ymd(int(c.group(3)), int(c.group(2)), int(c.group(1))) if c else None
     if ancora:
         for ano in (ancora.year, ancora.year - 1):

@@ -148,6 +148,16 @@ def ano_das_datas_da_linha():
     r = {"linha": "TJSC — Juiz: inscrições das 16h de 19/10 até 16h de 26/11, conforme a FGV; prova em 31/01/2027"}
     ok(selos.fim_inscricoes_registro(r, D("2026-11-20"))[0] == D("2026-11-26"), "fim pelo ano mais próximo")
     ok(selos.inicio_inscricoes(r, D("2026-11-20")) == D("2026-10-19"), "início coerente")
+    # rev1 C6: a data de um ato citado no trecho nao e ancora (dava 2025); o fim do mesmo intervalo e
+    r = {"linha": "TJXX — Juiz: inscrições de 20/10 até 26/11, conforme o Edital nº 1, de 15/10/2026"}
+    ok(selos.fim_inscricoes_registro(r, D("2026-11-23"))[0] == D("2026-11-26"), "ato citado não ancora o fim")
+    ok(selos.inicio_inscricoes(r, D("2026-11-23")) == D("2026-10-20"), "nem o início")
+    r = {"linha": "Z — Juiz: inscrições até 05/01, segundo matéria de 20/12/2026"}
+    ok(selos.fim_inscricoes_registro(r, D("2026-12-28"))[0] == D("2027-01-05"), "notícia citada não ancora")
+    r = {"linha": "W — Juiz: inscrições das 16h de 19/10 até 16h de 26/11/2026"}
+    ok(selos.inicio_inscricoes(r, D("2027-06-01")) == D("2026-10-19"), "fim do intervalo com hora")
+    r = {"linha": "V — Juiz: inscrições de 01/12 a 20/12 e prova em 15/02/2027"}
+    ok(selos.fim_inscricoes_registro(r, D("2026-06-01"))[0] == D("2026-12-20"), "etapa seguinte do cronograma")
     # inicio depois do fim confirmado: tenta o ano anterior
     r = {"linha": "Y: inscrições de 10/12 até 20/01", "prazos": [
         {"data": "2027-01-20", "evento": "fim das inscrições", "confirmado": True}]}
