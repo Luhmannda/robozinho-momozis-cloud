@@ -1196,7 +1196,7 @@ def finalizar_e_helper_linhas_novas_e_push_so_na_main():
     for t in ('"RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper',
               "PERSISTENCIA ABORTADA: trava de sanidade (linhas TRAVA acima",
               "Não edite o estado nem o código: avise o dono com as linhas TRAVA",
-              "sed 's/^/REAPLICACAO: /'", '"ESTADO: '):
+              "REAPLICACAO: ", '"ESTADO: '):
         assert t in fin, "finalizar.sh sem %r" % t
     assert "STATUS: ERRO INTERNO %s — nada foi gravado no estado" in hl and '"USO: custo total US$ %.2f' in hl
     assert h.ALERTA_FALLBACK.startswith("ALERTA: mecânico dos concursos com fallback")
