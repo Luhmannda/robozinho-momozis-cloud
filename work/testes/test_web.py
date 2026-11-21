@@ -996,6 +996,11 @@ def jota_extrair_formatos():
     assert indice2[:6] == indice and len(indice2) == 10, indice2   # +3 wrappers da prosa +1 materia direta
     assert "Leia mais. [L8]" in out2 and "TESTE-36" not in open(urls).read() and "TESTE-99" not in open(urls).read()
     assert "Matéria direta: [L10]" in out2
+    # (21/11) funil do JOTA: a saida compacta das duas chamadas fica em $ROBOZINHO_TMP/jota_extrato.txt
+    ext = open(os.path.join(TMPDIR, "jota_extrato.txt"), encoding="utf-8").read()
+    assert "Fim da 6x1: Dino mira em lacunas, faz ajustes, mas não muda principais pontos da emenda [L1]" in ext
+    assert "Matéria direta: [L10]" in ext and "rdsv2" not in ext and ext.count("=== ") == out.count("=== ") + \
+        out2.count("=== "), ext[:300]
 
 
 @teste
