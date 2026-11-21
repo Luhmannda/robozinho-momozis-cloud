@@ -1950,6 +1950,29 @@ def t_mon_movimento_falso_com_prazo_ou_selo_mudado():
     ok(len(avisos) == 1 and "selo mudou hoje" in avisos[0] and "movimento" not in upd["tjrs_juiz"]
        and not M.ACIONAVEL.search(avisos[0]), "selo mudado: ignorado, aviso comum: %s" % avisos)
 
+@teste
+def t_mon_rodape_contra_limitacoes():
+    """E-min (f): o rodape calculado diria "Nenhuma fonte falhou nesta execução" e email.limitacoes/observacoes dizem
+    que uma fonte falhou: AVISO comum (nao acionavel) apontando a contradicao. Com a fonte em 'falha', ou texto que
+    nega a falha, nada."""
+    op = {"historico": os.path.join(FIX, "historico.json"), "bancas": "/inexistente", "fontes_status": "/inexistente"}
+
+    def avisos_de(limitacoes=None, observacoes=None, ss=None):
+        ex = {"items": [], "source_status": dict(ss or {"conjur": "ok", "gmail_push_stf": "ok"}),
+              "email": {"limitacoes": limitacoes, "observacoes": observacoes or []}}
+        _, av, _ = M.preparar(ex, fx("janela-1711.json"), fx("ledger-1611.json"), {}, {}, op)
+        return [a for a in av if a.startswith("rodapé diz")]
+    av = avisos_de("O site do ConJur ficou fora do ar durante a coleta da manhã.")
+    ok(len(av) == 1 and "email.limitacoes fala em falha («O site do ConJur ficou fora do ar durante a coleta da manhã.»)"
+       in av[0] and not M.ACIONAVEL.search(av[0]), "limitacoes x rodape: %s" % av)
+    av = avisos_de(None, ["A página da Câmara não respondeu nas duas tentativas."])
+    ok(len(av) == 1 and "email.observacoes[0]" in av[0], "observacoes x rodape: %s" % av)
+    ok(not avisos_de("O site do ConJur ficou fora do ar.", ss={"conjur": "falha"}), "fonte marcada 'falha': coerente")
+    ok(not avisos_de("Sem falha de fonte nesta execução; a janela cobre o fim de semana."), "negacao nao conta")
+    ok(not avisos_de("Informativos completos; STJ só pela mídia."), "texto sem falha")
+    ok("Nenhuma fonte falhou" in M.suporte_txt({"conjur": "ok"}) and M.fontes_que_falharam({"conjur": "falha"}) == [
+        M.rotulo_fonte("conjur")], "rodape e lista de falhas pela mesma regra")
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do

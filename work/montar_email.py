@@ -1744,17 +1744,40 @@ def tecnico_para_leitor(texto):
     return out
 
 
-def suporte_txt(ss, em=None, ex=None):
-    """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
-    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
-    calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
-    embaralhava a frase e deixava codigo e nome de script. ex: para o rotulo por produto (rotulo_fonte)."""
+def fontes_que_falharam(ss, ex=None):
+    """Rotulos (rotulo_fonte) das fontes com 'falha' no source_status, na ordem do rodape, sem repeticao."""
     falhas = []
     for i in OFICIAIS + SECUNDARIAS:
         if ss.get(i) == "falha":
             rot = rotulo_fonte(i, ex)
             if rot not in falhas:
                 falhas.append(rot)
+    return falhas
+
+
+# E-min (f), ensaio de 23/11: o rodape sai do source_status ("Nenhuma fonte falhou nesta execução") e as limitacoes e
+# observacoes sao texto livre do orquestrador; quando o texto diz que uma fonte falhou e nenhum status e 'falha', o
+# leitor ve as duas coisas. Vocabulario de falha de acesso; "sem falha"/"nenhuma falha" nao contam.
+FALHA_NO_TEXTO = re.compile(r"\b(?:falh(?:ou|aram|as?)|fora\s+do\s+ar|indispon[íi]ve(?:l|is)|inacess[íi]ve(?:l|is)|"
+                            r"n[ãa]o\s+(?:respondeu|responderam|abriu|abriram|carregou|carregaram)|recusou|recusaram|"
+                            r"bloquead[oa]s?|sem\s+resposta)\b", re.I)
+NEGA_FALHA = re.compile(r"\b(?:sem|nenhuma?)\s+(?:\w+\s+){0,2}falh", re.I)
+
+
+def falha_no_texto(texto):
+    """A 1a frase do texto que fala de falha de fonte (FALHA_NO_TEXTO, sem negacao); '' se nenhuma."""
+    for frase in re.split(r"(?<=[.;])\s+", str(texto or "")):
+        if FALHA_NO_TEXTO.search(frase) and not NEGA_FALHA.search(frase):
+            return frase.strip()
+    return ""
+
+
+def suporte_txt(ss, em=None, ex=None):
+    """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
+    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
+    calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
+    embaralhava a frase e deixava codigo e nome de script. ex: para o rotulo por produto (rotulo_fonte)."""
+    falhas = fontes_que_falharam(ss, ex)
     base = ("Leitura automática dos e-mails oficiais (Push STF, PUSH Planalto, CodJu, Câmara) e do JOTA, das páginas "
             "do Congresso, do ConJur e do Migalhas, dos documentos oficiais dos informativos e das páginas das bancas "
             "de concurso; e-mail montado automaticamente")
@@ -2421,6 +2444,15 @@ def preparar(ex, j, led, ev, v, op=None):
         if tec:
             avisos.append("%s traz detalhe técnico ao leitor (%s): reescreva em linguagem simples (o técnico vai em "
                           "errors)" % (onde, ", ".join(tec[:4])))
+    # E-min (f): o rodape calculado diria "Nenhuma fonte falhou" ao lado de um texto que diz que uma falhou
+    if not fontes_que_falharam(ex.get("source_status") or {}, ex):
+        for onde, txt in textos:
+            frase = falha_no_texto(txt)
+            if frase:
+                avisos.append("rodapé diz \"Nenhuma fonte falhou nesta execução\" (nenhuma fonte com 'falha' no "
+                              "source_status), mas %s fala em falha («%s»): se a fonte falhou, marque \"falha\" no "
+                              "source_status dela; senão, reescreva o texto" % (onde, curto(frase, 80)))
+                break
     urgente = [x for x in prazos(regs, hj) if x[1] <= 7]
     if (urgente or novos) and not any(re.search(r"(?i)concurs|inscri|edital|prova", " ".join(map(str, c[1:])))
                                       for c in cards if isinstance(c, list)):
