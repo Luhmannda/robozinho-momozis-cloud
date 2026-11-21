@@ -189,6 +189,16 @@ def repeticao_falsos_positivos_e_ja_saiu():
     # o mesmo valor (outra redacao) continua casando
     assert p(credito_1111, t("Câmara aprova crédito de 18,5 bilhões para exportadores afetados pelo tarifaço dos EUA"))
     assert repeticao.valores("R$ 300 milhões e R$ 1.200 mi; 6,50 bi") == {"300mi", "1200mi", "6v5bi"}
+    assert repeticao.valores("R$ 2 tri, 1 trilhão, R$ 1 milhão e 3 bilhões") == {"2tr", "1tr", "1mi", "3bi"}
+    # (rev2 R5) a unidade e a palavra inteira: titulos reais do historico que viravam valor ("mi" de minutos/militares,
+    # "tr" de tribunais, "mi" do "mil" de milhar) e vetavam a semelhanca com outra redacao do mesmo fato
+    for s in ("Limite de 30 minutos para comunicação de sinistro é abusivo, decide STJ",
+              "STM mantém condenação de 7 militares por 'chá de manta' que fez soldado perder baço",
+              "Quatro ministros do STF mandam devolucao de penduricalhos por juizes de 7 tribunais",
+              "STJ multa advogados em R$ 20 mil por uso de prompt injection em petição", "5 ministros", "3 trimestres"):
+        assert repeticao.valores(s) == frozenset(), s
+    assert p(t("Limite de 30 minutos para comunicação de sinistro é abusivo, decide STJ"),
+             t("STJ decide que limite de 30 minutos para comunicar sinistro é abusivo"))
     # MP em qualquer posicao: identidade fraca (numero diferente nunca casa)
     assert t("Câmara aprova crédito de R$ 6,5 bi (MP 1.397/26)").ident == ("mpv", "1397")
     assert not p(t("Senado aprova MP 1.397 sobre crédito a exportadores do tarifaço"),

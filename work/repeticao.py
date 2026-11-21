@@ -236,8 +236,10 @@ _ANO = re.compile(r"(?<![\d.,])(?:19|20)\d{2}(?!\d)(?!\.\d{3})")
 _MILHAR = re.compile(r"(?<=\d)\.(?=\d{3}(?!\d))")
 _VEZES = re.compile(r"(?<=\d)\s*[×x]\s*(?=\d)")          # "6×1", "6 x 1" -> "6x1"
 _DECIMAL = re.compile(r"(?<=\d),(?=\d)")                 # "6,5" -> "6v5" (um token so)
-# valor monetario, com ou sem "R$": "R$ 6,5 bi", "18,5 bilhoes", "R$ 300 milhoes", "R$ 2 tri"
-_VALOR = re.compile(r"(?:r\$\s*)?\b(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d+))?\s*(bi|bilh|mi|milh|tri|trilh)(?:[a-z]*)\b")
+# valor monetario, com ou sem "R$": "R$ 6,5 bi", "18,5 bilhoes", "R$ 300 milhoes", "R$ 2 tri". A unidade e a palavra
+# inteira (rev2 R5): "5 ministros", "10 minutos", "3 trimestres", "R$ 300 mil" nao sao valor em milhoes/trilhoes
+_VALOR = re.compile(r"(?:r\$\s*)?\b(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d+))?\s*"
+                    r"(bi|bilh(?:ao|oes)|mi|milh(?:ao|oes)|tri|trilh(?:ao|oes))\b")
 
 
 def _limpar(s):
