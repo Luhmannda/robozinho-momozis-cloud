@@ -679,6 +679,32 @@ def coleta_conjur_api_class_list_objeto():
         assert coleta_web.conjur(*_janela(inicio, fim), set())["itens"][0]["tipo"] == "artigo"
 
 
+@teste
+def coleta_conjur_api_sem_posts_utilizaveis():
+    """(rev2 R2) API 200 com lista vazia ou so posts sem link/date_gmt (campo renomeado, _fields ignorado): antes 0
+    itens sem fallback e o ConJur 'falha' no dia; agora a listagem HTML, com o motivo no cabecalho e no status."""
+    posts = json.load(open(os.path.join(FIX, "conjur-api-2011.json"), encoding="utf-8"))
+    art = pagina_fixture("conjur-artigo-c19-2011.html")
+    inicio, fim = J2011[0], datetime.fromisoformat("2026-11-20T16:00:00-03:00")
+    listagem = _h2("2026-nov-19/b/", "Notícia da listagem")
+    meta = '<meta property="article:published_time" content="2026-11-19T12:00:00-03:00">'
+    sem_campos = [{k: v for k, v in p.items() if k not in ("link", "date_gmt")} for p in posts]
+    for resposta in ("[]", json.dumps(sem_campos), json.dumps([dict(p, date_gmt=None) for p in posts])):
+        with Rede(lambda u: (200, resposta) if "/wp-json/" in u else (200, listagem if u.endswith("/noticias/")
+                                                                       else meta)) as rede:
+            out = coleta_web.conjur(*_janela(*J2011), set())
+        assert out["via"] == "html" and out["api"] == {"http": 200, "motivo": "API sem posts utilizáveis"}, out
+        assert [i["titulo"] for i in out["itens"]] == ["Notícia da listagem"] and out["itens"][0]["situacao"] == "NOVA"
+        assert any(coleta_web.URLS_CONJUR["noticia"] == p for p in rede.pedidos)
+        assert "via listagem HTML (API: API sem posts utilizáveis)" in coleta_web.status_fontes([out])["conjur"][1]
+        assert any("via html (API: API sem posts utilizáveis)" in l for l in coleta_web.imprimir([out],
+                                                                                                 *_janela(*J2011)))
+    # parte dos posts sem link: os outros valem (via API), e a contagem fica no JSON
+    with Rede(lambda u: (200, json.dumps(sem_campos[:2] + posts[2:])) if "/wp-json/" in u else (200, art)):
+        out = coleta_web.conjur(*_janela(inicio, fim), set())
+    assert out["via"] == "api" and out["api_descartados"] == 2 and len(out["itens"]) == len(posts) - 2, out
+
+
 def _h2(url, tit="T"):
     return '<h2 class="conjur-posts-tipo-titulo"><a href="https://conjur.com.br/%s">%s</a></h2>' % (url, tit)
 

@@ -7,7 +7,8 @@
 #
 # (21/11/2026) Cobertura e indice:
 # - ConJur pela WP REST API do dominio (janela inteira, hora, tipo, linha-fina e
-#   corpo numa requisicao; fallback: listagem HTML paginada) e Migalhas paginado
+#   corpo numa requisicao; fallback: listagem HTML paginada, tambem quando a API
+#   responde 200 sem nenhum post com link e date_gmt) e Migalhas paginado
 #   (?pagina=N), com teto, parada pela data, trava de pagina repetida e orcamento
 #   de tempo; leitura incompleta = "cobertura": "parcial" no JSON, AVISO no indice
 #   e o detalhe "parcial: ..." no status (que continua "ok": a lista fechada do
@@ -1016,14 +1017,19 @@ def _item_api(p, inicio, fim, recorte):
 def conjur(inicio, fim, recorte, urls_pub):
     """ConJur pela WP REST API (a janela inteira, com hora exata e corpo); sem ela, a listagem HTML paginada."""
     api = conjur_api(inicio, fim)
-    if not api["ok"]:
+    itens = [x for x in (_item_api(p, inicio, fim, recorte) for p in api["posts"]) if x] if api["ok"] else []
+    if not itens:
+        # (rev2 R2) 200 com lista vazia ou so posts sem link/date_gmt (campo renomeado, _fields ignorado) dava 0 itens
+        # sem fallback; a janela de um dia util nunca tem 0 posts: a listagem HTML decide
         out = conjur_html(inicio, fim, recorte, urls_pub)
-        out["api"] = {"http": api["http"], "motivo": api.get("motivo", "")}
+        out["api"] = ({"http": api["http"], "motivo": api.get("motivo", "")} if not api["ok"]
+                      else {"http": api["http"], "motivo": "API sem posts utilizáveis"})
         return out
     out = {"fonte": "conjur", "via": "api", "http": {"api": api["http"]}, "tentativas": api["tentativas"],
            "paginas": api["paginas"], "itens": [], "completa": api["completa"]}
+    if len(itens) < len(api["posts"]):
+        out["api_descartados"] = len(api["posts"]) - len(itens)     # post sem link/date_gmt: fica de fora (no JSON)
     vistos, unicos = set(), []
-    itens = [x for x in (_item_api(p, inicio, fim, recorte) for p in api["posts"]) if x]
     for it in sorted(itens, key=lambda i: i["quando"], reverse=True):
         if it["url"] in vistos:
             continue
