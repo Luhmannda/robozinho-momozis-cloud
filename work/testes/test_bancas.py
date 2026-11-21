@@ -13,7 +13,7 @@
 #   registro; TRECHOS_ALT (TJPB e ENAM ganham vagas/vencimento/prova; TJSC e
 #   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade);
 #   listagem ilegivel le os vinculados (rev1 C3); NOVA EDICAO de vinculado sem
-#   ano (rev1 C4).
+#   ano (rev1 C4); teto do paralelo limita o processo e o curl/pdftotext (C5).
 # USO: python3 work/testes/test_bancas.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -385,6 +385,43 @@ def listagem_ilegivel_le_os_vinculados():
     ok(res["concursos"] == [] and res["erro"].startswith("listagem ilegível")
        and not any("/concursos/" in u and "?page" not in u and not u.endswith("/concursos") for u in rede.pedidos),
        rede.pedidos)
+
+
+@teste
+def teto_limita_o_processo():
+    """rev1 C5: o teto do paralelo() limita o processo (threads daemon), e o curl/pdftotext de dentro dele usam so
+    o que resta do teto (antes: -m 60 e pdftotext 60 s; o interpretador esperava as threads na saida)."""
+    import subprocess as sp
+    codigo = ("import sys, time; sys.path.insert(0, %r); import bancas; t = time.time(); "
+              "r = bancas.paralelo(lambda x: time.sleep(x) or x, [0.2, 8], 2, 1.5); "
+              "print(r, round(time.time() - t, 1))" % WORK)
+    t0 = time.time()
+    r = sp.run([sys.executable, "-c", codigo], capture_output=True, text=True, timeout=30)
+    ok(r.stdout.startswith("[0.2, None]") and time.time() - t0 < 5, (r.stdout, r.stderr[-300:], time.time() - t0))
+    chamadas, real = [], bancas.subprocess.run
+
+    def falso(cmd, **kw):
+        chamadas.append((cmd, kw.get("timeout")))
+        if cmd[0] == "pdftotext":
+            return sp.CompletedProcess(cmd, 0, b"texto do edital", b"")
+        raise OSError("sem rede no teste")
+    bancas.subprocess.run = falso
+    try:
+        bancas.paralelo(lambda u: bancas.fetch(u, timeout=40), ["https://x/a"], 1, 3)
+        cmd, tmo = chamadas[-1]
+        ok(int(cmd[cmd.index("-m") + 1]) <= 3 and tmo <= 8, chamadas[-1])
+        bancas.fetch("https://x/b", timeout=40)                 # fora do paralelo: o padrao
+        cmd, _ = chamadas[-1]
+        ok(cmd[cmd.index("-m") + 1] == "40", cmd)
+        orig_fetch = bancas.fetch
+        bancas.fetch = lambda url, binario=False, timeout=40: (200, b"%PDF-1.4 x")
+        try:
+            r = bancas.paralelo(bancas.texto_pdf, ["https://x/e.pdf"], 1, 2)
+        finally:
+            bancas.fetch = orig_fetch
+        ok(r == [("texto do edital", "")] and chamadas[-1][0][0] == "pdftotext" and chamadas[-1][1] <= 2, chamadas[-1])
+    finally:
+        bancas.subprocess.run = real
 
 
 # ------------------------------------------------------------------ vinculo e travas (analisar direto)

@@ -100,11 +100,13 @@
 import argparse
 import html
 import json
+import math
 import os
 import re
 import subprocess
 import tempfile
-from concurrent.futures import ThreadPoolExecutor, wait
+import threading
+import time
 from datetime import date, datetime, timedelta
 
 import escopo
@@ -171,7 +173,21 @@ def tmp(nome):
     return os.path.join(os.environ.get("ROBOZINHO_TMP", "/tmp"), nome)
 
 
+# prazo (time.monotonic) do paralelo() que roda nesta thread: curl e pdftotext nao passam dele
+_PRAZO = threading.local()
+
+
+def restante(padrao):
+    """Segundos que um curl/pdftotext pode usar: `padrao`, limitado ao que resta do teto do paralelo() que roda nesta
+    thread (minimo 1 s). Fora de paralelo(), o proprio `padrao`."""
+    fim = getattr(_PRAZO, "fim", None)
+    if fim is None:
+        return padrao
+    return max(1, min(padrao, int(math.ceil(fim - time.monotonic()))))
+
+
 def fetch(url, binario=False, timeout=40):
+    timeout = restante(timeout)
     with tempfile.NamedTemporaryFile(delete=False) as f:
         caminho = f.name
     try:
@@ -187,17 +203,39 @@ def fetch(url, binario=False, timeout=40):
 
 
 def paralelo(fn, itens, threads, teto):
-    """[fn(x) | None] na ordem de `itens`. None = excecao ou nao terminou dentro de `teto` segundos (o que ficou
-    rodando acaba sozinho no -m do curl e o resultado e descartado): a falha de um nao derruba os outros."""
+    """[fn(x) | None] na ordem de `itens`. None = excecao ou nao terminou dentro de `teto` segundos: a falha de um
+    nao derruba os outros. O teto limita o PROCESSO, nao so a espera (rev1 C5): as threads sao daemon (o
+    ThreadPoolExecutor juntava as suas na saida do interpretador, e o inicio.py esperava o -m 60 do curl e os 60 s
+    do pdftotext) e o curl/pdftotext de dentro delas usam so o que resta do teto (restante()); item que nao comecou
+    ate o teto nao comeca. Chamada aninhada herda o prazo de quem chama."""
     itens = list(itens)
     if not itens:
         return []
-    ex = ThreadPoolExecutor(max_workers=max(1, min(threads, len(itens))))
-    futs = [ex.submit(fn, x) for x in itens]
-    wait(futs, timeout=teto)
-    out = [f.result() if f.done() and not f.cancelled() and f.exception() is None else None for f in futs]
-    ex.shutdown(wait=False, cancel_futures=True)
-    return out
+    fim = time.monotonic() + teto
+    pai = getattr(_PRAZO, "fim", None)
+    fim = min(fim, pai) if pai is not None else fim
+    out = [None] * len(itens)
+    prox, trava = [0], threading.Lock()
+
+    def trabalho():
+        _PRAZO.fim = fim
+        while time.monotonic() < fim:
+            with trava:
+                i = prox[0]
+                prox[0] += 1
+            if i >= len(itens):
+                return
+            try:
+                out[i] = fn(itens[i])
+            except Exception:  # noqa: BLE001 — a falha de um nao derruba os outros
+                out[i] = None
+
+    ts = [threading.Thread(target=trabalho, daemon=True) for _ in range(max(1, min(threads, len(itens))))]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join(max(0.0, fim - time.monotonic()))
+    return list(out)            # copia: o que chegar depois do teto e descartado
 
 
 def limpa(s):
@@ -345,7 +383,7 @@ def texto_pdf(url):
         caminho = f.name
     try:
         t = subprocess.run(["pdftotext", "-l", "40", caminho, "-"], capture_output=True,
-                           timeout=60).stdout.decode("utf-8", "replace")
+                           timeout=restante(60)).stdout.decode("utf-8", "replace")
     except Exception as e:  # noqa: BLE001
         return None, "pdftotext: %s" % e
     finally:
