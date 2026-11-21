@@ -592,6 +592,322 @@ def coleta_saida_compacta():
     assert linha.startswith("SOURCE_STATUS {") and json.loads(linha[len("SOURCE_STATUS "):])["congresso_mpvs"] == "falha"
 
 
+# ------------------------------------------------------------ cobertura de ConJur/Migalhas, LEGIN e indice (21/11)
+J2011 = (datetime.fromisoformat("2026-11-19T07:07:20-03:00"), datetime.fromisoformat("2026-11-20T07:07:04-03:00"))
+
+
+def _janela(inicio, fim):
+    from datetime import timedelta
+    return inicio, fim, fim - timedelta(hours=24)
+
+
+class Rede:
+    """fetch_n/fetch_many falsos: url -> (codigo, corpo) por funcao; registra os pedidos."""
+    def __init__(self, resposta):
+        self.resposta, self.pedidos = resposta, []
+
+    def __enter__(self):
+        self.antigos = coleta_web.fetch_n, coleta_web.fetch_many
+        coleta_web.fetch_n = lambda url, *a, **k: self._um(url) + (1,)
+        coleta_web.fetch_many = lambda urls: {u: self._um(u) for u in urls}
+        return self
+
+    def _um(self, url):
+        self.pedidos.append(url)
+        r = self.resposta(url)
+        return r if r else (404, "")
+
+    def __exit__(self, *a):
+        coleta_web.fetch_n, coleta_web.fetch_many = self.antigos
+
+
+@teste
+def coleta_conjur_pela_api():
+    """(21/11, achado 10/13A) ConJur pela WP REST API do dominio: a janela inteira numa requisicao (41 posts em 20/11
+    contra 30 lidos), hora exata (date_gmt), tipo pelo class_list (estudio = PROMO), linha-fina (yoast), lead, ficha e
+    nota oficial do corpo — sem abrir pagina de materia; so as paginas das opinioes do indice, para o autor (o meta
+    author e o editor). Fixture: recorte real da resposta de 20/11."""
+    api = open(os.path.join(FIX, "conjur-api-2011.json"), encoding="utf-8").read()
+    art = pagina_fixture("conjur-artigo-c19-2011.html")
+    inicio, fim = J2011[0], datetime.fromisoformat("2026-11-20T16:00:00-03:00")   # inclui o post do Estudio
+    with Rede(lambda u: (200, api) if "/wp-json/" in u else (200, art)) as rede:
+        out = coleta_web.conjur(*_janela(inicio, fim), set())
+    api_ped = [p for p in rede.pedidos if "/wp-json/" in p]
+    assert len(api_ped) == 1 and "after=2026-11-19T01:07:20" in api_ped[0] and "_fields=" in api_ped[0], api_ped
+    assert len(rede.pedidos) == 3 and all("/wp-json/" in p or "sequestro-de-bens" in p or "tema-222" in p
+                                          for p in rede.pedidos), rede.pedidos       # so as 2 opinioes
+    assert out["via"] == "api" and out["http"] == {"api": 200} and out["cobertura"] == "completa", out
+    it = {i["titulo"][:20]: i for i in out["itens"]}
+    assert [i["tipo"] for i in out["itens"]][-2:] == ["artigo", "coluna"]
+    assert it["Livros sobre advocac"]["situacao"] == "PROMO" and it["Livros sobre advocac"]["promo"] == "estudio"
+    stf = it["Supremo vai julgar v"]
+    assert stf["quando"] == datetime.fromisoformat("2026-11-19T21:18:47-03:00") and stf["situacao"] == "NOVA"
+    assert stf["ficha"] == "STF · Plenário virtual · Tema 1.499 · vinculante" and stf["nota_oficial"] == "STF", stf
+    assert stf["resumo"].startswith("Controvérsia sobre") and stf["lead"].startswith("O Supremo Tribunal Federal vai")
+    assert it["Com empate, STJ mant"]["ficha"] == "STJ · 6ª Turma"
+    assert it["Presidente assina de"]["nota_oficial"] == "Presidência"
+    assert it["Sequestro de bens: o"]["autor"] == "Murilo Marques"            # nunca "Marcos Pereira" (editor)
+    # API fora (http 404): a listagem HTML, e o motivo vai ao cabecalho e ao detalhe do status
+    listagem = '<h2 class="conjur-posts-tipo-titulo"><a href="https://conjur.com.br/2026-nov-18/velha/">V</a></h2>'
+    with Rede(lambda u: (404, "") if "/wp-json/" in u else (200, listagem)) as rede:
+        out2 = coleta_web.conjur(*_janela(*J2011), set())
+    assert out2["via"] == "html" and out2["api"] == {"http": 404, "motivo": "http=404"}, out2
+    assert "via listagem HTML (API: http=404)" in coleta_web.status_fontes([out2])["conjur"][1]
+    # resposta 200 que nao e lista de posts (pagina de bloqueio): tambem cai no HTML
+    with Rede(lambda u: (200, "<html>bloqueado</html>") if "/wp-json/" in u else (200, listagem)):
+        assert coleta_web.conjur(*_janela(*J2011), set())["via"] == "html"
+
+
+def _h2(url, tit="T"):
+    return '<h2 class="conjur-posts-tipo-titulo"><a href="https://conjur.com.br/%s">%s</a></h2>' % (url, tit)
+
+
+@teste
+def coleta_conjur_html_paginado():
+    """Fallback HTML (achado 10): noticias paginadas ate o dia anterior ao inicio da janela; a 3a pagina nao e pedida
+    quando a 2a ja cruza o inicio; pagina repetida (armadilha /page/N/) para o laco com cobertura parcial; teto e
+    http != 200 tambem; o AVISO vai ao indice e o detalhe ao status."""
+    vazio = {coleta_web.URLS_CONJUR["artigo"]: (200, ""), coleta_web.URLS_CONJUR["coluna"]: (200, "")}
+    pg = coleta_web.URL_CONJUR_PG
+    p1 = _h2("2026-nov-20/a/") + _h2("2026-nov-19/b/")
+    p2 = _h2("2026-nov-19/c/") + _h2("2026-nov-18/d/")
+    paginas = dict(vazio, **{coleta_web.URLS_CONJUR["noticia"]: (200, p1), pg % 2: (200, p2),
+                             pg % 3: (200, _h2("2026-nov-17/e/"))})
+    meta = '<meta property="article:published_time" content="2026-11-19T12:00:00-03:00">'
+    with Rede(lambda u: paginas.get(u) or (200, meta)) as rede:
+        out = coleta_web.conjur_html(*_janela(*J2011), set())
+    assert pg % 2 in rede.pedidos and pg % 3 not in rede.pedidos, rede.pedidos
+    assert out["completa"] and out["cobertura"] == "completa" and out["paginas"] == 2, out
+    sit = {i["url"].split("/")[-2]: (i["situacao"], i.get("pagina")) for i in out["itens"]}
+    assert sit["c"] == ("NOVA", 2) and sit["d"] == ("FORA", 2), sit
+    # a 2a pagina devolve a 1a (formato de URL mudou): para, parcial, AVISO
+    paginas[pg % 2] = (200, p1.replace("nov-19/b", "nov-19/b"))
+    with Rede(lambda u: paginas.get(u) or (200, meta)):
+        out = coleta_web.conjur_html(*_janela(*J2011), set())
+    assert out["cobertura"] == "parcial" and out["sem_url_nova"] == 2, out
+    linhas = coleta_web.imprimir([out], *_janela(*J2011))
+    aviso = [l for l in linhas if l.startswith("AVISO: cobertura parcial do ConJur")]
+    assert aviso and "a página 2 repetiu a anterior" in aviso[0] and "verification_notes" in aviso[0], linhas
+    assert "parcial: leitura incompleta" in coleta_web.status_fontes([out])["conjur"][1]
+    assert coleta_web.status_fontes([out])["conjur"][0] == "ok"     # a lista fechada do source_status nao tem "parcial"
+    # teto: todas as paginas na janela
+    antigo = coleta_web.MAX_PAGINAS_CONJUR
+    coleta_web.MAX_PAGINAS_CONJUR = 2
+    paginas[pg % 2] = (200, _h2("2026-nov-19/x/"))
+    try:
+        with Rede(lambda u: paginas.get(u) or (200, meta)) as rede:
+            out = coleta_web.conjur_html(*_janela(*J2011), set())
+    finally:
+        coleta_web.MAX_PAGINAS_CONJUR = antigo
+    assert out["cobertura"] == "parcial" and pg % 3 not in rede.pedidos and out["paginas"] == 2, out
+    assert any("teto de 2 página(s)" in l for l in coleta_web.imprimir([out], *_janela(*J2011)))
+    # http 500 na 2a pagina: as lidas valem, parcial
+    paginas[pg % 2] = (500, "")
+    with Rede(lambda u: paginas.get(u) or (200, meta)):
+        out = coleta_web.conjur_html(*_janela(*J2011), set())
+    assert out["http_pagina"] == {"pagina": 2, "http": 500} and out["cobertura"] == "parcial"
+    assert any("http=500 na página 2" in l for l in coleta_web.imprimir([out], *_janela(*J2011)))
+
+
+@teste
+def coleta_migalhas_paginado():
+    """(achado 10) Migalhas ?pagina=N: para no selo de data anterior ao dia do inicio da janela (a p. 4 nao e pedida);
+    selo anterior = FORA sem abrir a materia; PROMO e 'Especialista aponta' so contados. Fixture: recorte real das
+    paginas 1, 2 e 7 de 20/11."""
+    pags = ler("migalhas-listagem-2011.json")["paginas"]
+    abertas = []
+
+    def resp(u):
+        if "/quentes?pagina=" in u or u.endswith("/quentes"):
+            n = u.rsplit("=", 1)[1] if "=" in u else "1"
+            return (200, pags[n]) if n in pags else (200, "")
+        abertas.append(u)
+        return 200, '<meta property="article:published_time" content="2026-11-19T15:00:00-03:00">'
+    with Rede(resp) as rede:
+        out = coleta_web.migalhas(*_janela(*J2011), set())
+    assert not [p for p in rede.pedidos if "pagina=4" in p] and out["paginas"] == 3 and out["completa"], out
+    sit = {i["url"].split("/")[4]: i["situacao"] for i in out["itens"]}
+    fora = [k for k, v in sit.items() if v == "FORA"]
+    assert len(fora) == 3 and not [a for a in abertas if a.split("/")[4] in fora], (sit, abertas)   # selo 18/11
+    assert len(abertas) == 6 and out["cobertura"] == "completa", abertas     # 2 + 4 (as de 18/11 nao)
+    coleta_web.marcar_promo_e_repetidas([out], [])
+    promo = sorted(i["titulo"][:25] for i in out["itens"] if i["situacao"] == "PROMO")
+    assert promo == ["Aula ao vivo organiza a r"], promo                 # 'Especialista aponta' e de 18/11 (FORA)
+    for t in ("Especialista aponta condições para regularidade do stablecoin sandwich",
+              "Especialista: GTA 6 amplia debate", "Advogada alerta escolas sobre bullying",
+              "Nova jornada amplia disputas por horas extras e folgas, alerta advogado"):
+        assert coleta_web.OPINIAO_DISFARCADA.search(t), t
+    for t in ("Aula ao vivo organiza a reta final de estudos para 1ª Fase 48º Exame",
+              'OAB/RJ realiza "Feira de Estágios de 2026"', "AJER promove debate sobre a reforma",
+              'Ingo Wolfgang participa do "XXVI Congresso de Direito"', "CropLife Brasil aborda defensivos em videocast",
+              "Livros sobre advocacia criminal contemporânea e na literatura serão lançados em 26/11"):
+        assert coleta_web.PROMO.search(t), t
+    for t in ("Juiz decide na sexta-feira de manhã sobre prisão", "TJ-SP realiza mutirão na segunda-feira",
+              "STF realiza audiência pública sobre a escala 6x1", "Advogado é preso suspeito de sequestrar namorada",
+              "Professor é condenado por assédio"):
+        assert not coleta_web.PROMO.search(t) and not coleta_web.OPINIAO_DISFARCADA.search(t), t
+    # pagina 2 sem URL nova (o site ignorou ?pagina=): para, parcial
+    with Rede(lambda u: (200, pags["1"]) if "quentes" in u and "/quentes/" not in u else resp(u)):
+        out = coleta_web.migalhas(*_janela(*J2011), set())
+    assert out["sem_url_nova"] == 2 and out["cobertura"] == "parcial", out
+
+
+@teste
+def coleta_lead_ficha_nota_autor():
+    """(achado 16, 13B, lows 10) Das paginas ja baixadas: lead verbatim (2 paragrafos, fim de frase), ficha curta e
+    segura (tribunal · orgao · processo/tema · vinculante; sem placar nem relator por regex), a nota oficial
+    reproduzida ('Com informacoes da assessoria...', 'Informacoes: STF.') e o autor do artigo. Paginas reais."""
+    lead, pars = coleta_web.lead_da_pagina(pagina_fixture("conjur-c1-1711.html"), "conjur")
+    assert len(pars) == 2 and lead.startswith("A 3ª Seção do Superior Tribunal de Justiça") and lead.endswith(".")
+    assert len(lead) <= coleta_web.MAX_LEAD and coleta_web.ficha_do_lead(C1_TIT, pars) == "STJ · 3ª Seção · HC 967.966"
+    # Migalhas: so o corpo (div topico__materia), nao "Patrocinadores/Apoiadores" nem o CSS; "ADIn" vira ADI
+    m = pagina_fixture("migalhas-468718-1711.html")
+    lead, pars = coleta_web.lead_da_pagina(m, "migalhas")
+    assert lead.startswith("Por unanimidade, o STF julgou constitucional") and "Apoiadores" not in lead, lead
+    assert coleta_web.ficha_do_lead("STF valida lei que protege dados em ocorrências policiais", pars) == \
+        "STF · Plenário · ADI 4.188"
+    assert coleta_web.nota_oficial(m) == "STF"
+    # negativos reais: o "empate" e do Carf (17/11 c12) e a 2a Turma e a do precedente (19/11 c9): fora da ficha
+    _, pars = coleta_web.lead_da_pagina(pagina_fixture("conjur-c12-1711.html"), "conjur")
+    f = coleta_web.ficha_do_lead("STJ julga alcance de benefício do Carf em voto de qualidade sobre decadência", pars)
+    assert f == "STJ · 1ª Turma" and "empate" not in f.lower(), f
+    _, pars = coleta_web.lead_da_pagina(pagina_fixture("conjur-c9-1911.html"), "conjur")
+    assert coleta_web.ficha_do_lead("Execução de honorários deve aguardar compensação tributária, decide STJ",
+                                    pars) == "STJ · 1ª Turma"
+    # tribunal por extenso, Turma Recursal, Tema com repetitivo no paragrafo do tema
+    pars = ["Com essa premissa, a 2ª Turma Recursal do Tribunal de Justiça de Santa Catarina absolveu uma indústria.",
+            "A questão está em análise no Tema 1.422 dos recursos repetitivos, para formação de tese vinculante."]
+    assert coleta_web.ficha_do_lead("Indústria é absolvida de crime ambiental", pars) == \
+        "TJ-SC · 2ª Turma Recursal · Tema 1.422 · vinculante"
+    assert coleta_web.ficha_do_lead("Lei nova", ["Texto sem tribunal nenhum, com mais de quarenta caracteres."]) == ""
+    assert coleta_web.nota_oficial("<p>Com informações da assessoria de imprensa do TRF-3.</p>") == "TRF-3"
+    assert coleta_web.nota_oficial("<p>Com informações da Agência Brasil.</p>") == ""
+    art = pagina_fixture("conjur-artigo-c19-2011.html")
+    assert 'name="author" content="Marcos Pereira"' in art and coleta_web.autor_da_pagina(art) == "Murilo Marques"
+    assert coleta_web.autor_da_pagina('<p class="assinante-title"><a>A B</a></p><p class="assinante-title">C D</p>') \
+        == "A B e C D"
+
+
+def _res_indice():
+    """coleta_web.json real de 20/11 (fixture recortada) com o que o indice novo usa."""
+    res = ler("coleta_web-2011.json")
+    for r in res:
+        for i in r["itens"]:
+            if isinstance(i.get("data"), str) and len(i["data"]) == 10:
+                i["data"] = date.fromisoformat(i["data"])
+            if isinstance(i.get("quando"), str) and i["quando"] not in ("None", ""):
+                i["quando"] = datetime.fromisoformat(i["quando"])
+    return res
+
+
+@teste
+def coleta_indice_relevancia_marcas_e_ruido():
+    """(achado 11a, 40, 21/11) Indice de 20/11 (dados reais): concurso primeiro ([CONC]), [STJ], ficha e
+    [ASSESSORIA X]; a mesma historia do dia numa linha (c3 + m10); fala/evento sem linha-fina; as 13 leis de credito
+    do PLN numa linha de rotina (o e-mail nao muda: cada ref e citado); paginas seguintes so com titulo e so com termo
+    de prova (o resto contado, o id continua valendo); JA SAIU no fim. E nao cresce: menos linhas que o de 20/11."""
+    res = _res_indice()
+    linhas = coleta_web.imprimir(res, *_janela(*J2011), ja_saiu=["JA SAIU 19/11 — Mídia: X [JOTA]"])
+    txt = "\n".join(linhas)
+    cj = linhas[linhas.index(next(l for l in linhas if l.startswith("\n== CONJUR"))) + 1:]
+    nots = [l for l in cj if "|NOT] c" in l]
+    assert nots[0].startswith("[NOVA|NOT] c1 |") and "[CONC]" in nots[0] and "[CONC]" in nots[1], nots[:2]
+    assert any("Com empate, STJ mantém" in l and "[STJ]" in l for l in nots)
+    c3 = next(l for l in nots if "] c3 |" in l)
+    assert "(mesma história: m10 «Dino critica jornalismo" in c3 and "] m10 |" not in txt, c3
+    c10 = next(l for l in nots if "] c10 |" in l)
+    assert c10.endswith("Salomão defende papel da democracia para o desenvolvimento"), c10      # fala: sem linha-fina
+    rot = [l for l in linhas if l.startswith("[NOVA] rotina — 13 lei(s)")]
+    assert rot and "lei15531" in rot[0] and "lei15545" in rot[0] and "(DOU 19/11)" in rot[0], rot
+    assert "] lei15541 | Lei nº 15541" in txt and "] lei15531 |" not in txt   # altera a LOA: linha propria
+    ids = {i["id"] for r in res for i in r["itens"] if i.get("id")}
+    assert {"lei%d" % n for n in range(15530, 15546)} <= ids                     # todos citaveis
+    assert linhas[-2].startswith("\n== JA SAIU") and linhas[-1] == "JA SAIU 19/11 — Mídia: X [JOTA]"
+    # paginas seguintes: so titulo, so com termo de prova, ate MAX_SEGUINTES_NO_INDICE; o resto contado
+    mig = next(r for r in res if r["fonte"] == "migalhas")
+    assuntos = ["usucapião", "alimentos", "falência", "tributos", "consumidor", "servidores", "licitação", "família",
+                "improbidade", "execução", "trabalho"]
+    for n in range(12):
+        mig["itens"].append({"situacao": "NOVA", "pagina": 2, "url": "https://www.migalhas.com.br/quentes/9%d/x" % n,
+                             "titulo": ("STJ define prescrição em ação de %s" % assuntos[n]) if n < 11
+                             else "Gemidos e colchonete: juiz é afastado",
+                             "quando": datetime(2026, 11, 19, 9, n, tzinfo=TZ)})
+    for r in res:
+        for i in r["itens"]:
+            i.pop("id", None)
+    linhas = coleta_web.imprimir(res, *_janela(*J2011))
+    seg = [l for l in linhas if "STJ define prescrição em ação de" in l]
+    assert len(seg) == coleta_web.MAX_SEGUINTES_NO_INDICE and not [l for l in seg if " — " in l], seg
+    assert any(l.startswith("(+2 notícia(s) das páginas seguintes fora do índice") for l in linhas), linhas[-6:]
+    # tamanho: o indice de 20/11 (69 linhas, 13.255 bytes) nao cresce com o formato novo
+    base = coleta_web.imprimir(_res_indice(), *_janela(*J2011))
+    assert len(base) < 69 and len("\n".join(base).encode()) < 13255, (len(base), len("\n".join(base).encode()))
+
+
+@teste
+def coleta_legin():
+    """(achado 8) LEGIN: 1 GET na busca ordenada por data e 1 por ato candidato no detalhe (DOU, edicao extra,
+    apelido); leis listadas pelo Congresso e atos ja publicados nao viram item nem pedido; ids pelo tipo (dec13173);
+    chave planalto|decreto|13173|...; status camara_legin. Paginas reais (busca de 21/11 e detalhe do 13.173)."""
+    busca, det = pagina_fixture("legin-busca-2111.html"), pagina_fixture("legin-decreto-13173.html")
+
+    def resp(u):
+        if "legislacao/busca" in u:
+            return (200, busca) if "pagina=" not in u else (200, "")
+        return (200, det) if "decreto-13173" in u else (404, "")
+    atos = {("decreto", "13168"), ("decreto", "13171")}
+    congresso = {("lei", "15531"), ("lei", "15532")}
+    with Rede(resp) as rede:
+        r = coleta_web.legin(*_janela(*J2011), atos, lambda: congresso)
+    det_ped = [p for p in rede.pedidos if "/legin/" in p]
+    assert det_ped == ["https://www2.camara.leg.br/legin/fed/decret/2026/decreto-13173-19-novembro-2026-800207-norma-"
+                       "pe.html", "https://www2.camara.leg.br/legin/fed/lei/2026/lei-15540-18-novembro-2026-800201-"
+                       "norma-pl.html"], det_ped      # 15540 nao foi listada pelo Congresso: vai ao detalhe (404)
+    assert r["listadas"] == 6 and r["no_congresso"] == 2 and r["ja_publicadas"] == ["Decreto 13168", "Decreto 13171"], r
+    d = next(i for i in r["itens"] if i["numero"] == "13173")
+    assert (d["situacao"], d["dou"], d["extra"], d["apelido"], d["chave"]) == (
+        "NOVA", "19/11/2026", True, "Jornada de Trabalho 5X2", "planalto|decreto|13173|2026|2026-11-19"), d
+    assert d["ementa"].startswith("Dispõe sobre a duração normal do trabalho")
+    sem = next(i for i in r["itens"] if i["numero"] == "15540")
+    assert sem["situacao"] == "SEM_DATA_OFICIAL" and sem["prefixo"] == "lei", sem
+    linhas = coleta_web.imprimir_legin(r)
+    assert any(l.startswith("[NOVA] dec13173 | Decreto nº 13173 de 19/11/2026 (DOU 19/11 · edição extra) — "
+                            "«Jornada de Trabalho 5X2» Dispõe") for l in linhas), linhas
+    assert "JA PUBLICADOS (nao repetir, nem pela resenha PUSH): Decreto 13168; Decreto 13171" in linhas
+    assert any(l.startswith("[SEM_DATA_OFICIAL] rotina — 1 ato(s)") and "lei15540" in l for l in linhas), linhas
+    assert coleta_web.status_fontes([r])["camara_legin"][0] == "ok"
+    # nada novo: a linha diz que o DOU de hoje pode nao estar indexado (nunca "sem ato novo")
+    with Rede(resp):
+        r2 = coleta_web.legin(*_janela(*J2011), atos | {("decreto", "13173"), ("lei", "15540")},
+                              lambda: congresso | {("lei", "15535"), ("lei", "15539")})
+    assert not r2["itens"] and any(l.startswith("NENHUM ATO FORA DO CONGRESSO E DO HISTORICO") and "nunca escreva"
+                                   in l for l in coleta_web.imprimir_legin(r2))
+    # fora do ar: falha, e o erro aponta a resenha PUSH; uma excecao nunca derruba a coleta
+    with Rede(lambda u: (503, "")):
+        r3 = coleta_web.legin_seguro(*_janela(*J2011), atos)
+    assert coleta_web.status_fontes([r3])["camara_legin"][0] == "falha"
+    assert any(l.startswith("ERRO: LEGIN nao lido (http=503)") for l in coleta_web.imprimir_legin(r3))
+    antigo = coleta_web.legin
+    coleta_web.legin = lambda *a, **k: 1 / 0
+    try:
+        assert coleta_web.legin_seguro(*_janela(*J2011), atos)["erro"].startswith("ZeroDivisionError")
+    finally:
+        coleta_web.legin = antigo
+    assert coleta_web.norma_legin("Lei Complementar nº 233, de 1º de Julho de 2026") == \
+        ("Lei Complementar", "233", date(2026, 7, 1))
+    assert coleta_web.norma_legin("Medida Provisória nº 1.400, de 3 de Março de 2026")[1] == "1400"
+    # o historico identifica o ato pelo titulo de Planalto, mesmo com a chave fora do formato
+    atos, _ = coleta_web.carregar_publicados([{"execution_id": "x", "items": [
+        {"categoria": "Planalto/Legislação", "titulo": "Decreto nº 13.167, de 16/11/2026", "chave": "planalto|ato|x"},
+        {"categoria": "Planalto/Legislação", "titulo": "Câmara aprova crédito (MP 1.397/26)", "chave": "c|d|e"}]}])
+    assert ("decreto", "13167") in atos and ("mpv", "1397") not in atos, atos
+    # Agencia Camara: ato interno ou honorifico aprovado em Plenario so contado
+    assert coleta_web.marca_camara("Câmara aprova criação de selo de respeito à voz do cidadão") == ""
+    assert coleta_web.marca_camara("Câmara aprova sessão solene em homenagem aos 50 anos da OAB-DF") == ""
+    assert coleta_web.marca_camara("Câmara aprova medida provisória do crédito a exportadores") == "LEI"
+    assert coleta_web.marca_camara("Câmara aprova projeto que endurece penas para feminicídio") == "PLENARIO"
+
+
 # ------------------------------------------------------------ Agencia Camara (site)
 def pagina_camara(noticias):
     """HTML no formato real de /noticias/ultimas: (retranca, titulo, 'DD/MM/AAAA HH:MM', id)."""

@@ -108,6 +108,11 @@ CAM_PLENARIO = re.compile(r"^(?:C[aâ]mara|Plen[aá]rio|Deputados|Congresso)\b.{
                           r"\benviam? ao Senado\b|\bseguem? para o Senado\b|"
                           r"\b(?:seguem?|vai|v[aã]o) (?:para|[aà]) (?:a )?san[cç][aã]o\b", re.I)
 CAM_NAO_MARCA = re.compile(r"^(?:Projeto|Comiss[aã]o|Comiss[oõ]es|Proposta|Subcomiss[aã]o|Frente|Conselho)\b", re.I)
+# (21/11) Ato interno ou honorifico aprovado em Plenario nao e [PLENARIO] (19/11: "Camara aprova criacao de selo de
+# respeito a voz do cidadao", PRC 25/26, foi ao card): so contado
+CAM_INTERNO = re.compile(r"\bPRC\b|projeto de resolu[çc][ãa]o|\bselos?\b|\bmedalhas?\b|\bcomendas?\b|"
+                         r"sess[ãa]o solene|homenage\w*|\bdenomina\w*|\bdiplomas?\b|\bDia Nacional\b|"
+                         r"\bSemana Nacional\b|\bM[êe]s Nacional\b|honra ao m[ée]rito|t[íi]tulo de cidad", re.I)
 CAM_DUVIDA = re.compile(r"plen[aá]rio|sancion|promulg|\bvetos?\b|medidas? provis[oó]rias?", re.I)
 IGNORAR_EXEC = ""   # re-execucao (inicio.py --refazer): a edicao de hoje nao conta como publicada
 PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
@@ -519,7 +524,7 @@ def marca_camara(titulo):
         return ""
     if CAM_LEI.search(titulo):
         return "LEI"
-    return "PLENARIO" if CAM_PLENARIO.search(titulo) else ""
+    return "PLENARIO" if CAM_PLENARIO.search(titulo) and not CAM_INTERNO.search(titulo) else ""
 
 
 def camara(inicio, fim, recorte, urls_pub):
@@ -755,7 +760,7 @@ _ORGAO_OFICIAL = [(re.compile(r"^(?:stf|supremo tribunal federal)\b", re.I), "ST
                   (re.compile(r"^(?:pgr|procuradoria-geral da rep[úu]blica)\b", re.I), "PGR"),
                   (re.compile(r"^(?:mpf|minist[ée]rio p[úu]blico federal)\b", re.I), "MPF"),
                   (re.compile(r"^(?:agu|advocacia-geral da uni[ãa]o)\b", re.I), "AGU"),
-                  (re.compile(r"^presid[êe]ncia da rep[úu]blica\b", re.I), "Presidência da República"),
+                  (re.compile(r"^presid[êe]ncia da rep[úu]blica\b", re.I), "Presidência"),
                   (re.compile(r"^(TRF|TRT)[-/ ]?(\d{1,2})\b"), None),
                   (re.compile(r"^TJ[-/ ]?([A-Z]{2})\b"), None)]
 
@@ -829,7 +834,7 @@ def _tribunal(texto):
 def _orgao(m):
     if m.group(1):
         tipo = m.group(2).lower().replace("secao", "seção").replace("camara", "câmara")
-        return "%sª %s" % (m.group(1), tipo[:1].upper() + tipo[1:])
+        return "%sª %s" % (m.group(1), " ".join(w if w == "de" else w[:1].upper() + w[1:] for w in tipo.split()))
     o = m.group(3).lower()
     return {"corte especial": "Corte Especial", "órgão especial": "Órgão Especial", "orgão especial": "Órgão Especial",
             "orgao especial": "Órgão Especial", "órgao especial": "Órgão Especial"}.get(
