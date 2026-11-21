@@ -836,6 +836,104 @@ def finalizar_reaplicacao_reaplica_a_migracao():
     ok(g(sess, "status", "--porcelain").stdout == "", "árvore limpa")
 
 
+LINHA_DIA = "MPF/MPU — Procurador da República: sem edital localizado (conferido em 17/11/2026)"
+LINHA_DONO = "MPF/MPU — Procurador da República: LINHA CORRIGIDA PELO DONO (edital 1/2026 lido)"
+
+
+def dia_com_update(t, upd):
+    p = os.path.join(t, "execucao.json")
+    gravar(p, dict(ler(p), ledger_updates=upd))
+
+
+def migracao_concorrente(base, g, dados, mexer=None):
+    """Outro clone empurra na main uma migracao do dono (e, se pedido, mexe em mais arquivos dele)."""
+    outro = os.path.join(base, "outro")
+    g(base, "clone", "-q", "origin.git", outro)
+    gravar(os.path.join(outro, "work", "migracoes", dados["id"] + ".json"), dados)
+    if mexer:
+        mexer(outro)
+    g(outro, "add", "-A")
+    g(outro, "commit", "-qm", "migracao do dono")
+    ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+    return outro
+
+
+@teste
+def finalizar_migracao_nova_da_main_vale_depois_do_helper():
+    """P2 (rev3): na reaplicacao, a migracao que chegou na origin/main depois do julgamento do dia e aplicada DEPOIS do
+    helper. s9: a correcao do dono num registro que o dia tambem atualizou prevalece (antes era sobrescrita em
+    silencio). s2: a remocao de um id que o dia atualiza nao derruba a validacao (antes o dia nunca era gravado). A
+    migracao que o dia viu (inicio.py) continua antes do helper."""
+    for caso, upd_dono in (("s9", {"concursos": {"mpf_procurador": {"linha": LINHA_DONO, "verificado_em": "2026-11-17"}}}),
+                           ("s2", {"concursos": {"mpf_procurador": {"remover": True, "desfecho": "decisão do dono"}}})):
+        base, sess, t, g, run = repo_finalizar(migracao=True)
+        run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")       # o que o inicio.py faz: o dia a ve
+        dia_com_update(t, {"concursos": {"mpf_procurador": {"linha": LINHA_DIA}}})
+        rc, out = run(sys.executable, "work/montar_email.py")
+        ok(rc == 0, out[-600:])
+        migracao_concorrente(base, g, {"id": "2026-11-17-dono", "descricao": "dono (%s)" % caso,
+                                       "criado_em": "2026-11-17", "ledger_updates": upd_dono})
+        rc, out = run(*FINALIZAR)
+        ok(rc == 0 and "PUSH: recusado (main andou no remoto)" in out and "PUSH: OK" in out, "%s: %s" % (caso, out[-1200:]))
+        i_vista = out.index("REAPLICACAO: MIGRACAO 2026-11-16-teste: aplicada (0 concursos, 1 pendências)")
+        i_nova = out.index("REAPLICACAO (nova da origin/main, depois do helper): MIGRACAO 2026-11-17-dono: aplicada "
+                           "(1 concursos, 0 pendências)")
+        ok(i_vista < out.index("STATUS: OK", i_vista) < i_nova and "TRAVA" not in out and "ERRO" not in out,
+           "%s: vista antes do helper, nova depois: %s" % (caso, out[-1200:]))
+        led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+        cs = {c["id"]: c for c in led["concursos"]}
+        if caso == "s9":
+            ok(cs["mpf_procurador"]["linha"] == LINHA_DONO, "a correcao do dono prevalece: %r" % cs["mpf_procurador"])
+        else:
+            ok("mpf_procurador" not in cs, "removido pelo dono depois do dia")
+        ok([m["id"] for m in led["migracoes_aplicadas"]] == ["2026-11-16-teste", "2026-11-17-dono"]
+           and led["atualizado_por_execucao"] == "2026-11-17-7h", led["migracoes_aplicadas"])
+        e = ler(os.path.join(sess, "work", "resumo-legislativo-historico.json"))["executions"][-1]
+        ok(e["execution_id"] == "2026-11-17-7h" and g(sess, "status", "--porcelain").stdout == "", "dia gravado, limpo")
+
+
+@teste
+def finalizar_repetido_reaplica_a_migracao_que_o_dia_viu():
+    """P2+P9 (rev3): a reaplicacao que nao termina devolve a arvore ao ultimo commit (a origin/main, sem a migracao
+    que o inicio.py aplicou); o finalizar.sh repetido, como a linha ESTADO manda, a reaplica antes da 1a rodada (o
+    julgamento do dia depende dela) e grava."""
+    base, sess, t, g, run = repo_finalizar(migracao=True)
+    run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")
+    dia_com_update(t, {"pendencias": {"migr_teste": {"faixa": "ativa"}}})        # so existe com a migracao
+    rc, out = run(sys.executable, "work/montar_email.py")
+    ok(rc == 0, out[-600:])
+
+    def helper_que_falha_com_marca(outro):    # a main nova traz um helper que falha enquanto $T/falhar-helper existir
+        h = os.path.join(outro, "work", "Update-Historico.py")
+        src = open(h).read()
+        fim = 'if __name__ == "__main__":\n    main()\n'
+        ok(src.endswith(fim), "fim do helper")
+        open(h, "w").write(src[:-len(fim)] + 'if __name__ == "__main__":\n    if os.path.exists(os.path.join(TMP, '
+                           '"falhar-helper")):\n        print("STATUS: ERRO simulado")\n        sys.exit(1)\n    main()\n')
+        pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+        gravar(pl, dict(ler(pl), marca_concorrente="x"))
+    migracao_concorrente(base, g, {"id": "2026-11-17-dono", "descricao": "dono", "criado_em": "2026-11-17",
+                                   "ledger_updates": {"pendencias": {"migr_dono": {"texto": "Do dono.",
+                                                                                   "faixa": "longo_prazo"}}}},
+                         helper_que_falha_com_marca)
+    open(os.path.join(t, "falhar-helper"), "w").close()
+    rc, out = run(*FINALIZAR)
+    ok(rc == 3 and "PUSH: FALHOU (helper na reaplicacao" in out and "rode bash work/finalizar.sh de novo" in out
+       and "RESTAURADO: os arquivos de estado de work/ voltaram ao ultimo commit" in out, out[-1200:])
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    ok(led.get("marca_concorrente") == "x" and "migracoes_aplicadas" not in led, "arvore = origin/main, sem a migracao")
+    os.remove(os.path.join(t, "falhar-helper"))
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "MIGRACOES DO DIA: MIGRACAO 2026-11-16-teste: aplicada (0 concursos, 1 pendências)" in out
+       and "PUSH: OK" in out and "ERRO" not in out, out[-1200:])
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    pend = {p["id"]: p for p in led["pendencias_vivas"]}
+    ok(pend["migr_teste"]["faixa"] == "ativa" and "migr_dono" not in pend and led["marca_concorrente"] == "x"
+       and [m["id"] for m in led["migracoes_aplicadas"]] == ["2026-11-16-teste"], "a vista e o update do dia; a nova "
+       "do dono fica para o inicio.py de amanha (o dia nao a viu)")
+    ok(g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout, "enviado")
+
+
 @teste
 def finalizar_reaplicacao_recusada_devolve_o_estado_ao_commit():
     """P9 (rev3): a reaplicacao que nao termina (aqui, trava de sanidade contra o helper da main nova) nao deixa na

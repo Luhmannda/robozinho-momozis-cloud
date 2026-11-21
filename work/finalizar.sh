@@ -44,8 +44,12 @@
 #        morto ("TRAVA: ...") = nada commitado;
 #      - sessao que contem a origin/main E commits fora dela: o estado e gravado
 #        sobre a origin/main (reaplicacao), sem levar esses commits para a main;
-#      - reaplicacao: work/migracoes.py roda antes do helper (a migracao do inicio.py
-#        aplicada no ledger local volta a valer sobre o da origin/main);
+#      - reaplicacao e migracoes de dado (rev3, P2): antes do helper, so as que o dia VIU
+#        (marcadas no ledger local quando o finalizar.sh comecou, guardadas em
+#        $ROBOZINHO_TMP/finalizar-migracoes-vistas.json) e que o ledger da origin/main nao
+#        tem; as novas da origin/main, depois do helper (work/migracoes.py), antes da trava —
+#        a correcao/remocao do dono vale por cima do que o dia gravou. O finalizar.sh repetido
+#        reaplica as vistas que faltarem no ledger antes da 1a rodada ("MIGRACOES DO DIA: ");
 #      - rede com prazo: cada push/fetch ate ROBOZINHO_LIMITE_REDE s (20), esperas
 #        ROBOZINHO_PUSH_ESPERAS ("0 5 15 30 40"): pior caso abaixo de 300 s (o Bash do
 #        passo 7 roda com timeout 300000);
@@ -83,6 +87,7 @@ done
 janela() { python3 -c "import json,sys; print(json.load(open(sys.argv[2])).get(sys.argv[1]) or '')" "$1" "$T/janela.json" 2>/dev/null; }
 if [[ -z "$ANTERIOR" && -f "$T/janela.json" ]]; then ANTERIOR=$(janela execucao_anterior); fi
 if [[ -n "$ANTERIOR" && "$ANTERIOR" == "$(janela execution_id)" ]]; then ANTERIOR="" MSG=""; fi
+DATA=$(janela data)
 
 # Re-execucao detectada pelo inicio.py (a edicao de hoje ja existe): nao ha o que gravar.
 if [[ "$(janela reexecucao)" == "True" ]]; then
@@ -208,6 +213,79 @@ restaurar_antes() {
   for f in "$ANTES"/*; do [[ -e "$f" ]] && cp -p "$f" "work/$(basename "$f")"; done
   echo "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper (nada gravado pela metade)"
 }
+
+# Migracoes de dado na reaplicacao (rev3, P2). Antes do helper, so as que o julgamento do dia VIU (marcadas no ledger
+# local quando o finalizar.sh comecou: o inicio.py aplicou as pendentes no passo 1); as que chegaram depois na
+# origin/main, depois do helper (por cima do que o dia gravou), antes da trava. Antes, todas iam antes do helper: a
+# correcao do dono num registro que o dia tambem atualizou era sobrescrita em silencio, e a remocao de um id que o dia
+# atualiza derrubava a validacao (o dia nunca era gravado).
+# $VISTAS: os ids marcados no ledger de work/ agora, somados aos de uma chamada anterior desta mesma execucao
+# (finalizar.sh repetido depois de uma reaplicacao que nao terminou: a arvore voltou ao ultimo commit, sem elas).
+VISTAS="$T/finalizar-migracoes-vistas.json"
+python3 - "$VISTAS" "$(janela execution_id)" <<'PY'
+import json, sys
+vistas_p, exec_id = sys.argv[1:3]
+def ler(p):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+led = ler("work/robozinho-aprendizado.json")
+led = led if isinstance(led, dict) else {}
+ids = {(x.get("id") if isinstance(x, dict) else x) for x in led.get("migracoes_aplicadas") or []} - {None, ""}
+ant = ler(vistas_p)
+if isinstance(ant, dict) and ant.get("execution_id") == exec_id:
+    ids |= set(ant.get("ids") or [])
+with open(vistas_p, "w", encoding="utf-8") as f:
+    json.dump({"execution_id": exec_id, "ids": sorted(ids)}, f, ensure_ascii=False)
+PY
+
+migracoes_vistas() {   # $1 = prefixo das linhas. Das migracoes que o dia viu ($VISTAS), aplica as que o ledger de work/
+  # nao tem marcadas, e so elas: o work/migracoes.py aplica tudo o que esta pendente na pasta, entao roda (--work) numa
+  # copia com o ledger e so os arquivos escolhidos; o ledger volta para work/ se mudou
+  python3 - "$VISTAS" "$T/finalizar-migracoes" "$1" ${DATA:+"$DATA"} <<'PY'
+import filecmp, glob, json, os, shutil, subprocess, sys
+vistas_p, tmp, prefixo = sys.argv[1:4]
+hoje = sys.argv[4] if len(sys.argv) > 4 else None
+led_p = os.path.join("work", "robozinho-aprendizado.json")
+def ler(p):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+led, vistas = ler(led_p), set((ler(vistas_p) or {}).get("ids") or [])
+if not isinstance(led, dict) or not vistas:
+    sys.exit(0)
+faltam = vistas - {(x.get("id") if isinstance(x, dict) else x) for x in led.get("migracoes_aplicadas") or []}
+if not faltam:
+    sys.exit(0)
+shutil.rmtree(tmp, ignore_errors=True)
+os.makedirs(os.path.join(tmp, "migracoes"))
+achadas = set()
+for p in sorted(glob.glob(os.path.join("work", "migracoes", "*.json"))):
+    m = ler(p)
+    if isinstance(m, dict) and m.get("id") in faltam:
+        shutil.copy(p, os.path.join(tmp, "migracoes", os.path.basename(p)))
+        achadas.add(m["id"])
+for i in sorted(faltam - achadas):
+    print(prefixo + "AVISO: migracao %s (vista hoje) nao existe em work/migracoes desta arvore — fica de fora" % i)
+if not achadas:
+    sys.exit(0)
+shutil.copy(led_p, os.path.join(tmp, "robozinho-aprendizado.json"))
+r = subprocess.run([sys.executable, os.path.join("work", "migracoes.py"), "--work", tmp] + (["--hoje", hoje] if hoje else []),
+                   capture_output=True, text=True)
+for linha in (r.stdout + r.stderr).splitlines():
+    print(prefixo + linha)
+novo = os.path.join(tmp, "robozinho-aprendizado.json")
+if r.returncode == 0 and not filecmp.cmp(novo, led_p, shallow=False):
+    shutil.copy(novo, led_p + ".migracoes.tmp")
+    os.replace(led_p + ".migracoes.tmp", led_p)
+PY
+}
+
+migracoes_vistas "MIGRACOES DO DIA: "     # normalmente nada: o inicio.py ja as aplicou neste ledger
 guardar_antes || { echo "PERSISTENCIA ABORTADA: copia do estado antes do helper falhou em $ANTES — nada foi commitado."; exit 2; }
 
 cp "$COPIA" "$T/finalizar-rodada1.json"
@@ -357,11 +435,12 @@ reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, co
       rm -f "$f"          # nao existe la: o helper recria se for o caso
     fi
   done
-  # a migracao de dado que o inicio.py aplicou no ledger local (work/migracoes.py) volta a valer sobre o ledger da
-  # origin/main antes do helper (idempotente: a ja marcada la nao se repete)
-  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's/^/REAPLICACAO: /'
+  # antes do helper, so as migracoes que o dia viu (o julgamento foi feito com elas) e que o ledger da origin/main nao
+  # tem marcadas; as novas da origin/main, depois do helper: valem por cima do que o dia gravou (rev3, P2)
+  migracoes_vistas "REAPLICACAO: "
   cp "$COPIA" "$T/finalizar-rodada2.json"
   helper "$T/finalizar-rodada2.json" || falhou "helper na reaplicacao sobre origin/main (STATUS != OK)"
+  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's/^/REAPLICACAO (nova da origin\/main, depois do helper): /'
   trava || falhou "trava de sanidade na reaplicacao (linhas TRAVA acima)"
   copiar_estado rodada2
   SHA=""
@@ -369,7 +448,6 @@ reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, co
   SHA=$(git rev-parse --short HEAD 2>/dev/null)
 }
 
-DATA=$(janela data)
 if ! trava; then
   restaurar_antes
   echo "PERSISTENCIA ABORTADA: trava de sanidade (linhas TRAVA acima: o estado perderia o que ninguém pediu para" \
