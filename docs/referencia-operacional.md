@@ -59,7 +59,7 @@ Links `planalto.gov.br/ccivil_03/...` podem ser **publicados** como referência 
 
 **Para cada ato:** tipo, número, data, órgão, ementa, seção do DOU, edição, link oficial, rota de confirmação, impacto e status.
 
-**Status:** Gmail PUSH → `CONFIRMADO POR FONTE OFICIAL`. Rotas 7–11 e 13–15 → `CONFIRMADO POR FONTE OFICIAL ALTERNATIVA`. Só notícia/snippet → `PENDÊNCIA DE VERIFICAÇÃO` ou `SEM CONFIRMAÇÃO OFICIAL`.
+**Status:** Gmail PUSH → `CONFIRMADO POR FONTE OFICIAL`. Rotas 7–11 e 13–15 → `CONFIRMADO POR FONTE OFICIAL ALTERNATIVA`. Só notícia/snippet → `PENDÊNCIA DE VERIFICAÇÃO` ou `SEM CONFIRMAÇÃO OFICIAL`. Lei, MPV ou ato do LEGIN (`lei…`/`mpv…`/`dec…`) que também veio na resenha do PUSH, citado com `{"ref", "resenha"}`: sai com o grupo, a fonte e o selo do PUSH; sem a data do DOU na página oficial, o meta "data do DOU não confirmada na página oficial" vira "DOU conforme a Resenha PUSH" (`meta` escrito vence).
 
 **Nas pendências, registrar:** se o PUSH retornou e-mail no período e quais rotas foram tentadas (as desabilitadas como `NÃO TENTADA — bloqueio estrutural`).
 
