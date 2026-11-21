@@ -6,7 +6,7 @@
     "concursos": {
       "enam": {
         "bloco": "Magistratura Estadual",
-        "linha": "ENAM — 6º Exame Nacional da Magistratura (2026.2), Enfam com a FGV: exame de habilitação, eliminatório e não classificatório, exigido para os concursos da magistratura (federal, do trabalho, militar e dos estados e DF); 80 questões, habilita com 70% de acertos (50% para cotistas), taxa R$ 120,00; inscrições de 25/08 a 24/09/2026; prova objetiva em 29/11/2026, das 13h às 18h (Brasília); gabarito preliminar em 01/12 e recursos em 02 e 03/12",
+        "linha": "ENAM — 6º Exame Nacional da Magistratura (2026.2), Enfam com a FGV: exame de habilitação para a inscrição nos concursos da magistratura (federal, do trabalho, militar e dos estados e DF); 80 questões, habilita com 70% de acertos (50% para pessoas negras, indígenas, quilombolas ou com deficiência), taxa R$ 120,00; inscrições de 25/08 a 24/09/2026; prova objetiva em 29/11/2026, das 13h às 18h; gabarito preliminar em 01/12 e recursos em 02 e 03/12",
         "selo": "PROVA EM BREVE",
         "prazos": [
           {"data": "2026-11-29", "evento": "prova objetiva de habilitação, das 13h às 18h (Brasília)", "confirmado": true, "tipo": "prova"},
