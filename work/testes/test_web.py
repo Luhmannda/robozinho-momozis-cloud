@@ -1008,6 +1008,106 @@ def coleta_rotina_igual_ao_montador():
         coleta_web._ROTINA_MONTADOR[:] = antigo
 
 
+@contextlib.contextmanager
+def _ajustes(**valores):
+    """Troca constantes/funcoes do coleta_web e devolve as antigas no fim (tambem o prazo de rede e os cortes)."""
+    antigos = {k: getattr(coleta_web, k) for k in valores}
+    prazo, cortes = coleta_web._PRAZO[0], coleta_web.CORTES[:]
+    for k, v in valores.items():
+        setattr(coleta_web, k, v)
+    try:
+        yield
+    finally:
+        for k, v in antigos.items():
+            setattr(coleta_web, k, v)
+        coleta_web._PRAZO[0] = prazo
+        coleta_web.CORTES[:] = cortes
+
+
+@teste
+def coleta_tempo_no_pior_caso():
+    """(rev2 R8) O aguardar_coleta espera 90 s pelos 3 scripts e o pior caso passava disso (API do ConJur 30+3+30 s por
+    pagina; LEGIN e Camara sem orcamento). API do ConJur: curl -m 15 e sem nova tentativa em tempo esgotado; paginas
+    seguintes do LEGIN: orcamento de paginacao e sem nova tentativa em tempo esgotado; prazo de rede do processo
+    (PRAZO_REDE): o curl -m e cortado no que resta, nada sai depois dele, e o corte vira AVISO no indice e detalhe no
+    status. De ponta a ponta (main com toda a rede travada): termina no prazo."""
+    import time as _t
+    pedidos = []
+
+    def trava(url, timeout):                  # rede travada: o curl so volta no -m (sem dormir: tempo simulado)
+        pedidos.append((url, timeout))
+        return 0, "", True
+    listagem = _h2("2026-nov-19/b/", "Notícia da listagem")
+    # API do ConJur: 1 pedido de 15 s (antes 30 + 3 + 30) e a listagem HTML
+    with _ajustes(_fetch1=trava):
+        out = coleta_web.conjur(*_janela(*J2011), set())
+    api = [t for u, t in pedidos if "/wp-json/" in u]
+    assert api == [15] and out["via"] == "html" and out["api"]["http"] == 0, (api, out.get("api"))
+    # prazo de rede: o -m e cortado no que resta; sem tempo, o pedido nem sai; a nova tentativa so se couber
+    pedidos.clear()
+    with _ajustes(_fetch1=trava, PAUSA_REPETICAO=3):
+        coleta_web._PRAZO[0] = _t.monotonic() + 10.5
+        assert coleta_web.fetch_n("https://www.migalhas.com.br/quentes", 20, repetir_timeout=False) == (0, "", 1)
+        assert pedidos[0][1] in (9, 10) and coleta_web.CORTES[-1] == ("https://www.migalhas.com.br/quentes",
+                                                                      "cortado"), (pedidos, coleta_web.CORTES)
+        coleta_web._PRAZO[0] = _t.monotonic() + 5            # 5 s < pausa (3) + minimo (3): sem nova tentativa
+        assert coleta_web.fetch_n("https://conjur.com.br/noticias/", 20)[2] == 1 and len(pedidos) == 2
+        assert coleta_web.CORTES[-2:] == [("https://conjur.com.br/noticias/", "cortado"),
+                                          ("https://conjur.com.br/noticias/", "nao_feito")], coleta_web.CORTES
+        coleta_web._PRAZO[0] = _t.monotonic() - 1
+        assert coleta_web.fetch_n("https://www.camara.leg.br/noticias/ultimas", 20) == (0, "", 0)
+        assert len(pedidos) == 2 and coleta_web.CORTES[-1][1] == "nao_feito"
+        cortes = coleta_web.CORTES[:]
+    linhas = coleta_web.imprimir([], *_janela(*J2011), cortes=cortes)
+    # conjur: o pedido cortado em 4-5 s e a nova tentativa que nao coube
+    assert linhas[1].startswith("AVISO: prazo de rede do coleta_web esgotado (50 s): 2 pedido(s) não feito(s) e 2 "
+                                "cortado(s) — camara_noticias 1, conjur 2, migalhas 1."), linhas
+    st = coleta_web.status_fontes([{"fonte": "migalhas", "http": 0, "tentativas": 1, "itens": []}], cortes)
+    assert st["migalhas"] == ("falha", "http=0 (1 tentativa); prazo de rede esgotado (1 pedido(s) cortado(s) ou não "
+                                       "feito(s))"), st
+    assert coleta_web.imprimir([], *_janela(*J2011))[1:] == []           # sem corte, sem AVISO
+    # LEGIN: a 2a pagina obedece ao orcamento de paginacao (e nao repete em tempo esgotado)
+    busca = pagina_fixture("legin-busca-2111.html")
+    chamadas = []
+
+    def fn(url, timeout=20, repetir_timeout=True):
+        chamadas.append(repetir_timeout)
+        return 200, (busca if "pagina=" not in url else ""), 1
+    with _ajustes(fetch_n=fn, fetch_many=lambda urls: {u: (404, "") for u in urls}):
+        r = coleta_web.legin(*_janela(*J2011), set())
+        assert chamadas == [True, False] and not r.get("orcamento"), chamadas      # 2a pagina: sem nova tentativa
+        chamadas.clear()
+        with _ajustes(ORCAMENTO_PAGINACAO=-1):
+            r = coleta_web.legin(*_janela(*J2011), set())
+    assert chamadas == [True] and r["orcamento"] == {"ano": 2026, "pagina": 2} and r["paginas"] == 1, r
+    assert any(l.startswith("AVISO: LEGIN lido em parte (site lento: parou antes da página 2 de 2026)")
+               for l in coleta_web.imprimir_legin(r))
+    assert coleta_web.status_fontes([r])["camara_legin"][1].endswith("; parcial: site lento (parou antes da página 2 "
+                                                                    "de 2026)")
+    # de ponta a ponta: main() com TODA a rede travada (cada pedido so volta no seu -m, em tempo real) e prazo de 2 s
+    def dorme(url, timeout):
+        _t.sleep(timeout)
+        return 0, "", True
+    janela = os.path.join(TMPDIR, "janela-prazo.json")
+    json.dump({"inicio": J2011[0].isoformat(), "fim": J2011[1].isoformat(), "execution_id": "x"},
+              open(janela, "w", encoding="utf-8"))
+    argv = sys.argv
+    sys.argv = ["coleta_web.py", "--janela", janela, "--saida", os.path.join(TMPDIR, "cw-prazo.json"),
+                "--historico", os.path.join(FIX, "historico-ate-1311.json")]
+    try:
+        with _ajustes(_fetch1=dorme, PRAZO_REDE=2, MIN_PEDIDO=0.2, PAUSA_REPETICAO=0.1):
+            t0 = _t.monotonic()
+            _, saida = saida_de(coleta_web.main)
+            dur = _t.monotonic() - t0
+    finally:
+        sys.argv = argv
+    assert dur < 2 + 1.5, dur                       # prazo + o pedido de 1 s que comecou no fim + processamento
+    assert "AVISO: prazo de rede do coleta_web esgotado (2 s)" in saida, saida[:600]
+    st = json.loads(saida.strip().splitlines()[-1][len("SOURCE_STATUS "):])
+    assert set(st.values()) == {"falha"} and {"conjur", "migalhas", "camara_legin", "camara_noticias",
+                                               "congresso_ultimas_leis", "congresso_mpvs"} <= set(st), st
+
+
 @teste
 def coleta_legin():
     """(achado 8) LEGIN: 1 GET na busca ordenada por data e 1 por ato candidato no detalhe (DOU, edicao extra,

@@ -50,6 +50,14 @@
 # - Rede: 1 nova tentativa apos ~3 s em http 0/429/5xx (16/11: um http 0
 #   transitorio nas MPVs custou ToolSearch + WebSearch inuteis). Em tempo
 #   esgotado (curl -m 20) so a listagem tenta de novo; as paginas de materia nao.
+# - Tempo (rev2 R8): o aguardar_coleta espera 90 s pelos 3 scripts e o pior caso
+#   passava disso (API do ConJur 30+3+30 s por pagina; LEGIN e Camara sem
+#   orcamento). Agora: prazo de rede do processo (PRAZO_REDE = 50 s desde o inicio
+#   do main): nenhum pedido sai depois dele e o curl -m de cada um e cortado no que
+#   resta; API do ConJur com curl -m 15 e sem nova tentativa em tempo esgotado;
+#   paginas seguintes do LEGIN com o orcamento de paginacao (40 s), como ConJur e
+#   Migalhas. Pedido cortado ou nao feito = linha "AVISO: prazo de rede..." no
+#   indice e "prazo de rede esgotado" no detalhe do status da fonte.
 # - Linha-fina (ConJur: og:description da materia; Migalhas: listagem) sem
 #   propaganda ("(clique aqui para garantir o seu exemplar)", Anuario) e sem o
 #   "[…]" do WordPress; frase cortada e completada pela propria pagina (ja
@@ -89,6 +97,11 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 TMP = os.environ.get("ROBOZINHO_TMP", "/tmp")
 HISTORICO = os.path.join(AQUI, "resumo-legislativo-historico.json")
 PAUSA_REPETICAO = 3      # segundos antes da nova tentativa (http 0/429/5xx)
+PRAZO_REDE = 50          # s desde o inicio do main: nenhum pedido passa daqui (o coleta_web inteiro fica em ~55 s)
+MIN_PEDIDO = 3           # s: com menos que isto no prazo, o pedido nem sai
+MARGEM_CURL = 2          # s alem do curl -m ate o subprocess ser morto
+_PRAZO = [None]          # time.monotonic() do fim do prazo; None = sem prazo (testes, uso como modulo)
+CORTES = []              # (url, "nao_feito" | "cortado"): pedidos que o prazo impediu ou encurtou
 MESES = {m: i + 1 for i, m in enumerate(
     "jan fev mar abr mai jun jul ago set out nov dez".split())}
 
@@ -171,7 +184,7 @@ def _fetch1(url, timeout):
     try:
         r = subprocess.run(["curl", "-s", "-L", "-m", str(timeout), "-A", UA,
                             "-w", "\n%{http_code}", url],
-                           capture_output=True, timeout=timeout + 5)
+                           capture_output=True, timeout=timeout + MARGEM_CURL)
         out = r.stdout.decode("utf-8", "replace")
     except subprocess.TimeoutExpired:
         return 0, "", True
@@ -188,15 +201,52 @@ def repetir(codigo):
     return codigo == 0 or codigo == 429 or codigo >= 500
 
 
+def _restante():
+    """Segundos ate o fim do prazo de rede (None: sem prazo)."""
+    return None if _PRAZO[0] is None else _PRAZO[0] - time.monotonic()
+
+
+def _no_prazo(url, timeout):
+    """curl -m do pedido dentro do prazo de rede, ou None (sem tempo: o pedido nao sai e fica em CORTES)."""
+    r = _restante()
+    if r is None:
+        return timeout
+    if r < MIN_PEDIDO:
+        CORTES.append((url, "nao_feito"))
+        return None
+    return max(1, min(timeout, int(r)))
+
+
+def _fetch_prazo(url, timeout):
+    t = _no_prazo(url, timeout)
+    if t is None:
+        return None
+    codigo, corpo, esgotado = _fetch1(url, t)
+    if esgotado and t < timeout:
+        CORTES.append((url, "cortado"))
+    return codigo, corpo, esgotado
+
+
 def fetch_n(url, timeout=20, repetir_timeout=True):
     """(codigo, corpo, tentativas): GET com 1 nova tentativa apos ~3 s em http
     0/429/5xx. Tempo esgotado so tenta de novo se repetir_timeout (senao uma
-    fonte lenta soma 20 s por pagina). 403/404 = 1 tentativa so."""
-    codigo, corpo, esgotado = _fetch1(url, timeout)
+    fonte lenta soma 20 s por pagina). 403/404 = 1 tentativa so. Dentro do prazo
+    de rede (PRAZO_REDE): sem tempo, (0, "", 0) sem pedido; a nova tentativa so
+    se ainda couber."""
+    r = _fetch_prazo(url, timeout)
+    if r is None:
+        return 0, "", 0
+    codigo, corpo, esgotado = r
     if repetir(codigo) and (repetir_timeout or not esgotado):
+        resta = _restante()
+        if resta is not None and resta - PAUSA_REPETICAO < MIN_PEDIDO:
+            CORTES.append((url, "nao_feito"))     # sem tempo para a nova tentativa
+            return codigo, corpo, 1
         time.sleep(PAUSA_REPETICAO)
-        codigo, corpo, _ = _fetch1(url, timeout)
-        return codigo, corpo, 2
+        r = _fetch_prazo(url, timeout)
+        if r is None:
+            return codigo, corpo, 1
+        return r[0], r[1], 2
     return codigo, corpo, 1
 
 
@@ -467,9 +517,15 @@ def legin(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
            "mais_recente": "", "itens": [], "no_congresso": 0, "ja_publicadas": []}
     limite = inicio.date() - timedelta(days=LEGIN_DIAS_ATO)
     vistos, normas = set(), []
+    t0, pedidas = time.time(), 0
     for ano in sorted({limite.year, fim.year}, reverse=True):
         for pag in range(1, MAX_PAGINAS_LEGIN + 1):
-            cod, t, n = fetch_n(url_legin(ano, pag))
+            # (rev2 R8) paginas seguintes a 1a: orcamento de tempo e sem nova tentativa em tempo esgotado
+            if pedidas and time.time() - t0 > ORCAMENTO_PAGINACAO:
+                out["orcamento"] = {"ano": ano, "pagina": pag}
+                break
+            cod, t, n = fetch_n(url_legin(ano, pag), repetir_timeout=not pedidas)
+            pedidas += 1
             if not out["paginas"]:
                 out["http"], out["tentativas"] = cod, n
             if cod != 200:
@@ -493,7 +549,7 @@ def legin(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
                 normas.append((x, nm))
             if not datas or min(datas) < limite:
                 break
-        if out["http"] != 200:
+        if out["http"] != 200 or out.get("orcamento"):
             break
     listados_congresso = None
     cand = []
@@ -960,9 +1016,12 @@ def enriquecer(it, corpo, fonte):
 
 
 # ------------------------------------------------------------ ConJur
+TIMEOUT_CONJUR_API = 15    # s (rev2 R8): sem nova tentativa em tempo esgotado — a listagem HTML e o fallback
+
+
 def _pagina_api(url):
     """(http, [posts] | None, tentativas) de uma pagina da WP REST API."""
-    cod, t, n = fetch_n(url, timeout=30)
+    cod, t, n = fetch_n(url, timeout=TIMEOUT_CONJUR_API, repetir_timeout=False)
     if cod != 200:
         return cod, None, n
     try:
@@ -1584,11 +1643,13 @@ def linhas_rotina(itens, rotulo):
     return out
 
 
-def imprimir(res, inicio, fim, recorte, ja_saiu=None):
+def imprimir(res, inicio, fim, recorte, ja_saiu=None, cortes=None):
     """Indice compacto (linhas de texto). Atribui os ids (lei15527, mpv1400, dec13173, c7, m3). ja_saiu: linhas
-    da repeticao.ja_saiu (Midia e Fofoquinha das 2 ultimas edicoes), impressas no fim."""
+    da repeticao.ja_saiu (Midia e Fofoquinha das 2 ultimas edicoes), impressas no fim. cortes: pedidos que o prazo
+    de rede impediu ou encurtou (AVISO logo depois da JANELA)."""
     out = ["JANELA %s -> %s (herdada = antes de %s) | cite o id em {\"ref\": ...}; URL, hora e chave "
            "saem do JSON" % (inicio.isoformat(), fim.isoformat(), recorte.strftime("%d/%m %H:%M"))]
+    out.extend(aviso_prazo(cortes))
     seq = {"conjur": 0, "migalhas": 0}
     for r in res:                     # ids primeiro (a ordem de sempre: os refs nao mudam)
         for i in r["itens"]:
@@ -1693,6 +1754,9 @@ def imprimir_legin(r):
         out.append("ERRO: LEGIN nao lido (%s) — atos do Executivo so pela resenha PUSH; sem WebSearch"
                    % (r.get("erro") or ("http=%s" % r["http"] if r["http"] != 200 else "0 normas extraidas (layout?)")))
         return out
+    if r.get("orcamento"):
+        out.append("AVISO: LEGIN lido em parte (site lento: parou antes da página %s de %s): pode faltar ato mais "
+                   "antigo — leve a verification_notes" % (r["orcamento"]["pagina"], r["orcamento"]["ano"]))
     if r.get("ja_publicadas"):
         out.append("JA PUBLICADOS (nao repetir, nem pela resenha PUSH): " + "; ".join(r["ja_publicadas"][:6]))
     rot = []
@@ -1747,8 +1811,50 @@ def _entre_parenteses(s):
     return " (%s)" % s if s else ""
 
 
-def status_fontes(res):
-    """{id do source_status: (status, detalhe)} das 5 fontes deste script."""
+def fonte_da_url(url):
+    """id do source_status da fonte de um pedido ('' se nao reconhece)."""
+    u = (url or "").lower()
+    for trecho, ident in (("conjur.com.br", "conjur"), ("migalhas.com.br", "migalhas"),
+                          ("/legislacao/busca", "camara_legin"), ("/legin/", "camara_legin"),
+                          ("camara.leg.br/noticias", "camara_noticias"), ("ultimas-leis", "congresso_ultimas_leis"),
+                          ("medidas-provisorias", "congresso_mpvs")):
+        if trecho in u:
+            return ident
+    return ""
+
+
+def cortes_por_fonte(cortes):
+    """{id do source_status: n} dos pedidos que o prazo de rede impediu ou encurtou."""
+    out = {}
+    for url, _ in cortes or []:
+        f = fonte_da_url(url) or "outra"
+        out[f] = out.get(f, 0) + 1
+    return out
+
+
+def aviso_prazo(cortes):
+    """Linha AVISO do indice quando o prazo de rede (PRAZO_REDE) cortou ou impediu pedidos; [] se nao."""
+    if not cortes:
+        return []
+    nf = sum(1 for _, k in cortes if k == "nao_feito")
+    por = cortes_por_fonte(cortes)
+    return ["AVISO: prazo de rede do coleta_web esgotado (%d s): %d pedido(s) não feito(s) e %d cortado(s) — %s. O "
+            "que foi lido vale; fonte sem a 1ª página sai como ERRO e leitura incompleta como parcial — leve a "
+            "verification_notes" % (PRAZO_REDE, nf, len(cortes) - nf,
+                                    ", ".join("%s %d" % kv for kv in sorted(por.items())))]
+
+
+def status_fontes(res, cortes=None):
+    """{id do source_status: (status, detalhe)} das fontes deste script; cortes: pedidos que o prazo de rede
+    impediu ou encurtou (CORTES), ditos no detalhe da fonte."""
+    st = _status_fontes(res)
+    for f, n in cortes_por_fonte(cortes).items():
+        if f in st:
+            st[f] = (st[f][0], "%s; prazo de rede esgotado (%d pedido(s) cortado(s) ou não feito(s))" % (st[f][1], n))
+    return st
+
+
+def _status_fontes(res):
     por = {r["fonte"]: r for r in res}
     st = {}
     r = por.get("congresso_leis")
@@ -1791,8 +1897,11 @@ def status_fontes(res):
         elif not r.get("listadas"):
             st["camara_legin"] = ("falha", "pagina lida, 0 normas extraidas (layout?)")
         else:
-            st["camara_legin"] = ("ok", "%d ato(s) fora do Congresso e do historico em %d normas listadas" % (
-                sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r["listadas"]))
+            st["camara_legin"] = ("ok", "%d ato(s) fora do Congresso e do historico em %d normas listadas%s" % (
+                sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r["listadas"],
+                "; parcial: site lento (parou antes da página %s de %s)" % (r["orcamento"]["pagina"],
+                                                                         r["orcamento"]["ano"])
+                if r.get("orcamento") else ""))
     for fonte in ("conjur", "migalhas"):
         r = por.get(fonte)
         if not r:
@@ -1885,6 +1994,8 @@ def main():
     ap.add_argument("--historico", default=HISTORICO,
                     help="historico principal (padrao: work/resumo-legislativo-historico.json)")
     a = ap.parse_args()
+    _PRAZO[0] = time.monotonic() + PRAZO_REDE       # (rev2 R8) prazo de rede do processo inteiro
+    del CORTES[:]
     HISTORICO = a.historico
     inicio, fim = carregar_janela(a.janela)
     recorte = fim - timedelta(hours=24)
@@ -1905,7 +2016,7 @@ def main():
     marcar_promo_e_repetidas(res, historico)
     import repeticao
     for linha in imprimir(res, inicio, fim, recorte,
-                          ja_saiu=repeticao.ja_saiu(historico, ignorar_exec_id=IGNORAR_EXEC or None)):
+                          ja_saiu=repeticao.ja_saiu(historico, ignorar_exec_id=IGNORAR_EXEC or None), cortes=CORTES):
         print(linha)
 
     def ser(o):
@@ -1913,7 +2024,7 @@ def main():
     with open(a.saida, "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1, default=ser)
     print("\n(JSON completo: %s)" % a.saida)
-    st = status_fontes(res)
+    st = status_fontes(res, CORTES)
     try:
         gravar_status(st, "coleta_web.py")
     except Exception as e:
