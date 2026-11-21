@@ -406,8 +406,13 @@ def r1_exige_window_end_do_rascunho_achado():
     rc, out = rodar_helper(d, base)
     ok(rc == 2 and "ERRO: window_end ausente — §R1:" in out and "(2026-11-23T16:40:00-03:00)" in out
        and "campo obrigatorio ausente: window_end" not in out, out[-600:])
+    # 1o o fim da janela impresso na edicao achada; so sem ele, a hora do rascunho ou do envio
+    m = re.search(r"^ERRO: window_end ausente.*$", out, re.M).group(0)
+    ok(0 < m.index('o fim da janela impresso na edição achada (a linha "Janela de cobertura: … às <hora> de hoje')
+       < m.index("só sem essa linha, a data/hora em que o rascunho achado foi criado"), m)
     rc, out = rodar_helper(d, dict(base, window_end="2026-11-23T17:00:00-03:00"))
-    ok(rc == 2 and "depois desta re-execução" in out, out[-400:])
+    ok(rc == 2 and "depois desta re-execução" in out and "§R1: o fim da janela impresso na edição achada" in out,
+       out[-400:])
     rc, out = rodar_helper(d, dict(base, window_end="2026-11-23T07:14:00-03:00"))
     ok(rc == 0 and "STATUS: OK" in out and "itens de noticia" not in out, out[-600:])
     est = ler(os.path.join(d, "robozinho-estado.json"))

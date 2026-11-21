@@ -85,7 +85,8 @@
 #                    (<arquivo>:<linha>)", exit 4. Mecanico dos concursos com a queda do
 #                    montador + ALERTA (o ledger nao diverge do e-mail).
 #   §R1            : delivery draft_ja_existente sem registro de hoje exige window_end
-#                    escrito (data do rascunho/envio achado), nunca o fim da janela.
+#                    escrito (o fim da janela impresso na edicao achada; sem ele, a hora
+#                    do rascunho/envio achado), nunca o fim da janela desta re-execucao.
 #   Migracoes      : o ledger guarda migracoes_aplicadas (work/migracoes.py); o helper
 #                    preserva toda chave que nao conhece.
 # Temporarios em $ROBOZINHO_TMP (padrao /tmp).
@@ -246,25 +247,30 @@ def _instante(v):
     return t if t.tzinfo else None
 
 
+R1_FIM = ("§R1: o fim da janela impresso na edição achada (\"Janela de cobertura: … às <hora> de hoje\"); sem ele, a "
+          "hora do rascunho ou do envio achado")
+
+
 def erros_window_end_r1(ex, erros, fim_inicio):
-    """§R1: window_end obrigatorio e escrito pelo orquestrador (data do rascunho achado ou do envio, -03:00), entre
-    o inicio da janela e a hora desta re-execucao (o fim da janela do inicio.py)."""
+    """§R1: window_end obrigatorio e escrito pelo orquestrador, entre o inicio da janela e a hora desta re-execucao (o
+    fim da janela do inicio.py): o fim da janela impresso na edicao achada ("Janela de cobertura: ... as <hora> de
+    hoje (DD/MM/AAAA)"); so na falta dele, a hora do rascunho achado ou do envio, em -03:00."""
     erros = [e for e in erros if e != "campo obrigatorio ausente: window_end"]
     we = ex.get("window_end")
     if we in (None, ""):
-        return erros + ["window_end ausente — §R1: escreva \"window_end\" = a data/hora em que o rascunho achado foi "
-                        "criado (list_drafts) ou a edição foi enviada (search_threads in:sent), em -03:00; o fim da "
-                        "janela do inicio.py (%s) é a hora desta re-execução e deixaria sem cobertura o que saiu "
-                        "entre a edição achada e agora" % (fim_inicio or "?")]
+        return erros + ["window_end ausente — §R1: escreva \"window_end\" = o fim da janela impresso na edição achada "
+                        "(a linha \"Janela de cobertura: … às <hora> de hoje (DD/MM/AAAA)\" do e-mail achado em "
+                        "list_drafts/search_threads), em AAAA-MM-DDTHH:MM:00-03:00; só sem essa linha, a data/hora em "
+                        "que o rascunho achado foi criado (list_drafts) ou a edição foi enviada (search_threads "
+                        "in:sent), em -03:00. O fim da janela do inicio.py (%s) é a hora desta re-execução e deixaria "
+                        "sem cobertura o que saiu entre a edição achada e agora" % (fim_inicio or "?")]
     t, ini, fim = _instante(we), _instante(ex.get("window_start")), _instante(fim_inicio)
     if t is None:
-        return erros + ["window_end %r: use AAAA-MM-DDTHH:MM:SS-03:00 (§R1: data do rascunho ou do envio achado)" % we]
+        return erros + ["window_end %r: use AAAA-MM-DDTHH:MM:SS-03:00 (%s)" % (we, R1_FIM)]
     if ini and t < ini:
-        return erros + ["window_end %s antes do início da janela (%s) — §R1: a data do rascunho ou do envio achado"
-                        % (we, ex.get("window_start"))]
+        return erros + ["window_end %s antes do início da janela (%s) — %s" % (we, ex.get("window_start"), R1_FIM)]
     if fim and t > fim:
-        return erros + ["window_end %s depois desta re-execução (%s) — §R1: a data do rascunho ou do envio achado"
-                        % (we, fim_inicio)]
+        return erros + ["window_end %s depois desta re-execução (%s) — %s" % (we, fim_inicio, R1_FIM)]
     return erros
 
 
