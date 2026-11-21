@@ -1874,6 +1874,27 @@ def t_teses_stj_vai_para_stj_jurisprudencia():
        "JT sai em STJ Jurisprudência com selo oficial (rc=%s)" % rc)
 
 
+@teste
+def t_mon_parenteses_no_meio_da_frase():
+    """E-min (a), ensaio de 23/11: o parentese no meio da nota vira aposto FECHADO ("— STF Notícias —"); antes saia
+    "(…; a pauta oficial — STF Notícias mantém as ações)", com o travessao sem par. Sem parentese aberto nem
+    travessao solto, inclusive com parentese sem par ou vazio."""
+    nota = "bastidor sem fonte identificada; a pauta oficial (STF Notícias) mantém as ações"
+    ok(M.sem_parenteses(nota) == "bastidor sem fonte identificada; a pauta oficial — STF Notícias — mantém as ações",
+       M.sem_parenteses(nota))
+    h = M.item_padrao({"status": "RUMOR", "titulo": "Ministros avaliam adiar", "fonte": "JOTA", "data": "2026-11-21",
+                       "url": "https://www.jota.info/x", "nota": nota})
+    ok("(bastidor sem fonte identificada; a pauta oficial — STF Notícias — mantém as ações)" in h, h[-200:])
+    casos = {"a (b), c": "a — b, c", "x (y); z": "x — y; z", "x () y": "x y", "texto ( )": "texto",
+             "a pauta (STF Notícias mantém": "a pauta STF Notícias mantém", "fim)": "fim", "x — (y) z": "x — y — z",
+             "(só isso)": "só isso", "ver DOU (20/11).": "ver DOU — 20/11."}
+    for ent, esperado in casos.items():
+        ok(M.sem_parenteses(ent) == esperado, "%r -> %r (esperado %r)" % (ent, M.sem_parenteses(ent), esperado))
+    for ent in list(casos) + [nota, "Valor (via JOTA (clipping))", "a (b (c) d) e"]:
+        r = M.sem_parenteses(ent)
+        ok("(" not in r and ")" not in r and not r.startswith("—") and not r.endswith("—") and "— —" not in r
+           and r.count("  ") == 0, "sem parentese nem travessao solto: %r" % r)
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do

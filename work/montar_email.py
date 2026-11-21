@@ -779,11 +779,25 @@ def limpar_nota(nota):
 def sem_parenteses(texto):
     """Texto que sai ENTRE parenteses (nota do item, nota do Planalto) sem parenteses dentro (lows[3], 20/11: "(o
     ConJur noticiou … para julgamento (ver Mídia))"): o de dentro vira aposto com travessao — "(… para julgamento —
-    ver Mídia)". O mesmo cuidado de norm_meta e nome_feriado."""
+    ver Mídia)". O mesmo cuidado de norm_meta e nome_feriado. 23/11 (ensaio): no meio da frase o aposto fecha com
+    outro travessao ("a pauta oficial (STF Notícias) mantém" -> "a pauta oficial — STF Notícias — mantém"; antes
+    ficava "— STF Notícias mantém", travessao sem par); no fim ou antes de pontuacao, um so. Parentese sem par e
+    "()" vazio saem; travessao repetido ou solto nas pontas tambem."""
     s = str(texto or "")
+
+    def aposto(m):
+        dentro = m.group(1).strip()
+        if not dentro:
+            return ""
+        resto = m.string[m.end():]
+        fecha = resto.strip() and not re.match(r"\s*[,;:.!?…)\]]", resto)
+        return " — " + dentro + (" — " if fecha else "")
     for _ in range(3):                                  # ate aninhados
-        s = re.sub(r"\s*\(\s*([^()]*?)\s*\)", r" — \1", s)
-    return re.sub(r"^\s*—\s*", "", s).strip()
+        s = re.sub(r"\s*\(\s*([^()]*?)\s*\)", aposto, s)
+    s = re.sub(r"\s*[()]\s*", " ", s)                    # parentese sem par
+    s = re.sub(r"—(?:\s*—)+", "—", s)                   # travessao repetido
+    s = re.sub(r"[ \t]{2,}", " ", s)                      # o aposto fechado antes de um espaco
+    return re.sub(r"^[\s—]+|[\s—]+$", "", s)
 
 
 EXTRA_META = re.compile(r"\(\s*(?:edi[çc][ãa]o\s+)?extra\s*\)|(?:edi[çc][ãa]o\s+)?\bextra\b", re.I)
