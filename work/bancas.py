@@ -487,6 +487,21 @@ def confirmado(reg):
     return DOMINIO in (reg.get("fonte") or "")
 
 
+def sem_confirmacao(regs):
+    """'' se todo registro ja se apoia na banca (confirmado); senao, o que falta, para o motivo da releitura do
+    edital. Registro com fonte oficial nao e "sem confirmação oficial" (E-min d): o que falta e o prazo confirmado,
+    o selo (PENDÊNCIA) ou a fonte ser a da banca."""
+    nao = [r for r in regs if not confirmado(r)]
+    if not nao:
+        return ""
+    if not all(selos.fonte_oficial(r.get("fonte")) for r in nao):
+        return "registro sem confirmação oficial"
+    if any(not p.get("confirmado") for r in nao for p in r.get("prazos") or []):
+        return "prazos sem confirmação oficial"
+    pend = [r["selo"] for r in nao if r.get("selo") in ("PENDÊNCIA DE VERIFICAÇÃO", "PENDÊNCIA")]
+    return "registro em %s" % pend[0] if pend else "fonte oficial fora da banca"
+
+
 # ------------------------------------------------------------------ estado (URLs vistas)
 def carregar_estado(caminho=ESTADO_PADRAO):
     try:
@@ -563,8 +578,9 @@ def motivo_releitura(c, regs, hoje):
         if c.get("novos_arquivos") and (c.get("ciclo_seguinte") or abertura_recente(c, hoje)) and not apoio_fora(c):
             return "concurso sem registro"
         return ""
-    if not all(confirmado(r) for r in regs):
-        return "registro sem confirmação oficial"
+    falta = sem_confirmacao(regs)
+    if falta:
+        return falta
     mov = [a for a in c["novos_arquivos"] if RE_RELEITURA.search(a["titulo"])]
     if mov:
         return "arquivo novo: %s" % mov[0]["titulo"]

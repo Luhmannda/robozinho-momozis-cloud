@@ -425,6 +425,26 @@ def teto_limita_o_processo():
         bancas.subprocess.run = real
 
 
+@teste
+def motivo_da_releitura_sem_confirmacao():
+    """E-min (d): registro com fonte oficial nao e "registro sem confirmação oficial" — o motivo diz o que falta."""
+    hoje, fgv = HOJE, B + "/concursos/tjscjuiz26"
+    pz = lambda conf: [{"data": "2027-01-31", "evento": "prova objetiva", "confirmado": conf}]
+    c = {"novos_arquivos": [], "arquivos": []}
+    casos = [({"fonte": "https://blog.qconcursos.com/x", "prazos": pz(True), "selo": "EM ANDAMENTO"},
+              "registro sem confirmação oficial"),
+             ({"fonte": fgv, "prazos": pz(False), "selo": "EM ANDAMENTO"}, "prazos sem confirmação oficial"),
+             ({"fonte": "https://www.tjsc.jus.br/concurso", "prazos": pz(False), "selo": "EM ANDAMENTO"},
+              "prazos sem confirmação oficial"),
+             ({"fonte": fgv, "prazos": pz(True), "selo": "PENDÊNCIA DE VERIFICAÇÃO"},
+              "registro em PENDÊNCIA DE VERIFICAÇÃO"),
+             ({"fonte": "https://www.tjsc.jus.br/concurso", "prazos": pz(True), "selo": "EM ANDAMENTO"},
+              "fonte oficial fora da banca"),
+             ({"fonte": fgv, "prazos": pz(True), "selo": "EM ANDAMENTO"}, "")]
+    for reg, esperado in casos:
+        ok(bancas.motivo_releitura(c, [dict(reg, id="tjsc_juiz")], hoje) == esperado, (reg, esperado))
+
+
 # ------------------------------------------------------------------ vinculo e travas (analisar direto)
 @teste
 def vinculo_pela_fonte_sem_banca_slug():
