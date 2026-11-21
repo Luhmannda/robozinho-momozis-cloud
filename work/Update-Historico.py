@@ -894,6 +894,22 @@ REGRAS_ATUALIZADAS = {
                   "o início for antes das 06:00) e os prompts usam after:AAAA/MM/DD + filtro pelo horário interno. "
                   "Nunca voltar a epoch; vazio com epoch nunca vale como ausência."),
     },
+    "stf_informativo_link_generico": {
+        # (21/11, frente informativos) sonda curta: numero novo do STF/RG com a edicao anterior de menos de 6
+        # dias recebe 2 pedidos, nao a insistencia ate a resposta definitiva; ERRO deixou de ser "raro"
+        "antigas": (
+            "Numero e data vem do assunto do e-mail. O conteudo vem de work/informativos.py, que monta a URL "
+            "do PDF pelo numero (Informativo_stf_N.pdf; RG: EdioN.pdf) — nao depende do link do e-mail. O "
+            "firewall do STF recusa ao acaso ~4 em 5 pedidos (403, ate no lugar do 404): o script insiste ate"
+            " a resposta definitiva e guarda o PDF aberto no cache da execucao; ERRO depois disso e raro e a "
+            "edicao volta sozinha, como EM ATRASO, na execucao seguinte.",
+        ),
+        "regra": ("Número e data vêm do assunto do e-mail; o conteúdo, do work/informativos.py, pelo número "
+                  "(Informativo_stf_N.pdf; RG: EdioN.pdf). O firewall do STF recusa ao acaso ~4 em 5 pedidos (403, "
+                  "até no lugar do 404): o script insiste até a resposta definitiva — salvo a sonda curta (2 "
+                  "pedidos) do número novo logo depois de uma edição — e guarda o PDF no cache. ERRO só se cita com"
+                  " o e-mail da edição; a anunciada que não abriu volta como EM ATRASO."),
+    },
 }
 
 

@@ -1,0 +1,15 @@
+{
+  "id": "2026-11-21-b-notas-do-ledger",
+  "descricao": "Notas de fonte pedidas pela rodada de 21/11/2026 (frente informativos e montador): o gmail_stj_codju traz dois produtos — o Informativo de Jurisprudência e a Jurisprudência em Teses (linha STJ_TESES, seção STJ Jurisprudência) —, e o stj_jus_br_direto deixa de mandar WebSearch: a rotina não lê o portal de notícias do STJ (res.stj.jus.br recusado pela rede) e o julgado do STJ só na mídia sai em STJ Notícias com a linha fixa do montador. A regra da armadilha stf_informativo_link_generico (sonda curta) vai pelo REGRAS_ATUALIZADAS do helper, não por aqui.",
+  "criado_em": "2026-11-21",
+  "ledger_updates": {
+    "fontes": {
+      "gmail_stj_codju": {
+        "nota": "Dois produtos: Informativo de Jurisprudência (semanal) e Jurisprudência em Teses (linha STJ_TESES: vai em STJ Jurisprudência, nunca em Informativos). Número e data sempre do ASSUNTO; o conteúdo do Informativo vem do work/informativos.py, não do link do corpo (já veio malformado). Silêncio entre edições não é falha nem pendência (ok)."
+      },
+      "stj_jus_br_direto": {
+        "nota": "Portal de notícias do STJ não é lido: lista e RSS (res.stj.jus.br) recusados pela rede; julgado do STJ só na mídia vai em STJ Notícias como MÍDIA ESPECIALIZADA (linha fixa do montador, sem busca por item). O oficial vem do CodJu e do work/informativos.py (processo.stj.jus.br). A página de Notícias já deu cache desatualizado, 429 e 404: falha aqui nunca autoriza concluir 'STJ sem novidade'."
+      }
+    }
+  }
+}
