@@ -1993,6 +1993,32 @@ def t_mon_falha_de_informativo_em_outra_categoria():
        and "Fontes que falharam nesta execução: documento oficial da Repercussão Geral em Pauta nº 399"
        in M.suporte_txt(ex["source_status"], {}, ex), "falha no rodape: %s" % ex)
 
+@teste
+def t_mon_legin_sem_dou_com_resenha():
+    """R6: LEGIN (ou MPV do Congresso) sem a data do DOU na pagina oficial + `resenha` do PUSH: o selo e o oficial da
+    resenha e o meta vira "DOU conforme a Resenha PUSH" (antes ficava "data do DOU não confirmada na página oficial"
+    ao lado do CONFIRMADO). Sem resenha, ou com status/meta escritos, como antes."""
+    ev = {"dec13168": {"_fonte": "legin", "tipo": "Decreto", "numero": "13168", "data_ato": "16/11/2026", "dou": "",
+                       "id": "dec13168", "ementa": "Promulga o Acordo de Cooperação no Campo de Defesa.",
+                       "url": "https://www2.camara.leg.br/legin/fed/decret/2026/decreto-13168",
+                       "chave": "planalto|decreto|13168|2026|2026-11-16"},
+          "mpv1401": {"_fonte": "congresso_mpv", "numero": "1401", "ano": "2026", "dou": "", "id": "mpv1401",
+                      "ementa": "Dispõe sobre y.", "url": "https://www.congressonacional.leg.br/mpv1401",
+                      "chave": "planalto|mpv|1401|2026|2026-11-19"}}
+    r = M.resolver({"ref": "dec13168", "resenha": RESENHA_20_11}, ev, [])
+    ok(r["status"] == "CONFIRMADO POR FONTE OFICIAL" and r["meta"] == "DOU conforme a Resenha PUSH"
+       and r["grupo"].startswith("Resenha Diária PUSH Legislação de 19/11"), "LEGIN + resenha: %s" % r)
+    r = M.resolver({"ref": "mpv1401", "resenha": RESENHA_20_11, "data": "2026-11-19"}, ev, [])
+    ok(r["status"] == "CONFIRMADO POR FONTE OFICIAL" and r["meta"] == "DOU conforme a Resenha PUSH", "MPV: %s" % r)
+    r = M.resolver({"ref": "dec13168"}, ev, [])
+    ok(r["status"] == "PENDÊNCIA DE VERIFICAÇÃO" and r["meta"] == M.META_SEM_DOU, "sem resenha: como antes")
+    r = M.resolver({"ref": "dec13168", "resenha": RESENHA_20_11, "status": "PENDÊNCIA DE VERIFICAÇÃO"}, ev, [])
+    ok(r["meta"] == M.META_SEM_DOU, "status escrito nao oficial: o meta fica")
+    r = M.resolver({"ref": "dec13168", "resenha": RESENHA_20_11, "meta": "DOU 17/11"}, ev, [])
+    ok(r["meta"] == "DOU 17/11", "meta escrito vence")
+    p = "\n".join(M._grupos_planalto([dict(M.resolver({"ref": "dec13168", "resenha": RESENHA_20_11}, ev, []))], False))
+    ok("não confirmada" not in p and "DOU conforme a Resenha PUSH" in p, "no e-mail: %s" % p[-300:])
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do

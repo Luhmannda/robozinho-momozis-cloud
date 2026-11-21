@@ -588,6 +588,10 @@ RESUMO_TRUNCADO_MIN = 40     # resumo cortado mais curto que isto (sem as retice
 FIM_CORTADO = re.compile(r"(?:\[\s*(?:…|\.\.\.)\s*\]|…|[\s,;:.\-–—(])+$")
 
 
+META_SEM_DOU = "data do DOU não confirmada na página oficial"
+META_DOU_RESENHA = "DOU conforme a Resenha PUSH"
+
+
 def resumo_cortado(s):
     """Resumo que a coleta marcou como cortado: sem a pontuacao/reticencias soltas do fim e terminado em "…" (o
     ponto() nao acrescenta ponto depois dele); com menos de RESUMO_TRUNCADO_MIN caracteres, "" (omitido)."""
@@ -623,7 +627,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
         base = {"categoria": "Planalto/Legislação",
                 "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" if dou else "PENDÊNCIA DE VERIFICAÇÃO",
                 "titulo": "Medida Provisória nº %s/%s" % ("{:,}".format(n).replace(",", "."), e["ano"]),
-                "meta": ("DOU %s" % dou[:5]) if dou else "data do DOU não confirmada na página oficial",
+                "meta": ("DOU %s" % dou[:5]) if dou else META_SEM_DOU,
                 "resumo": e["ementa"], "url": e["url"], "fonte": "Congresso Nacional",
                 "data": datetime.strptime(dou, "%d/%m/%Y").date().isoformat() if dou else "",
                 "grupo": "Congresso Nacional — medidas provisórias", "chave": e["chave"] if dou else ""}
@@ -637,7 +641,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" if dou else "PENDÊNCIA DE VERIFICAÇÃO",
                 "titulo": "%s nº %s, de %s" % (e["tipo"], "{:,}".format(n).replace(",", "."), e["data_ato"]),
                 "meta": ("DOU %s%s" % (dou[:5], " · edição extra" if e.get("extra") else "")) if dou
-                else "data do DOU não confirmada na página oficial",
+                else META_SEM_DOU,
                 "resumo": e["ementa"], "url": e["url"], "fonte": "Câmara dos Deputados (Legislação Informatizada)",
                 "data": datetime.strptime(e["data_ato"], "%d/%m/%Y").date().isoformat(),
                 # o selo sai uma vez por grupo (_grupos_planalto): o ato sem DOU confirmado fica num grupo proprio
@@ -726,7 +730,10 @@ def resenha_no_ref(novo, it, e, ref, avisos):
     """Lei ou MPV do Congresso (lei…/mpv…) que tambem veio na Resenha Diaria do PUSH: `resenha` no ref da o grupo, a
     fonte ("PUSH Planalto") e o selo CONFIRMADO POR FONTE OFICIAL (ROTINA: PUSH -> oficial); grupo, fonte e status
     escritos vencem. Sem resenha, fica a pagina do Congresso (ALTERNATIVA). Antes (20/11) a resenha era descartada em
-    silencio e o selo do PUSH saia sob "Congresso Nacional — últimas leis publicadas". A chave nao muda."""
+    silencio e o selo do PUSH saia sob "Congresso Nacional — últimas leis publicadas". A chave nao muda.
+    R6: ato sem a data do DOU na pagina oficial (LEGIN, MPV) que sai com o selo oficial da resenha trocava "data do
+    DOU não confirmada" ao lado de CONFIRMADO POR FONTE OFICIAL: o meta vira "DOU conforme a Resenha PUSH" (meta
+    escrito vence)."""
     if not (e and e.get("_fonte") in FONTES_ATO_RESENHA and it.get("resenha")) or it.get("grupo"):
         return
     g = grupo_resenha(it["resenha"])
@@ -738,6 +745,8 @@ def resenha_no_ref(novo, it, e, ref, avisos):
     novo["fonte"] = it.get("fonte") or "PUSH Planalto"
     if not it.get("status"):
         novo["status"] = "CONFIRMADO POR FONTE OFICIAL"
+    if novo.get("status") == "CONFIRMADO POR FONTE OFICIAL" and novo.get("meta") == META_SEM_DOU and not it.get("meta"):
+        novo["meta"] = META_DOU_RESENHA
 
 
 SELO_PADRAO = {"STF Notícias": "CONFIRMADO POR FONTE OFICIAL", "STF Jurisprudência": "CONFIRMADO POR FONTE OFICIAL",
