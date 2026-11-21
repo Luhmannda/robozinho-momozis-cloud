@@ -500,6 +500,31 @@ def medir_uso_buscas_esforco_pesos_e_dolar():
 
 
 @teste
+def medir_uso_ignora_mensagem_sintetica():
+    """P6 (rev3): a mensagem "<synthetic>" (erro de API escrito pelo Claude Code, uso todo zero) nao e chamada ao
+    modelo: nao anula o custo_usd, nao entra em modelos/chamadas_modelo e nao gera o AVISO de preco."""
+    raiz = tempfile.mkdtemp(dir=TMPDIR)
+    F = "claude-fable-5-2"
+    sint = msg("s1", "2026-11-20T10:08:00Z", "<synthetic>", 0, 0, 0, 0, ferramentas=())
+    zero = msg("z1", "2026-11-20T10:08:30Z", F, 0, 0, 0, 0, ferramentas=())
+    transcricoes(raiz, [msg("o1", "2026-11-20T10:07:10Z", F, 2, 29625, 19482, 454, 19482),
+                        sint, zero,
+                        msg("o2", "2026-11-20T10:09:00Z", F, 10, 500000, 100000, 40000, 100000)], [])
+    antigo = medir_uso.RAIZ
+    medir_uso.RAIZ = raiz
+    try:
+        ex = {"run_started_at": "2026-11-20T07:07:04-03:00"}
+        log = []
+        uh.medir_e_preencher(ex, log.append)
+    finally:
+        medir_uso.RAIZ = antigo
+    o = ex["orquestrador"]
+    ok(o["custo_usd"] is not None and o["chamadas_modelo"] == 2 and o["modelo"] == F and "modelos" not in o, o)
+    ok(ex["custo_usd"]["total"] is not None and "sem_preco" not in ex["custo_usd"], ex["custo_usd"])
+    ok(not any("sem preço" in l for l in log) and any(l.startswith("Custo da execucao") for l in log), log)
+
+
+@teste
 def custo_usd_de_execucao_antiga_recalculado():
     # 20/11 (Fable, gravacao 1 h, chamada final estimada): US$ 6,22 no orquestrador, como na transcricao do cliente
     e = {"orquestrador": {"modelo": "claude-fable-5-2", "entrada": 15, "cache_lido": 972846, "cache_gravado": 189262,
