@@ -369,22 +369,29 @@ def bancas_outro_concurso_do_mesmo_orgao():
     res = {"banca": "FGV", "http": 200, "data": "2026-11-19", "concursos": r}
     ok(set(bancas.carimbos(res, led, "2026-11-19")) == {"tjap_juiz"}, "carimbo só pela página certa")
     txt = saida(res)
-    ok("tjapservidores26 | " in txt and "SEM REGISTRO (tjap_juiz, da mesma sigla, é de outro cargo) → avalie como NOVO"
-       in txt and txt.count("DIVERGE DO REGISTRO: tjap_juiz") == 1, txt)
-    # sem cargo no título, no slug e no edital: não cobre, AVISO
+    # (escopo do dono, 20/11) servidores do TJAP = quadro de apoio fora do Sul/Sudeste: só na contagem, sem "avalie
+    # como NOVO" (o SEM REGISTRO da mesma sigla com apoio no escopo está em test_bancas.py)
+    ok("tjapservidores26 | " not in txt and "1 fora do escopo (apoio só Sul/Sudeste)" in txt
+       and txt.count("DIVERGE DO REGISTRO: tjap_juiz") == 1, txt)
+    # sem cargo no título e no slug: a fonte do registro é a própria página (vínculo pela fonte), cobre; sem vínculo,
+    # a página sem cargo é CANDIDATO e não cobre (test_bancas.py)
     sem = pagina_fgv("tjap26", TIT_TJAP)
     r = bancas.analisar([sem], D("2026-11-19"), copy.deepcopy(led), {}, ler=lambda u: ("texto sem cargo", ""))
-    ok(r[0]["coberto"] == [] and r[0]["registros"] == [] and r[0]["incerto"]["ids"] == ["tjap_juiz"]
-       and r[0]["divergencias"] == [], r[0].get("incerto"))
+    ok(r[0]["coberto"] == ["tjap_juiz"] and r[0]["vinculo"] == "fonte" and "incerto" not in r[0], r[0].get("incerto"))
+    # duas páginas para o mesmo registro: com a fonte = a página tjap26, só ela cobre (a outra é outra página do
+    # mesmo órgão e cargo); com a fonte = um PDF das duas (2a9eac9), nenhuma cobre, AVISO
+    a, b = pagina_fgv("tjap26", TIT_TJAP + " - Juiz"), pagina_fgv("tjapjuiz26", TIT_TJAP + " - Juiz de Direito")
+    r = bancas.analisar([a, b], D("2026-11-19"), copy.deepcopy(led), {}, ler=ler_falso)
+    ok(r[0]["coberto"] == ["tjap_juiz"] and r[1]["coberto"] == [] and "tjap_juiz" in r[1]["edicao"],
+       [(c["coberto"], c.get("edicao")) for c in r])
+    a, b = pagina_fgv("tjap26", TIT_TJAP + " - Juiz"), pagina_fgv("tjapjuiz26", TIT_TJAP + " - Juiz de Direito")
+    r = bancas.analisar([a, b], D("2026-11-19"), regs("2a9eac9"), {}, ler=ler_falso)
+    ok(all(c["coberto"] == [] and c["divergencias"] == [] and "2 páginas da FGV" in c["incerto"]["motivo"] for c in r),
+       [(c["coberto"], c.get("incerto")) for c in r])
     res = {"banca": "FGV", "http": 200, "data": "2026-11-19", "concursos": r}
     ok(bancas.carimbos(res, led, "2026-11-19") == {} and bancas.contexto_selos(res) == {}, "nada mecânico")
     txt = saida(res)
-    ok("registro incerto: tjap_juiz" in txt and "  AVISO: página não cobre tjap_juiz (cargo não identificado" in txt, txt)
-    # duas páginas para o mesmo registro: nenhuma cobre
-    a, b = pagina_fgv("tjap26", TIT_TJAP + " - Juiz"), pagina_fgv("tjapjuiz26", TIT_TJAP + " - Juiz de Direito")
-    r = bancas.analisar([a, b], D("2026-11-19"), copy.deepcopy(led), {}, ler=ler_falso)
-    ok(all(c["coberto"] == [] and c["divergencias"] == [] and "2 páginas da FGV" in c["incerto"]["motivo"] for c in r),
-       [(c["coberto"], c.get("incerto")) for c in r])
+    ok("registro incerto: tjap_juiz" in txt and "  AVISO: página não cobre tjap_juiz (2 páginas da FGV" in txt, txt)
     # sem regressão nas páginas reais de 16/11 (TJPB sem cargo no título: 2 registros, decide pelo edital)
     b16 = json.loads(fx("bancas-1611.json"))
     ed = {c["edital_url"]: " ".join(c["edital"].values()) for c in b16["concursos"] if c.get("edital_url")}
