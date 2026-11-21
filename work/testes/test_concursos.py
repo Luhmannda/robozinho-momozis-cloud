@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # =====================================================================
 # test_concursos.py — testes da frente CONCURSOS (sem pytest, sem rede):
-#   selos.py: PROVA EM BREVE sai da familia quando a prova passa ou sai da janela
-#   de 14 dias (sem regressao a INSCRICOES ENCERRADAS com a banca lida; o motivo
-#   casa o ACIONAVEL do montador); candidato a remocao por datas so de
+#   selos.py: PROVA EM BREVE sai da familia quando a prova passa (sem regressao a
+#   INSCRICOES ENCERRADAS com a banca lida; o motivo casa o ACIONAVEL do
+#   montador); prova adiada/distante sem prova passada segue as regras normais e
+#   volta a PROVA EM BREVE na janela de 14 dias; candidato a remocao por datas so de
 #   secundaria; _dm herda o ano do mesmo trecho e le 29/02; inicio coerente.
 #   paginas_oficiais.py (paginas reduzidas do TRF2 e da PGE-RJ de 21/11/2026):
 #   item = titulo + continuacao (o nome da Portaria nº 578 inteiro), ato sem
 #   palavra-chave com data, titulo repetido com data nova e MUDOU, reordenar
 #   nao e MUDOU, carimbo "atualizado em" nao e item, os 5 mais recentes na NOVA,
-#   estado v1 relido sem MUDOU falso, IGUAL numa linha, FORA_DA_REDE sem baixar.
-#   inicio.py: migracoes antes do ledger (linhas impressas; ausente/erro =
+#   estado v1 relido sem MUDOU falso, IGUAL numa linha, FORA_DA_REDE sem baixar,
+#   1a leitura sem lixo de navegacao e sem reler a pagina da banca (E-min c).
+#   inicio.py: migracoes antes do ledger e nunca na RE-EXECUCAO (linhas impressas; ausente/erro =
 #   ALERTA), escopo regional (FORA DO ESCOPO, sem fila/rodizio/foco/registro
-#   atual), sonda proxy x site x SPA e REDE do ambiente, url_oficial lida todo
+#   atual), sonda proxy x site x SPA e REDE do ambiente (sem resposta = indeterminado,
+#   nao liberado), url_oficial lida todo
 #   dia e MUDOU no foco, dominio sem resposta nao baixado, prazo so secundario
 #   so em D-7/D-1/D0/D+1, pendencia COBERTA/SO VIGIAR, {prox} e DATA_MIN_NOVO,
 #   consultas regionais do apoio, candidato a remocao (secundaria), regra
@@ -89,10 +92,22 @@ def prova_em_breve_sai_da_familia():
     duas = dict(tjrs, prazos=tjrs["prazos"] + [{"data": "2027-03-07", "evento": "prova discursiva", "confirmado": True}])
     s, m = selos.selo_por_data(duas, D("2026-12-14"))
     ok(s == selos.SELO_SEM_CONFIRMACAO and "13/12" in m, (s, m))
-    # adiada: so a data nova, a mais de 14 dias
+    ok("a próxima (07/03) está a mais de 14 dias" in m, m)
+    # adiada (rev1 C1): so a data nova, a mais de 14 dias, sem prova passada -> regras normais, nao PENDENCIA (antes
+    # caia para PENDENCIA e nunca voltava); a data entra na janela: PROVA EM BREVE; passa: sai da familia
     adiada = dict(tjrs, prazos=[{"data": "2027-02-07", "evento": "prova objetiva (adiada)", "confirmado": True}])
-    s, m = selos.selo_por_data(adiada, D("2026-12-14"))
-    ok(s == selos.SELO_SEM_CONFIRMACAO and "a próxima prova (07/02) ficou a mais de 14 dias" in m, (s, m))
+    ok(selos.selo_por_data(adiada, D("2026-12-14")) == ("PROVA EM BREVE", None), "adiada distante: fica")
+    ok(selos.selo_por_data(adiada, D("2027-01-25")) == ("PROVA EM BREVE", None), "adiada na janela")
+    s, m = selos.selo_por_data(adiada, D("2027-02-08"))
+    ok(s == selos.SELO_SEM_CONFIRMACAO and "a prova de 07/02 já passou" in m, (s, m))
+    # adiada com a banca lida e o fim das inscricoes vencido: INSCRICOES ENCERRADAS (regra normal) e volta a
+    # PROVA EM BREVE quando a prova entra na janela
+    adi_b = dict(adiada, prazos=adiada["prazos"] + [{"data": "2026-11-18", "evento": "fim das inscrições",
+                                                      "confirmado": True}])
+    s, m = selos.selo_por_data(adi_b, D("2026-12-14"), banca_lida_hoje=True, ultima_retificacao="2026-11-13")
+    ok(s == "INSCRIÇÕES ENCERRADAS", (s, m))
+    ok(selos.selo_por_data(dict(adi_b, selo=s), D("2027-01-25"), banca_lida_hoje=True,
+                           ultima_retificacao="2026-11-13")[0] == "PROVA EM BREVE", "volta à janela da prova")
     # prova (a confirmar) na janela: fica; sem prazo de prova: fica (sem dado)
     sec = dict(tjrs, prazos=[{"data": "2026-12-20", "evento": "prova (fonte secundária)", "confirmado": False}])
     ok(selos.selo_por_data(sec, D("2026-12-14")) == ("PROVA EM BREVE", None), "secundária na janela")
@@ -134,6 +149,16 @@ def ano_das_datas_da_linha():
     r = {"linha": "TJSC — Juiz: inscrições das 16h de 19/10 até 16h de 26/11, conforme a FGV; prova em 31/01/2027"}
     ok(selos.fim_inscricoes_registro(r, D("2026-11-20"))[0] == D("2026-11-26"), "fim pelo ano mais próximo")
     ok(selos.inicio_inscricoes(r, D("2026-11-20")) == D("2026-10-19"), "início coerente")
+    # rev1 C6: a data de um ato citado no trecho nao e ancora (dava 2025); o fim do mesmo intervalo e
+    r = {"linha": "TJXX — Juiz: inscrições de 20/10 até 26/11, conforme o Edital nº 1, de 15/10/2026"}
+    ok(selos.fim_inscricoes_registro(r, D("2026-11-23"))[0] == D("2026-11-26"), "ato citado não ancora o fim")
+    ok(selos.inicio_inscricoes(r, D("2026-11-23")) == D("2026-10-20"), "nem o início")
+    r = {"linha": "Z — Juiz: inscrições até 05/01, segundo matéria de 20/12/2026"}
+    ok(selos.fim_inscricoes_registro(r, D("2026-12-28"))[0] == D("2027-01-05"), "notícia citada não ancora")
+    r = {"linha": "W — Juiz: inscrições das 16h de 19/10 até 16h de 26/11/2026"}
+    ok(selos.inicio_inscricoes(r, D("2027-06-01")) == D("2026-10-19"), "fim do intervalo com hora")
+    r = {"linha": "V — Juiz: inscrições de 01/12 a 20/12 e prova em 15/02/2027"}
+    ok(selos.fim_inscricoes_registro(r, D("2026-06-01"))[0] == D("2026-12-20"), "etapa seguinte do cronograma")
     # inicio depois do fim confirmado: tenta o ano anterior
     r = {"linha": "Y: inscrições de 10/12 até 20/01", "prazos": [
         {"data": "2027-01-20", "evento": "fim das inscrições", "confirmado": True}]}
@@ -303,8 +328,9 @@ def sonda_falsa(ds):
     return {d: s == "ok" for d, s in res.items()}
 
 
-def rodar(agora, estado_data, led=None, migr=None, pag_estado=None, html_trf2=None):
-    """inicio.main() numa pasta descartavel; migr: modulo falso de migracoes (None = ausente)."""
+def rodar(agora, estado_data, led=None, migr=None, pag_estado=None, html_trf2=None, banca_extra=None):
+    """inicio.main() numa pasta descartavel; migr: modulo falso de migracoes (None = ausente); banca_extra: campos
+    a mais no resultado falso do bancas.coletar (ex.: erro da listagem)."""
     d = tempfile.mkdtemp(dir=TMPDIR)
     t = os.path.join(d, "tmp")
     os.makedirs(t)
@@ -325,8 +351,8 @@ def rodar(agora, estado_data, led=None, migr=None, pag_estado=None, html_trf2=No
              os.environ.get("ROBOZINHO_TMP"), sys.argv, sys.modules.get("migracoes", "ausente"))
     inicio.AQUI = d
     inicio.alcancaveis = sonda_falsa
-    bancas.coletar = lambda hoje, conc, estado=None: {"banca": "FGV", "http": 200, "concursos": [],
-                                                      "data": hoje.isoformat()}
+    bancas.coletar = lambda hoje, conc, estado=None: dict({"banca": "FGV", "http": 200, "concursos": [],
+                                                           "data": hoje.isoformat()}, **(banca_extra or {}))
     bancas.carregar_estado = lambda caminho=None: {"paginas": pag_estado or {}}
     paginas_oficiais.baixar = baixar
     sys.modules["migracoes"] = migr
@@ -381,6 +407,14 @@ def inicio_migracoes_antes_do_ledger():
     ok("ALERTA: migracoes: estado ilegível" in out and "==== LEDGER" in out, "erro: ALERTA e segue")
     out, _, _, _ = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", migr=None)
     ok(re.search(r"^ALERTA: migracoes: .+", out, re.M) and "PASSO 2" in out, "ausente: ALERTA e segue")
+    # rev3 P4: RE-EXECUCAO (a edicao de hoje ja esta no estado) nao aplica migracao nem suja o ledger: nada roda
+    # depois dela para commitar
+    chamadas.clear()
+    out, cc, d, _ = rodar("2026-12-02T16:40:00-03:00", "2026-12-02", migr=stub_migracoes(aplicar))
+    led = json.load(open(os.path.join(d, "robozinho-aprendizado.json"), encoding="utf-8"))
+    ok("RE-EXECUÇÃO: a edição de hoje já está registrada" in out and chamadas == [] and "MIGRACAO" not in out
+       and any(c["id"] == "trt8_apoio" for c in led["concursos"]) and cc.startswith("RE-EXECUÇÃO"),
+       (chamadas, out[:300]))
 
 
 @teste
@@ -391,6 +425,9 @@ def inicio_escopo_rede_e_paginas():
     fora = [l for l in out.splitlines() if l.startswith("FORA DO ESCOPO")]
     ok(len(fora) == 1 and "trt8_apoio" in fora[0] and "trt8_edital_verificar" in fora[0] and "trf3_apoio" not in fora[0],
        fora)
+    # rev1 C9: o leitor ve a saida no dia ("Saiu do acompanhamento"): a linha nao diz o contrario
+    ok('remova (remover + desfecho "fora do escopo regional"), com as pendências trt8_edital_verificar' in fora[0]
+       and "leitor" not in fora[0], fora)
     ok("trt8" not in cc.split("## A.")[1].split("## C.")[0], "sem fila, pendência nem rodízio do TRT8")
     ok("trt8_apoio |" not in cc.split("## Registro atual")[1], "fora do Registro atual")
     ok("- trt8_edital_verificar [" not in out.split("PENDÊNCIAS VIVAS:")[1], "pendência fora só na linha FORA DO ESCOPO")
@@ -401,7 +438,11 @@ def inicio_escopo_rede_e_paginas():
     ok("fora: www.cebraspe.org.br (só JavaScript), www.trf3.jus.br (sem resposta)" in rede, rede)
     amb = [l for l in out.splitlines() if l.startswith("REDE do ambiente: ")]
     ok(amb and "LIBERADO pelo proxy: www.in.gov.br (ok)" in amb[0] and "noticias.stf.jus.br" in amb[0], amb)
-    ok("**não tente `curl`**: www.cebraspe.org.br, www.trf3.jus.br." in cc, "fora da rede no prompt")
+    # fora da rede no prompt (rev1 C8): os dos concursos e os que so o dono libera recusados pelo proxy hoje
+    fora_p = re.search(r"\*\*não tente `curl`\*\*: (.*)\.\n", cc).group(1).split(", ")
+    ok(fora_p == sorted(fora_p) and {"www.cebraspe.org.br", "www.trf3.jus.br", "www.vunesp.com.br",
+                                     "www.concursosfcc.com.br", "apis.cebraspe.org.br", "cdn.cebraspe.org.br"}
+       <= set(fora_p) and "www.in.gov.br" not in fora_p and "www.trf2.jus.br" not in fora_p, fora_p)
     # url_oficial lida todo dia: o TRF2 (sem outro motivo de foco) mudou e entrou no foco; o TRF3 nao foi baixado
     ok(pedidos == [URL_TRF2], pedidos)
     ok("PAGINA OFICIAL trf2_juiz MUDOU" in out and "· 18/11/2026 - PORTARIA PRES/TRF2 Nº 578, disponibilizado" in out,
@@ -475,6 +516,91 @@ def sonda_classifica():
     ok(set(inicio.REDE_DONO) >= {"www.in.gov.br", "noticias.stf.jus.br", "www.vunesp.com.br", "www.concursosfcc.com.br",
                                  "normas.leg.br", "www12.senado.leg.br", "apis.cebraspe.org.br", "cdn.cebraspe.org.br"},
        inicio.REDE_DONO)
+
+
+@teste
+def inicio_listagem_da_fgv_no_prompt():
+    """rev1 C3: com a listagem da FGV lida, o coletor deixa a FGV fora da descoberta; sem ela (erro), nao."""
+    _, cc, _, _ = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", migr=stub_migracoes(lambda h, work_dir=None: []))
+    ok("A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas" in cc, "lida")
+    out, cc, _, _ = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", migr=stub_migracoes(lambda h, work_dir=None: []),
+                          banca_extra={"http": 0, "erro": "listagem ilegível: http 200 sem o bloco de concursos em "
+                                                          "andamento"})
+    ok("A listagem da FGV não foi lida hoje (listagem ilegível: http 200 sem o bloco de concursos em andamento): na "
+       "descoberta (C), a FGV conta como as outras bancas." in cc and "já foi varrida" not in cc, cc[:200])
+    ok("BANCA FGV: não lida (listagem ilegível: http 200 sem o bloco" in out, "motivo honesto no inicio")
+
+
+@teste
+def pagina_oficial_sem_lixo_de_navegacao():
+    """E-min c: na 1a leitura (NOVA) nao sai o <title> da pagina, chamada para clicar, titulo de secao nem pedaco de
+    frase quebrada (ENAM e DPE-SP de 21/11/2026); o que e ato fica, com ou sem data."""
+    corpo = "".join("<p>%s</p>" % x for x in (
+        "Solicite aqui seu Certificado de Aprovação", "da FGV para concursos e provas realizadas.",
+        "Arquivos do concurso", "X Concurso de Ingresso na Carreira de Defensor Público do Estado de São Paulo",
+        "Edital de Abertura de Inscrições e Instruções Especiais", "prova escrita geral - questões",
+        "Acesse o portal do candidato para fazer sua inscrição",
+        "edital - Alteração — Publicado no Diário Oficial de 12 de novembro de 2026",
+        "a partir de 24/08/2026. O Exame se destina à habilitação de bacharéis em Direito"))
+    html = ("<html><head><title>Concursos Públicos - Portal DPESP</title></head><body><main>%s<p>%s</p></main></body>"
+            "</html>" % (corpo, "texto institucional sem palavra-chave " * 8))
+    r = paginas_oficiais.analisar("dpe_sp", "https://www.defensoria.sp.def.br/c", 200, html, None, "2026-11-23")
+    ok(r["situacao"] == "NOVA" and r["novos"] == [
+        "edital - Alteração — Publicado no Diário Oficial de 12 de novembro de 2026",
+        "a partir de 24/08/2026. O Exame se destina à habilitação de bacharéis em Direito",
+        "X Concurso de Ingresso na Carreira de Defensor Público do Estado de São Paulo",
+        "Edital de Abertura de Inscrições e Instruções Especiais", "prova escrita geral - questões"], r.get("novos"))
+
+
+@teste
+def inicio_url_oficial_da_banca_nao_relida():
+    """E-min c: a url_oficial que e a propria pagina da banca lida hoje pelo bancas.py (mesmo registro) nao e
+    baixada de novo pela paginas_oficiais; uma linha diz por que."""
+    led = ledger_base()
+    url = bancas.BASE + "/exames/enam/6exame"
+    led["concursos"].append({"id": "enam", "bloco": "Magistratura Estadual", "linha": "ENAM — 6º exame (2026.2)",
+                             "selo": "EM ANDAMENTO", "verificado_em": "2026-12-01", "mudou_em": "2026-11-10",
+                             "fonte": url, "banca_slug": "exames/enam/6exame", "url_oficial": url, "prazos": []})
+    pagina = {"slug": "exames/enam/6exame", "titulo": "Exame Nacional da Magistratura - ENAM (2026.2)", "url": url,
+              "http": 200, "situacao": "Em Andamento", "registros": ["enam"], "vinculo": "banca_slug",
+              "coberto": ["enam"], "exibir": "registro", "novos_arquivos": [], "divergencias": [], "candidatos": [],
+              "arquivos": [{"data": "2026-11-05", "data_efetiva": "2026-11-05", "titulo": "Resultado", "url": url + ".pdf"}]}
+    out, _, _, pedidos = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", led=led,
+                               migr=stub_migracoes(lambda h, work_dir=None: []), banca_extra={"concursos": [pagina]})
+    ok(url not in pedidos and pedidos == [URL_TRF2], pedidos)
+    ok("PAGINA OFICIAL = página da banca, lida acima em BANCA FGV (sem leitura duplicada): enam" in out
+       and "PAGINA OFICIAL enam" not in out, [l for l in out.splitlines() if "PAGINA OFICIAL" in l])
+    # a banca nao leu a pagina hoje: a paginas_oficiais le (reforco)
+    out, _, _, pedidos = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", led=led,
+                               migr=stub_migracoes(lambda h, work_dir=None: []),
+                               banca_extra={"concursos": [dict(pagina, http=0, arquivos=[], coberto=[])]})
+    ok(url in pedidos and "sem leitura duplicada" not in out, pedidos)
+
+
+@teste
+def rede_do_ambiente_sem_resposta_nao_libera():
+    """rev1 C2: "sem resposta" nao prova que o proxy liberou — fica a parte, como indeterminado, sem ordem de gravar."""
+    salvo = dict(inicio.SONDA)
+    try:
+        inicio.SONDA.clear()
+        inicio.SONDA.update({d: "sem resposta" for d in inicio.REDE_DONO})
+        l = inicio.linha_rede_dono({})
+        ok("LIBERADO" not in l and "atualize em ledger_updates" not in l and l.startswith("indeterminado hoje")
+           and all(d in l for d in inicio.REDE_DONO), l)
+        inicio.SONDA.update({d: "proxy" for d in inicio.REDE_DONO})
+        inicio.SONDA.update({"www.in.gov.br": "ok", "www.vunesp.com.br": "sem resposta", "normas.leg.br": "http 403"})
+        l = inicio.linha_rede_dono({"www.in.gov.br": True})
+        lib, _, resto = l.partition("; indeterminado hoje")
+        ok("LIBERADO pelo proxy: www.in.gov.br (ok), normas.leg.br (http 403)" in lib and "vunesp" not in lib.split(
+            "o proxy ainda recusa")[0] and "www.vunesp.com.br" in resto and "nada a gravar no ledger" in resto, l)
+        inicio.SONDA.update({"www.in.gov.br": "proxy", "normas.leg.br": "proxy"})
+        l = inicio.linha_rede_dono({})
+        ok(l.startswith("o proxy recusa 7 dos 8 domínios que só o dono libera") and "LIBERADO" not in l, l)
+        inicio.SONDA.update({"www.vunesp.com.br": "proxy"})
+        ok(inicio.linha_rede_dono({}) == "o proxy recusa os 8 domínios que só o dono libera", "todos recusados")
+    finally:
+        inicio.SONDA.clear()
+        inicio.SONDA.update(salvo)
 
 
 def main():

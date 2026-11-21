@@ -11,7 +11,12 @@
 #   NOVA EDICAO; ENAM sem registro; escopo do quadro de apoio (so Sul/Sudeste,
 #   contagem sem linha); MOVIMENTO e contagem; estado parcial das paginas sem
 #   registro; TRECHOS_ALT (TJPB e ENAM ganham vagas/vencimento/prova; TJSC e
-#   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade).
+#   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade);
+#   listagem ilegivel le os vinculados (rev1 C3); NOVA EDICAO de vinculado sem
+#   ano (rev1 C4); teto do paralelo limita o processo e o curl/pdftotext (C5);
+#   "será realizada no dia" so vira prova objetiva com "prova" na frase (C10);
+#   motivo da releitura sem confirmacao (E-min d); CANDIDATO com a evidencia do
+#   ciclo (ordinal/ano, abertura do edital, inscricoes) ou "não grave" (E5).
 # USO: python3 work/testes/test_bancas.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -310,8 +315,8 @@ def coleta_vinculo_candidato_travas_e_contagem():
     txt = saida(res)
     for trecho in (
             'CANDIDATO dpe_rj ← dperj2026 | Em Andamento | Concurso Público para a Defensoria Pública do Estado do Rio de '
-            'Janeiro | últ. 03/11 Prova Específica Dissertativa | ' + B + '/concursos/dperj2026 → confirme o ciclo '
-            '(ordinal/ano) e grave ledger_updates.concursos.dpe_rj.banca_slug="dperj2026"',
+            'Janeiro | últ. 03/11 Prova Específica Dissertativa | ' + B + '/concursos/dperj2026 | ciclo na página: ano '
+            '2026 (slug) → confirme o ciclo e grave ledger_updates.concursos.dpe_rj.banca_slug="dperj2026"',
             'CANDIDATO a registro NOVO enam ← exames/enam/6exame |',
             'banca_slug="exames/enam/6exame"',
             'NOVA EDIÇÃO? tjscjuiz27 |', 'tjsc_juiz está vinculado a tjscjuiz26',
@@ -352,6 +357,132 @@ def coleta_paralela_com_teto_e_falha():
     res, _, cs = coletar(rede_fgv(extra=extra))
     ok(cs["tjscjuiz26"]["exibir"] == "registro" and cs["tjscjuiz26"]["coberto"] == []
        and "página não lida (http 500)" in saida(res), saida(res))
+
+
+@teste
+def listagem_ilegivel_le_os_vinculados():
+    """rev1 C3: a listagem 200 sem o bloco da view (view renomeada) nao derruba as paginas com banca_slug: lidas
+    assim mesmo, http = 200, aviso honesto (nao "fora da listagem: confira se acabou"); sem pagina nenhuma: nao lida,
+    com o motivo da listagem (antes: "página não lida (http 200)")."""
+    renomeada = "<html><div class='view-id-concursos_abertos'>...</div></html>"
+    extra = {B + "/concursos" + ("?page=%d" % p if p else ""): (200, renomeada) for p in range(30)}
+    res, rede, cs = coletar(rede_fgv(extra=extra))
+    ok(res["http"] == 200 and set(cs) == {"tjscjuiz26", "trf1juiz25"}, (res["http"], sorted(cs)))
+    ok(cs["tjscjuiz26"]["coberto"] == ["tjsc_juiz"] and cs["trf1juiz25"]["coberto"] == ["trf1_juiz"]
+       and not cs["trf1juiz25"].get("fora_da_listagem"), [c.get("coberto") for c in cs.values()])
+    ok(set(bancas.carimbos(res, REGS, HOJE)) == {"tjsc_juiz", "trf1_juiz"}, "carimbo dos vinculados")
+    txt = saida(res)
+    ok("sem a listagem hoje (listagem ilegível: http 200 sem o bloco de concursos em andamento): só as páginas com "
+       "banca_slug foram lidas" in txt and "confira se o concurso acabou" not in txt
+       and "listagem incompleta" not in txt, txt)
+    # listagem ilegivel e as paginas vinculadas fora do ar: "nao lida", com o motivo verdadeiro
+    for slug in ("tjscjuiz26", "trf1juiz25"):
+        extra[B + "/concursos/" + slug] = (500, "")
+        extra[B + "/" + slug] = (500, "")
+    res, _, _ = coletar(rede_fgv(extra=extra))
+    ok(res["http"] == 0 and res["concursos"] == [] and "página não lida (listagem ilegível: http 200 sem o bloco" in
+       saida(res), (res["http"], saida(res)))
+    # sem registro vinculado: volta cedo, sem pagina nenhuma (como antes), com o motivo
+    sem = [dict(r, banca_slug="") for r in REGS]
+    res, rede, _ = coletar(rede_fgv(extra=extra), regs=sem)
+    ok(res["concursos"] == [] and res["erro"].startswith("listagem ilegível")
+       and not any("/concursos/" in u and "?page" not in u and not u.endswith("/concursos") for u in rede.pedidos),
+       rede.pedidos)
+
+
+@teste
+def teto_limita_o_processo():
+    """rev1 C5: o teto do paralelo() limita o processo (threads daemon), e o curl/pdftotext de dentro dele usam so
+    o que resta do teto (antes: -m 60 e pdftotext 60 s; o interpretador esperava as threads na saida)."""
+    import subprocess as sp
+    codigo = ("import sys, time; sys.path.insert(0, %r); import bancas; t = time.time(); "
+              "r = bancas.paralelo(lambda x: time.sleep(x) or x, [0.2, 8], 2, 1.5); "
+              "print(r, round(time.time() - t, 1))" % WORK)
+    t0 = time.time()
+    r = sp.run([sys.executable, "-c", codigo], capture_output=True, text=True, timeout=30)
+    ok(r.stdout.startswith("[0.2, None]") and time.time() - t0 < 5, (r.stdout, r.stderr[-300:], time.time() - t0))
+    chamadas, real = [], bancas.subprocess.run
+
+    def falso(cmd, **kw):
+        chamadas.append((cmd, kw.get("timeout")))
+        if cmd[0] == "pdftotext":
+            return sp.CompletedProcess(cmd, 0, b"texto do edital", b"")
+        raise OSError("sem rede no teste")
+    bancas.subprocess.run = falso
+    try:
+        bancas.paralelo(lambda u: bancas.fetch(u, timeout=40), ["https://x/a"], 1, 3)
+        cmd, tmo = chamadas[-1]
+        ok(int(cmd[cmd.index("-m") + 1]) <= 3 and tmo <= 8, chamadas[-1])
+        bancas.fetch("https://x/b", timeout=40)                 # fora do paralelo: o padrao
+        cmd, _ = chamadas[-1]
+        ok(cmd[cmd.index("-m") + 1] == "40", cmd)
+        orig_fetch = bancas.fetch
+        bancas.fetch = lambda url, binario=False, timeout=40: (200, b"%PDF-1.4 x")
+        try:
+            r = bancas.paralelo(bancas.texto_pdf, ["https://x/e.pdf"], 1, 2)
+        finally:
+            bancas.fetch = orig_fetch
+        ok(r == [("texto do edital", "")] and chamadas[-1][0][0] == "pdftotext" and chamadas[-1][1] <= 2, chamadas[-1])
+    finally:
+        bancas.subprocess.run = real
+
+
+@teste
+def motivo_da_releitura_sem_confirmacao():
+    """E-min (d): registro com fonte oficial nao e "registro sem confirmação oficial" — o motivo diz o que falta."""
+    hoje, fgv = HOJE, B + "/concursos/tjscjuiz26"
+    pz = lambda conf: [{"data": "2027-01-31", "evento": "prova objetiva", "confirmado": conf}]
+    c = {"novos_arquivos": [], "arquivos": []}
+    casos = [({"fonte": "https://blog.qconcursos.com/x", "prazos": pz(True), "selo": "EM ANDAMENTO"},
+              "registro sem confirmação oficial"),
+             ({"fonte": fgv, "prazos": pz(False), "selo": "EM ANDAMENTO"}, "prazos sem confirmação oficial"),
+             ({"fonte": "https://www.tjsc.jus.br/concurso", "prazos": pz(False), "selo": "EM ANDAMENTO"},
+              "prazos sem confirmação oficial"),
+             ({"fonte": fgv, "prazos": pz(True), "selo": "PENDÊNCIA DE VERIFICAÇÃO"},
+              "registro em PENDÊNCIA DE VERIFICAÇÃO"),
+             ({"fonte": "https://www.tjsc.jus.br/concurso", "prazos": pz(True), "selo": "EM ANDAMENTO"},
+              "fonte oficial fora da banca"),
+             ({"fonte": fgv, "prazos": pz(True), "selo": "EM ANDAMENTO"}, "")]
+    for reg, esperado in casos:
+        ok(bancas.motivo_releitura(c, [dict(reg, id="tjsc_juiz")], hoje) == esperado, (reg, esperado))
+
+
+@teste
+def candidato_com_evidencia_do_ciclo():
+    """E5: a linha CANDIDATO traz o que confirma o ciclo sem abrir a pagina — ordinal do titulo, ano do slug, trecho
+    de abertura do edital lido hoje (todo candidato rele o edital) e inscricoes, com o ordinal do registro ao lado;
+    sem nada disso, "não grave banca_slug hoje" (o trf2juiz saia so com o titulo generico)."""
+    ok(bancas.abertura_edital("RETIFICADO EM 28 DE ABRIL DE 2025 EDITAL DE ABERTURA Nº01/2025 XVIII CONCURSO PÚBLICO "
+                              "PARA PROVIMENTO DE CARGOS DE JUIZ FEDERAL SUBSTITUTO E DE JUÍZA FEDERAL SUBSTITUTA DO "
+                              "TRIBUNAL") == "EDITAL DE ABERTURA Nº01/2025 XVIII CONCURSO PÚBLICO PARA PROVIMENTO DE "
+                                            "CARGOS DE JUIZ FEDERAL…", "abertura TRF1")
+    trf2 = [{"id": "trf2_juiz", "bloco": "Magistratura Federal", "selo": "EM ANDAMENTO", "verificado_em": "2026-11-20",
+             "linha": "TRF2 — Juiz Federal Substituto (XIX concurso): sentenças corrigidas", "fonte": "https://x.com/t"}]
+    tit = "Concurso Público para o Tribunal Regional Federal da 2ª Região"
+    arqs = [("2026-05-20", "Resultado Definitivo da Prova Objetiva Seletiva", PDF + "trf2-res.pdf"),
+            ("2025-12-10", "Edital (retificado em 17/12/2025)", PDF + "edital-trf2.pdf")]
+    EDITAIS[PDF + "edital-trf2.pdf"] = ("TRIBUNAL REGIONAL FEDERAL DA 2ª REGIÃO EDITAL TRF2 Nº 154/2025 RETIFICADO EM "
+                                        "17 DE DEZEMBRO DE 2025 PELO EDITAL TRF2 Nº 157/2025 EDITAL DE ABERTURA O "
+                                        "presente edital torna pública a realização do XIX Concurso público de provas e "
+                                        "títulos para provimento de cargos de Juiz Federal Substituto da 2ª Região.")
+    r = bancas.analisar([pag("trf2juiz", tit, arqs)], HOJE, copy.deepcopy(trf2), {}, ler=ler_falso)
+    ok(r[0]["exibir"] == "candidato" and r[0]["releitura"] == "candidato: ciclo no edital"
+       and r[0]["ordinal_registro"] == {"trf2_juiz": "XIX"}, (r[0]["exibir"], r[0].get("releitura")))
+    lin = [l for l in saida({"http": 200, "concursos": r}).splitlines() if l.startswith("CANDIDATO")]
+    ok(len(lin) == 1 and '| ciclo na página: edital "EDITAL TRF2 Nº 154/2025 … XIX Concurso público de provas e '
+       'títulos para provimento de cargos de…" (registro: trf2_juiz XIX) → confirme o ciclo e grave '
+       'ledger_updates.concursos.trf2_juiz.banca_slug="trf2juiz"' in lin[0] and len(lin[0]) < 520, lin)
+    # sem evidencia (titulo generico, slug sem ano, edital ilegivel): nao manda gravar
+    del EDITAIS[PDF + "edital-trf2.pdf"]
+    r = bancas.analisar([pag("trf2juiz", tit, arqs)], HOJE, copy.deepcopy(trf2), {}, ler=ler_falso)
+    lin = [l for l in saida({"http": 200, "concursos": r}).splitlines() if l.startswith("CANDIDATO")]
+    ok(len(lin) == 1 and lin[0].endswith("| sem ordinal/ano na página: não grave banca_slug hoje")
+       and 'banca_slug="' not in lin[0], lin)
+    # o titulo com ordinal e as inscricoes do edital tambem sao evidencia
+    c = {"slug": "mpes25promotor", "titulo": "XIV Concurso para Promotor de Justiça",
+         "inscricoes": {"inicio": "2025-03-17", "fim": "2025-04-16"}}
+    ok(bancas.evidencia_ciclo(c) == "título XIV; ano 2025 (slug); inscrições 17/03/2025 a 16/04/2025",
+       bancas.evidencia_ciclo(c))
 
 
 # ------------------------------------------------------------------ vinculo e travas (analisar direto)
@@ -469,6 +600,25 @@ def enam_registro_e_nova_edicao():
     ok(set(bancas.ordinais("ENAM 6ª edição (2026.2)")) == {6}, "edição")
 
 
+@teste
+def nova_edicao_de_vinculado_sem_ano():
+    """rev1 C4: registro vinculado a slug sem ano (trf2juiz): a pagina trf2juiz27 e NOVA EDICAO? (antes: "edição
+    anterior ou outra página"); a de 2+ anos antes continua edicao anterior; com ano nos dois, como antes."""
+    trf2 = [{"id": "trf2_juiz", "bloco": "Magistratura Federal", "linha": "TRF2 — Juiz Federal Substituto",
+             "selo": "EM ANDAMENTO", "verificado_em": "2026-11-20", "banca_slug": "trf2juiz",
+             "fonte": B + "/concursos/trf2juiz"}]
+    tit = "Concurso Público para o Tribunal Regional Federal da 2ª Região - Juiz Federal"
+    vinc = pag("trf2juiz", tit, [("2026-11-10", "Resultado", PDF + "trf2-res.pdf")])
+    nova = pag("trf2juiz27", tit + " (2027)", [("2026-11-20", "Portaria da Comissão", PDF + "trf2-27.pdf")])
+    velha = pag("trf2juiz24", tit + " (2024)", [("2026-11-12", "Comunicado", PDF + "trf2-24.pdf")])
+    r = bancas.analisar([vinc, nova, velha], HOJE, copy.deepcopy(trf2), {}, ler=ler_falso)
+    ok(r[0]["coberto"] == ["trf2_juiz"], r[0].get("coberto"))
+    ok(r[1]["exibir"] == "nova_edicao" and r[1]["nova_edicao"] == {"id": "trf2_juiz", "vinculada": "trf2juiz"}
+       and "edicao" not in r[1], (r[1]["exibir"], r[1].get("edicao")))
+    ok(r[2]["exibir"] != "nova_edicao" and "trf2_juiz" in r[2]["edicao"], (r[2]["exibir"], r[2].get("edicao")))
+    ok('NOVA EDIÇÃO? trf2juiz27 |' in saida({"http": 200, "concursos": r}), saida({"http": 200, "concursos": r}))
+
+
 # ------------------------------------------------------------------ estado (URLs vistas)
 @teste
 def estado_parcial_das_paginas_sem_registro():
@@ -535,6 +685,15 @@ def trechos_alternativos_so_quando_o_principal_falha():
         "prova objetiva": "Prova Objetiva Seletiva, de caráter eliminatório e classificatório, está prevista para o dia "
                           "24 de janeiro de 2027"}, ensure_ascii=False), "TJAP mudou: %r" % tjap)
     ok(bancas.TRECHOS[1][0] == "inscrições" and "LEIA" not in bancas.TRECHOS[1][1], "índice do LEIA-SE")
+    # rev1 C10: o "será realizada no dia" da alternativa so e a prova com "prova" na frase antes dele (o TJPB tem
+    # "10.1 A Prova Objetiva e a Prova Discursiva ... para os cargos de ...; ...; ... serão realizadas no dia")
+    for frase in ("Edital. A sessão pública de identificação das provas práticas será realizada no dia 10 de dezembro "
+                  "de 2026, das 10h às 12h.", "A entrega dos títulos será realizada no dia 10 de dezembro de 2026.",
+                  "Prova objetiva aplicada. 4.1 A perícia médica será realizada no dia 3 de fevereiro de 2027.",
+                  "O resultado da prova será realizado no dia 10 de dezembro de 2026."):
+        ok("prova objetiva" not in bancas.trechos(frase), (frase, bancas.trechos(frase)))
+    ok(bancas.trechos("Sessão em 1 de março de 2027. 8.1. A prova será realizada no dia 7 de março de 2027.")
+       ["prova objetiva"] == "A prova será realizada no dia 7 de março de 2027", "a prova continua")
 
 
 # ------------------------------------------------------------------ helper: banca_slug

@@ -47,7 +47,9 @@
 # seletivo, juiz leigo, conciliador, cartorio, tribunal de contas: sem bloco no
 # registro) e quadro de apoio fora do escopo regional (escopo.py: so SP, RJ, MG,
 # ES, PR, SC, RS ou orgao nacional), que ficam so na contagem; a pagina de
-# registro com banca_slug e lida sempre, mesmo fora da listagem.
+# registro com banca_slug e lida sempre, mesmo fora da listagem e mesmo com a
+# listagem fora do ar ou ilegivel (200 sem o bloco da view: `erro` diz o que
+# houve; http = 200 se alguma pagina respondeu).
 #
 # VINCULO pagina -> registro (concursos[] do ledger); so o vinculo cobre
 # (carimbo verificado_em/fonte/dominio_oficial, selo por data e DIVERGE):
@@ -61,13 +63,18 @@
 # tjpb_apoio -> tjpb; slug sem ano e sem cargo: dperj2026 -> dperj) + cargo
 # (slug/titulo; sem cargo, o edital decide entre os registros da organizacao):
 #   - registro sem vinculo: CANDIDATO (1 linha pronta para o orquestrador gravar
-#     banca_slug; nao cobre). Travas de ciclo: ordinal do titulo/edital diferente
+#     banca_slug; nao cobre), com a evidencia do ciclo para confirma-lo sem abrir
+#     a pagina (E5): ordinal do titulo, ano do slug, abertura do edital (relido
+#     para todo candidato: numero/ano e ordinal) e inscricoes, com o ordinal do
+#     registro ao lado; sem nada disso, "não grave banca_slug hoje". Travas de
+#     ciclo: ordinal do titulo/edital diferente
 #     do da linha do registro (XXXIX x XL), slug do ano seguinte (SEM REGISTRO,
 #     ciclo seguinte) ou de 2+ anos antes, registro EM PLANEJAMENTO x edital de
 #     abertura com mais de PLANEJAMENTO_DIAS, exame que nao e a edicao mais nova
 #     listada: outra edicao, nao candidato;
-#   - registro ja vinculado a outra pagina: ciclo maior (tjscjuiz27, 7exame) =
-#     NOVA EDICAO?; senao, edicao anterior (contagem);
+#   - registro ja vinculado a outra pagina: ciclo maior (tjscjuiz27, 7exame; ou
+#     qualquer ano, salvo 2+ anos antes, se o slug vinculado nao tem ano: trf2juiz
+#     -> trf2juiz27) = NOVA EDICAO?; senao, edicao anterior (contagem);
 #   - outro cargo do mesmo orgao: SEM REGISTRO (da mesma sigla, e de outro cargo).
 # Pagina sem registro (e sem candidato): aparece so com arquivo NAO visto dos
 # ultimos JANELA_MOVIMENTO dias — completa, com o edital, se a abertura e recente
@@ -97,11 +104,13 @@
 import argparse
 import html
 import json
+import math
 import os
 import re
 import subprocess
 import tempfile
-from concurrent.futures import ThreadPoolExecutor, wait
+import threading
+import time
 from datetime import date, datetime, timedelta
 
 import escopo
@@ -141,9 +150,16 @@ TRECHOS = [  # (rotulo, regex sobre o edital com espacos normalizados)
 TRECHOS_ALT = {
     "vagas": r"provimento de \d+ \([^)]{1,40}\) cargos[^.;]{0,90}",
     "remuneração": r"VENCIMENTO:?\s*R\$\s?[\d.]+,\d{2}",
-    "prova objetiva": r"[^.;]{0,90}ser(?:[ãa]o|á) realizadas?,? (?:no dia|na data prov[áa]vel de) %s"
+    "prova objetiva": r"[^.;]{0,90}(?P<verbo>ser(?:[ãa]o|á)) realizadas?,? (?:no dia|na data prov[áa]vel de) %s"
                       r"(?:,? (?:com duração de \d+h, )?das \d{1,2}h às \d{1,2}h)?" % DATA,
 }
+# o "será realizada no dia" da alternativa so e a prova se a frase fala dela antes (rev1 C10: casava sessao publica,
+# entrega de titulos...): "provas?" na frase (desde o ultimo ". ", ate FRASE_MAX caracteres antes; o TJPB lista os
+# cargos com ';' entre "A Prova Objetiva" e "serão realizadas"), sem resultado/recurso/sessao/... antes dela
+FRASE_MAX = 450
+RE_PROVA_PALAVRA = re.compile(r"\bprovas?\b", re.I)
+RE_ANTES_DA_PROVA = re.compile(r"resultado|gabarito|recurso|sess[ãa]o|identifica|vista|cart[ãa]o|\bloca(?:l|is)\b|"
+                               r"convoca|homolog", re.I)
 RE_RETIFICADO = re.compile(r"\((?:retificad[oa]|atualizad[oa]|consolidad[oa])\s+em\s+(\d{2})/(\d{2})/(\d{4})\)", re.I)
 RE_RETIFICACAO = re.compile(r"retifica|prorroga|errata", re.I)
 RE_RELEITURA = re.compile(r"retifica|prorroga|errata|\bedital\b", re.I)
@@ -168,7 +184,21 @@ def tmp(nome):
     return os.path.join(os.environ.get("ROBOZINHO_TMP", "/tmp"), nome)
 
 
+# prazo (time.monotonic) do paralelo() que roda nesta thread: curl e pdftotext nao passam dele
+_PRAZO = threading.local()
+
+
+def restante(padrao):
+    """Segundos que um curl/pdftotext pode usar: `padrao`, limitado ao que resta do teto do paralelo() que roda nesta
+    thread (minimo 1 s). Fora de paralelo(), o proprio `padrao`."""
+    fim = getattr(_PRAZO, "fim", None)
+    if fim is None:
+        return padrao
+    return max(1, min(padrao, int(math.ceil(fim - time.monotonic()))))
+
+
 def fetch(url, binario=False, timeout=40):
+    timeout = restante(timeout)
     with tempfile.NamedTemporaryFile(delete=False) as f:
         caminho = f.name
     try:
@@ -184,17 +214,39 @@ def fetch(url, binario=False, timeout=40):
 
 
 def paralelo(fn, itens, threads, teto):
-    """[fn(x) | None] na ordem de `itens`. None = excecao ou nao terminou dentro de `teto` segundos (o que ficou
-    rodando acaba sozinho no -m do curl e o resultado e descartado): a falha de um nao derruba os outros."""
+    """[fn(x) | None] na ordem de `itens`. None = excecao ou nao terminou dentro de `teto` segundos: a falha de um
+    nao derruba os outros. O teto limita o PROCESSO, nao so a espera (rev1 C5): as threads sao daemon (o
+    ThreadPoolExecutor juntava as suas na saida do interpretador, e o inicio.py esperava o -m 60 do curl e os 60 s
+    do pdftotext) e o curl/pdftotext de dentro delas usam so o que resta do teto (restante()); item que nao comecou
+    ate o teto nao comeca. Chamada aninhada herda o prazo de quem chama."""
     itens = list(itens)
     if not itens:
         return []
-    ex = ThreadPoolExecutor(max_workers=max(1, min(threads, len(itens))))
-    futs = [ex.submit(fn, x) for x in itens]
-    wait(futs, timeout=teto)
-    out = [f.result() if f.done() and not f.cancelled() and f.exception() is None else None for f in futs]
-    ex.shutdown(wait=False, cancel_futures=True)
-    return out
+    fim = time.monotonic() + teto
+    pai = getattr(_PRAZO, "fim", None)
+    fim = min(fim, pai) if pai is not None else fim
+    out = [None] * len(itens)
+    prox, trava = [0], threading.Lock()
+
+    def trabalho():
+        _PRAZO.fim = fim
+        while time.monotonic() < fim:
+            with trava:
+                i = prox[0]
+                prox[0] += 1
+            if i >= len(itens):
+                return
+            try:
+                out[i] = fn(itens[i])
+            except Exception:  # noqa: BLE001 — a falha de um nao derruba os outros
+                out[i] = None
+
+    ts = [threading.Thread(target=trabalho, daemon=True) for _ in range(max(1, min(threads, len(itens))))]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join(max(0.0, fim - time.monotonic()))
+    return list(out)            # copia: o que chegar depois do teto e descartado
 
 
 def limpa(s):
@@ -342,7 +394,7 @@ def texto_pdf(url):
         caminho = f.name
     try:
         t = subprocess.run(["pdftotext", "-l", "40", caminho, "-"], capture_output=True,
-                           timeout=60).stdout.decode("utf-8", "replace")
+                           timeout=restante(60)).stdout.decode("utf-8", "replace")
     except Exception as e:  # noqa: BLE001
         return None, "pdftotext: %s" % e
     finally:
@@ -350,12 +402,23 @@ def texto_pdf(url):
     return re.sub(r"\s+", " ", t), ""
 
 
+def prova_na_frase(t, i):
+    """A frase de `t` que vai ate a posicao `i` (desde o ultimo ". ", no maximo FRASE_MAX caracteres) tem a palavra
+    prova(s), sem resultado/recurso/sessao/... antes dela? (o sujeito do "será realizada" da alternativa)"""
+    antes = t[max(0, i - FRASE_MAX):i]
+    k = antes.rfind(". ")
+    frase = antes[k + 2:] if k >= 0 else antes
+    m = RE_PROVA_PALAVRA.search(frase)
+    return bool(m) and not RE_ANTES_DA_PROVA.search(frase[:m.start()])
+
+
 def trechos(t):
     out = {}
     for rotulo, padrao in TRECHOS:
         m = re.search(padrao, t)
         if not m and rotulo in TRECHOS_ALT:
-            m = re.search(TRECHOS_ALT[rotulo], t)
+            m = next((x for x in re.finditer(TRECHOS_ALT[rotulo], t)
+                      if "verbo" not in x.groupdict() or prova_na_frase(t, x.start("verbo"))), None)
         if m:
             out[rotulo] = m.group(0).strip()[:230]
     return out
@@ -382,6 +445,31 @@ def datas_trecho(trecho):
     return out
 
 
+# "EDITAL DE ABERTURA Nº01/2025", "EDITAL TRF2 Nº 154/2025", "EDITAL N.° 33/2026", "EDITAL DE ABERTURA N. 02/2026"
+RE_NUM_EDITAL = re.compile(r"\bEDITAL\b[^.]{0,40}?\bN\s?(?:[º°o]|\.\s?[º°]?)?\s*\d{1,4}/\d{4}", re.I)
+ABERTURA_MAX = 120
+
+
+def abertura_edital(t):
+    """Trecho do comeco do edital que da o ciclo (E5): numero/ano do edital e o ordinal do concurso ou exame, juntos
+    quando vizinhos ("EDITAL DE ABERTURA Nº01/2025 XVIII CONCURSO PÚBLICO PARA…"; TRF2: "EDITAL TRF2 Nº 154/2025 …
+    XIX Concurso público de provas…"). None sem nenhum dos dois nos primeiros 2500 caracteres."""
+    cab = (t or "")[:2500]
+    me, mo = RE_NUM_EDITAL.search(cab), RE_ORDINAL.search(cab)
+    partes = sorted(([(me.start(), me.end())] if me else []) + ([(mo.start(), min(len(cab), mo.end() + 60))] if mo else []))
+    if not partes:
+        return None
+    if len(partes) == 2 and partes[1][0] - partes[0][1] <= 8:       # vizinhos ("Nº01/2025 XVIII", "3/2026 do XL")
+        partes = [(partes[0][0], max(partes[0][1], partes[1][1]))]
+    segs = []
+    for a, b in partes:
+        seg = cab[a:b].strip()
+        if mo and b == min(len(cab), mo.end() + 60) and b < len(cab):     # janela do ordinal cortada: na palavra
+            seg = seg.rsplit(" ", 1)[0] + "…"
+        segs.append(seg)
+    return _curto(" … ".join(segs), ABERTURA_MAX)
+
+
 def ler_edital(c, ler=texto_pdf):
     """{campos} do edital de abertura (PDF da banca) e, se houver retificacao posterior ao texto consolidado, do
     trecho de inscricoes do LEIA-SE dela: edital_url, edital, retificacao_inscricoes, inscricoes | edital_erro.
@@ -395,6 +483,9 @@ def ler_edital(c, ler=texto_pdf):
         return {"edital_erro": erro}
     out["edital_url"] = alvo["url"]
     out["edital"] = trechos(t)
+    ab = abertura_edital(t)
+    if ab:
+        out["abertura"] = ab
     consolidado = data_efetiva(alvo) if RE_RETIFICADO.search(alvo["titulo"]) else ""
     rets = [a for a in c["arquivos"] if RE_RETIFICACAO.search(a["titulo"]) and a["url"]
             and not a["titulo"].lower().startswith("edital") and a.get("data_efetiva", a["data"]) > consolidado]
@@ -426,6 +517,21 @@ def confirmado(reg):
     if any(not p.get("confirmado") for p in reg.get("prazos") or []):
         return False
     return DOMINIO in (reg.get("fonte") or "")
+
+
+def sem_confirmacao(regs):
+    """'' se todo registro ja se apoia na banca (confirmado); senao, o que falta, para o motivo da releitura do
+    edital. Registro com fonte oficial nao e "sem confirmação oficial" (E-min d): o que falta e o prazo confirmado,
+    o selo (PENDÊNCIA) ou a fonte ser a da banca."""
+    nao = [r for r in regs if not confirmado(r)]
+    if not nao:
+        return ""
+    if not all(selos.fonte_oficial(r.get("fonte")) for r in nao):
+        return "registro sem confirmação oficial"
+    if any(not p.get("confirmado") for r in nao for p in r.get("prazos") or []):
+        return "prazos sem confirmação oficial"
+    pend = [r["selo"] for r in nao if r.get("selo") in ("PENDÊNCIA DE VERIFICAÇÃO", "PENDÊNCIA")]
+    return "registro em %s" % pend[0] if pend else "fonte oficial fora da banca"
 
 
 # ------------------------------------------------------------------ estado (URLs vistas)
@@ -498,14 +604,16 @@ def abertura_recente(c, hoje):
 
 def motivo_releitura(c, regs, hoje):
     if not regs:
-        # sem registro: so o candidato sem cargo (o edital decide) e o concurso novo com arquivo novo
-        if c.get("candidatos") and c.get("cargo_incerto"):
-            return "cargo do candidato não identificado"
+        # sem registro: o candidato (o edital decide o cargo incerto e da a evidencia do ciclo: E5) e o concurso novo
+        # com arquivo novo
+        if c.get("candidatos"):
+            return "cargo do candidato não identificado" if c.get("cargo_incerto") else "candidato: ciclo no edital"
         if c.get("novos_arquivos") and (c.get("ciclo_seguinte") or abertura_recente(c, hoje)) and not apoio_fora(c):
             return "concurso sem registro"
         return ""
-    if not all(confirmado(r) for r in regs):
-        return "registro sem confirmação oficial"
+    falta = sem_confirmacao(regs)
+    if falta:
+        return falta
     mov = [a for a in c["novos_arquivos"] if RE_RELEITURA.search(a["titulo"])]
     if mov:
         return "arquivo novo: %s" % mov[0]["titulo"]
@@ -588,11 +696,7 @@ def partes_slug(slug):
     s = PREFIXO_CARGO.sub("", re.sub(r"[^a-z0-9]", "", partes[-1]))
     m = re.match(r"^(trt|trf)(\d+)([a-z]*)(\d*)$", s)
     if m:                                   # a regiao e numero: trt24 (24a), trt225 (2a, 2025), trf5juiz26
-        dig, ano = m.group(2), m.group(4)
-        if not ano:
-            corte = 1 if m.group(1) == "trf" else (len(dig) if len(dig) <= 2 else 1 if len(dig) == 3
-                                                    else 2 if len(dig) == 4 else len(dig) - 4)
-            dig, ano = dig[:corte], dig[corte:]
+        dig, ano = escopo.regiao_ano(m.group(1), m.group(2), m.group(4))     # a mesma regra do escopo regional
         return m.group(1) + dig, _ano(ano)
     ano = None
     for _ in range(2):                      # mpes25promotor: cargo e depois o ano
@@ -766,7 +870,10 @@ def casar(alvo, concursos, hoje):
             outra = ligado.get(r["id"])
             if outra:
                 cp, cv = ciclo(c["slug"]), max((ciclo(s) or 0) for s in outra)
-                if cp and cv and cp > cv:
+                # vinculado sem ano (trf2juiz): a pagina com ano e edicao nova (trf2juiz27), nao "edicao anterior"
+                # (rev1 C4) — salvo o ano de 2+ anos antes, a mesma trava do candidato (trava_ciclo)
+                velha = not cv and cp and 1990 <= cp < hoje.year - 1
+                if cp and (not cv or cp > cv) and not velha:
                     c["nova_edicao"] = {"id": r["id"], "vinculada": outra[0]}
                 else:
                     c["edicao"] = "edição anterior ou outra página de %s (vinculado a %s)" % (r["id"], outra[0])
@@ -812,11 +919,19 @@ def categoria(c):
 
 
 def coletar(hoje, concursos, estado=None, buscar=None, ler=texto_pdf):
+    """Listagem + paginas + analise. Listagem fora do ar ou ilegivel (200 sem o bloco da view em andamento: view
+    renomeada) nao derruba as paginas com banca_slug, lidas sempre (rev1 C3: antes voltava cedo, sem nenhuma, e o
+    "http 200" enganava); `erro` diz o que houve com a listagem e `http` e 200 se alguma pagina respondeu."""
     codigo, lista, falhas = listagem(buscar)
     res = {"banca": "FGV", "dominio": DOMINIO, "http": codigo, "data": hoje.isoformat(), "concursos": []}
-    if codigo != 200 or not lista:
-        return res
     vinculados = {norm_slug(r.get("banca_slug")) for r in concursos or [] if isinstance(r, dict)} - {""}
+    if codigo != 200 or not lista:
+        res["erro"] = ("listagem ilegível: http 200 sem o bloco de concursos em andamento" if codigo == 200 and falhas
+                       else "listagem vazia: http 200 sem concursos em andamento" if codigo == 200 else
+                       "http %s" % codigo)
+        lista = []
+        if not vinculados:
+            return res
     fontes = {_url_norm(r.get(k)) for r in concursos or [] if isinstance(r, dict) for k in ("fonte", "url_oficial")}
     alvo, fora = [], {"escopo": [], "carreira": []}
     for c in lista:
@@ -831,14 +946,20 @@ def coletar(hoje, concursos, estado=None, buscar=None, ler=texto_pdf):
             alvo.append(c)
     listados = {c["slug"] for c in lista}
     for s in sorted(vinculados - listados):          # registro vinculado que saiu da listagem: le a pagina assim mesmo
-        alvo.append({"slug": s, "titulo": "", "url": url_de_slug(s), "fora_da_listagem": True,
+        alvo.append({"slug": s, "titulo": "", "url": url_de_slug(s), "fora_da_listagem": bool(lista),
                      "url_alt": None if "/" in s else BASE + "/" + s})
     lidas = paralelo(lambda c: pagina(c, buscar), alvo, THREADS, TETO_PAGINAS_S)
     alvo = [r if r is not None else dict(c, http=0, arquivos=[], erro="sem resposta em %d s" % TETO_PAGINAS_S)
             for c, r in zip(alvo, lidas)]
     res["concursos"] = analisar(alvo, hoje, concursos, estado, ler)
     res["listagem"] = {"itens": len(lista), "paginas_com_falha": falhas, "fora_escopo": fora["escopo"],
-                       "fora_carreira": fora["carreira"]}
+                       "fora_carreira": fora["carreira"], "http": codigo}
+    if res.get("erro"):
+        res["listagem"]["erro"] = res["erro"]
+        if any(c.get("http") == 200 for c in res["concursos"]):
+            res["http"] = 200
+        else:                                         # nem a listagem nem as paginas vinculadas: "nao lida", como antes
+            res["http"], res["concursos"] = (codigo if codigo != 200 else 0), []
     return res
 
 
@@ -878,6 +999,9 @@ def analisar(alvo, hoje, concursos, estado=None, ler=texto_pdf):
                     c["mesma_sigla"] = [r["id"] for r in cand]
                 c["cargo_incerto"] = bool(so) and not certo
         regs = [por_id[i] for i in c["registros"] if i in por_id]
+        # o ordinal da linha de cada candidato, ao lado da evidencia do ciclo na linha CANDIDATO (E5)
+        ords = {i: "/".join(ordinais(por_id[i].get("linha")).values()) for i in c.get("candidatos") or [] if i in por_id}
+        c["ordinal_registro"] = {i: o for i, o in ords.items() if o}
         # coberto = a pagina oficial deste registro foi lida hoje: o coletor nao gasta busca com ele
         c["coberto"] = c["registros"] if (len(c["registros"]) == 1 and c.get("http") == 200
                                           and c.get("arquivos")) else []
@@ -1178,6 +1302,38 @@ def _completo(c):
         print('DIVERGE DO REGISTRO: %s edital="%s" registro="%s"' % (d["id"], d["edital"], d["registro"]))
 
 
+def _dmy(iso):
+    return "%s/%s/%s" % (iso[8:10], iso[5:7], iso[:4])
+
+
+def evidencia_ciclo(c):
+    """O que a pagina do CANDIDATO diz do ciclo, para confirma-lo sem abrir a pagina (E5): ordinal do titulo, ano do
+    slug (ou a edicao do exame), trecho de abertura do edital lido hoje (numero/ano e ordinal) e as inscricoes dele;
+    ao lado, o ordinal da linha do registro (c["ordinal_registro"], de analisar). '' sem nada disso: o orquestrador
+    nao grava banca_slug no escuro (o trf2juiz saia so com o titulo generico)."""
+    partes = []
+    o = ordinais(c.get("titulo"))
+    if o:
+        partes.append("título %s" % "/".join(o.values()))
+    if c["slug"].startswith("exames/"):
+        n = ciclo(c["slug"])
+        if n:
+            partes.append("edição %d (slug)" % n)
+    else:
+        ano = partes_slug(c["slug"])[1]
+        if ano:
+            partes.append("ano %d (slug)" % ano)
+    if c.get("abertura"):
+        partes.append('edital "%s"' % c["abertura"])
+    ins = c.get("inscricoes") or {}
+    if ins.get("inicio") and ins.get("fim"):
+        partes.append("inscrições %s a %s" % (_dmy(ins["inicio"]), _dmy(ins["fim"])))
+    if not partes:
+        return ""
+    reg = ["%s %s" % (i, o) for i, o in sorted((c.get("ordinal_registro") or {}).items())]
+    return "; ".join(partes) + (" (registro: %s)" % ", ".join(reg) if reg else "")
+
+
 def _ult(c):
     a = (c.get("arquivos") or [None])[0]
     return ("últ. %s %s" % (dm(a.get("data_efetiva") or a["data"]), _curto(a["titulo"], 60))) if a else "sem arquivos"
@@ -1186,7 +1342,8 @@ def _ult(c):
 def imprimir(res):
     cs = res.get("concursos") or []
     if res.get("http") != 200 or not cs:
-        print("BANCA FGV: página não lida (http %s) — concursos da FGV seguem pela busca do coletor." % res.get("http"))
+        print("BANCA FGV: página não lida (%s) — concursos da FGV seguem pela busca do coletor."
+              % (res.get("erro") or "http %s" % res.get("http")))
         return
     grupos = {}
     for c in cs:                                  # bancas.json antigo (sem `exibir`): tudo completo, como antes
@@ -1200,12 +1357,16 @@ def imprimir(res):
         _completo(c)
     for c in grupos.get("candidato", []):
         ids = c["candidatos"]
-        print('CANDIDATO %s ← %s | %s | %s | %s | %s%s → confirme o ciclo (ordinal/ano) e grave '
-              'ledger_updates.concursos.%s.banca_slug="%s"' % (
-                  " ou ".join(ids), c["slug"], c.get("situacao") or "?", _curto(c.get("titulo"), 90), _ult(c),
-                  c["url"], (" (cargo não identificado: confirme qual)" if len(ids) > 1 else
-                             " (cargo não identificado no título nem no edital)") if c.get("cargo_incerto") else "",
-                  ids[0] if len(ids) == 1 else "<id>", c["slug"]))
+        ev = evidencia_ciclo(c)
+        cargo = ((" (cargo não identificado: confirme qual)" if len(ids) > 1 else
+                  " (cargo não identificado no título nem no edital)") if c.get("cargo_incerto") else "")
+        if ev:
+            fim = ' | ciclo na página: %s%s → confirme o ciclo e grave ledger_updates.concursos.%s.banca_slug="%s"' % (
+                ev, cargo, ids[0] if len(ids) == 1 else "<id>", c["slug"])
+        else:
+            fim = " | sem ordinal/ano na página: não grave banca_slug hoje%s" % cargo
+        print("CANDIDATO %s ← %s | %s | %s | %s | %s%s" % (
+            " ou ".join(ids), c["slug"], c.get("situacao") or "?", _curto(c.get("titulo"), 90), _ult(c), c["url"], fim))
     for c in grupos.get("exame", []):
         x = c["exame_sem_registro"]
         print('CANDIDATO a registro NOVO %s ← %s | %s | %s | %s | %s → exame nacional sem registro: crie '
@@ -1235,7 +1396,10 @@ def imprimir(res):
     conta = [("%d %s" % (n, txt)) for n, txt in conta if n]
     if conta:
         print("  sem linha (só contagem, sem registro): " + "; ".join(conta))
-    if lst.get("paginas_com_falha"):
+    if lst.get("erro"):
+        print("  sem a listagem hoje (%s): só as páginas com banca_slug foram lidas — candidatos, movimento e "
+              "concurso novo da FGV seguem pelo coletor" % lst["erro"])
+    elif lst.get("paginas_com_falha"):
         print("  listagem incompleta: ?page=%s não lida(s) — concursos dela seguem pelo coletor"
               % ",".join(str(p) for p in lst["paginas_com_falha"]))
 

@@ -19,7 +19,11 @@
 # duas linhas; a PGE-RJ poe o titulo do ato sem palavra-chave — "DESIGNAÇÃO DE
 # MEMBRO DA COMISSÃO EXAMINADORA" — e a data na linha de baixo). Carimbo da
 # pagina ("Página atualizada em ...", "Brasília, 21 de novembro de 2026") nao e
-# item: so a data nao basta quando o resto e curto ou e "atualizado em". O hash dos
+# item: so a data nao basta quando o resto e curto ou e "atualizado em". Navegacao
+# tambem nao (E-min c): o <title> da pagina, palavra-chave so no meio da palavra
+# ("Aprovação"), e — sem data — chamada para clicar, titulo de secao e pedaco de
+# frase que comeca por preposicao em minuscula. O inicio.py nao manda para ca a
+# url_oficial que e a pagina da banca ja lida pelo bancas.py. O hash dos
 # itens e comparado com o da ultima leitura registrada (work/concursos-estado.json,
 # secao "paginas", gravada pelo helper quando a execucao e registrada):
 #   MUDOU  — ha item novo: os novos impressos, do mais recente (1a data do item)
@@ -50,7 +54,8 @@ from urllib.parse import urlparse
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 UA = "Mozilla/5.0 (X11; Linux x86_64) Robozinho/1.0"
-CHAVE = re.compile(r"concurso|edital|inscri[çc]|resultado|prova|homolog|convoca|retifica|nomea", re.I)
+# palavra-chave no comeco da palavra: "Certificado de Aprovação" (link do rodape do ENAM) nao e "prova"
+CHAVE = re.compile(r"\b(?:concurso|edital|inscri[çc]|resultado|prova|homolog|convoca|retifica|nomea)", re.I)
 MESES = {"janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4, "maio": 5, "junho": 6,
          "julho": 7, "agosto": 8, "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12}
 # data de ato: DD/MM/AAAA ou "18 de novembro de 2026" ("Atualizado em: 19 Novembro, 2026" nao casa)
@@ -61,6 +66,14 @@ CONTINUA = re.compile(r"[,.;:]|[-–—]\s*\w|(?:publicad|disponibiliz|retificad
 # novo; so a data nao faz dele item (com palavra-chave, continua item, como antes)
 RUIDO = re.compile(r"\b(?:atualizad[ao]|[úu]ltima\s+atualiza[çc][ãa]o|postad[ao]|acessad[ao]|acesso)\s+em\b|^\W*hoje\b",
                    re.I)
+# navegacao do site que casa CHAVE e nao e ato (so item SEM data: o datado e sempre ato) — E-min c: chamada para
+# clicar ("Solicite aqui...", "Acesse...", "Faça sua inscrição"), titulo de secao ("Arquivos do concurso") e pedaco
+# de frase quebrada pelo HTML, que comeca por preposicao/artigo em minuscula ("da FGV para concursos e provas
+# realizadas."; "prova escrita geral - questões", da PGE-RJ, fica). O <title> da pagina ("Concursos Públicos - Portal
+# DPESP") sai em texto_util.
+NAVEGACAO = (re.compile(r"^(?:solicite|clique|acesse|cadastre|fa[çc]a\s+(?:sua|seu|a|o)\b)", re.I),
+             re.compile(r"^(?:arquivos|documentos|editais|publica[çc][õo]es|links)(?:\s+(?:do|dos|e)\s+\w+)?\W*$", re.I),
+             re.compile(r"^(?:de|da|do|das|dos|e|a|o|as|os|para|que|com|em|no|na|nos|nas|pelo|pela)\s"))
 MIN_TEXTO = 300
 MAX_TRECHOS = 200
 MAX_IMPRESSOS = 5
@@ -83,7 +96,8 @@ def baixar(url, timeout=20):
 
 def texto_util(pagina):
     t = re.sub(r"(?s)<!--.*?-->", " ", pagina or "")
-    t = re.sub(r"(?is)<(script|style|noscript|svg|nav|footer|header)\b.*?</\1>", " ", t)
+    # <head>/<title>: o titulo da pagina ("19º Concurso ... | PGE", "Concursos Públicos - Portal DPESP") nao e ato
+    t = re.sub(r"(?is)<(head|title|script|style|noscript|svg|nav|footer|header)\b.*?</\1>", " ", t)
     t = re.sub(r"(?i)<br\s*/?>|</p>|</div>|</li>|</tr>|</h\d>|</a>|</td>", "\n", t)
     t = html.unescape(re.sub(r"<[^>]+>", " ", t))
     return [l for l in (re.sub(r"\s+", " ", x).strip() for x in t.split("\n")) if l]
@@ -114,6 +128,8 @@ def trechos(linhas):
             i += 1
             partes += 1
         if len(item) < 12 or not (CHAVE.search(item) or (DATA.search(item) and not _carimbo(item))):
+            continue
+        if not DATA.search(item) and any(r.search(item) for r in NAVEGACAO):
             continue
         item = item[:300]
         if item not in out:

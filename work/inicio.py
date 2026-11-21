@@ -3,9 +3,10 @@
 # inicio.py — passo 1 da ROTINA num comando so. Calcula tudo o que e
 # deterministico e o orquestrador antes fazia a mao:
 #   - ancora de data (America/Sao_Paulo), dia do ano, execution_id;
-#   - migracoes de dado (work/migracoes.py: aplicar(hoje, work_dir)) ANTES de ler
-#     estado e ledger; as linhas que devolvem saem logo abaixo de HOJE; modulo
-#     ausente ou erro = "ALERTA: migracoes: <erro>" e segue;
+#   - migracoes de dado (work/migracoes.py: aplicar(hoje, work_dir)) DEPOIS do teste
+#     de RE-EXECUCAO (nesse ramo nada e aplicado: o ledger fica limpo, sem commit
+#     a fazer) e ANTES de ler o ledger; as linhas que devolvem saem logo abaixo de
+#     HOJE; modulo ausente ou erro = "ALERTA: migracoes: <erro>" e segue;
 #   - janela elastica a partir do window_end do estado (teto de 7 dias),
 #     1a execucao da semana/gap, recesso forense, FERIADOS (work/feriados.py:
 #     nacionais, pontos facultativos e Lei 5.010/66 art. 62) — a edicao sai
@@ -45,9 +46,12 @@
 #   - rede (curl na raiz, uma rodada paralela): proxy (CONNECT 403: so o dono
 #     libera) x sem resposta x http NNN x so JavaScript (SPA: www.cebraspe.org.br
 #     nunca e "leia por curl") x ok, para os dominios dos concursos e os que so o
-#     dono libera (REDE_DONO) — linha "REDE (...) | REDE do ambiente: ...";
+#     dono libera (REDE_DONO) — linha "REDE (...) | REDE do ambiente: ..." (LIBERADO, com ordem de
+#     gravar no ledger, so o que passou pelo proxy e respondeu; "sem resposta" = indeterminado hoje);
 #   - pagina oficial (work/paginas_oficiais.py) de TODA url_oficial no escopo,
-#     todo dia (dominio recusado/sem resposta nao e baixado); MUDOU/NOVA entra no foco;
+#     todo dia (dominio recusado/sem resposta nao e baixado; a url_oficial que e a
+#     pagina da banca lida hoje pelo bancas.py para o mesmo registro, nao); MUDOU/NOVA
+#     entra no foco;
 #   - LEDGER resumido e enxuto: so os concursos EM FOCO com a linha completa
 #     (prazo em ate 30 dias, mudanca recente, pendencia ativa, rodizio, banca
 #     lida hoje, pagina oficial com item novo); os demais contados por bloco, com
@@ -209,6 +213,31 @@ def alcancaveis(dominios):
 def situacao_rede(d, rede):
     """Rotulo do dominio para as linhas REDE: o detalhe da sonda ou, sem ele (teste), ok/fora."""
     return SONDA.get(d) or ("ok" if rede.get(d) else "fora")
+
+
+def linha_rede_dono(rede):
+    """Texto da linha "REDE do ambiente: ..." para os dominios que so o dono libera (REDE_DONO). LIBERADO (com a
+    ordem de gravar no ledger) so o que passou pelo proxy e respondeu (ok, http NNN, so JavaScript); "sem resposta"
+    nao prova liberacao (com a rede ruim, os 8 viravam "liberados" e a rotina mandava grava-los: rev1 C2) — vai a
+    parte, como indeterminado hoje, sem ordem de gravar."""
+    dono = {d: situacao_rede(d, rede) for d in REDE_DONO}
+    recusa = [d for d, s_ in dono.items() if s_ == "proxy"]
+    indet = [d for d, s_ in dono.items() if s_ in ("sem resposta", "fora")]
+    livres = ["%s (%s)" % (d, s_) for d, s_ in dono.items() if d not in recusa and d not in indet]
+    partes = []
+    if livres:
+        partes.append("LIBERADO pelo proxy: %s — atualize em ledger_updates as fontes (status, nota) e as pendências "
+                      "(dominio_oficial) ligadas; o proxy ainda recusa: %s" % (", ".join(livres),
+                                                                                ", ".join(recusa) or "nenhum"))
+    elif len(recusa) == len(dono):
+        partes.append("o proxy recusa os %d domínios que só o dono libera" % len(dono))
+    elif recusa:
+        partes.append("o proxy recusa %d dos %d domínios que só o dono libera: %s" % (len(recusa), len(dono),
+                                                                                       ", ".join(recusa)))
+    if indet:
+        partes.append("indeterminado hoje (sem resposta: não prova liberação — nada a gravar no ledger): %s"
+                      % ", ".join(indet))
+    return "; ".join(partes)
 
 
 def orgao(c):
@@ -382,16 +411,7 @@ def main():
     doy = int(agora.strftime("%j"))
     os.makedirs(tmp(""), exist_ok=True)
 
-    # migracoes de dado (work/migracoes.py), antes de ler o estado e o ledger: o que elas gravam ja vale hoje e vai
-    # no commit do finalizar.sh. Modulo ausente (merge parcial) ou falha: segue com os dados como estao.
-    try:
-        import migracoes
-        migr = [str(x) for x in (migracoes.aplicar(hoje, work_dir=AQUI) or [])]
-    except Exception as e:  # noqa: BLE001 — nunca bloqueia o passo 1
-        migr = ["ALERTA: migracoes: %s" % (str(e) or type(e).__name__)]
     estado = ler("robozinho-estado.json")
-    ledger = ler("robozinho-aprendizado.json")
-    migrar_armadilhas(ledger)
     ult = estado.get("ultima_execucao") or {}
 
     alertas = []
@@ -412,8 +432,6 @@ def main():
                     f.write("RE-EXECUÇÃO: a edição de hoje já existe; não há coleta. Siga a saída do work/inicio.py.\n")
             print("HOJE %s (%s) %s | execution_id=%s" % (hoje_br, DIAS[agora.weekday()],
                                                        agora.strftime("%H:%M:%S %z"), exec_id))
-            for l in migr:
-                print(l)
             print("ASSUNTO HOJE: %s" % assunto)
             print("RE-EXECUÇÃO: a edição de hoje já está registrada (delivery %s, draft_id %s, janela até %s)."
                   % (ult.get("delivery"), ult.get("draft_id"), ult.get("window_end")))
@@ -438,6 +456,18 @@ def main():
         ult = dict(antes[-1]) if antes else {}
         if de_hoje.get("window_start"):
             ult["window_end"] = de_hoje["window_start"]
+
+    # migracoes de dado (work/migracoes.py), DEPOIS do ramo RE-EXECUCAO (rev3 P4: ali nada roda depois do inicio e o
+    # ledger ficava sujo, sem commit) e antes de ler o ledger: o que elas gravam ja vale hoje e vai no commit do
+    # finalizar.sh. So mexem no ledger (o estado lido acima nao muda). Modulo ausente (merge parcial) ou falha: segue
+    # com os dados como estao.
+    try:
+        import migracoes
+        migr = [str(x) for x in (migracoes.aplicar(hoje, work_dir=AQUI) or [])]
+    except Exception as e:  # noqa: BLE001 — nunca bloqueia o passo 1
+        migr = ["ALERTA: migracoes: %s" % (str(e) or type(e).__name__)]
+    ledger = ler("robozinho-aprendizado.json")
+    migrar_armadilhas(ledger)
 
     inicio = datetime.fromisoformat(ult["window_end"]) if ult.get("window_end") else \
         agora - timedelta(hours=72 if agora.weekday() == 0 else 24)
@@ -555,7 +585,17 @@ def main():
     # foco. Dominio que o proxy recusa ou que nao respondeu a sonda nao e baixado (o TRF3 dava HTTP 0 todo dia);
     # so-JavaScript sai do "acessivel".
     paginas = []
-    alvos_pag = {c["id"] for c in no_escopo if c.get("url_oficial")}
+    # url_oficial que e a propria pagina da banca lida acima pelo bancas.py para o mesmo registro (banca_slug ou
+    # vinculo pela fonte): sem leitura duplicada — o ENAM saia nas duas, a 2a com o rodape da FGV (E-min c)
+    lidas_banca = {}
+    for c in banca["concursos"]:
+        if c.get("http") == 200:
+            for i in c.get("registros") or []:
+                lidas_banca.setdefault(i, set()).add(c["slug"])
+    pag_da_banca = sorted(c["id"] for c in no_escopo if bancas and c.get("url_oficial")
+                          and selos.host(c["url_oficial"]) == bancas.DOMINIO
+                          and bancas.norm_slug(c["url_oficial"]) in lidas_banca.get(c["id"], ()))
+    alvos_pag = {c["id"] for c in no_escopo if c.get("url_oficial")} - set(pag_da_banca)
     if alvos_pag:
         pular = {h: SONDA[h] for h in (selos.host(c["url_oficial"]) for c in no_escopo if c["id"] in alvos_pag)
                  if SONDA.get(h) in ("proxy", "sem resposta")}
@@ -729,6 +769,13 @@ def main():
     foco = set(motivos)
     rede_fora = ["%s (%s)" % (d, situacao_rede(d, rede)) for d in sorted(dom_conc) if not rede.get(d)]
 
+    # listagem da FGV fora do ar ou ilegivel (bancas.coletar: `erro`): o coletor nao a tira da descoberta (rev1 C3)
+    if banca.get("erro") or banca.get("http") != 200:
+        banca_listagem = ("A listagem da FGV não foi lida hoje (%s): na descoberta (C), a FGV conta como as outras "
+                          "bancas." % (banca.get("erro") or "http %s" % banca.get("http")))
+    else:
+        banca_listagem = ("A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas "
+                          "(Cebraspe, FCC, Vunesp, bancas regionais).")
     vars_ = {
         "HOJE_BR": hoje_br, "DIA_SEMANA": DIAS[agora.weekday()],
         "INICIO": inicio.isoformat(), "FIM": agora.isoformat(),
@@ -748,10 +795,14 @@ def main():
         "CONCURSOS_ACOMPANHADOS": acompanhados or "(nenhum)",
         "BANCA_COBERTOS": "; ".join("%s (id %s)" % (orgao(c), c["id"]) for c in concursos
                                     if c["id"] in cobertos) or "(nenhum hoje)",
+        # listagem da FGV fora do ar ou ilegivel (bancas.coletar: `erro`): o coletor nao pode tira-la da descoberta
+        "BANCA_LISTAGEM": banca_listagem,
         "REGISTRO_ATUAL": registro_atual(no_escopo, foco).strip(),
         "ESCOPO_APOIO": escopo.TEXTO_ESCOPO_APOIO,
         "DATA_MIN_NOVO": data_min_novo.strftime("%d/%m/%Y"),
-        "REDE_FORA": ", ".join(sorted(d for d in dom_conc if not rede.get(d))) or "nenhum",
+        # inclui os dominios que so o dono libera fora do alcance hoje (vunesp, FCC, in.gov.br, apis/cdn do
+        # Cebraspe recusados pelo proxy): o coletor tentava curl neles (rev1 C8)
+        "REDE_FORA": ", ".join(sorted(d for d in dom_conc | set(REDE_DONO) if not rede.get(d))) or "nenhum",
     }
 
     def sub(m):
@@ -838,20 +889,14 @@ def main():
                    % (i + (", prazos só em secundária" if k == "secundária" else ""),
                       "(só de fonte secundária)" if k == "secundária" else "confirmados", REMOCAO_DIAS))
     if fora:
+        # o desfecho vai ao leitor ("Saiu do acompanhamento" no dia, pelo montador): decisao de transparencia (rev1 C9)
         out.append("FORA DO ESCOPO (apoio só %s ou nacional): %s — sem busca nem foco; remova (remover + desfecho "
-                   "\"fora do escopo regional\", que não vai ao leitor)%s"
+                   "\"fora do escopo regional\")%s"
                    % ("/".join(escopo.UFS_APOIO), ", ".join(fora),
                       ", com as pendências " + ", ".join(pend_fora) if pend_fora else ""))
-    # REDE do ambiente: os dominios que so o dono libera (REDE_DONO); a liberacao tem de chegar ao ledger
-    dono = {d: situacao_rede(d, rede) for d in REDE_DONO}
-    livres = ["%s (%s)" % (d, s_) for d, s_ in dono.items() if s_ != "proxy"]
     out.append("REDE (domínios oficiais dos concursos, curl na raiz): %d legíveis; fora: %s" % (
         sum(1 for d in dom_conc if rede.get(d)), ", ".join(rede_fora) or "nenhum"))
-    out.append("REDE do ambiente: %s" % (
-        "LIBERADO pelo proxy: %s — atualize em ledger_updates as fontes (status, nota) e as pendências "
-        "(dominio_oficial) ligadas; o proxy ainda recusa: %s" % (
-            ", ".join(livres), ", ".join(d for d, s_ in dono.items() if s_ == "proxy") or "nenhum")
-        if livres else "o proxy recusa os %d domínios que só o dono libera" % len(dono)))
+    out.append("REDE do ambiente: " + linha_rede_dono(rede))
     for p in ledger.get("pendencias_vivas", []):
         if p.get("faixa") == "ativa" and int(p.get("execucoes") or 0) >= LIMITE_ATIVA:
             alertas.append("pendência %s ativa há %s execuções (limite %d): no passo 4, em "
@@ -873,6 +918,9 @@ def main():
         except Exception as e:  # noqa: BLE001
             print("PAGINA OFICIAL: não lida (%s) — os concursos com url_oficial seguem pelo coletor"
                   % (next((r.get("erro") for r in paginas if r.get("erro")), None) or e))
+    if pag_da_banca:
+        print("PAGINA OFICIAL = página da banca, lida acima em BANCA FGV (sem leitura duplicada): "
+              + ", ".join(pag_da_banca))
     print("\n".join(resumo_ledger(ledger, foco, motivos, pend_no_coletor, omitir=set(pend_fora))))
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, coletor-jota e "

@@ -36,13 +36,17 @@
 #       hoje contesta o fim das inscricoes do registro ou o prazo escrito hoje)
 #       o selo por data fica SUSPENSO, com aviso acionavel;
 #     - PROVA EM BREVE sem prova (de qualquer confirmacao) nos proximos 14 dias
-#       — a prova passou, foi adiada ou a proxima e distante — sai da familia:
-#       PENDENCIA DE VERIFICACAO, com o motivo pedindo PROVA REALIZADA ou a data
-#       nova (antes ficava PROVA EM BREVE depois da prova, ou voltava a
-#       INSCRICOES ENCERRADAS com a banca lida). Sem prazo de prova, o selo fica.
-#   _dm: DD/MM sem ano herda o ano da proxima data completa do mesmo trecho;
-#     cada ano e tentado sozinho (29/02); inicio_inscricoes exige inicio antes do
-#     fim e a menos de um ano dele.
+#       e com prova JA PASSADA sai da familia: PENDENCIA DE VERIFICACAO, com o
+#       motivo pedindo PROVA REALIZADA ou a data nova (antes ficava PROVA EM BREVE
+#       depois da prova, ou voltava a INSCRICOES ENCERRADAS com a banca lida).
+#       Prova adiada ou distante sem prova passada segue as regras normais (fica,
+#       ou INSCRICOES ENCERRADAS com a banca lida, e volta a PROVA EM BREVE quando
+#       a data entra na janela): tira-la da familia a deixava em PENDENCIA para
+#       sempre. Sem prazo de prova, o selo fica.
+#   _dm: DD/MM sem ano herda o ano do fim do mesmo intervalo ou da proxima etapa
+#     datada do mesmo trecho (nunca de um ato citado: "conforme o Edital nº 1, de
+#     15/10/2026"); cada ano e tentado sozinho (29/02); inicio_inscricoes exige
+#     inicio antes do fim e a menos de um ano dele.
 #   candidato_remocao: "confirmados" ou, sem prazo confirmado, "secundária"
 #     (todas as datas vencidas ha mais de 30 dias e nenhuma futura).
 #   classe_prazo: "inscricao definitiva" (2a fase da magistratura) e eventos
@@ -213,6 +217,14 @@ RE_LINHA_FIM = re.compile(r"inscri[çc][õo]es[^;]{0,80}?(?:\bat[ée]|\ba|encerr
                           r"encerram\s+em|terminam\s+em)\s+(?:[àa]s\s+)?(?:\d{1,2}h\d{0,2}\s+(?:de|do dia)\s+)?"
                           + DM, re.I)
 RE_DATA_COMPLETA = re.compile(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b")
+# fim do MESMO intervalo, logo depois da data sem ano: "19/10 até 16h de 26/11/2026", "02/06 a 01/07/2027"
+RE_FIM_INTERVALO = re.compile(r"\s*(?:a|at[ée]|[-–—])\s*(?:[àa]s\s+)?(?:\d{1,2}h\d{0,2}(?:min)?\s+(?:de|do\s+dia)\s+)?"
+                              r"(\d{1,2})/(\d{1,2})/(\d{4})\b", re.I)
+# o que separa a data sem ano de uma data completa que NAO e etapa do mesmo cronograma: citacao de ato ou de
+# noticia ("conforme o Edital nº 1, de 15/10/2026", "segundo matéria de 22/10/2026", "DOU de 03/09/2026")
+RE_CITACAO = re.compile(r"edital|portaria|resolu[çc]|aviso|\bato\b|comunicado|retifica|errata|publica|disponibiliz|"
+                        r"divulga|mat[ée]ria|not[íi]cia|conforme|segundo|\bDO[UEM]?\b|\bDJ[Ee]?\b|di[áa]rio|"
+                        r"\bn[º°]|\bn\.\s?º", re.I)
 
 
 def _ymd(y, mth, d):
@@ -223,15 +235,24 @@ def _ymd(y, mth, d):
 
 
 def _dm(m, ref):
-    """DD/MM[/AAAA] -> date. Sem o ano: herda o da proxima data completa do MESMO trecho (ate o ';'), a data sem
-    ano vindo antes dela e a menos de um ano ("inscrições de 26/01 a 26/02 e prova em 19/04/2026" -> 2026, nao
-    2027; "de 02/06 a 01/07/2027" -> 2027); sem ancora no trecho, o ano mais proximo de `ref`. Cada ano e
-    tentado sozinho: 29/02 nao derruba os outros candidatos."""
+    """DD/MM[/AAAA] -> date. Sem o ano: herda o da ancora do MESMO trecho (ate o ';'), a data sem ano vindo antes
+    dela e a menos de um ano; sem ancora, o ano mais proximo de `ref`. Ancora (rev1 C6):
+      - o fim do mesmo intervalo, logo depois da data ("de 02/06 a 01/07/2027" -> 2027; "de 20/12 a 15/01/2027"
+        -> 2026);
+      - senao, a proxima data completa do trecho so se for etapa do mesmo cronograma, sem citacao no meio
+        ("inscrições de 26/01 a 26/02 e prova em 19/04/2026" -> 2026, nao 2027). A data de um ato citado nao e
+        ancora: "de 20/10 até 26/11, conforme o Edital nº 1, de 15/10/2026" em 23/11/2026 dava 2025.
+    Cada ano e tentado sozinho: 29/02 nao derruba os outros candidatos."""
     d, mth, y = int(m.group(1)), int(m.group(2)), m.group(3)
     if y:
         y = int(y)
         return _ymd(y + 2000 if y < 100 else y, mth, d)
-    c = RE_DATA_COMPLETA.search((m.string or "")[m.end():].split(";", 1)[0])
+    resto = (m.string or "")[m.end():].split(";", 1)[0]
+    c = RE_FIM_INTERVALO.match(resto)
+    if not c:
+        c = RE_DATA_COMPLETA.search(resto)
+        if c and RE_CITACAO.search(resto[:c.start()]):
+            c = None
     ancora = _ymd(int(c.group(3)), int(c.group(2)), int(c.group(1))) if c else None
     if ancora:
         for ano in (ancora.year, ancora.year - 1):
@@ -287,19 +308,21 @@ def proxima_prova(reg, hoje, extras=None):
 
 # ------------------------------------------------------------------ selo por data
 def _saida_prova_em_breve(reg, hoje, extras=None):
-    """Motivo para tirar PROVA EM BREVE da familia quando nenhuma prova do registro (de qualquer confirmacao) cai
-    em [hoje, hoje + PROVA_BREVE_DIAS]: a prova passou ou foi para longe (adiada, 2a prova distante). None se ha
-    prova na janela ou nenhum prazo de prova (sem dado: o selo fica). O selo cai para SELO_SEM_CONFIRMACAO e o
-    orquestrador escreve PROVA REALIZADA (aplicada) ou a data nova; antes ficava PROVA EM BREVE semanas depois da
-    prova (tjrs, trf5) ou voltava a INSCRICOES ENCERRADAS (tjap, tjsc com a banca lida)."""
+    """Motivo para tirar PROVA EM BREVE da familia quando uma prova do registro (de qualquer confirmacao) JA PASSOU
+    e nenhuma cai em [hoje, hoje + PROVA_BREVE_DIAS]. None se ha prova na janela, nenhum prazo de prova (sem dado:
+    o selo fica) ou nenhuma prova passada: a prova adiada ou distante segue as regras normais do selo por data (fica
+    PROVA EM BREVE, ou INSCRICOES ENCERRADAS com a banca lida, e volta a PROVA EM BREVE quando a data entra na
+    janela) — tira-la da familia a deixava em PENDENCIA para sempre (rev1 C1). O selo cai para SELO_SEM_CONFIRMACAO
+    e o orquestrador escreve PROVA REALIZADA (aplicada) ou a data nova; antes ficava PROVA EM BREVE semanas depois
+    da prova (tjrs, trf5) ou voltava a INSCRICOES ENCERRADAS (tjap, tjsc com a banca lida)."""
     provas = [d for d in (_data(p.get("data")) for p in _prazos(reg, extras) if classe_prazo(p) == "prova") if d]
-    if not provas or any(0 <= (d - hoje).days <= PROVA_BREVE_DIAS for d in provas):
-        return None
     passadas = [d for d in provas if d < hoje]
-    if passadas:
-        fato = "a prova de %s já passou sem confirmação oficial de que foi aplicada" % max(passadas).strftime("%d/%m")
-    else:
-        fato = "a próxima prova (%s) ficou a mais de %d dias" % (min(provas).strftime("%d/%m"), PROVA_BREVE_DIAS)
+    if not passadas or any(0 <= (d - hoje).days <= PROVA_BREVE_DIAS for d in provas):
+        return None
+    fato = "a prova de %s já passou sem confirmação oficial de que foi aplicada" % max(passadas).strftime("%d/%m")
+    futuras = [d for d in provas if d >= hoje]
+    if futuras:
+        fato += ", e a próxima (%s) está a mais de %d dias" % (min(futuras).strftime("%d/%m"), PROVA_BREVE_DIAS)
     # "prorrogação não confirmada" casa o ACIONAVEL do montador: o rascunho espera a decisao do orquestrador
     return ("PROVA EM BREVE → %s: %s (adiamento ou prorrogação não confirmada) — confirme na fonte oficial e "
             "escreva em ledger_updates.concursos: aplicada → selo PROVA REALIZADA; adiada → prazos com a data nova "

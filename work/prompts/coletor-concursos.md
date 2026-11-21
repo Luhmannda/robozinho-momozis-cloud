@@ -17,7 +17,7 @@ Regras de trabalho:
 
 **Orçamento do dia:** {{REGRA_FAIXA}} Busca que sobrar de A ou B passa para C. As até 3 buscas de confirmação da mensagem 3 ficam fora dessa conta.
 
-**Já lidos hoje na banca oficial (FGV) pelo script do orquestrador — não gaste busca nem `curl` com eles** (só reporte se achar algo que contradiga a banca): {{BANCA_COBERTOS}}. A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas (Cebraspe, FCC, Vunesp, bancas regionais).
+**Já lidos hoje na banca oficial (FGV) pelo script do orquestrador — não gaste busca nem `curl` com eles** (só reporte se achar algo que contradiga a banca): {{BANCA_COBERTOS}}. {{BANCA_LISTAGEM}}
 
 ## A. Prazos e pendências (verificar primeiro)
 Busca própria só para prazo em até 7 dias ou vencido há até 3 dias (mantido, prorrogado, encerrado, resultado saiu?); vencido há mais tempo (fim de semana longo, falha) só ganha busca se nenhuma outra do dia o cobrir:
