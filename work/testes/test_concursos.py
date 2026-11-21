@@ -415,7 +415,11 @@ def inicio_escopo_rede_e_paginas():
     ok("fora: www.cebraspe.org.br (só JavaScript), www.trf3.jus.br (sem resposta)" in rede, rede)
     amb = [l for l in out.splitlines() if l.startswith("REDE do ambiente: ")]
     ok(amb and "LIBERADO pelo proxy: www.in.gov.br (ok)" in amb[0] and "noticias.stf.jus.br" in amb[0], amb)
-    ok("**não tente `curl`**: www.cebraspe.org.br, www.trf3.jus.br." in cc, "fora da rede no prompt")
+    # fora da rede no prompt (rev1 C8): os dos concursos e os que so o dono libera recusados pelo proxy hoje
+    fora_p = re.search(r"\*\*não tente `curl`\*\*: (.*)\.\n", cc).group(1).split(", ")
+    ok(fora_p == sorted(fora_p) and {"www.cebraspe.org.br", "www.trf3.jus.br", "www.vunesp.com.br",
+                                     "www.concursosfcc.com.br", "apis.cebraspe.org.br", "cdn.cebraspe.org.br"}
+       <= set(fora_p) and "www.in.gov.br" not in fora_p and "www.trf2.jus.br" not in fora_p, fora_p)
     # url_oficial lida todo dia: o TRF2 (sem outro motivo de foco) mudou e entrou no foco; o TRF3 nao foi baixado
     ok(pedidos == [URL_TRF2], pedidos)
     ok("PAGINA OFICIAL trf2_juiz MUDOU" in out and "· 18/11/2026 - PORTARIA PRES/TRF2 Nº 578, disponibilizado" in out,

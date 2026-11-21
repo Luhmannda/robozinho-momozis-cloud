@@ -777,7 +777,9 @@ def main():
         "REGISTRO_ATUAL": registro_atual(no_escopo, foco).strip(),
         "ESCOPO_APOIO": escopo.TEXTO_ESCOPO_APOIO,
         "DATA_MIN_NOVO": data_min_novo.strftime("%d/%m/%Y"),
-        "REDE_FORA": ", ".join(sorted(d for d in dom_conc if not rede.get(d))) or "nenhum",
+        # inclui os dominios que so o dono libera fora do alcance hoje (vunesp, FCC, in.gov.br, apis/cdn do
+        # Cebraspe recusados pelo proxy): o coletor tentava curl neles (rev1 C8)
+        "REDE_FORA": ", ".join(sorted(d for d in dom_conc | set(REDE_DONO) if not rede.get(d))) or "nenhum",
     }
 
     def sub(m):
