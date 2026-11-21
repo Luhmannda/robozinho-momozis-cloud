@@ -31,6 +31,17 @@
 #   3. So entao a semelhanca de titulo, com datas retiradas e o milhar
 #      juntado ("13.166" -> 13166). Sem o passo 1, essa limpeza quebraria o
 #      casamento legitimo do mesmo ato vindo do PUSH e de ref.
+#   4. (21/11) Falsos positivos de 18/11: "6,5" virava os tokens "6" e "5" e
+#      o slug da chave ("credito-18-5-bi") somava numeros que o titulo nao
+#      tem. Agora o decimal e um token so ("6v5"), "6×1"/"6 x 1" viram "6x1",
+#      os numeros de um item com titulo vem so do titulo, e VALOR diferente
+#      ("R$ 6,5 bi" x "18,5 bi", com ou sem R$) veta a semelhanca. "MP 1.397"
+#      em qualquer posicao do titulo da identidade fraca (mesmo tipo, numero
+#      diferente: nunca parecidas).
+#   ja_saiu(): titulos de Midia e Fofoquinha das ultimas edicoes, para o
+#      julgamento semantico do orquestrador e do coletor JOTA (a mesma
+#      historia com outro titulo: "Dino da mais prazo" x "Mais tempo de
+#      reflexao"), que a semelhanca de tokens nao pega.
 #
 # API (compativel com a anterior; o que e novo tem padrao):
 #   tokens(texto) -> Tokens       tokens_item(chave, titulo="") -> Tokens
@@ -40,11 +51,12 @@
 #   ignorar(it)
 # Novas: mesma_identidade(a, b) -> True|False|None, identidade(chave,
 #   titulo="") -> (tipo, numero, forte) | None, tipo_canonico(tipo) -> str,
+#   valores(texto) -> {"6v5bi", ...}, ja_saiu(execucoes, ...) -> [linhas],
 #   carregar_historico(caminho=None),
 #   urls_publicadas(execucoes, ignorar_exec_id=None) -> {url_normalizada: chave},
 #   normalizar_url(url).
 # Tokens e um set comum (len, &, in funcionam como antes) com os atributos
-# ident, forte, base e conteudo; um set puro continua aceito (sem identidade).
+# ident, forte, base, conteudo e valores; um set puro continua aceito (sem identidade).
 # =====================================================================
 
 import json
@@ -78,11 +90,13 @@ class Tokens(set):
     ident    = (tipo, numero) de ato normativo ou edicao de informativo, ou None;
     forte    = a identidade veio da chave (o item E o ato/a edicao);
     base     = "fonte|tipo|slug" sem o sufixo "-conteudo" ("" sem chave);
-    conteudo = a chave termina em "-conteudo" (conteudo de edicao atrasada)."""
+    conteudo = a chave termina em "-conteudo" (conteudo de edicao atrasada);
+    valores  = valores monetarios do titulo ("6v5bi"): conjuntos disjuntos vetam."""
     ident = None
     forte = False
     base = ""
     conteudo = False
+    valores = frozenset()
 
 
 def _sem_acento(texto):
@@ -125,6 +139,8 @@ def tipo_canonico(tipo):
 
 _INF_TITULO = re.compile(r"^\W*(?:informativo (stf|stj)|(repercussao geral em pauta))\s*"
                          r"(?:n[o°.]*\s*)?(\d+)\b")
+# MP em qualquer posicao ("Camara aprova ... (MP 1.397/26)", "STF suspende MP 1.303"): identidade fraca
+_MP_TITULO = re.compile(r"\b(?:mpv?|medida provisoria)\s*(?:n[o°.]*\s*)?(\d{1,3}(?:\.\d{3})+|\d{3,4})(?![\d.,])")
 
 
 def _ident_titulo(titulo):
@@ -137,6 +153,9 @@ def _ident_titulo(titulo):
     m = _INF_TITULO.match(s)
     if m:
         return ("stf-rg" if m.group(2) else "%s-informativo" % m.group(1), str(int(m.group(3))))
+    m = _MP_TITULO.search(s)
+    if m:
+        return ("mpv", str(int(m.group(1).replace(".", ""))))
     return None
 
 
@@ -208,13 +227,31 @@ def mesma_identidade(a, b):
 _DATA = re.compile(r"\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b|\b\d{4}-\d{2}-\d{2}\b")
 _ANO = re.compile(r"(?<![\d.,])(?:19|20)\d{2}(?!\d)(?!\.\d{3})")
 _MILHAR = re.compile(r"(?<=\d)\.(?=\d{3}(?!\d))")
+_VEZES = re.compile(r"(?<=\d)\s*[×x]\s*(?=\d)")          # "6×1", "6 x 1" -> "6x1"
+_DECIMAL = re.compile(r"(?<=\d),(?=\d)")                 # "6,5" -> "6v5" (um token so)
+# valor monetario, com ou sem "R$": "R$ 6,5 bi", "18,5 bilhoes", "R$ 300 milhoes", "R$ 2 tri"
+_VALOR = re.compile(r"(?:r\$\s*)?\b(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d+))?\s*(bi|bilh|mi|milh|tri|trilh)(?:[a-z]*)\b")
 
 
 def _limpar(s):
-    """Datas (12/11/2026, 12/11, 2026-11-12) e anos soltos saem; o milhar e juntado."""
+    """Datas (12/11/2026, 12/11, 2026-11-12) e anos soltos saem; o milhar e juntado; "6×1" vira "6x1" e o
+    decimal "6,5" um token so ("6v5")."""
     s = _DATA.sub(" ", s)
     s = _ANO.sub(" ", s)
-    return _MILHAR.sub("", s)
+    s = _VEZES.sub("x", s)
+    return _DECIMAL.sub("v", _MILHAR.sub("", s))
+
+
+def valores(texto):
+    """Valores monetarios do texto, normalizados: 'R$ 6,5 bi' e '6,5 bilhoes' -> {'6v5bi'}; '300 milhoes' ->
+    {'300mi'}. Dois titulos com valores e nenhum em comum nao sao a mesma materia (18/11: o credito de R$ 6,5 bi
+    'repetia' o de 18,5 bi de 11/11)."""
+    out = set()
+    for m in _VALOR.finditer(_sem_acento(texto)):
+        inteiro = m.group(1).replace(".", "")
+        dec = (m.group(2) or "").rstrip("0")
+        out.add("%s%s%s" % (inteiro, "v" + dec if dec else "", m.group(3)[:2]))
+    return frozenset(out)
 
 
 def _tokens_puros(texto):
@@ -232,13 +269,19 @@ def _tokens_puros(texto):
 def tokens(texto):
     t = Tokens(_tokens_puros(texto))
     t.ident = _ident_titulo(texto)
+    t.valores = valores(texto)
     return t
 
 
 def tokens_item(chave, titulo=""):
     pt = _partes(chave)
     slug = pt[2] if pt else ""
-    t = Tokens(_tokens_puros(slug.replace("-", " ") + " " + (titulo or "")))
+    do_slug = _tokens_puros(slug.replace("-", " "))
+    if titulo:
+        # com titulo, os numeros vem so dele: o slug quebra o decimal ("credito-18-5-bi" -> "18", "5")
+        do_slug = {x for x in do_slug if not any(c.isdigit() for c in x)}
+    t = Tokens(do_slug | _tokens_puros(titulo or ""))
+    t.valores = valores(titulo or "")
     ident = identidade(chave, titulo)
     if ident:
         t.ident, t.forte = ident[:2], ident[2]
@@ -252,6 +295,9 @@ def parecidas(a, b, minimo=4, proporcao=0.7):
     r = mesma_identidade(a, b)
     if r is not None:
         return r
+    va, vb = getattr(a, "valores", None), getattr(b, "valores", None)
+    if va and vb and not (va & vb):
+        return False                       # "R$ 6,5 bi" x "18,5 bi": materias diferentes
     comum = len(a & b)
     return comum >= minimo and comum / max(1, min(len(a), len(b))) >= proporcao
 
@@ -323,4 +369,40 @@ def urls_publicadas(execucoes, ignorar_exec_id=None):
         for it in e.get("items") or []:
             if it.get("url") and not ignorar(it):
                 out[normalizar_url(it["url"])] = (it.get("chave") or "").lower()
+    return out
+
+
+# ------------------------------------------------------------ JA SAIU (julgamento semantico)
+CATEGORIAS_JA_SAIU = ("Mídia", "Fofoquinha")
+MAX_TIT_JA_SAIU = 80
+
+
+def _curto(t, n):
+    t = " ".join(str(t or "").split())
+    return t if len(t) <= n else t[:n - 1].rsplit(" ", 1)[0] + "…"
+
+
+def ja_saiu(execucoes, n=2, ignorar_exec_id=None, categorias=CATEGORIAS_JA_SAIU, maximo=12):
+    """Linhas 'JA SAIU DD/MM — Mídia: t1 [fonte] · t2 [fonte] | Fofoquinha: ...' das n ultimas edicoes
+    (a mais recente primeiro), no maximo `maximo` titulos por edicao. A semelhanca de tokens nao pega a mesma
+    historia com outro titulo ('Fim da 6x1: Dino da mais prazo...' x 'Mais tempo de reflexao. Flavio Dino
+    decidiu...', 18-19/11): quem compara e o orquestrador (e o coletor JOTA), lendo esta lista curta."""
+    eds = [e for e in execucoes if e.get("execution_id") != ignorar_exec_id and e.get("items")]
+    out = []
+    for e in reversed(eds[-n:]):
+        partes, total = [], 0
+        for cat in categorias:
+            tits = []
+            for it in e.get("items") or []:
+                if it.get("categoria") != cat or not it.get("titulo") or total >= maximo:
+                    continue
+                fonte = str(it.get("fonte") or "").split("(")[0].strip()
+                tits.append("%s%s" % (_curto(it["titulo"], MAX_TIT_JA_SAIU), " [%s]" % fonte if fonte else ""))
+                total += 1
+            if tits:
+                partes.append("%s: %s" % (cat, " · ".join(tits)))
+        if partes:
+            d = str(e.get("date") or e.get("execution_id") or "")[:10]
+            dm = "%s/%s" % (d[8:10], d[5:7]) if len(d) == 10 and d[4] == "-" else d
+            out.append("JA SAIU %s — %s" % (dm, " | ".join(partes)))
     return out

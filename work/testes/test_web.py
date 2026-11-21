@@ -171,6 +171,56 @@ def repeticao_regras():
     assert repeticao.normalizar_url("https://www.jota.info/a/b/?utm_source=x#c") == "jota.info/a/b"
 
 
+@teste
+def repeticao_falsos_positivos_e_ja_saiu():
+    """(21/11, achados 40/41) Pares reais do historico. 18/11: 'Camara aprova credito de R$ 6,5 bi...' (MP 1.397)
+    era 'repetida' do credito de 18,5 bi de 11/11 ('6,5' e '18,5' viravam '5'; o slug 'credito-18-5-bi' somava
+    numeros). Agora: decimal num token so, numeros so do titulo, valor diferente veta, MP em qualquer posicao e
+    identidade fraca; '6×1' = '6x1'. Os pares que nao sao a mesma materia continuam sem casar."""
+    ti, t, p = repeticao.tokens_item, repeticao.tokens, repeticao.parecidas
+    credito_1111 = ti("camara|plenario|credito-18-5-bi-exportadores|2026|2026-11-11",
+                      "Câmara aprova crédito de 18,5 bi para exportadores afetados por novo tarifaço dos EUA")
+    credito_1811 = t("Câmara aprova crédito de R$ 6,5 bi para ajudar exportadores atingidos pelo tarifaço dos EUA")
+    assert not p(credito_1111, credito_1811) and repeticao.procurar(credito_1811, [("x", credito_1111)]) is None
+    assert credito_1111.valores == {"18v5bi"} and credito_1811.valores == {"6v5bi"}
+    # o mesmo valor (outra redacao) continua casando
+    assert p(credito_1111, t("Câmara aprova crédito de 18,5 bilhões para exportadores afetados pelo tarifaço dos EUA"))
+    assert repeticao.valores("R$ 300 milhões e R$ 1.200 mi; 6,50 bi") == {"300mi", "1200mi", "6v5bi"}
+    # MP em qualquer posicao: identidade fraca (numero diferente nunca casa)
+    assert t("Câmara aprova crédito de R$ 6,5 bi (MP 1.397/26)").ident == ("mpv", "1397")
+    assert not p(t("Senado aprova MP 1.397 sobre crédito a exportadores do tarifaço"),
+                 t("Senado aprova MP 1.399 sobre crédito a exportadores do tarifaço"))
+    # 6×1 = 6x1; decimal = um token
+    assert "6x1" in t("STF vai reiniciar julgamento sobre fim da escala 6×1") and "6x1" in t("escala 6 x 1")
+    assert "6v5" in t("crédito de 6,5") and not {"6", "5"} & t("crédito de 6,5")
+    # pares negativos do historico (opiniao x noticia do 6x1; dois julgados distintos de ICMS/PIS/Cofins)
+    assert not p(ti("jota|opiniao|fim-da-escala-6x1-sera-mesmo|2026|2026-11-18", "Fim da escala 6X1: será mesmo?"),
+                 ti("conjur|noticia|stf-vai-reiniciar-julgamento-sobre-fim-da-escala-6|2026|2026-11-15",
+                    "STF vai reiniciar julgamento sobre fim da escala 6×1 em plenário presencial"))
+    assert not p(ti("migalhas|noticia|stj-nega-excluir-icms-pis-cofins-volume|2026|2026-10-13",
+                    "STJ nega excluir ICMS do PIS e da Cofins calculados por volume"),
+                 ti("migalhas|noticia|stj-icms-pis-cofins|2026|2026-10-14",
+                    "STJ: ICMS não gera créditos de PIS e Cofins no regime não cumulativo"))
+    # a execucao de 16/11 continua com as mesmas 2 repetidas (nenhum falso positivo novo)
+    rep, dup = checar_local(dict(ler("execucao-1611.json"), items=ler("execucao-1611.json")["items"] + JOTA_REPETIDOS),
+                            historico())
+    assert len(rep) == 2 and not dup, (rep, dup)
+    # JA SAIU: Midia e Fofoquinha das 2 ultimas edicoes, a mais recente primeiro, uma linha por edicao
+    h = [{"execution_id": "2026-11-18-7h", "date": "2026-11-18", "items": [
+            {"categoria": "Mídia", "titulo": "Fim da 6x1: Dino dá mais prazo para manifestações", "fonte": "JOTA"}]},
+         {"execution_id": "2026-11-19-7h", "date": "2026-11-19", "items": [
+            {"categoria": "Mídia", "titulo": "CNJ lança painel de precatórios", "fonte": "JOTA"},
+            {"categoria": "Planalto/Legislação", "titulo": "Lei nº 15.530"},
+            {"categoria": "Fofoquinha", "titulo": "Diretor da PF entrega a Fachin relatórios " + "x" * 90,
+             "fonte": "Folha de S.Paulo (via JOTA)"}]},
+         {"execution_id": "2026-11-20-7h", "date": "2026-11-20", "items": [
+            {"categoria": "Mídia", "titulo": "Hoje", "fonte": "ConJur"}]}]
+    linhas = repeticao.ja_saiu(h, ignorar_exec_id="2026-11-20-7h")
+    assert len(linhas) == 2 and linhas[0].startswith("JA SAIU 19/11 — Mídia: CNJ lança painel de precatórios [JOTA]"), linhas
+    assert "| Fofoquinha: Diretor da PF entrega a Fachin relatórios" in linhas[0] and "[Folha de S.Paulo]" in linhas[0]
+    assert "…" in linhas[0] and "Lei nº 15.530" not in linhas[0] and linhas[1].startswith("JA SAIU 18/11 — Mídia: Fim")
+
+
 def _update_historico():
     caminho = os.path.join(WORK, "Update-Historico.py")
     spec = importlib.util.spec_from_file_location("update_historico", caminho)
