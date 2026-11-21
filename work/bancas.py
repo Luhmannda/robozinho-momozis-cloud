@@ -629,11 +629,7 @@ def partes_slug(slug):
     s = PREFIXO_CARGO.sub("", re.sub(r"[^a-z0-9]", "", partes[-1]))
     m = re.match(r"^(trt|trf)(\d+)([a-z]*)(\d*)$", s)
     if m:                                   # a regiao e numero: trt24 (24a), trt225 (2a, 2025), trf5juiz26
-        dig, ano = m.group(2), m.group(4)
-        if not ano:
-            corte = 1 if m.group(1) == "trf" else (len(dig) if len(dig) <= 2 else 1 if len(dig) == 3
-                                                    else 2 if len(dig) == 4 else len(dig) - 4)
-            dig, ano = dig[:corte], dig[corte:]
+        dig, ano = escopo.regiao_ano(m.group(1), m.group(2), m.group(4))     # a mesma regra do escopo regional
         return m.group(1) + dig, _ano(ano)
     ano = None
     for _ in range(2):                      # mpes25promotor: cargo e depois o ano

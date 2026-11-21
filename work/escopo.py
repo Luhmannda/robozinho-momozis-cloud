@@ -93,15 +93,29 @@ def ufs_de_texto(texto):
 
 
 SLUG_UF = re.compile(r"^(tj|mp|dpe|dp|pge|tce|tre|ale)([a-z]{2})(?=[a-z]*\d|[a-z]*$)")
-SLUG_TR = re.compile(r"^(trt|trf)(\d{1,2})")
+# trt/trf + digitos (regiao e, colado, o ano) + letras (uf, cargo) + digitos (ano)
+SLUG_TR = re.compile(r"^(trt|trf)(\d+)([a-z]*)(\d*)")
+
+
+def regiao_ano(tipo, dig, ano=""):
+    """(regiao, ano) dos digitos de um slug de TRT/TRF — a MESMA regra do bancas.partes_slug (rev1 C7: o SLUG_TR
+    guloso lia trt225 como TRT22, PI). Com o ano depois de letras (trt2sp25, trf5juiz26), `dig` e so a regiao.
+    Senao: TRF tem regiao de 1 digito (trf225 -> 2/25, trf62025 -> 6/2025); TRT: ate 2 digitos = regiao (trt24),
+    3 = 1 + ano de 2 (trt225 -> 2/25), 4 = 2 + 2 (trt1526 -> 15/26; trt2025 -> 20/25: "025" nao e ano), mais = o
+    resto + ano de 4 (trt22025 -> 2/2025)."""
+    if ano:
+        return dig, ano
+    corte = 1 if tipo == "trf" else (len(dig) if len(dig) <= 2 else 1 if len(dig) == 3
+                                     else 2 if len(dig) == 4 else len(dig) - 4)
+    return dig[:corte], dig[corte:]
 
 
 def ufs_de_slug(slug):
-    """UFs de um slug de banca ('tjpb26', 'trt2sp25', 'dperj2026', 'trf5juiz26')."""
+    """UFs de um slug de banca ('tjpb26', 'trt2sp25', 'dperj2026', 'trf5juiz26', 'trt225')."""
     s = (slug or "").lower().strip("/").split("/")[-1]
     m = SLUG_TR.match(s)
     if m:
-        n = int(m.group(2))
+        n = int(regiao_ano(m.group(1), m.group(2), m.group(4))[0])
         return set((TRT if m.group(1) == "trt" else TRF).get(n, set()))
     if s.startswith(("tjdft", "mpdft", "dpdf")):
         return {"DF"}
