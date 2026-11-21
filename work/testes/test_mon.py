@@ -120,7 +120,7 @@ def corpo(saida):
 
 
 # 21/11/2026 (montador): reescritas de estilo com a MESMA renderizacao (capturas de tela da edicao de 20/11 antes e
-# depois, Chromium, deviceScaleFactor 1, larguras 700 e 360: 0 pixel diferente). #ffffff -> #fff e 0px -> 0 dentro de
+# depois, Chromium, deviceScaleFactor 1, larguras 360, 700 e 1024, com e sem doctype: 0 pixel diferente). #ffffff -> #fff e 0px -> 0 dentro de
 # style; a frase do Planalto sem a margem negativa (-4px), com o titulo da secao em margin-bottom 6px (10 - 4, as
 # margens colapsavam) — o cliente que recusa margem negativa descartava a declaracao inteira.
 PLANALTO_TITULO_6PX = ('border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;'

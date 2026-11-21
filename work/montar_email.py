@@ -79,7 +79,11 @@ NAVY, OURO, TEXTO, APOIO_COR, LINK, LINHA = "#0b2545", "#c5a253", "#2f3a45", "#5
 # 21/11/2026 (tamanho, sem mudar a renderizacao): dentro de style="..." o branco vai em 3 digitos (#fff = #ffffff, a
 # mesma cor em qualquer cliente) e margem zero sem unidade (0 = 0px). O atributo bgcolor="#ffffff" fica como esta
 # (o parser legado de cor do HTML tambem aceita 3 digitos, mas o atributo nao e CSS). Prova: work/testes/test_mon.py
-# (t_mon_tamanho_equivalente) e as capturas de tela da edicao de 20/11, identicas pixel a pixel.
+# (t_mon_tamanho_equivalente) e as capturas de tela da edicao de 20/11 (Chromium, deviceScaleFactor 1, larguras 360,
+# 700 e 1024, com e sem doctype), identicas pixel a pixel. Ganho pequeno (53.357 -> 53.305 B): o estilo inline ja nao
+# tem declaracao redundante, fora o text-decoration:underline dos links, mantido de proposito (cliente que tira o
+# sublinhado padrao). O tamanho cai de verdade pelo conteudo: compactacao pela regra do radar, rotina do orcamento,
+# STJ sem nota por item e pendencias fora do quadro (20/11: 53.357 -> 51.335 B).
 BRANCO = "#fff"
 ESTILO = {
     "OFICIAL": "background:#e8eef7;color:#0b2545",
