@@ -923,8 +923,8 @@ def _res_indice():
 @teste
 def coleta_indice_relevancia_marcas_e_ruido():
     """(achado 11a, 40, 21/11) Indice de 20/11 (dados reais): concurso primeiro ([CONC]), [STJ], ficha e
-    [ASSESSORIA X]; a mesma historia do dia numa linha (c3 + m10); fala/evento sem linha-fina; as 13 leis de credito
-    do PLN numa linha de rotina (o e-mail nao muda: cada ref e citado); paginas seguintes so com titulo e so com termo
+    [ASSESSORIA X]; a mesma historia do dia numa linha (c3 + m10); fala/evento sem linha-fina; as 16 leis do PLN
+    (creditos, LOA e LDO) numa linha de rotina (o e-mail nao muda: cada ref e citado); paginas seguintes so com titulo e so com termo
     de prova (o resto contado, o id continua valendo); JA SAIU no fim. E nao cresce: menos linhas que o de 20/11."""
     res = _res_indice()
     linhas = coleta_web.imprimir(res, *_janela(*J2011), ja_saiu=["JA SAIU 19/11 — Mídia: X [JOTA]"])
@@ -937,9 +937,10 @@ def coleta_indice_relevancia_marcas_e_ruido():
     assert "(mesma história: m10 «Dino critica jornalismo" in c3 and "] m10 |" not in txt, c3
     c10 = next(l for l in nots if "] c10 |" in l)
     assert c10.endswith("Salomão defende papel da democracia para o desenvolvimento"), c10      # fala: sem linha-fina
-    rot = [l for l in linhas if l.startswith("[NOVA] rotina — 13 lei(s)")]
+    rot = [l for l in linhas if l.startswith("[NOVA] rotina — 16 lei(s)")]
     assert rot and "lei15531" in rot[0] and "lei15545" in rot[0] and "(DOU 19/11)" in rot[0], rot
-    assert "] lei15541 | Lei nº 15541" in txt and "] lei15531 |" not in txt   # altera a LOA: linha propria
+    # (rev2 R9) altera a LOA/LDO (materia PLN): rotina, como no montador (antes: linha propria no indice)
+    assert "lei15541" in rot[0] and "lei15534" in rot[0] and "] lei15541 |" not in txt and "] lei15531 |" not in txt
     ids = {i["id"] for r in res for i in r["itens"] if i.get("id")}
     assert {"lei%d" % n for n in range(15530, 15546)} <= ids                     # todos citaveis
     assert linhas[-2].startswith("\n== JA SAIU") and linhas[-1] == "JA SAIU 19/11 — Mídia: X [JOTA]"
@@ -963,6 +964,48 @@ def coleta_indice_relevancia_marcas_e_ruido():
     # tamanho: o indice de 20/11 (69 linhas, 13.255 bytes) nao cresce com o formato novo
     base = coleta_web.imprimir(_res_indice(), *_janela(*J2011))
     assert len(base) < 69 and len("\n".join(base).encode()) < 13255, (len(base), len("\n".join(base).encode()))
+
+
+@teste
+def coleta_rotina_igual_ao_montador():
+    """(rev2 R9) O indice agrupa como rotina exatamente os atos que o montador poe no fim da secao: o item que o
+    montar_email.resolver monta do ref (titulo + ementa) passa pelo montar_email.eh_rotina, e materia PLN e rotina. Antes
+    a copia do padrao no coleta_web divergia: LOA/LDO (lei15530/15534/15541 de 20/11), credito de R$ e cargos em
+    comissao ficavam numa linha propria no indice e iam ao fim no e-mail."""
+    import montar_email
+    res = _res_indice()
+    leg = {"fonte": "legin", "http": 200, "listadas": 4, "itens": []}
+    for n, ementa in enumerate(["Remaneja cargos em comissão e funções de confiança no Ministério da Fazenda.",
+                                "Estima a receita e fixa a despesa da União para o exercício financeiro de 2027.",
+                                "Promulga o Acordo de Cooperação Jurídica em Matéria Penal entre o Brasil e a Itália.",
+                                "Dispõe sobre a duração normal do trabalho e o repouso semanal remunerado."]):
+        leg["itens"].append({"situacao": "NOVA", "tipo": "Decreto", "tipo_chave": "decreto", "prefixo": "dec",
+                             "numero": str(13180 + n), "data_ato": "19/11/2026", "dou": "19/11/2026",
+                             "ementa": ementa, "url": "https://x/%d" % n, "chave": "planalto|decreto|%d" % (13180 + n)})
+    res.insert(2, leg)
+    res[0]["itens"].append(dict(res[0]["itens"][0], numero="15599", veto="Veto parcial nº 40", situacao="NOVA"))
+    linhas = coleta_web.imprimir(res, *_janela(*J2011))
+    agrupados = {x.strip(" ()").split(" ")[0] for l in linhas if " rotina — " in l for x in l.split(": ")[-1].split(", ")}
+    ev = {i["id"]: dict(i, _fonte=r["fonte"]) for r in res for i in r["itens"] if i.get("id")}
+    for ident, e in ev.items():
+        if e["_fonte"] not in ("congresso_leis", "legin"):
+            continue
+        it = montar_email.resolver({"ref": ident}, json.loads(json.dumps(ev, default=str)), [])
+        montador = bool(montar_email.eh_rotina(it) or it.get("_pln"))
+        if e.get("veto"):
+            assert ident not in agrupados and montador, ident         # com veto: linha propria (o veto aparece)
+            continue
+        assert (ident in agrupados) == montador, (ident, montador, it.get("resumo"))
+    assert {"dec13180", "dec13181"} <= agrupados and not {"dec13182", "dec13183"} & agrupados, agrupados
+    assert any(l.startswith("[NOVA] lei15599 |") and "veto: Veto parcial" in l for l in linhas)
+    # sem o montador (import quebrado): nada e agrupado, cada ato na sua linha (nada some)
+    antigo = coleta_web._ROTINA_MONTADOR[:]
+    coleta_web._ROTINA_MONTADOR[:] = [None]
+    try:
+        assert not coleta_web.eh_rotina_ato({"ementa": "Abre ao Orçamento Fiscal crédito suplementar"})
+        assert coleta_web.eh_rotina_ato({"ementa": "x", "materia": "PLN 3/2026"})
+    finally:
+        coleta_web._ROTINA_MONTADOR[:] = antigo
 
 
 @teste

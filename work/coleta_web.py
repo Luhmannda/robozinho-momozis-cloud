@@ -1531,19 +1531,43 @@ def imprimir_midia(r, ids):
                    "JSON e o id vale)" % fora)
     return out
 
-# Atos de rotina no indice (21/11): o mesmo criterio do montar_email.eh_rotina (G7) — credito orcamentario, aumento
-# de capital, acordo de turismo/servicos aereos, nunca cooperacao penal. Numa linha so, com os ids: em 20/11 as 13
-# leis de credito do PLN ocupavam 13 linhas (~4,5 KB) do indice. O e-mail nao muda: cada ref continua citado e o
-# montador poe a ementa inteira no fim da secao.
-ROTINA_ATO = re.compile(r"abre\s+aos?\s+or[çc]amentos?|cr[ée]dito\s+(?:suplementar|especial|extraordin[áa]rio)|"
-                        r"aumento\s+(?:do|de)\s+capital|\bacordo\b.{0,160}?\b(?:turismo|servi[çc]os\s+a[ée]reos|"
-                        r"transporte\s+a[ée]reo)", re.I)
-ROTINA_EXCETO = re.compile(r"coopera[çc][ãa]o\s+jur[íi]dica|mat[ée]ria\s+penal|extradi[çc]|transfer[êe]ncia\s+de\s+"
-                           r"(?:pessoas\s+)?(?:presos|condenad|apenad)|assist[êe]ncia\s+jur[íi]dica|crime|penal", re.I)
+# Atos de rotina no indice (21/11): numa linha so, com os ids (em 20/11 as leis de credito do PLN ocupavam 13 linhas,
+# ~4,5 KB, do indice). O e-mail nao muda: cada ref continua citado e o montador poe a ementa inteira no fim da secao.
+# (rev2 R9) O criterio e o do proprio montador — montar_email.eh_rotina (credito orcamentario e credito de R$, LOA, LDO
+# e PPA, cargos em comissao, capital de estatal, acordo de turismo/servicos aereos; nunca cooperacao penal) ou materia
+# PLN (congresso_leis) —, importado, nao copiado: a copia antiga divergia (LOA/LDO, PLN e credito de R$ ficavam numa
+# linha propria no indice e iam ao fim da secao no e-mail). Sem o montador, nada e agrupado (cada ato na sua linha).
+_ROTINA_MONTADOR = []
 
 
-def eh_rotina_ato(ementa):
-    return bool(ROTINA_ATO.search(ementa or "")) and not ROTINA_EXCETO.search(ementa or "")
+def _eh_rotina_montador():
+    if not _ROTINA_MONTADOR:
+        try:
+            import montar_email
+            _ROTINA_MONTADOR.append(montar_email.eh_rotina)
+        except Exception:  # noqa: BLE001
+            _ROTINA_MONTADOR.append(None)
+    return _ROTINA_MONTADOR[0]
+
+
+def eh_rotina_ato(i):
+    """O ato (item de congresso_leis ou do LEGIN) vai ao fim da secao como rotina no e-mail? O mesmo item que o
+    montador monta (titulo 'Lei nº 15.531, de 18/11/2026' + ementa) passa pelo montar_email.eh_rotina; materia PLN e
+    rotina pelo campo (montar_email: _pln)."""
+    if str(i.get("materia") or "").strip().upper().startswith("PLN"):
+        return True
+    f = _eh_rotina_montador()
+    if f is None:
+        return False
+    try:
+        n = "{:,}".format(int(i["numero"])).replace(",", ".")
+    except (KeyError, TypeError, ValueError):
+        n = str(i.get("numero") or "")
+    try:
+        return bool(f({"titulo": "%s nº %s, de %s" % (i.get("tipo") or "", n, i.get("data_ato") or ""),
+                       "resumo": i.get("ementa") or ""}))
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def linhas_rotina(itens, rotulo):
@@ -1554,10 +1578,11 @@ def linhas_rotina(itens, rotulo):
         if not g:
             continue
         dous = sorted({i.get("dou", "")[:5] for i in g if i.get("dou")})
-        out.append("[%s] rotina — %d %s de crédito, orçamento ou acordo de rotina (o montador agrupa no fim, com a "
-                   "ementa inteira; cite cada ref): %s%s" % (sit, len(g), rotulo, ", ".join(i["id"] for i in g),
-                                                             " (DOU %s)" % ", ".join(dous) if dous else ""))
+        out.append("[%s] rotina — %d %s de rotina: orçamento (créditos, LOA, LDO, PPA), cargos, capital ou acordo (o "
+                   "montador agrupa no fim, com a ementa inteira; cite cada ref): %s%s" % (
+                       sit, len(g), rotulo, ", ".join(i["id"] for i in g), " (DOU %s)" % ", ".join(dous) if dous else ""))
     return out
+
 
 def imprimir(res, inicio, fim, recorte, ja_saiu=None):
     """Indice compacto (linhas de texto). Atribui os ids (lei15527, mpv1400, dec13173, c7, m3). ja_saiu: linhas
@@ -1615,7 +1640,7 @@ def imprimir(res, inicio, fim, recorte, ja_saiu=None):
                 if i["situacao"] == "JA_PUBLICADA":
                     continue
                 i["id"] = "lei%s" % i["numero"]
-                if eh_rotina_ato(i["ementa"]) and not i.get("veto"):
+                if eh_rotina_ato(i) and not i.get("veto"):     # com veto: linha propria (o veto aparece)
                     rot.append(i)
                     continue
                 out.append("[%s] %s | %s nº %s de %s (DOU %s) — %s%s | %s" % (
@@ -1673,7 +1698,7 @@ def imprimir_legin(r):
     rot = []
     for i in pub:
         i["id"] = "%s%s" % (i["prefixo"], i["numero"])
-        if eh_rotina_ato(i["ementa"]):
+        if eh_rotina_ato(i):
             rot.append(i)
             continue
         out.append("[%s] %s | %s nº %s de %s (DOU %s%s) — %s%s" % (
