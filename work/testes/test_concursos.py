@@ -10,7 +10,8 @@
 #   item = titulo + continuacao (o nome da Portaria nº 578 inteiro), ato sem
 #   palavra-chave com data, titulo repetido com data nova e MUDOU, reordenar
 #   nao e MUDOU, carimbo "atualizado em" nao e item, os 5 mais recentes na NOVA,
-#   estado v1 relido sem MUDOU falso, IGUAL numa linha, FORA_DA_REDE sem baixar.
+#   estado v1 relido sem MUDOU falso, IGUAL numa linha, FORA_DA_REDE sem baixar,
+#   1a leitura sem lixo de navegacao e sem reler a pagina da banca (E-min c).
 #   inicio.py: migracoes antes do ledger e nunca na RE-EXECUCAO (linhas impressas; ausente/erro =
 #   ALERTA), escopo regional (FORA DO ESCOPO, sem fila/rodizio/foco/registro
 #   atual), sonda proxy x site x SPA e REDE do ambiente (sem resposta = indeterminado,
@@ -528,6 +529,52 @@ def inicio_listagem_da_fgv_no_prompt():
     ok("A listagem da FGV não foi lida hoje (listagem ilegível: http 200 sem o bloco de concursos em andamento): na "
        "descoberta (C), a FGV conta como as outras bancas." in cc and "já foi varrida" not in cc, cc[:200])
     ok("BANCA FGV: não lida (listagem ilegível: http 200 sem o bloco" in out, "motivo honesto no inicio")
+
+
+@teste
+def pagina_oficial_sem_lixo_de_navegacao():
+    """E-min c: na 1a leitura (NOVA) nao sai o <title> da pagina, chamada para clicar, titulo de secao nem pedaco de
+    frase quebrada (ENAM e DPE-SP de 21/11/2026); o que e ato fica, com ou sem data."""
+    corpo = "".join("<p>%s</p>" % x for x in (
+        "Solicite aqui seu Certificado de Aprovação", "da FGV para concursos e provas realizadas.",
+        "Arquivos do concurso", "X Concurso de Ingresso na Carreira de Defensor Público do Estado de São Paulo",
+        "Edital de Abertura de Inscrições e Instruções Especiais", "prova escrita geral - questões",
+        "Acesse o portal do candidato para fazer sua inscrição",
+        "edital - Alteração — Publicado no Diário Oficial de 12 de novembro de 2026",
+        "a partir de 24/08/2026. O Exame se destina à habilitação de bacharéis em Direito"))
+    html = ("<html><head><title>Concursos Públicos - Portal DPESP</title></head><body><main>%s<p>%s</p></main></body>"
+            "</html>" % (corpo, "texto institucional sem palavra-chave " * 8))
+    r = paginas_oficiais.analisar("dpe_sp", "https://www.defensoria.sp.def.br/c", 200, html, None, "2026-11-23")
+    ok(r["situacao"] == "NOVA" and r["novos"] == [
+        "edital - Alteração — Publicado no Diário Oficial de 12 de novembro de 2026",
+        "a partir de 24/08/2026. O Exame se destina à habilitação de bacharéis em Direito",
+        "X Concurso de Ingresso na Carreira de Defensor Público do Estado de São Paulo",
+        "Edital de Abertura de Inscrições e Instruções Especiais", "prova escrita geral - questões"], r.get("novos"))
+
+
+@teste
+def inicio_url_oficial_da_banca_nao_relida():
+    """E-min c: a url_oficial que e a propria pagina da banca lida hoje pelo bancas.py (mesmo registro) nao e
+    baixada de novo pela paginas_oficiais; uma linha diz por que."""
+    led = ledger_base()
+    url = bancas.BASE + "/exames/enam/6exame"
+    led["concursos"].append({"id": "enam", "bloco": "Magistratura Estadual", "linha": "ENAM — 6º exame (2026.2)",
+                             "selo": "EM ANDAMENTO", "verificado_em": "2026-12-01", "mudou_em": "2026-11-10",
+                             "fonte": url, "banca_slug": "exames/enam/6exame", "url_oficial": url, "prazos": []})
+    pagina = {"slug": "exames/enam/6exame", "titulo": "Exame Nacional da Magistratura - ENAM (2026.2)", "url": url,
+              "http": 200, "situacao": "Em Andamento", "registros": ["enam"], "vinculo": "banca_slug",
+              "coberto": ["enam"], "exibir": "registro", "novos_arquivos": [], "divergencias": [], "candidatos": [],
+              "arquivos": [{"data": "2026-11-05", "data_efetiva": "2026-11-05", "titulo": "Resultado", "url": url + ".pdf"}]}
+    out, _, _, pedidos = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", led=led,
+                               migr=stub_migracoes(lambda h, work_dir=None: []), banca_extra={"concursos": [pagina]})
+    ok(url not in pedidos and pedidos == [URL_TRF2], pedidos)
+    ok("PAGINA OFICIAL = página da banca, lida acima em BANCA FGV (sem leitura duplicada): enam" in out
+       and "PAGINA OFICIAL enam" not in out, [l for l in out.splitlines() if "PAGINA OFICIAL" in l])
+    # a banca nao leu a pagina hoje: a paginas_oficiais le (reforco)
+    out, _, _, pedidos = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", led=led,
+                               migr=stub_migracoes(lambda h, work_dir=None: []),
+                               banca_extra={"concursos": [dict(pagina, http=0, arquivos=[], coberto=[])]})
+    ok(url in pedidos and "sem leitura duplicada" not in out, pedidos)
 
 
 @teste

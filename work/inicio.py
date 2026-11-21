@@ -49,7 +49,9 @@
 #     dono libera (REDE_DONO) — linha "REDE (...) | REDE do ambiente: ..." (LIBERADO, com ordem de
 #     gravar no ledger, so o que passou pelo proxy e respondeu; "sem resposta" = indeterminado hoje);
 #   - pagina oficial (work/paginas_oficiais.py) de TODA url_oficial no escopo,
-#     todo dia (dominio recusado/sem resposta nao e baixado); MUDOU/NOVA entra no foco;
+#     todo dia (dominio recusado/sem resposta nao e baixado; a url_oficial que e a
+#     pagina da banca lida hoje pelo bancas.py para o mesmo registro, nao); MUDOU/NOVA
+#     entra no foco;
 #   - LEDGER resumido e enxuto: so os concursos EM FOCO com a linha completa
 #     (prazo em ate 30 dias, mudanca recente, pendencia ativa, rodizio, banca
 #     lida hoje, pagina oficial com item novo); os demais contados por bloco, com
@@ -583,7 +585,17 @@ def main():
     # foco. Dominio que o proxy recusa ou que nao respondeu a sonda nao e baixado (o TRF3 dava HTTP 0 todo dia);
     # so-JavaScript sai do "acessivel".
     paginas = []
-    alvos_pag = {c["id"] for c in no_escopo if c.get("url_oficial")}
+    # url_oficial que e a propria pagina da banca lida acima pelo bancas.py para o mesmo registro (banca_slug ou
+    # vinculo pela fonte): sem leitura duplicada — o ENAM saia nas duas, a 2a com o rodape da FGV (E-min c)
+    lidas_banca = {}
+    for c in banca["concursos"]:
+        if c.get("http") == 200:
+            for i in c.get("registros") or []:
+                lidas_banca.setdefault(i, set()).add(c["slug"])
+    pag_da_banca = sorted(c["id"] for c in no_escopo if bancas and c.get("url_oficial")
+                          and selos.host(c["url_oficial"]) == bancas.DOMINIO
+                          and bancas.norm_slug(c["url_oficial"]) in lidas_banca.get(c["id"], ()))
+    alvos_pag = {c["id"] for c in no_escopo if c.get("url_oficial")} - set(pag_da_banca)
     if alvos_pag:
         pular = {h: SONDA[h] for h in (selos.host(c["url_oficial"]) for c in no_escopo if c["id"] in alvos_pag)
                  if SONDA.get(h) in ("proxy", "sem resposta")}
@@ -906,6 +918,9 @@ def main():
         except Exception as e:  # noqa: BLE001
             print("PAGINA OFICIAL: não lida (%s) — os concursos com url_oficial seguem pelo coletor"
                   % (next((r.get("erro") for r in paginas if r.get("erro")), None) or e))
+    if pag_da_banca:
+        print("PAGINA OFICIAL = página da banca, lida acima em BANCA FGV (sem leitura duplicada): "
+              + ", ".join(pag_da_banca))
     print("\n".join(resumo_ledger(ledger, foco, motivos, pend_no_coletor, omitir=set(pend_fora))))
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, coletor-jota e "
