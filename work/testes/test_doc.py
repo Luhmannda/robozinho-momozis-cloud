@@ -29,6 +29,8 @@
 #     no ref, banca_slug/movimento, linhas novas do passo 1 e da banca (MOVIMENTO sem registro some no dia seguinte),
 #     escopo do apoio, ERRO INTERNO/TRAVA/RESTAURADO/REAPLICACAO e push so na main, migracoes reais sem ALERTA e
 #     REGRAS_ATUALIZADAS vivas, marcas do coleta_web e Afetacao, §R1 com window_end, notificacao unica (§R13 nova).
+#   - (rodada final) a regra de armadilha que o passo 1 imprime (inicio.regra_impressa) e a que o helper grava
+#     (REGRAS_ATUALIZADAS, inclusive cloud_egress_bloqueado sem a medicao fixa de rede) sao o mesmo texto.
 # Opcional (rede): DOC_TESTE_INICIO=1 roda o inicio.py numa copia descartavel
 # e confere que nenhum placeholder sobra nos prompts gerados.
 #
@@ -1243,6 +1245,35 @@ def migracoes_reais_aplicam_sem_alerta_e_regras_de_armadilha_vivas():
                 assert len(campos.get("nota") or "") <= h.LIMITE["nota"], ident
     codju = next(x for x in led["fontes"] if x["id"] == "gmail_stj_codju")["nota"]
     assert "Jurisprudência em Teses" in codju[:inicio.NOTA_CURTA] and "STJ Jurisprudência" in codju[:inicio.NOTA_CURTA]
+
+
+@teste
+def regra_de_armadilha_impressa_igual_a_gravada():
+    """(rodada final) O LEDGER do passo 1 imprime a regra de armadilha pelo inicio.regra_impressa (sem a medicao fixa
+    de rede) depois da migracao em memoria (REGRAS_ATUALIZADAS); o helper grava a regra de REGRAS_ATUALIZADAS. Os
+    dois textos sao o mesmo: no dia antes da gravacao (texto antigo no ledger), depois dela (texto novo) e para toda
+    armadilha do ledger vivo — senao o orquestrador le uma regra e o ledger guarda outra."""
+    import copy
+    import inicio
+    h = helper()
+    for ident, mig in h.REGRAS_ATUALIZADAS.items():
+        assert inicio.regra_impressa(mig["regra"]) == mig["regra"], "%s: a regra gravada muda ao imprimir" % ident
+        assert len(mig["regra"]) <= h.LIMITE["regra"], ident
+    ce = h.REGRAS_ATUALIZADAS["cloud_egress_bloqueado"]
+    for antiga in ce["antigas"]:
+        assert " Medido em " in antiga and inicio.regra_impressa(antiga) == ce["regra"], \
+            "cloud_egress_bloqueado: impressa %r x gravada %r" % (inicio.regra_impressa(antiga), ce["regra"])
+    # ledger vivo: o passo 1 migra em memoria e imprime regra_impressa; o helper migra e grava — o mesmo texto
+    migrado = copy.deepcopy(ledger())
+    feitos = h.migrar_armadilhas(migrado)
+    for x in migrado.get("armadilhas", []):
+        assert inicio.regra_impressa(x.get("regra", "")) == x.get("regra", ""), \
+            "%s: o passo 1 imprime %r e o helper grava %r" % (x["id"], inicio.regra_impressa(x.get("regra", "")),
+                                                              x.get("regra"))
+    vivo = {x["id"]: x.get("regra") for x in ledger().get("armadilhas", [])}
+    assert "cloud_egress_bloqueado" not in vivo or "cloud_egress_bloqueado" in feitos or \
+        vivo["cloud_egress_bloqueado"] == ce["regra"], "cloud_egress_bloqueado: o texto do ledger nao e o antigo"
+    assert h.migrar_armadilhas(migrado) == [], "migracao nao idempotente"
 
 
 @teste
