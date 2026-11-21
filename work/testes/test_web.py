@@ -838,7 +838,8 @@ def coleta_indice_relevancia_marcas_e_ruido():
     linhas = coleta_web.imprimir(res, *_janela(*J2011))
     seg = [l for l in linhas if "STJ define prescrição em ação de" in l]
     assert len(seg) == coleta_web.MAX_SEGUINTES_NO_INDICE and not [l for l in seg if " — " in l], seg
-    assert any(l.startswith("(+2 notícia(s) das páginas seguintes fora do índice") for l in linhas), linhas[-6:]
+    assert any(l.startswith("(+%d notícia(s) das páginas seguintes fora do índice" % (12 - coleta_web.MAX_SEGUINTES_NO_INDICE))
+               for l in linhas), linhas[-6:]
     # tamanho: o indice de 20/11 (69 linhas, 13.255 bytes) nao cresce com o formato novo
     base = coleta_web.imprimir(_res_indice(), *_janela(*J2011))
     assert len(base) < 69 and len("\n".join(base).encode()) < 13255, (len(base), len("\n".join(base).encode()))
@@ -880,7 +881,7 @@ def coleta_legin():
     with Rede(resp):
         r2 = coleta_web.legin(*_janela(*J2011), atos | {("decreto", "13173"), ("lei", "15540")},
                               lambda: congresso | {("lei", "15535"), ("lei", "15539")})
-    assert not r2["itens"] and any(l.startswith("NENHUM ATO FORA DO CONGRESSO E DO HISTORICO") and "nunca escreva"
+    assert not r2["itens"] and any(l.startswith("NENHUM ATO FORA DO CONGRESSO E DO HISTORICO") and 'nunca "sem ato novo"'
                                    in l for l in coleta_web.imprimir_legin(r2))
     # fora do ar: falha, e o erro aponta a resenha PUSH; uma excecao nunca derruba a coleta
     with Rede(lambda u: (503, "")):

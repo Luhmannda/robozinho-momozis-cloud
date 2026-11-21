@@ -381,7 +381,7 @@ def urls_publicadas(execucoes, ignorar_exec_id=None):
 
 # ------------------------------------------------------------ JA SAIU (julgamento semantico)
 CATEGORIAS_JA_SAIU = ("Mídia", "Fofoquinha")
-MAX_TIT_JA_SAIU = 80
+MAX_TIT_JA_SAIU = 70
 
 
 def _curto(t, n):

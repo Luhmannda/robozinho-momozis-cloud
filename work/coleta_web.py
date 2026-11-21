@@ -472,7 +472,8 @@ def legin(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
             continue
         ident = (repeticao.tipo_canonico(tipo[0]), numero.lstrip("0") or numero)
         if ident in atos_pub:
-            out["ja_publicadas"].append("%s %s" % (especie, numero))
+            if tipo[0] not in ("lei", "lei-complementar", "mpv"):       # leis e MPVs: a linha do Congresso
+                out["ja_publicadas"].append("%s %s" % (especie, numero))
             continue
         if tipo[0] in ("lei", "lei-complementar", "mpv"):
             if listados_congresso is None:
@@ -733,7 +734,8 @@ _TRIB_NOME = [(re.compile(r"supremo tribunal federal|\bsupremo\b"), "STF"),
               (re.compile(r"tribunal superior do trabalho"), "TST"),
               (re.compile(r"tribunal superior eleitoral"), "TSE"),
               (re.compile(r"conselho nacional de justica"), "CNJ")]
-_TRIB_SIGLA = re.compile(r"\b(STF|STJ|TST|TSE|STM|CNJ|CNMP|TCU)\b|\bTJ[-/ ]?([A-Z]{2})\b|\b(TRF|TRT)[-/ ]?(\d{1,2})\b")
+_TRIB_SIGLA = re.compile(r"\b(STF|STJ|TST|TSE|STM|CNJ|CNMP|TCU)\b|\bTJ[-/ ]?([A-Z]{2})\b|"
+                         r"\b(TRF|TRT)(?:[-/ ]?|\s+da\s+)(\d{1,2})(?:[ªa]\s+[Rr]egi[ãa]o)?\b")
 _TRIB_EXTENSO = re.compile(r"tribunal de justica d[oae]s? ((?:[a-z]+ ?){1,4})|tribunal regional (federal|do trabalho) "
                            r"da (\d{1,2})[ao]? regiao")
 _ORGAO = re.compile(r"\b(\d{1,2})\s*[ªaº]\s+(turma recursal|turma|se[çc][ãa]o|c[âa]mara(?: de direito (?:p[úu]blico|"
@@ -858,8 +860,11 @@ def ficha_do_lead(titulo, pars):
         campos.append(trib)
     orgao = processo = None
     vinc = False
+    juri = re.compile(r"j[úu]ri\b|jurad[oa]s", re.I)
     for p in pars:
         mo = _ORGAO.search(p)
+        if mo and mo.group(3) and (juri.search(p) or juri.search(titulo or "")):
+            mo = None                       # "no plenario" do juri nao e o Plenario do tribunal (20/11 c3)
         mp = _PROCESSO.search(p)
         if mo and not orgao:
             orgao = _orgao(mo)
@@ -1251,7 +1256,7 @@ def ok(http):
 
 # Opiniao do ConJur no indice: no maximo MAX_OPINIAO, pelos termos de prova no
 # titulo (nao pela recencia: recente nao e o mesmo que relevante para concurso).
-MAX_OPINIAO, MAX_TIT_OPINIAO = 10, 90
+MAX_OPINIAO, MAX_TIT_OPINIAO = 10, 90    # 8 tirava do indice uma das opinioes publicadas em 16/11 (c27)
 _ANCORA = re.compile(r"\b(stf|stj|tst|tse|tcu|cnj|cnmp|supremo|tema|sumulas?|vinculantes?|repercussao|"
                      r"repetitivos?|precedentes?|adi|adpf|adc|re|resp|hc|lei|lc|pec|plp|codigo|cpc|cpp|"
                      r"clt|ctn|constituicao)\b")
@@ -1290,7 +1295,7 @@ def opiniao_no_indice(itens, maximo=MAX_OPINIAO):
 # STJ: vai em STJ Noticias), a ficha [tribunal · orgao · processo · vinculante], a mesma historia do dia numa linha so
 # (20/11: c3, m5, m7, m9 e m10 eram o mesmo julgamento) e, das paginas seguintes a 1a, so o titulo dos que tem termo de
 # prova (o resto contado; tudo continua no JSON com id). Nenhum item some: o id fica citavel.
-MAX_SEGUINTES_NO_INDICE = 10     # por fonte: noticias das paginas seguintes a 1a (so titulo)
+MAX_SEGUINTES_NO_INDICE = 8      # por fonte: noticias das paginas seguintes a 1a (so titulo)
 NOTA_MIN_SEGUINTES = 2
 MAX_LINHA_FINA_INDICE = 170
 MAX_TIT_MESMA = 50
@@ -1580,7 +1585,7 @@ def imprimir(res, inicio, fim, recorte, ja_saiu=None):
                        "continuam no JSON)" % fora)
     if ja_saiu:
         out.append("\n== JA SAIU (Mídia e Fofoquinha das 2 últimas edições: o mesmo fato, mesmo com outro título, só "
-                   "volta como desdobramento dito no título; com desfecho oficial, vira uma frase do item oficial)")
+                   "como desdobramento dito no título)")
         out.extend(ja_saiu)
     return out
 
@@ -1589,8 +1594,8 @@ def imprimir_legin(r):
     """Bloco do LEGIN no indice; atribui os ids (dec13173, lc239, ec141, dleg123; lei/mpv quando o Congresso nao
     listou). Rotina (credito, acordo de turismo...) numa linha so."""
     pub = [i for i in r["itens"] if i["situacao"] in ("NOVA", "HERDADA", "SEM_DATA_OFICIAL")]
-    out = ["\n== LEGIN (Câmara, Legislação Informatizada: decretos e demais atos do DOU antes da resenha PUSH; "
-           "selo OFICIAL ALTERNATIVA; a mesma norma na PLANALTO_ATO é um item só) http=%s listadas=%d%s%s" % (
+    out = ["\n== LEGIN (Câmara: decretos e demais atos do DOU antes da resenha PUSH; OFICIAL ALTERNATIVA; a mesma "
+           "norma da PLANALTO_ATO = um item) http=%s listadas=%d%s%s" % (
                r["http"], r.get("listadas", 0), " mais_recente=%s" % r["mais_recente"] if r.get("mais_recente") else "",
                " leis/MPVs com o Congresso=%d" % r["no_congresso"] if r.get("no_congresso") else "")]
     if r.get("erro") or r["http"] != 200 or not r.get("listadas"):
@@ -1611,8 +1616,8 @@ def imprimir_legin(r):
             i["ementa"]))
     out.extend(linhas_rotina(rot, "ato(s)"))
     if not pub:
-        out.append("NENHUM ATO FORA DO CONGRESSO E DO HISTORICO entre as %d normas listadas (o DOU de hoje pode ainda "
-                   "nao estar indexado: nunca escreva \"sem ato novo\") — fonte ok" % r.get("listadas", 0))
+        out.append("NENHUM ATO FORA DO CONGRESSO E DO HISTORICO nas %d normas listadas (o DOU de hoje pode nao estar "
+                   "indexado: nunca \"sem ato novo\") — fonte ok" % r.get("listadas", 0))
     return out
 
 
