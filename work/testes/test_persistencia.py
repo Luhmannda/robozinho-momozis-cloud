@@ -836,6 +836,38 @@ def finalizar_reaplicacao_reaplica_a_migracao():
     ok(g(sess, "status", "--porcelain").stdout == "", "árvore limpa")
 
 
+@teste
+def finalizar_reaplicacao_recusada_devolve_o_estado_ao_commit():
+    """P9 (rev3): a reaplicacao que nao termina (aqui, trava de sanidade contra o helper da main nova) nao deixa na
+    arvore o estado recusado: os arquivos de estado voltam ao ultimo commit (a origin/main), com uma linha RESTAURADO."""
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    outro = os.path.join(base, "outro")
+    g(base, "clone", "-q", "origin.git", outro)
+    pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+    gravar(pl, dict(ler(pl), marca_concorrente="x"))
+    # a main nova traz um helper "OK" que perde dois concursos sem `remover` (a trava da reaplicacao recusa)
+    helper_falso(outro, "led = json.load(open('work/robozinho-aprendizado.json'))\n"
+                        "led['concursos'] = led['concursos'][2:]\n"
+                        "json.dump(led, open('work/robozinho-aprendizado.json', 'w'))\n"
+                        "open('work/resumo-legislativo-historico-arquivo-2099-01.json', 'w').write('{}')\n"
+                        "open(rel, 'w').write('STATUS: OK')\nprint('STATUS: OK')\n")
+    g(outro, "add", "-A")
+    g(outro, "commit", "-qm", "concorrente com helper defeituoso")
+    ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 3 and "PUSH: recusado (main andou no remoto)" in out and re.search(r"^TRAVA: concursos: 2 sumiram", out, re.M)
+       and "PUSH: FALHOU (trava de sanidade na reaplicacao" in out and "da 1a rodada, sobre a main anterior" in out
+       and re.search(r"^RESTAURADO: os arquivos de estado de work/ voltaram ao ultimo commit \(\w+ concorrente com "
+                     r"helper defeituoso\)", out, re.M), out[-1200:])
+    ok(g(sess, "status", "--porcelain", "--", "work/").stdout == "", "arvore = ultimo commit: %r"
+       % g(sess, "status", "--porcelain").stdout)
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    ok(led.get("marca_concorrente") == "x" and led == ler(pl), "o ledger e o da origin/main")
+    ok(not os.path.exists(os.path.join(sess, "work", "resumo-legislativo-historico-arquivo-2099-01.json")),
+       "o arquivo criado na reaplicacao sai")
+
+
 def hook(base, script):
     h = os.path.join(base, "origin.git", "hooks", "pre-receive")
     open(h, "w").write("#!/bin/sh\n" + script)

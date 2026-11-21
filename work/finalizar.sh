@@ -50,7 +50,9 @@
 #        ROBOZINHO_PUSH_ESPERAS ("0 5 15 30 40"): pior caso abaixo de 300 s (o Bash do
 #        passo 7 roda com timeout 300000);
 #      - falha definitiva: copia em tar do estado do dia (ESTADO: ...). Nenhuma outra branch
-#        e criada no remoto: a tarefa agendada so autoriza push na main.
+#        e criada no remoto: a tarefa agendada so autoriza push na main. Falha depois de
+#        comecar a reaplicacao: os arquivos de estado voltam ao ultimo commit ("RESTAURADO: ...
+#        voltaram ao ultimo commit"), sem o estado recusado na arvore (rev3, P9).
 #
 # USO: bash work/finalizar.sh --draft-id ID --message-id MSG_ID \
 #                             [--anterior EXEC_ID] [--trailer "linhas de atribuicao do commit"]
@@ -303,6 +305,22 @@ commitar() {   # so os arquivos de estado (pathspec): o que mais estiver no indi
   return 0
 }
 
+restaurar_head() {   # reaplicacao que nao terminou (rev3, P9): os arquivos de estado voltam ao ultimo commit
+  local f todos
+  todos=$( { arquivos_estado; printf '%s\n' "${ESTADO[@]}"
+             git ls-tree --name-only HEAD work/ 2>/dev/null | grep -E '^work/resumo-legislativo-historico-arquivo-'; } | sort -u)
+  [[ -n "$(git status --porcelain --untracked-files=all -- $todos 2>/dev/null)" ]] || return 0
+  for f in $todos; do
+    if git cat-file -e "HEAD:$f" 2>/dev/null; then
+      git checkout -q HEAD -- "$f" 2>/dev/null || echo "AVISO: $f nao voltou ao ultimo commit (git checkout falhou)"
+    else
+      rm -f "$f"          # criado na reaplicacao: nao existe no ultimo commit
+    fi
+  done
+  echo "RESTAURADO: os arquivos de estado de work/ voltaram ao ultimo commit ($(git log -1 --format='%h %s' 2>/dev/null))" \
+       "— o estado da reaplicacao que nao terminou nao fica na arvore"
+}
+
 falhou() {
   echo "PUSH: FALHOU ($1) — registrar no relatorio final."
   if [[ -n "$BACKUP" && $reaplicado -eq 1 && "$ESTADO_DE" == "rodada1" ]]; then
@@ -314,6 +332,7 @@ falhou() {
     echo "ESTADO: copia do estado do dia em $BACKUP (commit local ${SHA:-nenhum}) —" \
          "para reaplicar: tar -xzf $BACKUP e commitar os arquivos work/ na main"
   fi
+  [[ $reaplicado -eq 1 ]] && restaurar_head
   exit 3
 }
 
