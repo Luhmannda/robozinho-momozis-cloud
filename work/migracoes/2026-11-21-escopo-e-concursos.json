@@ -1,0 +1,67 @@
+{
+  "id": "2026-11-21-escopo-e-concursos",
+  "descricao": "Correções de 21/11/2026 lidas nas fontes oficiais: cria o registro do ENAM 6ª edição (2026.2), com prova em 29/11; atualiza PGE-RJ (datas das provas escritas específicas, DO 28/10) e DPE-SP (edital do X concurso, DOE 09/10) e aposenta as pendências dos dois; tira do quadro de apoio os 5 registros fora do escopo regional (decisão do dono de 20/11/2026: só SP, RJ, MG, ES, PR, SC, RS ou nacional) e as pendências deles; grava o banca_slug dos 6 registros casados com a página da FGV.",
+  "criado_em": "2026-11-21",
+  "ledger_updates": {
+    "concursos": {
+      "enam": {
+        "bloco": "Magistratura Estadual",
+        "linha": "ENAM — 6º Exame Nacional da Magistratura (2026.2), Enfam com a FGV: exame de habilitação, eliminatório e não classificatório, exigido para os concursos da magistratura (federal, do trabalho, militar e dos estados e DF); 80 questões, habilita com 70% de acertos (50% para cotistas), taxa R$ 120,00; inscrições de 25/08 a 24/09/2026; prova objetiva em 29/11/2026, das 13h às 18h (Brasília); gabarito preliminar em 01/12 e recursos em 02 e 03/12",
+        "selo": "PROVA EM BREVE",
+        "prazos": [
+          {"data": "2026-11-29", "evento": "prova objetiva de habilitação, das 13h às 18h (Brasília)", "confirmado": true, "tipo": "prova"},
+          {"data": "2026-12-01", "evento": "gabarito preliminar da prova objetiva", "confirmado": true, "tipo": "outro"},
+          {"data": "2026-12-02", "evento": "recursos contra o gabarito preliminar e a aplicação da prova (02 e 03/12)", "confirmado": true, "tipo": "outro"},
+          {"data": "2027-01-11", "evento": "gabarito definitivo e resultado preliminar da prova objetiva", "confirmado": true, "tipo": "outro"},
+          {"data": "2027-02-05", "evento": "homologação do resultado final do ENAM", "confirmado": true, "tipo": "outro"}
+        ],
+        "verificado_em": "2026-11-21",
+        "fonte": "https://conhecimento.fgv.br/exames/enam/6exame",
+        "dominio_oficial": "conhecimento.fgv.br",
+        "url_oficial": "https://conhecimento.fgv.br/exames/enam/6exame",
+        "banca_slug": "exames/enam/6exame"
+      },
+      "pge_rj": {
+        "linha": "PGE-RJ — 19º concurso de Procurador do Estado: 5 vagas, taxa R$ 300,00, conduzido pela própria PGE (Comissões Organizadora e Examinadora); provas escritas específicas no Centro Cultural da PGERJ (DO 28/10): Administrativo 08/11, Processual Civil 15/11, Constitucional 20/11, Civil e Empresarial 22/11, Financeiro e Tributário 29/11 e Relações de Trabalho e Previdência/Princípios Institucionais 06/12/2026; depois, prova oral e títulos",
+        "selo": "PROVA EM BREVE",
+        "prazos": [
+          {"data": "2026-11-29", "evento": "prova escrita específica de Direito Financeiro e Tributário", "confirmado": true, "tipo": "prova"},
+          {"data": "2026-12-06", "evento": "prova escrita específica de Relações de Trabalho e Previdência na Administração Pública e Princípios Institucionais da PGE", "confirmado": true, "tipo": "prova"}
+        ],
+        "verificado_em": "2026-11-21",
+        "fonte": "https://pge.rj.gov.br/sites/default/files/2026-10/19%C2%BA%20Concurso%20para%20Procurador%20-%20Datas%20das%20Provas%20Espec%C3%ADficas.pdf",
+        "url_oficial": "https://pge.rj.gov.br/concurso/19o-concurso-para-ingresso-na-carreira-de-procurador-do-estado"
+      },
+      "dpe_sp": {
+        "linha": "DPE-SP — X Concurso de Defensor Público: 70 cargos, taxa R$ 250,00, apoio operacional da Fundação Carlos Chagas (FCC); inscrições de 13/10 a 11/11/2026 (23h59), pagamento até 12/11; a página oficial do concurso, lida em 21/11, só traz o edital de abertura (DOE 09/10), sem prorrogação; provas previstas na capital: objetiva em 10/01/2027 (manhã), segunda e terceira escritas em 03 e 04/07/2027 (tarde), oral a definir",
+        "selo": "INSCRIÇÕES ENCERRADAS",
+        "prazos": [
+          {"data": "2027-01-10", "evento": "primeira prova escrita - objetiva (prevista), manhã", "confirmado": true, "tipo": "prova"},
+          {"data": "2027-07-03", "evento": "segunda prova escrita (prevista), tarde", "confirmado": true, "tipo": "prova"},
+          {"data": "2027-07-04", "evento": "terceira prova escrita (prevista), tarde", "confirmado": true, "tipo": "prova"}
+        ],
+        "verificado_em": "2026-11-21",
+        "fonte": "https://www.defensoria.sp.def.br/documents/20122/7588344/X+Concurso+P%C3%BAblico+de+Provas+e+T%C3%ADtulos+para+Ingresso+na+Carreira+de+Defensora+ou+Defensor+P%C3%BAblico+do+Estado+de+S%C3%A3o+Paulo.pdf/ccd4a223-4ae8-7dd5-2d26-7b53a93b074b",
+        "url_oficial": "https://www.defensoria.sp.def.br/transparencia/portal-da-transparencia/concursos/-/concursos/7588359"
+      },
+      "trt8_apoio": {"remover": true, "desfecho": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026)"},
+      "dpe_pb_apoio": {"remover": true, "desfecho": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026)"},
+      "tjpb_apoio": {"remover": true, "desfecho": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026)"},
+      "dpdf_apoio": {"remover": true, "desfecho": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026)"},
+      "mppa_apoio": {"remover": true, "desfecho": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026)"},
+      "tjrs_juiz": {"banca_slug": "tjrsjuiz26"},
+      "tjsc_juiz": {"banca_slug": "tjscjuiz26"},
+      "tjap_juiz": {"banca_slug": "tjap26"},
+      "trf5_juiz": {"banca_slug": "trf5juiz26"},
+      "trf1_juiz": {"banca_slug": "trf1juiz25"},
+      "dpe_rj": {"banca_slug": "dperj2026"}
+    },
+    "pendencias": {
+      "pge_rj_edital_verificar": {"remover": true, "desfecho": "PGE-RJ 19º concurso: a página oficial publicou as datas das provas escritas específicas (DO 28/10), de 08/11 a 06/12/2026, com as duas últimas em 29/11 (Financeiro e Tributário) e 06/12; o registro passa a seguir a página e o PDF oficiais."},
+      "dpe_sp_edital_verificar": {"remover": true, "desfecho": "DPE-SP X concurso: edital oficial lido (DOE 09/10): 70 cargos, taxa R$ 250,00, FCC; inscrições de 13/10 a 11/11/2026; provas previstas em 10/01/2027 (objetiva) e 03 e 04/07/2027; a página oficial do concurso não traz prorrogação."},
+      "trt8_edital_verificar": {"remover": true, "desfecho": "TRT8 (PA/AP) fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026): registro e pendência retirados."},
+      "dpe_pb_apoio_verificar": {"remover": true, "desfecho": "DPE-PB fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026): registro e pendência retirados."},
+      "dpdf_apoio_verificar": {"remover": true, "desfecho": "DPDF fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026): registro e pendência retirados."}
+    }
+  }
+}
