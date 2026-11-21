@@ -40,7 +40,9 @@
 #        com ERRO: linhas "ERRO: ..." + "MONTAGEM: ERRO ...", exit 2, nenhum HTML.
 # ARQUIVOS ($ROBOZINHO_TMP, padrao /tmp): le execucao.json, janela.json,
 #        coleta_web.json, informativos.json, versiculo.json, bancas.json,
-#        fontes_status.json; grava execucao.resolvido.json (o passo 7 usa) e
+#        fontes_status.json, migracoes-hoje.json (work/migracoes.py: o que as
+#        migracoes de dado aplicadas hoje mudaram — marcas do dia e itens do
+#        historico, sem reaplicar); grava execucao.resolvido.json (o passo 7 usa) e
 #        email.html — ou email-com-avisos.html quando houver AVISO ACIONÁVEL
 #        (os dois sao apagados no inicio de cada rodada).
 # =====================================================================
@@ -133,7 +135,8 @@ SECOES = [
      "estão em Se saiu na mídia não é fofoca!"),
     ("STJ Notícias", "⚖️ STJ — Notícias",
      "O STJ da janela chegou só pela mídia — ver Se saiu na mídia não é fofoca!"),
-    ("STJ Jurisprudência", "⚖️ STJ — Jurisprudência", "Sem teses do CodJu na janela; ver Informativos."),
+    ("STJ Jurisprudência", "⚖️ STJ — Jurisprudência",
+     "Sem edição nova de Jurisprudência em Teses do STJ na janela; teses dos julgados estão em 📚 Informativos."),
     ("Informativos", "📚 Informativos",
      "Nenhuma edição nova de informativo (STF, Repercussão Geral em Pauta ou STJ) nesta janela — "
      "a cadência é semanal."),
@@ -417,6 +420,17 @@ def caixa_titulo(s):
     return " ".join(w if (n and w in MINUSCULAS) else w[:1].upper() + w[1:] for n, w in enumerate(p))
 
 
+def curto(s, n=60):
+    """Texto (titulo, evento, resenha) numa mensagem de ERRO/AVISO: ate n caracteres, cortado em fronteira de
+    palavra e com "…" (23/11, ensaio: "STJ vai julgar se ANPP deve ser rescindido por juiz que homo" — o corte no
+    meio da palavra parecia o titulo). Palavra unica maior que n: corte seco com "…"."""
+    t = re.sub(r"\s+", " ", str(s or "")).strip()
+    if len(t) <= n:
+        return t
+    corte = t[:n] if t[n] == " " else t[:n].rsplit(" ", 1)[0] if " " in t[:n] else t[:n - 1]
+    return corte.rstrip(" ,;:.—–-") + "…"
+
+
 def limpo(s):
     """Espacos que a extracao do documento deixa antes de pontuacao e dentro de parenteses."""
     s = re.sub(r"\s+([,.;:)])", r"\1", s or "")
@@ -575,11 +589,26 @@ RESUMO_TRUNCADO_MIN = 40     # resumo cortado mais curto que isto (sem as retice
 FIM_CORTADO = re.compile(r"(?:\[\s*(?:…|\.\.\.)\s*\]|…|[\s,;:.\-–—(])+$")
 
 
+META_SEM_DOU = "data do DOU não confirmada na página oficial"
+META_DOU_RESENHA = "DOU conforme a Resenha PUSH"
+
+
 def resumo_cortado(s):
     """Resumo que a coleta marcou como cortado: sem a pontuacao/reticencias soltas do fim e terminado em "…" (o
     ponto() nao acrescenta ponto depois dele); com menos de RESUMO_TRUNCADO_MIN caracteres, "" (omitido)."""
     t = FIM_CORTADO.sub("", str(s or "").strip())
     return t + "…" if len(t) >= RESUMO_TRUNCADO_MIN else ""
+
+
+def observacao_informativo(publicados, lidos, notas=None):
+    """Observacao do item do informativo (vai ao historico, nao ao leitor): "k de n destaques publicados". Guarda do
+    informativos.py (r["notas"], STJ): a pagina tem mais notas do que o parser leu (layout novo?) — entao "k de N notas
+    lidas (layout?)", para o "n de n" nao parecer edicao completa; com destaques excluidos, as duas contas."""
+    pub = "%d de %d destaques publicados" % (publicados, lidos)
+    if not (isinstance(notas, int) and not isinstance(notas, bool) and notas > lidos):
+        return pub
+    lidas = "%d de %d notas lidas (layout?)" % (lidos, notas)
+    return lidas if publicados == lidos else "%s; %s" % (pub, lidas)
 
 
 def resolver(it, ev, erros, avisos=None, hoje=None):
@@ -610,7 +639,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
         base = {"categoria": "Planalto/Legislação",
                 "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" if dou else "PENDÊNCIA DE VERIFICAÇÃO",
                 "titulo": "Medida Provisória nº %s/%s" % ("{:,}".format(n).replace(",", "."), e["ano"]),
-                "meta": ("DOU %s" % dou[:5]) if dou else "data do DOU não confirmada na página oficial",
+                "meta": ("DOU %s" % dou[:5]) if dou else META_SEM_DOU,
                 "resumo": e["ementa"], "url": e["url"], "fonte": "Congresso Nacional",
                 "data": datetime.strptime(dou, "%d/%m/%Y").date().isoformat() if dou else "",
                 "grupo": "Congresso Nacional — medidas provisórias", "chave": e["chave"] if dou else ""}
@@ -624,7 +653,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" if dou else "PENDÊNCIA DE VERIFICAÇÃO",
                 "titulo": "%s nº %s, de %s" % (e["tipo"], "{:,}".format(n).replace(",", "."), e["data_ato"]),
                 "meta": ("DOU %s%s" % (dou[:5], " · edição extra" if e.get("extra") else "")) if dou
-                else "data do DOU não confirmada na página oficial",
+                else META_SEM_DOU,
                 "resumo": e["ementa"], "url": e["url"], "fonte": "Câmara dos Deputados (Legislação Informatizada)",
                 "data": datetime.strptime(e["data_ato"], "%d/%m/%Y").date().isoformat(),
                 # o selo sai uma vez por grupo (_grupos_planalto): o ato sem DOU confirmado fica num grupo proprio
@@ -664,7 +693,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "fonte": "STJ — página oficial do informativo" if e["tipo"] == "stj" else "STF — documento oficial",
                 "chave": e["chave"],
                 "destaques_texto": destaques_html(e["tipo"], [e["itens"][i] for i in idx], hoje),
-                "observacao": "%d de %d destaques publicados" % (len(idx), len(e["itens"])),
+                "observacao": observacao_informativo(len(idx), len(e["itens"]), e.get("notas")),
                 "herdada": e.get("situacao") in ("atrasada", "pulada"),
                 "_revisita": bool(e.get("revisita")),
                 "_nota_auto": ("destaques da edição anunciada em %s" % br_data(anunciada))
@@ -713,18 +742,23 @@ def resenha_no_ref(novo, it, e, ref, avisos):
     """Lei ou MPV do Congresso (lei…/mpv…) que tambem veio na Resenha Diaria do PUSH: `resenha` no ref da o grupo, a
     fonte ("PUSH Planalto") e o selo CONFIRMADO POR FONTE OFICIAL (ROTINA: PUSH -> oficial); grupo, fonte e status
     escritos vencem. Sem resenha, fica a pagina do Congresso (ALTERNATIVA). Antes (20/11) a resenha era descartada em
-    silencio e o selo do PUSH saia sob "Congresso Nacional — últimas leis publicadas". A chave nao muda."""
+    silencio e o selo do PUSH saia sob "Congresso Nacional — últimas leis publicadas". A chave nao muda.
+    R6: ato sem a data do DOU na pagina oficial (LEGIN, MPV) que sai com o selo oficial da resenha trocava "data do
+    DOU não confirmada" ao lado de CONFIRMADO POR FONTE OFICIAL: o meta vira "DOU conforme a Resenha PUSH" (meta
+    escrito vence)."""
     if not (e and e.get("_fonte") in FONTES_ATO_RESENHA and it.get("resenha")) or it.get("grupo"):
         return
     g = grupo_resenha(it["resenha"])
     if not g:
         avisos.append("ref %s: \"resenha\" sem data reconhecível (%s) — escreva \"grupo\"" % (
-            ref, str(it["resenha"])[:60]))
+            ref, curto(it["resenha"])))
         return
     novo["grupo"] = g
     novo["fonte"] = it.get("fonte") or "PUSH Planalto"
     if not it.get("status"):
         novo["status"] = "CONFIRMADO POR FONTE OFICIAL"
+    if novo.get("status") == "CONFIRMADO POR FONTE OFICIAL" and novo.get("meta") == META_SEM_DOU and not it.get("meta"):
+        novo["meta"] = META_DOU_RESENHA
 
 
 SELO_PADRAO = {"STF Notícias": "CONFIRMADO POR FONTE OFICIAL", "STF Jurisprudência": "CONFIRMADO POR FONTE OFICIAL",
@@ -777,11 +811,25 @@ def limpar_nota(nota):
 def sem_parenteses(texto):
     """Texto que sai ENTRE parenteses (nota do item, nota do Planalto) sem parenteses dentro (lows[3], 20/11: "(o
     ConJur noticiou … para julgamento (ver Mídia))"): o de dentro vira aposto com travessao — "(… para julgamento —
-    ver Mídia)". O mesmo cuidado de norm_meta e nome_feriado."""
+    ver Mídia)". O mesmo cuidado de norm_meta e nome_feriado. 23/11 (ensaio): no meio da frase o aposto fecha com
+    outro travessao ("a pauta oficial (STF Notícias) mantém" -> "a pauta oficial — STF Notícias — mantém"; antes
+    ficava "— STF Notícias mantém", travessao sem par); no fim ou antes de pontuacao, um so. Parentese sem par e
+    "()" vazio saem; travessao repetido ou solto nas pontas tambem."""
     s = str(texto or "")
+
+    def aposto(m):
+        dentro = m.group(1).strip()
+        if not dentro:
+            return ""
+        resto = m.string[m.end():]
+        fecha = resto.strip() and not re.match(r"\s*[,;:.!?…)\]]", resto)
+        return " — " + dentro + (" — " if fecha else "")
     for _ in range(3):                                  # ate aninhados
-        s = re.sub(r"\s*\(\s*([^()]*?)\s*\)", r" — \1", s)
-    return re.sub(r"^\s*—\s*", "", s).strip()
+        s = re.sub(r"\s*\(\s*([^()]*?)\s*\)", aposto, s)
+    s = re.sub(r"\s*[()]\s*", " ", s)                    # parentese sem par
+    s = re.sub(r"—(?:\s*—)+", "—", s)                   # travessao repetido
+    s = re.sub(r"[ \t]{2,}", " ", s)                      # o aposto fechado antes de um espaco
+    return re.sub(r"^[\s—]+|[\s—]+$", "", s)
 
 
 EXTRA_META = re.compile(r"\(\s*(?:edi[çc][ãa]o\s+)?extra\s*\)|(?:edi[çc][ãa]o\s+)?\bextra\b", re.I)
@@ -893,9 +941,28 @@ def item_oficial(it):
 def sem_movimento(campos):
     """ledger_updates.concursos.<id>.movimento = false: a linha foi reescrita sem fato novo para o leitor (enriquecida
     com fato antigo, nota de busca): grava, mas sem "Atualizado hoje", fundo creme, item 'atualizado' nem mudou_em
-    (o helper faz o mesmo). O campo nao vai ao registro. Ausente ou true: linha/selo/prazos mudados = movimento."""
+    (o helper faz o mesmo). O campo nao vai ao registro. Ausente ou true: linha/selo/prazos mudados = movimento.
+    Com selo ou prazos mudados no mesmo update o opt-out e ignorado (movimento_ignorado, em estado_concursos)."""
     v = (campos or {}).get("movimento")
     return v is False or str(v).strip().lower() in ("false", "0", "nao", "não")
+
+
+def movimento_ignorado(upd, antes):
+    """E-min (e), ensaio de 23/11: `movimento: false` e para a linha reescrita sem fato novo. Junto com selo ou prazos
+    mudados (selo igual ao do registro e copia, nao mudanca) o leitor perderia a marca de um fato que ele ve: o
+    opt-out sai do update NO LUGAR — o execucao.resolvido.json leva o update sem ele e o helper grava o mudou_em, como
+    o e-mail mostra — e sai AVISO (comum). Devolve os AVISOs."""
+    out = []
+    for ident, campos in (upd or {}).items():
+        if not isinstance(campos, dict) or campos.get("remover") or not sem_movimento(campos) or ident not in antes:
+            continue
+        mudados = [k for k in ("selo", "prazos") if k in campos and campos[k] != antes[ident].get(k)]
+        if mudados:
+            del campos["movimento"]
+            out.append("ledger_updates.concursos.%s.movimento: false ignorado — %s mudou hoje: sai \"Atualizado hoje\" "
+                       "e o registro conta como mudado (movimento: false vale só para a linha reescrita sem fato novo)"
+                       % (ident, " e ".join(mudados)))
+    return out
 
 
 def aplicar_concursos(concursos, upd):
@@ -948,6 +1015,34 @@ def ler_banca(caminho, hoje):
     if not isinstance(res, dict) or res.get("data") != hoje:
         return None
     return res
+
+
+MIGRACOES_HOJE = "migracoes-hoje.json"
+
+
+def migracoes_do_dia(j, led, caminho=None):
+    """O RESUMO que o work/migracoes.py grava em $ROBOZINHO_TMP/migracoes-hoje.json (formato no cabecalho de la):
+    {"migracoes": [ids], "concursos": {id: "novo"|"alterado"|{"removido": desfecho, "linha", "bloco"}},
+    "pendencias": {id: "alterado"|{"removido": desfecho, "texto", "faixa"[, "concurso"]}}}. 23/11/2026 (ensaio): o
+    ledger chega ao montador ja migrado e o ledger_updates do dia nao traz a migracao, entao o ENAM criado por ela
+    saia sem NOVO, PGE-RJ/DPE-SP sem "Atualizado hoje" e as remocoes sem "Saiu do acompanhamento". Vale so o de
+    HOJE (janela.data) e so enquanto o ledger nao foi gravado por outra execucao depois da migracao (base_execucao:
+    a edicao extra na mesma maquina nao repete o NOVO da diaria; o --refazer da mesma execucao repete). Ausente,
+    ilegivel ou de outro dia: nada."""
+    vazio = {"migracoes": [], "concursos": {}, "pendencias": {}}
+    r = ler(caminho or tmp(MIGRACOES_HOJE))
+    if not isinstance(r, dict) or r.get("data") != j.get("data"):
+        return vazio
+    if "base_execucao" in r and (led or {}).get("atualizado_por_execucao") not in (r.get("base_execucao"),
+                                                                                   j.get("execution_id")):
+        return vazio
+    return {"migracoes": [str(x) for x in r.get("migracoes") or [] if x],
+            "concursos": r["concursos"] if isinstance(r.get("concursos"), dict) else {},
+            "pendencias": r["pendencias"] if isinstance(r.get("pendencias"), dict) else {}}
+
+
+def removido_na_migracao(m):
+    return isinstance(m, dict) and "removido" in m
 
 
 def execucoes_historico(caminho, com_arquivos=False):
@@ -1005,7 +1100,7 @@ def tipo_contra_evento(upd, por_id, hoje, ctx_banca):
             out.append("ledger_updates.concursos.%s.prazos[%d].tipo: %r num prazo cujo evento é %s («%s») — com "
                        "esse tipo o selo por data ignora o prazo%s; se é %s, escreva tipo '%s' ou omita o tipo; "
                        "se não é, aceite o aviso" % (
-                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], str(p.get("evento") or "")[:80],
+                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], curto(p.get("evento"), 80),
                            daria, CLASSE_INSCRICAO[pelo_evento], pelo_evento))
     return out
 
@@ -1030,10 +1125,14 @@ def estado_concursos(ex, j, led, op, avisos):
     - carimbo e contexto da banca com o update de hoje: o registro que AINDA diverge do edital nao e
       carimbado nem conta como banca lida (bancas.divergencias_pendentes);
     - selo por data por bancas.selo_do_dia (a regra unica): com divergencia pendente — inclusive o prazo escrito
-      hoje que contradiz o edital lido hoje — fica SUSPENSO (o selo do registro) e sai AVISO ACIONÁVEL."""
+      hoje que contradiz o edital lido hoje — fica SUSPENSO (o selo do registro) e sai AVISO ACIONÁVEL;
+    - migracao aplicada hoje (migracoes_do_dia): os ids dela entram nas marcas do dia como os do ledger_updates
+      (NOVO, "Atualizado hoje", "Saiu do acompanhamento") sem reaplicar nada — o ledger ja esta migrado; id que o
+      update do dia tambem toca nao se repete (novo prevalece sobre alterado)."""
     hoje = date.fromisoformat(j["data"])
     upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
     antes = {c.get("id"): c for c in led.get("concursos") or []}
+    avisos += movimento_ignorado(upd, antes)
     regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd)
     por_id = {c["id"]: c for c in regs}
     banca = ler_banca(op.get("bancas") or tmp("bancas.json"), j["data"])
@@ -1077,6 +1176,17 @@ def estado_concursos(ex, j, led, op, avisos):
         ignorar = {j.get("execution_id"), j.get("ignorar_execucao")} - {None, ""}
         selos.garantir_mudou_em(regs, lambda: [e for e in execucoes_historico(op.get("historico"), True)
                                                if e.get("execution_id") not in ignorar])
+    mig = migracoes_do_dia(j, led, op.get("migracoes"))
+    for ident, m in mig["concursos"].items():
+        c = por_id.get(ident)
+        if c is None or m not in ("novo", "alterado"):
+            continue
+        if m == "novo":
+            novos.add(ident)
+            alterados.discard(ident)
+        elif ident not in novos:
+            alterados.add(ident)
+        c["_migracao"] = m                    # so em memoria (linha_concurso): a verificacao pode ser de outro dia
     for ident in novos | alterados:
         por_id[ident]["mudou_em"] = j["data"]
     # concurso removido hoje: sai do bloco com uma linha "Saiu do acompanhamento" e o desfecho (so neste dia)
@@ -1084,8 +1194,13 @@ def estado_concursos(ex, j, led, op, avisos):
                   "desfecho": str(campos.get("desfecho") or "").strip()}
                  for ident, campos in upd.items()
                  if isinstance(campos, dict) and campos.get("remover") and ident in antes and ident not in por_id]
+    ja = {r["id"] for r in removidos}
+    removidos += [{"id": ident, "orgao": orgao({"id": ident, "linha": m.get("linha")}), "bloco": m.get("bloco"),
+                   "desfecho": str(m.get("removido") or "").strip()}
+                  for ident, m in mig["concursos"].items()
+                  if removido_na_migracao(m) and ident not in por_id and ident not in ja]
     return {"regs": regs, "novos": novos, "alterados": alterados, "selo_mudou": selo_mudou,
-            "banca": banca or {}, "pendentes": set(pendentes), "removidos": removidos}
+            "banca": banca or {}, "pendentes": set(pendentes), "removidos": removidos, "migracoes": mig}
 
 
 # ------------------------------------------------------------------ 3. secoes do e-mail
@@ -1223,13 +1338,15 @@ def apoio_calculado(cat, por_cat):
         return "Nenhuma notícia do STJ localizada nesta janela%s." % (
             "; o %s está em 📚 Informativos" % stj[0]["titulo"] if stj else "")
     if cat == "STJ Jurisprudência":
+        # a secao e da Jurisprudência em Teses (linha STJ_TESES do coletor-gmail, teses_stj); as teses dos julgados
+        # vem no Informativo STJ
         if stj:
-            return "Sem teses do CodJu na janela; as do STJ desta edição estão em 📚 Informativos (%s)." % (
-                "; ".join(it["titulo"] for it in stj))
+            return ("Sem edição nova de Jurisprudência em Teses do STJ na janela; teses dos julgados do STJ desta "
+                    "edição estão em 📚 Informativos (%s)." % "; ".join(it["titulo"] for it in stj))
         vazias = edicoes("stj", False)
         if vazias:
-            return "Sem teses do CodJu na janela; %s." % nao_abriu(vazias)
-        return "Sem teses do CodJu nem Informativo STJ novo na janela."
+            return "Sem edição nova de Jurisprudência em Teses do STJ na janela; %s." % nao_abriu(vazias)
+        return "Sem edição nova de Jurisprudência em Teses do STJ nem Informativo STJ novo na janela."
     return None
 
 
@@ -1246,19 +1363,25 @@ def partes_linha(linha):
 
 
 def linha_concurso(c, hoje, novos, alterados, zebra):
-    """Uma linha: órgão — cargo em negrito + selo; abaixo, os detalhes. Novidade em fundo creme."""
+    """Uma linha: órgão — cargo em negrito + selo; abaixo, os detalhes. Novidade em fundo creme. Registro mudado
+    pela migracao de hoje (_migracao, de estado_concursos) e novidade para o leitor mesmo verificado antes (a
+    migracao e escrita fora da rotina): "Atualizado hoje" e, sem verificacao de hoje, "(verificado em DD/MM)", sem
+    "herdada"."""
     try:
         ver = date.fromisoformat(c.get("verificado_em", ""))
     except ValueError:
         ver = None
     idade = (hoje - ver).days if ver else 999
     linha = (c.get("linha") or "").rstrip(".")
-    novo, mudou = c["id"] in novos, c["id"] in alterados and idade == 0
+    migrou = bool(c.get("_migracao")) and (c["id"] in novos or c["id"] in alterados)
+    novo, mudou = c["id"] in novos, c["id"] in alterados and (idade == 0 or migrou)
     cabeca, corpo = partes_linha(linha)
     corpo = corpo[:1].upper() + corpo[1:]
     selos_html = (selo("NOVO", True) + " " if novo else "") + selo(c.get("selo"), True)
     marca = '<b style="color:#8a6d1d">Atualizado hoje:</b> ' if mudou else ""
-    cauda = "" if idade == 0 else " <i>(herdada; verificado em %s)</i>" % (ver.strftime("%d/%m") if ver else "?")
+    quando = ver.strftime("%d/%m") if ver else "?"
+    cauda = "" if idade == 0 else (" <i>(verificado em %s)</i>" % quando if migrou
+                                   else " <i>(herdada; verificado em %s)</i>" % quando)
     fundo = ' bgcolor="#fdf6e9"' if (novo or mudou) else (' bgcolor="#f4f6fa"' if zebra else "")
     topo = ("<b>%s</b> " % esc(cabeca)) if cabeca else ""
     return "<tr%s><td>%s%s<br>%s%s.%s</td></tr>" % (fundo, topo, selos_html, marca, esc(corpo), cauda)
@@ -1574,7 +1697,7 @@ def pendencia_no_quadro(p, quadro):
     if not texto.strip() or pendencia_operacional(texto):
         return False
     antes = (quadro.get("antes") or {}).get(p["id"]) or {}
-    mudou = p.get("_nova") or texto.strip() != str(antes.get("texto") or "").strip()
+    mudou = p.get("_nova") or p.get("_migracao") or texto.strip() != str(antes.get("texto") or "").strip()
     if not (p.get("faixa") == "ativa" or mudou or quadro.get("primeira")):
         return False
     return not any(ja_em_limitacoes(texto, t) for t in quadro.get("textos") or ())
@@ -1644,17 +1767,40 @@ def tecnico_para_leitor(texto):
     return out
 
 
-def suporte_txt(ss, em=None, ex=None):
-    """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
-    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
-    calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
-    embaralhava a frase e deixava codigo e nome de script. ex: para o rotulo por produto (rotulo_fonte)."""
+def fontes_que_falharam(ss, ex=None):
+    """Rotulos (rotulo_fonte) das fontes com 'falha' no source_status, na ordem do rodape, sem repeticao."""
     falhas = []
     for i in OFICIAIS + SECUNDARIAS:
         if ss.get(i) == "falha":
             rot = rotulo_fonte(i, ex)
             if rot not in falhas:
                 falhas.append(rot)
+    return falhas
+
+
+# E-min (f), ensaio de 23/11: o rodape sai do source_status ("Nenhuma fonte falhou nesta execução") e as limitacoes e
+# observacoes sao texto livre do orquestrador; quando o texto diz que uma fonte falhou e nenhum status e 'falha', o
+# leitor ve as duas coisas. Vocabulario de falha de acesso; "sem falha"/"nenhuma falha" nao contam.
+FALHA_NO_TEXTO = re.compile(r"\b(?:falh(?:ou|aram|as?)|fora\s+do\s+ar|indispon[íi]ve(?:l|is)|inacess[íi]ve(?:l|is)|"
+                            r"n[ãa]o\s+(?:respondeu|responderam|abriu|abriram|carregou|carregaram)|recusou|recusaram|"
+                            r"bloquead[oa]s?|sem\s+resposta)\b", re.I)
+NEGA_FALHA = re.compile(r"\b(?:sem|nenhuma?)\s+(?:\w+\s+){0,2}falh", re.I)
+
+
+def falha_no_texto(texto):
+    """A 1a frase do texto que fala de falha de fonte (FALHA_NO_TEXTO, sem negacao); '' se nenhuma."""
+    for frase in re.split(r"(?<=[.;])\s+", str(texto or "")):
+        if FALHA_NO_TEXTO.search(frase) and not NEGA_FALHA.search(frase):
+            return frase.strip()
+    return ""
+
+
+def suporte_txt(ss, em=None, ex=None):
+    """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
+    nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
+    calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
+    embaralhava a frase e deixava codigo e nome de script. ex: para o rotulo por produto (rotulo_fonte)."""
+    falhas = fontes_que_falharam(ss, ex)
     base = ("Leitura automática dos e-mails oficiais (Push STF, PUSH Planalto, CodJu, Câmara) e do JOTA, das páginas "
             "do Congresso, do ConJur e do Migalhas, dos documentos oficiais dos informativos e das páginas das bancas "
             "de concurso; e-mail montado automaticamente")
@@ -1701,11 +1847,12 @@ def janela_txt(j, limitacoes):
 
 
 # ------------------------------------------------------------------ 4. montagem
-def quadro_pendencias(led, upd_pend, regs, ex, j):
+def quadro_pendencias(led, upd_pend, regs, ex, j, mig=None):
     """Contexto do quadro de pendencias (sec_pendencias): o ledger de antes (texto mudou hoje?), a 1a execucao da
     semana, o texto da edicao (itens de noticia, limitacoes, observacoes: pendencia que o repete nao sai) e as
     pendencias removidas hoje que o leitor via — sem concurso ligado, sem errata, fora da 'cronica' e sem texto
-    operacional —, ditas uma vez com o desfecho ("Saiu do acompanhamento")."""
+    operacional —, ditas uma vez com o desfecho ("Saiu do acompanhamento"). mig (migracoes_do_dia): as removidas
+    pela migracao de hoje, com o texto/faixa/vinculo de antes guardados no resumo (o ledger ja chega sem elas)."""
     antes = {p.get("id"): p for p in led.get("pendencias_vivas") or []}
     em = ex.get("email") or {}
     textos = ["%s. %s" % (it.get("titulo") or "", it.get("resumo") or "") for it in ex.get("items") or []
@@ -1720,6 +1867,13 @@ def quadro_pendencias(led, upd_pend, regs, ex, j):
             continue
         if str(campos.get("desfecho") or "").strip():
             removidas.append((rotulo_pendencia(p.get("texto")), str(campos["desfecho"]).strip()))
+    vivas = antes.keys() | set(upd_pend or ())
+    for ident, m in ((mig or {}).get("pendencias") or {}).items():
+        if not removido_na_migracao(m) or ident in vivas or ident.startswith("errata_") or m.get("concurso") \
+                or ident in ligadas or m.get("faixa") == "cronica" or pendencia_operacional(m.get("texto")):
+            continue
+        if str(m.get("removido") or "").strip():
+            removidas.append((rotulo_pendencia(m.get("texto")), str(m["removido"]).strip()))
     return {"antes": antes, "primeira": bool(j.get("primeira_semana")), "textos": [t for t in textos if t.strip()],
             "removidas": removidas}
 
@@ -1739,10 +1893,14 @@ def montar(ex, j, led, ev, v, agora, ctx=None):
                 if not (k.startswith("errata_") and c.get("remover")
                         and str(c.get("desfecho", "")).startswith("Errata publicada na edição de"))}
     pend = aplicar_pendencias(led.get("pendencias_vivas") or [], upd_pend)
+    mig = ctx.get("migracoes") or {}
+    for p in pend:
+        if (mig.get("pendencias") or {}).get(p["id"]) == "alterado":
+            p["_migracao"] = True            # criada ou reescrita pela migracao de hoje: texto novo para o leitor
     por_cat = {}
     for it in ex["items"]:
         por_cat.setdefault(it["categoria"], []).append(it)
-    quadro = quadro_pendencias(led, upd_pend, regs, ex, j)
+    quadro = quadro_pendencias(led, upd_pend, regs, ex, j, mig)
 
     pre = ('<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;'
            'overflow:hidden">%s%s</div>' % (esc(em["preheader"]), "&#847;&zwnj;&nbsp;" * 12))
@@ -1891,7 +2049,7 @@ def cards_citam_descartados(em, ficam, fora, regs=()):
         ondes = achados[i]
         out.append("%s %s item descartado («%s», %s): troque o card/o trecho ou marque \"desdobramento\": true "
                    "no item" % (" e ".join(ondes), "citam" if len(ondes) > 1 else "cita",
-                                (it.get("titulo") or "")[:60], motivo.split(":")[0].split(" ")[0]))
+                                curto(it.get("titulo")), motivo.split(":")[0].split(" ")[0]))
     return out
 
 
@@ -1937,10 +2095,10 @@ def relacionados_informativos(itens, ev):
                 desc = "Tema %s, %s" % (d.get("tema"), rot[:1].lower() + rot[1:])
                 pede = "cite o tema; o resultado segue só na mídia"
             else:
-                desc = limpo(d.get("titulo") or d.get("tema") or "")[:70]
+                desc = curto(limpo(d.get("titulo") or d.get("tema") or ""), 70)
                 pede = "cite o informativo; a nota de confirmação não muda"
             avisos.append("Mídia «%s» relacionado a %s[%d] (%s): %s" % (
-                (it.get("titulo") or "")[:60], ref, i, desc, pede))
+                curto(it.get("titulo")), ref, i, desc, pede))
     return avisos
 
 
@@ -2083,8 +2241,9 @@ def status_informativos(ex, itens, caminho, j):
     except Exception:  # noqa: BLE001 — acessorio
         e = None
     base = ((e.get("status_script") or e.get("status")) if e else ss.get("informativos_docs"))
-    sem = [it["titulo"] for it in itens if it.get("categoria") == "Informativos" and it.get("sem_conteudo")
-           and it.get("titulo")]
+    # R4: em qualquer categoria — o ref de informativo escrito em outra secao (STF Jurisprudência…) tambem sai sem
+    # conteudo, e a condicao de categoria escondia a falha do rodape (sem_conteudo e DERIVADO: so o resolver o poe)
+    sem = [it["titulo"] for it in itens if it.get("sem_conteudo") and it.get("titulo")]
     nomes = list(sem)
     if base == "falha" and e:
         nomes += [x for x in (nome_informativo(i) for i in e.get("falhas") or []) if x and x not in nomes]
@@ -2128,7 +2287,7 @@ def teses_stj(it, avisos):
     if it.get("categoria") in ("Informativos", "STJ Notícias") and it.get("status") != "MÍDIA ESPECIALIZADA" \
             and (not it.get("fonte") or item_oficial(it)):
         avisos.append("%s: Jurisprudência em Teses vai em STJ Jurisprudência (era %s)" % (
-            str(it["titulo"])[:60], it["categoria"]))
+            curto(it["titulo"]), it["categoria"]))
         it["categoria"] = "STJ Jurisprudência"
     if it.get("categoria") == "STJ Jurisprudência" and not it.get("fonte"):
         it["fonte"] = JT_FONTE
@@ -2164,13 +2323,13 @@ def preparar(ex, j, led, ev, v, op=None):
         teses_stj(it, avisos)           # Jurisprudência em Teses -> STJ Jurisprudência
         cat = it.get("categoria")
         if cat not in CATEGORIAS_NOTICIA:
-            erros.append("%s: categoria %r fora de %s" % ((it.get("titulo") or it.get("ref") or "item")[:50],
+            erros.append("%s: categoria %r fora de %s" % (curto(it.get("titulo") or it.get("ref") or "item", 50),
                                                           cat, " | ".join(CATEGORIAS_NOTICIA)))
             continue
         if not it.get("titulo"):
             erros.append("item sem titulo: %s" % json.dumps(it, ensure_ascii=False)[:120])
             continue
-        rot = it["titulo"][:60]
+        rot = curto(it["titulo"])
         if "nota" in it:
             it["nota"] = limpar_nota(it["nota"])          # D10: "sem link" e automatico
             if not it["nota"]:
@@ -2207,7 +2366,7 @@ def preparar(ex, j, led, ev, v, op=None):
                 if not it["grupo"]:
                     del it["grupo"]
                     avisos.append("%s: \"resenha\" sem data reconhecível (%s) — escreva \"grupo\"" % (
-                        rot, str(it["resenha"])[:60]))
+                        rot, curto(it["resenha"])))
             if it.get("meta"):
                 it["meta"] = norm_meta(it["meta"])
             it["_rotina"] = eh_rotina(it) or bool(it.get("_pln"))
@@ -2233,7 +2392,7 @@ def preparar(ex, j, led, ev, v, op=None):
     if any(it.get("categoria") in SECOES_APOIO for it in itens):
         itens, fora = descartar_repetidos(itens, execucoes_historico(op["historico"]), ignorar)
         for it, motivo in fora:
-            descartadas.append("DESCARTADA %s — %s" % (it.get("ref") or "«%s»" % (it.get("titulo") or "")[:70], motivo))
+            descartadas.append("DESCARTADA %s — %s" % (it.get("ref") or "«%s»" % curto(it.get("titulo"), 70), motivo))
             if it.get("ref"):
                 ex.setdefault("_refs_descartadas", []).append(it["ref"])
     avisos += relacionados_informativos(itens, ev)
@@ -2246,6 +2405,7 @@ def preparar(ex, j, led, ev, v, op=None):
     # concursos: registro do dia (com carimbo da banca e selo por data); os que mudaram hoje vao ao historico
     ctx = estado_concursos(ex, j, led, op, avisos)
     regs, novos, alterados = ctx["regs"], ctx["novos"], ctx["alterados"]
+    avisos += marcas_da_migracao(ctx)
     avisos += cards_citam_descartados(em, itens, fora, regs)
     for c in regs:
         if c["id"] in novos or c["id"] in alterados:
@@ -2308,12 +2468,41 @@ def preparar(ex, j, led, ev, v, op=None):
         if tec:
             avisos.append("%s traz detalhe técnico ao leitor (%s): reescreva em linguagem simples (o técnico vai em "
                           "errors)" % (onde, ", ".join(tec[:4])))
+    # E-min (f): o rodape calculado diria "Nenhuma fonte falhou" ao lado de um texto que diz que uma falhou
+    if not fontes_que_falharam(ex.get("source_status") or {}, ex):
+        for onde, txt in textos:
+            frase = falha_no_texto(txt)
+            if frase:
+                avisos.append("rodapé diz \"Nenhuma fonte falhou nesta execução\" (nenhuma fonte com 'falha' no "
+                              "source_status), mas %s fala em falha («%s»): se a fonte falhou, marque \"falha\" no "
+                              "source_status dela; senão, reescreva o texto" % (onde, curto(frase, 80)))
+                break
     urgente = [x for x in prazos(regs, hj) if x[1] <= 7]
     if (urgente or novos) and not any(re.search(r"(?i)concurs|inscri|edital|prova", " ".join(map(str, c[1:])))
                                       for c in cards if isinstance(c, list)):
         avisos.append("há prazo de concurso em até 7 dias ou concurso novo e nenhum card do resumo executivo trata disso")
     ctx["descartadas"] = descartadas
     return erros, avisos, ctx
+
+
+def marcas_da_migracao(ctx):
+    """AVISO (comum) com o que a migracao de hoje pos no e-mail sozinha: o orquestrador nao a escreveu e o resumo
+    executivo pode querer cita-la. Vazio sem migracao hoje."""
+    mig = ctx.get("migracoes") or {}
+    if not mig.get("migracoes"):
+        return []
+    por_id = {c["id"]: c for c in ctx.get("regs") or []}
+    grupos = [("NOVO", [orgao(por_id[i]) for i, m in mig["concursos"].items() if m == "novo" and i in ctx["novos"]
+                        and i in por_id]),
+              ("Atualizado hoje", [orgao(por_id[i]) for i, m in mig["concursos"].items()
+                                   if m == "alterado" and i in ctx["alterados"] and i in por_id]),
+              ("Saiu do acompanhamento", [r.get("orgao") or r["id"] for r in ctx.get("removidos") or ()
+                                          if removido_na_migracao(mig["concursos"].get(r["id"]))])]
+    partes = ["%s: %s" % (rot, ", ".join(nomes)) for rot, nomes in grupos if nomes]
+    if not partes:
+        return []
+    return ["migração de hoje (%s) já nas marcas do dia — %s; itens do histórico automáticos, não repita em "
+            "ledger_updates" % (", ".join(mig["migracoes"]), "; ".join(partes))]
 
 
 def segunda_tentativa(itens, ev, avisos):

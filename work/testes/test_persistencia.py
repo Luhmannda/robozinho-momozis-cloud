@@ -183,6 +183,66 @@ def migracao_cli():
        r.stdout + r.stderr)
 
 
+@teste
+def migracao_resumo_do_dia_para_o_montador():
+    """E1 (ensaio de 23/11): as migracoes aplicadas NESTA chamada vao para $ROBOZINHO_TMP/migracoes-hoje.json —
+    novo/alterado/removido (com linha e bloco de antes), pendencias removidas com texto/faixa/vinculo —, acumulando
+    no mesmo dia e substituindo o de outra data; nada pendente nao mexe no arquivo; movimento: false e so
+    banca_slug nao entram; falha ao gravar vira ALERTA sem desfazer o ledger."""
+    d = pasta_migracao(["2026-11-21-a-escopo.json"])
+    t = tempfile.mkdtemp(dir=TMPDIR)
+    gravar(os.path.join(t, "migracoes-hoje.json"), {"data": "2026-11-22", "migracoes": ["velha"],
+                                                    "concursos": {"x": "novo"}, "pendencias": {}})
+    linhas = migracoes.aplicar(date(2026, 11, 23), work_dir=d, tmp_dir=t)
+    ok(linhas == ["MIGRACAO 2026-11-21-a-escopo: aplicada (4 concursos, 2 pendências)"], linhas)
+    r = ler(os.path.join(t, "migracoes-hoje.json"))
+    ok(r["data"] == "2026-11-23" and r["migracoes"] == ["2026-11-21-a-escopo"] and r["base_execucao"] == "2026-11-20-7h",
+       "o de outra data e substituido: %s" % r)
+    ok(r["concursos"] == {"trt8_apoio": {"removido": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, "
+                                                     "decisão do dono de 20/11/2026)",
+                                         "linha": ler(os.path.join(FIX, "ledger.json"))["concursos"][2]["linha"],
+                                         "bloco": "Quadro de apoio"},
+                          "pge_rj": "alterado", "enam": "novo"},
+       "tjrs_juiz (movimento: false) fora; removido com linha e bloco: %s" % r["concursos"])
+    ok(r["pendencias"]["pge_rj_edital_verificar"]["concurso"] == "pge_rj"
+       and r["pendencias"]["trt8_edital_verificar"] == {
+           "removido": "registro do TRT8 removido (fora do escopo regional)", "faixa": "longo_prazo",
+           "texto": "TRT8 edital 1/2026: prazos só em secundárias.", "concurso": "trt8_apoio"}, r["pendencias"])
+    # chamada sem nada pendente (o inicio.py de novo; o finalizar.sh com a migracao ja marcada): arquivo intacto
+    antes = md5(os.path.join(t, "migracoes-hoje.json"))
+    ok(migracoes.aplicar(date(2026, 11, 23), work_dir=d, tmp_dir=t) == []
+       and md5(os.path.join(t, "migracoes-hoje.json")) == antes, "nada aplicado: o resumo do dia fica")
+    # outra migracao no mesmo dia: acumula (criado e alterado = novo; criado e removido = some; base mantida)
+    gravar(os.path.join(d, "migracoes", "2026-11-22-c.json"), {"id": "2026-11-22-c", "ledger_updates": {
+        "concursos": {"enam": {"linha": "ENAM — 6º Exame Nacional da Magistratura (FGV/Enfam): prova em 29/11/2026, "
+                                        "13h às 18h"},
+                      "tjrs_juiz": {"selo": "PROVA EM BREVE"}},
+        "pendencias": {"estourada_x": {"texto": "Pendência reescrita pela migração."}}}})
+    led = ler(os.path.join(d, "robozinho-aprendizado.json"))
+    led["atualizado_por_execucao"] = "outra"
+    gravar(os.path.join(d, "robozinho-aprendizado.json"), led)
+    linhas = migracoes.aplicar(date(2026, 11, 23), work_dir=d, tmp_dir=t)
+    r = ler(os.path.join(t, "migracoes-hoje.json"))
+    ok(linhas == ["MIGRACAO 2026-11-22-c: aplicada (2 concursos, 1 pendências)"]
+       and r["migracoes"] == ["2026-11-21-a-escopo", "2026-11-22-c"] and r["base_execucao"] == "2026-11-20-7h"
+       and r["concursos"]["enam"] == "novo" and r["concursos"]["tjrs_juiz"] == "alterado"
+       and r["pendencias"]["estourada_x"] == "alterado", "acumula: %s / %s" % (linhas, r))
+    ok(migracoes.juntar("novo", {"removido": "x"}) is None and migracoes.juntar({"removido": "x"}, "novo") == "alterado"
+       and migracoes.juntar("alterado", {"removido": "x"}) == {"removido": "x"} and migracoes.juntar(None, "novo") == "novo",
+       "juntar")
+    # pasta do resumo sem escrita: o ledger fica migrado, ALERTA diz o que se perde
+    d2 = pasta_migracao(["2026-11-21-a-escopo.json"])
+    linhas = migracoes.aplicar(date(2026, 11, 23), work_dir=d2, tmp_dir=os.path.join(TMPDIR, "nao", "existe"))
+    ok(len(linhas) == 2 and linhas[1].startswith("ALERTA: migracoes-hoje.json não gravado (")
+       and ler(os.path.join(d2, "robozinho-aprendizado.json"))["migracoes_aplicadas"][0]["id"] == "2026-11-21-a-escopo",
+       linhas)
+    # CLI (o finalizar.sh): o resumo vai para o $ROBOZINHO_TMP do ambiente
+    d3, t3 = pasta_migracao(["2026-11-21-a-escopo.json"]), tempfile.mkdtemp(dir=TMPDIR)
+    subprocess.run([sys.executable, os.path.join(WORK, "migracoes.py"), "--hoje", "2026-11-23", "--work", d3],
+                   capture_output=True, text=True, env=dict(os.environ, ROBOZINHO_TMP=t3))
+    ok(ler(os.path.join(t3, "migracoes-hoje.json"))["concursos"]["enam"] == "novo", "CLI grava no ROBOZINHO_TMP")
+
+
 # ------------------------------------------------------------------ helper (Update-Historico.py)
 def orq(modelo, lido, grav, saida, chamadas=8, esforco=None):
     o = {"modelo": modelo, "entrada": 15, "cache_lido": lido, "cache_gravado": grav, "cache_gravado_1h": grav,
