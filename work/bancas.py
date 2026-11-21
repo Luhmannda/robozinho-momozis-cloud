@@ -47,7 +47,9 @@
 # seletivo, juiz leigo, conciliador, cartorio, tribunal de contas: sem bloco no
 # registro) e quadro de apoio fora do escopo regional (escopo.py: so SP, RJ, MG,
 # ES, PR, SC, RS ou orgao nacional), que ficam so na contagem; a pagina de
-# registro com banca_slug e lida sempre, mesmo fora da listagem.
+# registro com banca_slug e lida sempre, mesmo fora da listagem e mesmo com a
+# listagem fora do ar ou ilegivel (200 sem o bloco da view: `erro` diz o que
+# houve; http = 200 se alguma pagina respondeu).
 #
 # VINCULO pagina -> registro (concursos[] do ledger); so o vinculo cobre
 # (carimbo verificado_em/fonte/dominio_oficial, selo por data e DIVERGE):
@@ -812,11 +814,19 @@ def categoria(c):
 
 
 def coletar(hoje, concursos, estado=None, buscar=None, ler=texto_pdf):
+    """Listagem + paginas + analise. Listagem fora do ar ou ilegivel (200 sem o bloco da view em andamento: view
+    renomeada) nao derruba as paginas com banca_slug, lidas sempre (rev1 C3: antes voltava cedo, sem nenhuma, e o
+    "http 200" enganava); `erro` diz o que houve com a listagem e `http` e 200 se alguma pagina respondeu."""
     codigo, lista, falhas = listagem(buscar)
     res = {"banca": "FGV", "dominio": DOMINIO, "http": codigo, "data": hoje.isoformat(), "concursos": []}
-    if codigo != 200 or not lista:
-        return res
     vinculados = {norm_slug(r.get("banca_slug")) for r in concursos or [] if isinstance(r, dict)} - {""}
+    if codigo != 200 or not lista:
+        res["erro"] = ("listagem ilegível: http 200 sem o bloco de concursos em andamento" if codigo == 200 and falhas
+                       else "listagem vazia: http 200 sem concursos em andamento" if codigo == 200 else
+                       "http %s" % codigo)
+        lista = []
+        if not vinculados:
+            return res
     fontes = {_url_norm(r.get(k)) for r in concursos or [] if isinstance(r, dict) for k in ("fonte", "url_oficial")}
     alvo, fora = [], {"escopo": [], "carreira": []}
     for c in lista:
@@ -831,14 +841,20 @@ def coletar(hoje, concursos, estado=None, buscar=None, ler=texto_pdf):
             alvo.append(c)
     listados = {c["slug"] for c in lista}
     for s in sorted(vinculados - listados):          # registro vinculado que saiu da listagem: le a pagina assim mesmo
-        alvo.append({"slug": s, "titulo": "", "url": url_de_slug(s), "fora_da_listagem": True,
+        alvo.append({"slug": s, "titulo": "", "url": url_de_slug(s), "fora_da_listagem": bool(lista),
                      "url_alt": None if "/" in s else BASE + "/" + s})
     lidas = paralelo(lambda c: pagina(c, buscar), alvo, THREADS, TETO_PAGINAS_S)
     alvo = [r if r is not None else dict(c, http=0, arquivos=[], erro="sem resposta em %d s" % TETO_PAGINAS_S)
             for c, r in zip(alvo, lidas)]
     res["concursos"] = analisar(alvo, hoje, concursos, estado, ler)
     res["listagem"] = {"itens": len(lista), "paginas_com_falha": falhas, "fora_escopo": fora["escopo"],
-                       "fora_carreira": fora["carreira"]}
+                       "fora_carreira": fora["carreira"], "http": codigo}
+    if res.get("erro"):
+        res["listagem"]["erro"] = res["erro"]
+        if any(c.get("http") == 200 for c in res["concursos"]):
+            res["http"] = 200
+        else:                                         # nem a listagem nem as paginas vinculadas: "nao lida", como antes
+            res["http"], res["concursos"] = (codigo if codigo != 200 else 0), []
     return res
 
 
@@ -1186,7 +1202,8 @@ def _ult(c):
 def imprimir(res):
     cs = res.get("concursos") or []
     if res.get("http") != 200 or not cs:
-        print("BANCA FGV: página não lida (http %s) — concursos da FGV seguem pela busca do coletor." % res.get("http"))
+        print("BANCA FGV: página não lida (%s) — concursos da FGV seguem pela busca do coletor."
+              % (res.get("erro") or "http %s" % res.get("http")))
         return
     grupos = {}
     for c in cs:                                  # bancas.json antigo (sem `exibir`): tudo completo, como antes
@@ -1235,7 +1252,10 @@ def imprimir(res):
     conta = [("%d %s" % (n, txt)) for n, txt in conta if n]
     if conta:
         print("  sem linha (só contagem, sem registro): " + "; ".join(conta))
-    if lst.get("paginas_com_falha"):
+    if lst.get("erro"):
+        print("  sem a listagem hoje (%s): só as páginas com banca_slug foram lidas — candidatos, movimento e "
+              "concurso novo da FGV seguem pelo coletor" % lst["erro"])
+    elif lst.get("paginas_com_falha"):
         print("  listagem incompleta: ?page=%s não lida(s) — concursos dela seguem pelo coletor"
               % ",".join(str(p) for p in lst["paginas_com_falha"]))
 

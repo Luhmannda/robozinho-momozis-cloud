@@ -11,7 +11,8 @@
 #   NOVA EDICAO; ENAM sem registro; escopo do quadro de apoio (so Sul/Sudeste,
 #   contagem sem linha); MOVIMENTO e contagem; estado parcial das paginas sem
 #   registro; TRECHOS_ALT (TJPB e ENAM ganham vagas/vencimento/prova; TJSC e
-#   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade).
+#   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade);
+#   listagem ilegivel le os vinculados (rev1 C3).
 # USO: python3 work/testes/test_bancas.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -352,6 +353,37 @@ def coleta_paralela_com_teto_e_falha():
     res, _, cs = coletar(rede_fgv(extra=extra))
     ok(cs["tjscjuiz26"]["exibir"] == "registro" and cs["tjscjuiz26"]["coberto"] == []
        and "página não lida (http 500)" in saida(res), saida(res))
+
+
+@teste
+def listagem_ilegivel_le_os_vinculados():
+    """rev1 C3: a listagem 200 sem o bloco da view (view renomeada) nao derruba as paginas com banca_slug: lidas
+    assim mesmo, http = 200, aviso honesto (nao "fora da listagem: confira se acabou"); sem pagina nenhuma: nao lida,
+    com o motivo da listagem (antes: "página não lida (http 200)")."""
+    renomeada = "<html><div class='view-id-concursos_abertos'>...</div></html>"
+    extra = {B + "/concursos" + ("?page=%d" % p if p else ""): (200, renomeada) for p in range(30)}
+    res, rede, cs = coletar(rede_fgv(extra=extra))
+    ok(res["http"] == 200 and set(cs) == {"tjscjuiz26", "trf1juiz25"}, (res["http"], sorted(cs)))
+    ok(cs["tjscjuiz26"]["coberto"] == ["tjsc_juiz"] and cs["trf1juiz25"]["coberto"] == ["trf1_juiz"]
+       and not cs["trf1juiz25"].get("fora_da_listagem"), [c.get("coberto") for c in cs.values()])
+    ok(set(bancas.carimbos(res, REGS, HOJE)) == {"tjsc_juiz", "trf1_juiz"}, "carimbo dos vinculados")
+    txt = saida(res)
+    ok("sem a listagem hoje (listagem ilegível: http 200 sem o bloco de concursos em andamento): só as páginas com "
+       "banca_slug foram lidas" in txt and "confira se o concurso acabou" not in txt
+       and "listagem incompleta" not in txt, txt)
+    # listagem ilegivel e as paginas vinculadas fora do ar: "nao lida", com o motivo verdadeiro
+    for slug in ("tjscjuiz26", "trf1juiz25"):
+        extra[B + "/concursos/" + slug] = (500, "")
+        extra[B + "/" + slug] = (500, "")
+    res, _, _ = coletar(rede_fgv(extra=extra))
+    ok(res["http"] == 0 and res["concursos"] == [] and "página não lida (listagem ilegível: http 200 sem o bloco" in
+       saida(res), (res["http"], saida(res)))
+    # sem registro vinculado: volta cedo, sem pagina nenhuma (como antes), com o motivo
+    sem = [dict(r, banca_slug="") for r in REGS]
+    res, rede, _ = coletar(rede_fgv(extra=extra), regs=sem)
+    ok(res["concursos"] == [] and res["erro"].startswith("listagem ilegível")
+       and not any("/concursos/" in u and "?page" not in u and not u.endswith("/concursos") for u in rede.pedidos),
+       rede.pedidos)
 
 
 # ------------------------------------------------------------------ vinculo e travas (analisar direto)

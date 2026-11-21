@@ -317,8 +317,9 @@ def sonda_falsa(ds):
     return {d: s == "ok" for d, s in res.items()}
 
 
-def rodar(agora, estado_data, led=None, migr=None, pag_estado=None, html_trf2=None):
-    """inicio.main() numa pasta descartavel; migr: modulo falso de migracoes (None = ausente)."""
+def rodar(agora, estado_data, led=None, migr=None, pag_estado=None, html_trf2=None, banca_extra=None):
+    """inicio.main() numa pasta descartavel; migr: modulo falso de migracoes (None = ausente); banca_extra: campos
+    a mais no resultado falso do bancas.coletar (ex.: erro da listagem)."""
     d = tempfile.mkdtemp(dir=TMPDIR)
     t = os.path.join(d, "tmp")
     os.makedirs(t)
@@ -339,8 +340,8 @@ def rodar(agora, estado_data, led=None, migr=None, pag_estado=None, html_trf2=No
              os.environ.get("ROBOZINHO_TMP"), sys.argv, sys.modules.get("migracoes", "ausente"))
     inicio.AQUI = d
     inicio.alcancaveis = sonda_falsa
-    bancas.coletar = lambda hoje, conc, estado=None: {"banca": "FGV", "http": 200, "concursos": [],
-                                                      "data": hoje.isoformat()}
+    bancas.coletar = lambda hoje, conc, estado=None: dict({"banca": "FGV", "http": 200, "concursos": [],
+                                                           "data": hoje.isoformat()}, **(banca_extra or {}))
     bancas.carregar_estado = lambda caminho=None: {"paginas": pag_estado or {}}
     paginas_oficiais.baixar = baixar
     sys.modules["migracoes"] = migr
@@ -504,6 +505,19 @@ def sonda_classifica():
     ok(set(inicio.REDE_DONO) >= {"www.in.gov.br", "noticias.stf.jus.br", "www.vunesp.com.br", "www.concursosfcc.com.br",
                                  "normas.leg.br", "www12.senado.leg.br", "apis.cebraspe.org.br", "cdn.cebraspe.org.br"},
        inicio.REDE_DONO)
+
+
+@teste
+def inicio_listagem_da_fgv_no_prompt():
+    """rev1 C3: com a listagem da FGV lida, o coletor deixa a FGV fora da descoberta; sem ela (erro), nao."""
+    _, cc, _, _ = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", migr=stub_migracoes(lambda h, work_dir=None: []))
+    ok("A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas" in cc, "lida")
+    out, cc, _, _ = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", migr=stub_migracoes(lambda h, work_dir=None: []),
+                          banca_extra={"http": 0, "erro": "listagem ilegível: http 200 sem o bloco de concursos em "
+                                                          "andamento"})
+    ok("A listagem da FGV não foi lida hoje (listagem ilegível: http 200 sem o bloco de concursos em andamento): na "
+       "descoberta (C), a FGV conta como as outras bancas." in cc and "já foi varrida" not in cc, cc[:200])
+    ok("BANCA FGV: não lida (listagem ilegível: http 200 sem o bloco" in out, "motivo honesto no inicio")
 
 
 @teste

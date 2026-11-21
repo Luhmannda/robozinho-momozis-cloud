@@ -757,6 +757,13 @@ def main():
     foco = set(motivos)
     rede_fora = ["%s (%s)" % (d, situacao_rede(d, rede)) for d in sorted(dom_conc) if not rede.get(d)]
 
+    # listagem da FGV fora do ar ou ilegivel (bancas.coletar: `erro`): o coletor nao a tira da descoberta (rev1 C3)
+    if banca.get("erro") or banca.get("http") != 200:
+        banca_listagem = ("A listagem da FGV não foi lida hoje (%s): na descoberta (C), a FGV conta como as outras "
+                          "bancas." % (banca.get("erro") or "http %s" % banca.get("http")))
+    else:
+        banca_listagem = ("A listagem da FGV já foi varrida: na descoberta (C), prefira concursos de outras bancas "
+                          "(Cebraspe, FCC, Vunesp, bancas regionais).")
     vars_ = {
         "HOJE_BR": hoje_br, "DIA_SEMANA": DIAS[agora.weekday()],
         "INICIO": inicio.isoformat(), "FIM": agora.isoformat(),
@@ -776,6 +783,8 @@ def main():
         "CONCURSOS_ACOMPANHADOS": acompanhados or "(nenhum)",
         "BANCA_COBERTOS": "; ".join("%s (id %s)" % (orgao(c), c["id"]) for c in concursos
                                     if c["id"] in cobertos) or "(nenhum hoje)",
+        # listagem da FGV fora do ar ou ilegivel (bancas.coletar: `erro`): o coletor nao pode tira-la da descoberta
+        "BANCA_LISTAGEM": banca_listagem,
         "REGISTRO_ATUAL": registro_atual(no_escopo, foco).strip(),
         "ESCOPO_APOIO": escopo.TEXTO_ESCOPO_APOIO,
         "DATA_MIN_NOVO": data_min_novo.strftime("%d/%m/%Y"),
