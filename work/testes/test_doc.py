@@ -1151,10 +1151,10 @@ def linhas_novas_do_passo_1_e_da_banca_existem():
               "`ALERTA: migracao … recusada`", "passadas as inscrições, `EM ANDAMENTO`"):
         assert t in r, "ROTINA sem %r" % t
     for script, textos in (
-            ("bancas.py", ['[vínculo pela fonte: grave banca_slug="%s"]', "'CANDIDATO %s ← %s |",
+            ("bancas.py", ['[vínculo pela fonte: grave banca_slug="%s"]', "CANDIDATO %s ← %s |",
                            "'CANDIDATO a registro NOVO %s ← %s |", "'NOVA EDIÇÃO? %s |", '"- MOVIMENTO sem registro: ']),
             ("paginas_oficiais.py", ['"MUDOU"', '"LIDA (1ª vez)"', '"RELIDA (formato novo: confira com o registro)"']),
-            ("inicio.py", ["FORA DO ESCOPO (apoio só", '"REDE do ambiente: %s"', "LIBERADO pelo proxy",
+            ("inicio.py", ["FORA DO ESCOPO (apoio só", '"REDE do ambiente: "', "LIBERADO pelo proxy",
                            "COBERTA PELO PRAZO de %s (acima)", "SÓ VIGIAR MOVIMENTO NOVO",
                            "PRAZO VENCIDO (só secundária; desfecho já buscado pelo coletor, sem busca hoje)"]),
             ("migracoes.py", ['"MIGRACAO %s: aplicada (%d concursos, %d pendências)%s"',
