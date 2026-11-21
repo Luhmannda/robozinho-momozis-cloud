@@ -1,0 +1,110 @@
+{
+ "schema_version": 2,
+ "descricao": "Ledger pequeno de teste (work/testes/test_persistencia.py).",
+ "atualizado_em": "2026-11-20T07:17:28-03:00",
+ "atualizado_por_execucao": "2026-11-20-7h",
+ "niveis_de_esforco": {
+  "saudavel": "s",
+  "intermitente": "i",
+  "mudo": "m",
+  "instavel": "x"
+ },
+ "fontes": [
+  {
+   "id": "conjur",
+   "status": "saudavel",
+   "ultimo_sucesso": "2026-11-20",
+   "sem_sucesso": 0,
+   "nota": "Lida por script."
+  },
+  {
+   "id": "gmail_push_stf",
+   "status": "saudavel",
+   "ultimo_sucesso": "2026-11-20",
+   "sem_sucesso": 0,
+   "nota": "Push do STF."
+  }
+ ],
+ "armadilhas": [
+  {
+   "id": "congresso_mpv",
+   "fonte": "congressonacional.leg.br",
+   "sintoma": "Datas incoerentes.",
+   "detectado_em_qtd": 2,
+   "detectado_em_primeira": "2026-07-13",
+   "detectado_em_ultimas": [
+    "2026-09-11",
+    "2026-09-18"
+   ],
+   "regra": "Abrir o detalhe oficial."
+  }
+ ],
+ "pendencias_vivas": [
+  {
+   "id": "pge_rj_edital_verificar",
+   "texto": "PGE-RJ 19º: sem convocação das orais na página oficial.",
+   "desde": "2026-09-30",
+   "execucoes": 32,
+   "faixa": "longo_prazo",
+   "politica": "Só a página oficial promove o selo.",
+   "coletor": "concursos"
+  },
+  {
+   "id": "trt8_edital_verificar",
+   "texto": "TRT8 edital 1/2026: prazos só em secundárias.",
+   "desde": "2026-10-26",
+   "execucoes": 20,
+   "faixa": "longo_prazo",
+   "politica": "Confirmar no TRT8/FCC.",
+   "dominio_oficial": "www.trt8.jus.br"
+  },
+  {
+   "id": "estourada_x",
+   "texto": "Pendência ativa há muitas execuções (obrigação do julgamento do dia).",
+   "desde": "2026-10-01",
+   "execucoes": 25,
+   "faixa": "ativa"
+  }
+ ],
+ "concursos": [
+  {
+   "id": "tjrs_juiz",
+   "bloco": "Magistratura Estadual",
+   "linha": "TJRS — Juiz de Direito Substituto: banca FGV; prova objetiva prevista para 13/12/2026",
+   "selo": "INSCRIÇÕES ENCERRADAS",
+   "verificado_em": "2026-11-20",
+   "prazos": [
+    {
+     "data": "2026-12-13",
+     "evento": "prova objetiva (prevista)",
+     "confirmado": true
+    }
+   ],
+   "fonte": "https://conhecimento.fgv.br/concursos/tjrsjuiz26",
+   "dominio_oficial": "conhecimento.fgv.br",
+   "mudou_em": "2026-11-16"
+  },
+  {
+   "id": "pge_rj",
+   "bloco": "Procurador do Estado (PGE)",
+   "linha": "PGE-RJ — 19º concurso de Procurador (FGV): sem convocação das orais na página oficial",
+   "selo": "EM ANDAMENTO",
+   "verificado_em": "2026-11-16",
+   "prazos": [],
+   "dominio_oficial": "pge.rj.gov.br",
+   "pendencia": "pge_rj_edital_verificar",
+   "mudou_em": "2026-10-23"
+  },
+  {
+   "id": "trt8_apoio",
+   "bloco": "Quadro de apoio",
+   "linha": "TRT8 — Analista e Técnico Judiciário: edital 1/2026 (DOU 02/10), FCC",
+   "selo": "PENDÊNCIA DE VERIFICAÇÃO",
+   "verificado_em": "2026-11-16",
+   "prazos": [],
+   "pendencia": "trt8_edital_verificar",
+   "mudou_em": "2026-11-06"
+  }
+ ],
+ "armadilhas_dormentes": []
+}

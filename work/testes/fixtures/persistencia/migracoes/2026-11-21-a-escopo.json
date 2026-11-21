@@ -1,0 +1,57 @@
+{
+ "id": "2026-11-21-a-escopo",
+ "descricao": "Escopo regional (TRT8 fora) e PGE-RJ conferida na página oficial; ENAM novo.",
+ "criado_em": "2026-11-21",
+ "ledger_updates": {
+  "concursos": {
+   "trt8_apoio": {
+    "remover": true,
+    "desfecho": "fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão do dono de 20/11/2026)"
+   },
+   "pge_rj": {
+    "linha": "PGE-RJ — 19º concurso de Procurador (FGV): provas específicas de 23/11 a 27/11/2026, conforme a página oficial",
+    "prazos": [
+     {
+      "data": "2026-11-23",
+      "evento": "provas específicas (início)",
+      "confirmado": true,
+      "tipo": "prova"
+     }
+    ],
+    "fonte": "https://pge.rj.gov.br/concurso/19o-concurso-para-ingresso-na-carreira-de-procurador-do-estado",
+    "url_oficial": "https://pge.rj.gov.br/concurso/19o-concurso-para-ingresso-na-carreira-de-procurador-do-estado",
+    "verificado_em": "2026-11-21"
+   },
+   "enam": {
+    "bloco": "Magistratura Estadual",
+    "linha": "ENAM — 6º Exame Nacional da Magistratura (FGV/Enfam): habilitação para os concursos da magistratura; prova em 29/11/2026",
+    "selo": "PROVA EM BREVE",
+    "verificado_em": "2026-11-21",
+    "prazos": [
+     {
+      "data": "2026-11-29",
+      "evento": "prova objetiva",
+      "confirmado": true,
+      "tipo": "prova"
+     }
+    ],
+    "fonte": "https://conhecimento.fgv.br/exames/enam/6exame",
+    "url_oficial": "https://conhecimento.fgv.br/exames/enam/6exame"
+   },
+   "tjrs_juiz": {
+    "linha": "TJRS — Juiz de Direito Substituto: banca FGV, 30 vagas; prova objetiva prevista para 13/12/2026",
+    "movimento": false
+   }
+  },
+  "pendencias": {
+   "trt8_edital_verificar": {
+    "remover": true,
+    "desfecho": "registro do TRT8 removido (fora do escopo regional)"
+   },
+   "pge_rj_edital_verificar": {
+    "remover": true,
+    "desfecho": "datas das provas específicas lidas na página oficial"
+   }
+  }
+ }
+}

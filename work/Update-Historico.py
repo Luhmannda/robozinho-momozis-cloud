@@ -175,6 +175,11 @@ def validar(ex, chaves_anteriores, pre_rascunho=False):
     for nome, uso in (ex.get("coletores") or {}).items():
         if not all(isinstance((uso or {}).get(k), int) for k in ("tokens", "chamadas", "duracao_ms")):
             avisos.append("coletores[%s] sem tokens/chamadas/duracao_ms inteiros" % nome)
+    # buscas_gmail: a linha BUSCAS do coletor-gmail, copiada pelo orquestrador (o montador deriva dela o
+    # source_status dos gmail_*); fica no registro da execucao como veio
+    if ex.get("buscas_gmail") is not None and not isinstance(ex["buscas_gmail"], str):
+        avisos.append("buscas_gmail deveria ser texto (a linha BUSCAS do coletor-gmail): %r guardado como veio"
+                      % (ex["buscas_gmail"],))
     return erros, avisos
 
 
@@ -244,6 +249,19 @@ CAMPOS_EDITAVEIS = {
 OBRIGATORIOS_NOVO = {"pendencias": ("texto", "faixa"),
                      "concursos": ("bloco", "linha", "selo", "verificado_em")}
 LISTA_DO_LEDGER = {"fontes": "fontes", "pendencias": "pendencias_vivas", "concursos": "concursos"}
+
+
+# movimento (concursos): false = a linha foi reescrita sem fato novo para o leitor (enriquecida com fato antigo, nota
+# de busca) — grava os outros campos, mas o campo nao vai ao registro, nao atualiza mudou_em e nao conta como
+# alteracao (a mesma regra de montar_email.sem_movimento, para o e-mail e o ledger nao divergirem).
+CAMPOS_EDITAVEIS["concursos"] = CAMPOS_EDITAVEIS["concursos"] | {"movimento"}
+NAO_GRAVA = ("remover", "desfecho", "movimento")      # campos do update que nao vao ao registro
+
+
+def sem_movimento(campos):
+    """ledger_updates.concursos.<id>.movimento = false (ou "false"/"0"/"nao"), como no montador."""
+    v = (campos or {}).get("movimento")
+    return v is False or str(v).strip().lower() in ("false", "0", "nao", "não")
 
 
 def _data_iso(v):
@@ -581,7 +599,7 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
                     removidas.append(ident)
                 continue
             alvo = next((x for x in lista if x.get("id") == ident), None)
-            if alvo is not None and not [c for c in campos if c not in ("remover", "desfecho")]:
+            if alvo is not None and not [c for c in campos if c not in NAO_GRAVA]:
                 continue        # nada a aplicar (ex.: o update so copiava o selo, ja retirado): sem "atualizada ()"
             if alvo is None:
                 alvo = {"id": ident}
@@ -592,10 +610,12 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
             else:
                 acao = "atualizada"
             antes = dict(alvo)
-            alvo.update({c: v for c, v in campos.items() if c not in ("remover", "desfecho")})
-            if secao == "concursos" and (acao == "criada" or selos.mudou(antes, alvo)):
+            alvo.update({c: v for c, v in campos.items() if c not in NAO_GRAVA})
+            parado = secao == "concursos" and acao == "atualizada" and sem_movimento(campos)
+            if secao == "concursos" and (acao == "criada" or (selos.mudou(antes, alvo) and not parado)):
                 alvo["mudou_em"] = hoje
-            add_log("Ledger: %s %s %s (%s)" % (secao, ident, acao, ", ".join(sorted(campos))))
+            add_log("Ledger: %s %s %s (%s)%s" % (secao, ident, acao, ", ".join(sorted(c for c in campos if c != "movimento")),
+                                                 " — sem movimento (mudou_em mantido)" if parado else ""))
     for ident in removidas:              # vinculo do concurso com a pendencia removida
         for c in led.get("concursos") or []:
             if ident and c.get("pendencia") == ident:
@@ -771,8 +791,8 @@ def migrar_armadilhas(led):
     return feitos
 
 
-def gravar_ledger(caminho, led):
-    """Uma entrada de lista por linha: compacto para ler e estavel para diff."""
+def texto_ledger(led):
+    """Uma entrada de lista por linha: compacto para ler e estavel para diff. Validado (json.loads)."""
     partes = []
     for k, v in led.items():
         if isinstance(v, list) and v:
@@ -782,8 +802,23 @@ def gravar_ledger(caminho, led):
             partes.append("  %s: %s" % (json.dumps(k), json.dumps(v, ensure_ascii=False)))
     texto = "{\n" + ",\n\n".join(partes) + "\n}\n"
     json.loads(texto)
-    with open(caminho, "w", encoding="utf-8", newline="") as f:
-        f.write(texto)
+    return texto
+
+
+def gravar_texto(caminho, texto):
+    """Grava por arquivo temporario + os.replace: quem le nunca ve o arquivo pela metade."""
+    parcial = "%s.%d.tmp" % (caminho, os.getpid())
+    try:
+        with open(parcial, "w", encoding="utf-8", newline="") as f:
+            f.write(texto)
+        os.replace(parcial, caminho)
+    finally:
+        if os.path.exists(parcial):
+            os.remove(parcial)
+
+
+def gravar_ledger(caminho, led):
+    gravar_texto(caminho, texto_ledger(led))
 
 
 def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
