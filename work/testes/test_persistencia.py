@@ -794,6 +794,25 @@ def finalizar_sessao_com_commit_fora_da_main():
 
 
 @teste
+def finalizar_commit_fora_da_main_com_fetch_que_falha():
+    """P8 (rev3): fetch que falha (o push funciona) nao pula a conferencia: vale a origin/main da hora do clone e os
+    commits avulsos da sessao nao vao para a main."""
+    base, sess, t, g, run = repo_finalizar()
+    with open(os.path.join(sess, "work", "selos.py"), "a") as f:
+        f.write("\n# commit avulso da sessao\n")
+    g(sess, "commit", "-qam", "commit avulso na branch da sessao")
+    run(sys.executable, "work/montar_email.py")
+    g(sess, "config", "remote.origin.pushurl", os.path.join(base, "origin.git"))
+    g(sess, "config", "remote.origin.url", os.path.join(base, "nao-existe.git"))          # so o fetch quebra
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "AVISO: git fetch origin main falhou — commits fora da main conferidos contra a origin/main da "
+       "hora do clone" in out and "AVISO: a sessão partiu de um commit com 1 commit(s) fora da origin/main" in out
+       and "PUSH: OK" in out and out.count("STATUS: OK") == 2, out[-900:])
+    ok(g(base, "--git-dir", os.path.join(base, "origin.git"), "log", "--format=%s", "main").stdout.splitlines()
+       == ["Robozinho: execução 2026-11-17-7h", "seed"], "o commit avulso nao foi para a main")
+
+
+@teste
 def finalizar_reaplicacao_reaplica_a_migracao():
     base, sess, t, g, run = repo_finalizar(migracao=True)
     run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")

@@ -318,8 +318,12 @@ falhou() {
 }
 
 reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, com as mesmas entradas, uma vez
+  # $1 = recusado (push recusado: busca a origin/main nova) | fora (sessao com commits fora da main: vale a origin/main
+  # da conferencia, buscada agora ou, se o fetch falhou, a da hora do clone — sem 2o fetch, o pior caso fica no prazo)
   reaplicado=1
-  rede git fetch -q origin main || falhou "git fetch origin main"
+  if [[ "${1:-recusado}" == recusado ]]; then
+    rede git fetch -q origin main || falhou "git fetch origin main"
+  fi
   # --keep: HEAD, indice e ARVORE vao para origin/main (o commit local so tem estado, que o helper refaz);
   # recusado (alteracao local num arquivo que mudou no remoto): --mixed, como antes, com AVISO
   if ! git reset -q --keep origin/main 2>/dev/null; then
@@ -357,8 +361,13 @@ copiar_estado rodada1
 
 # sessao fora da main (lows[13]): a branch da sessao contem a origin/main E commits que nao estao nela (sessao nascida
 # numa branch velha ou com commit avulso) — o push seria aceito e os levaria para a main. Grava sobre a origin/main.
+# Fetch que falha (rev3, P8): a conferencia segue com a origin/main da hora do clone (antes ela era pulada e um push
+# aceito depois levava os commits avulsos para a main).
 fora="" fora_msgs=""
-if rede git fetch -q origin main 2>/dev/null && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
+if ! rede git fetch -q origin main 2>/dev/null; then
+  echo "AVISO: git fetch origin main falhou — commits fora da main conferidos contra a origin/main da hora do clone"
+fi
+if git rev-parse -q --verify refs/remotes/origin/main >/dev/null && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
   n=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
   if [[ "$n" -gt 0 ]]; then
     fora="$n" fora_msgs=$(git log --format=%s -n 3 origin/main..HEAD 2>/dev/null | tr '\n' ';')
@@ -371,7 +380,7 @@ SHA=$(git rev-parse --short HEAD 2>/dev/null) SHA1="$SHA"
 if [[ -n "$fora" ]]; then
   echo "AVISO: a sessão partiu de um commit com $fora commit(s) fora da origin/main ($fora_msgs) —" \
        "eles não vão para a main: reaplicando o helper sobre origin/main"
-  reaplicar
+  reaplicar fora
 fi
 
 for espera in "${ESPERAS[@]}"; do
@@ -393,7 +402,7 @@ for espera in "${ESPERAS[@]}"; do
   # do servidor) nao e "main andou": reset e reaplicacao seriam inuteis
   if [[ $reaplicado -eq 0 ]] && grep -qiE "non-fast-forward|fetch first|\[rejected\]" <<< "$saida"; then
     echo "PUSH: recusado (main andou no remoto) — reaplicando o helper sobre origin/main"
-    reaplicar
+    reaplicar recusado
   fi
 done
 echo "Ultimo erro do push:"
