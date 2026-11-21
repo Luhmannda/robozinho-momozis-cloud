@@ -594,6 +594,39 @@ def alerta_economia_total_contra_media_do_mesmo_modelo():
 
 
 @teste
+def base_economia_so_diaria_com_rascunho_e_arquivo_mensal():
+    """P7 (rev3): draft_ja_existente (re-execucao barata) e edicao extra nao entram na media do ALERTA_ECONOMIA; o
+    principal guarda so 10 execucoes (a de hoje inclusive), entao a base segue nos arquivos mensais."""
+    F = "claude-fable-5-2"
+    base = [ex_medida(d, F, 6.0) for d in (9, 10, 11, 12)]
+    reex = dict(ex_medida(13, F, 0.5), delivery="draft_ja_existente")
+    extra = dict(ex_medida(14, F, 20.0), type="extra")
+    ok([e["execution_id"] for e, _ in uh.base_economia(base + [reex, extra], F)] ==
+       [e["execution_id"] for e in base], "so as diarias com rascunho do dia")
+    log = []          # com a re-execucao barata na media (5,75), 7,85 passava de 1,3x
+    uh.alertas_uso(base + [reex, extra, ex_medida(16, F, 7.0)], log.append)
+    ok(not [l for l in log if l.startswith("ALERTA_ECONOMIA")] and any("media das ultimas 4 com" in l for l in log), log)
+    log = []          # com a extra cara na media (9,65), 9,85 ficava abaixo de 1,3x
+    uh.alertas_uso(base + [reex, extra, ex_medida(16, F, 9.0)], log.append)
+    ok([l for l in log if l.startswith("ALERTA_ECONOMIA") and "a media das ultimas 4 com" in l], log)
+    # helper: principal com 3 + a de hoje; a base completa 10 com o arquivo mensal (sem a re-execucao e a extra dele)
+    principal = [ex_medida(d, F, 6.0) for d in (12, 13, 14)]
+    arquivo = [ex_medida(d, F, 2.0, col_usd=0.4) for d in range(1, 9)]
+    arquivo += [dict(ex_medida(9, F, 2.0), type="extra"), dict(ex_medida(10, F, 0.2), delivery="draft_ja_existente")]
+    d = pasta_helper(execucoes=principal)
+    nome = "resumo-legislativo-historico-arquivo-2026-11.json"
+    gravar(os.path.join(d, nome), {"executions": arquivo})
+    h = ler(os.path.join(d, "hist.json"))
+    h["archive_files"] = [nome]
+    gravar(os.path.join(d, "hist.json"), h)
+    rc, out = rodar_helper(d, dict(ex_medida(23, F, 6.1), delivery="draft", items=itens(12)), "--draft-id", "r1")
+    ok(rc == 0 and "USO: custo total US$ 6.95; media das ultimas 10 com claude-fable-5-2: US$ 4.08 (1.70x)" in out
+       and "ALERTA_ECONOMIA: custo total da execucao US$ 6.95 = 1.70x a media das ultimas 10" in out, out[-1500:])
+    m = ler(os.path.join(d, "robozinho-estado.json"))["metricas"]
+    ok(m["custo_usd_media_mesmo_modelo"]["execucoes"] == 10, m["custo_usd_media_mesmo_modelo"])
+
+
+@teste
 def metricas_de_custo_no_estado():
     F = "claude-fable-5-2"
     exs = [ex_medida(d, F, 6.0) for d in (9, 10, 11)]

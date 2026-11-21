@@ -75,7 +75,9 @@
 #   Uso            : medir_uso.py (pesos e precos por modelo, buscas, esforco);
 #                    custo_usd = orquestrador + coletores + buscas (US$ de lista);
 #                    ALERTA_ECONOMIA: esse TOTAL acima de 1,3x a MEDIA das ultimas 10
-#                    execucoes com o mesmo modelo do orquestrador (minimo 3);
+#                    execucoes com o mesmo modelo do orquestrador (minimo 3; so edicao
+#                    diaria com rascunho do dia, sem draft_ja_existente nem extra; o
+#                    principal so tem 10, entao seguem os arquivos mensais);
 #                    ALERTA de troca de modelo; AVISO de troca de esforco e de coletor caro.
 #   Gravacao       : tudo calculado em memoria e gravado no fim, todas ou nenhuma
 #                    (Gravacoes: falha no meio devolve os arquivos ao que eram).
@@ -90,6 +92,7 @@
 # =====================================================================
 
 import argparse
+import itertools
 import json
 import os
 import re
@@ -1137,7 +1140,8 @@ def metricas_derivadas(historico, execucoes_principal, gravacoes=None):
             usd.append({"execution_id": e.get("execution_id"), "modelo": modelo_orq(e), "total": round(c["total"], 2),
                         **({"estimado": True} if c["estimado"] else {})})
     ultimo_modelo = modelo_orq(execucoes_principal[-1]) if execucoes_principal else None
-    base = base_economia(execucoes_principal, ultimo_modelo) if ultimo_modelo else []
+    base = (base_economia(execucoes_principal, ultimo_modelo, anteriores_do_arquivo(historico, pasta, gravacoes))
+            if ultimo_modelo else [])
 
     # E13: sem "coletores_ultima"/"orquestrador_ultima" (copias de executions[-1], sem leitor)
     return {
@@ -1257,12 +1261,33 @@ def modelo_orq(e):
     return (e.get("orquestrador") or {}).get("modelo")
 
 
-def base_economia(execucoes_anteriores, modelo):
-    """As ultimas 10 execucoes anteriores com o mesmo modelo do orquestrador e custo calculavel: [(e, custo)]."""
-    out = []
-    for e in reversed(execucoes_anteriores):
-        if modelo_orq(e) != modelo:
+def entra_na_base(e):
+    """Edicao diaria com rascunho do dia: a re-execucao sem rascunho novo (draft_ja_existente) e a edicao extra
+    (type != diaria) custam outra coisa e puxavam a media do ALERTA_ECONOMIA (rev3, P7)."""
+    return e.get("delivery") != "draft_ja_existente" and (e.get("type") or "diaria") == "diaria"
+
+
+def anteriores_do_arquivo(historico, pasta, gravacoes=None):
+    """Execucoes dos arquivos mortos mensais, da mais nova para a mais velha, lidas sob demanda (gravacoes: o arquivo
+    morto ainda nao gravado nesta rodada conta como o que sera gravado)."""
+    for nome in sorted((a for a in historico.get("archive_files") or [] if a), reverse=True):
+        caminho = os.path.join(pasta, nome)
+        try:
+            dados = gravacoes.ler(caminho) if gravacoes and gravacoes.existe(caminho) else read_json(caminho)
+        except Exception:  # noqa: BLE001 — medicao e acessoria
             continue
+        yield from reversed((dados or {}).get("executions") or [])
+
+
+def base_economia(execucoes_anteriores, modelo, mais_antigas=()):
+    """As ultimas 10 execucoes anteriores (edicao diaria com rascunho do dia: entra_na_base) com o mesmo modelo do
+    orquestrador e custo calculavel: [(e, custo)]. O arquivo principal guarda so 10 execucoes, a de hoje inclusive:
+    sem 10 nele, seguem as dos arquivos mensais (mais_antigas, da mais nova para a mais velha)."""
+    out, vistos = [], set()
+    for e in itertools.chain(reversed(execucoes_anteriores), mais_antigas or ()):
+        if e.get("execution_id") in vistos or modelo_orq(e) != modelo or not entra_na_base(e):
+            continue
+        vistos.add(e.get("execution_id"))
         c = custo_usd_execucao(e)
         if c and c.get("total"):
             out.append((e, c))
@@ -1271,7 +1296,7 @@ def base_economia(execucoes_anteriores, modelo):
     return out[::-1]
 
 
-def alertas_uso(execucoes, add_log):
+def alertas_uso(execucoes, add_log, mais_antigas=()):
     """ALERTA_ECONOMIA: o custo TOTAL da execucao (orquestrador + coletores + buscas, em US$ de lista) acima de 1,3x a
     MEDIA das ultimas 10 execucoes com o mesmo modelo do orquestrador (no minimo 3; critic_verified[4]/verified[19]:
     antes so o orquestrador, sem buscas, numa mediana que misturava modelos). ALERTA de troca do modelo do
@@ -1282,7 +1307,7 @@ def alertas_uso(execucoes, add_log):
     atual = execucoes[-1]
     o = atual.get("orquestrador") or {}
     cur = custo_usd_execucao(atual)
-    base = base_economia(execucoes[:-1], o.get("modelo")) if o.get("modelo") else []
+    base = base_economia(execucoes[:-1], o.get("modelo"), mais_antigas) if o.get("modelo") else []
     media = sum(c["total"] for _, c in base) / len(base) if base else None
     if cur and cur.get("total"):     # o numero que o dono acompanha (vai na notificacao do dia)
         add_log("USO: custo total US$ %.2f%s" % (cur["total"], "; media das ultimas %d com %s: US$ %.2f (%.2fx)" % (
@@ -1872,7 +1897,7 @@ def executar(args, add_log, emitir):
         )
     )
     try:          # alertas de uso sao acessorios: falha aqui vira AVISO, nunca derruba a gravacao do dia
-        alertas_uso(todas, add_log)
+        alertas_uso(todas, add_log, anteriores_do_arquivo(historico, pasta_hist, g))
     except Exception as e:  # noqa: BLE001
         add_log("AVISO: alertas de uso nao calculados (%s: %s, %s)" % (type(e).__name__, e, onde_falhou(e)))
     feriado_janela = []
