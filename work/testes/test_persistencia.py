@@ -1033,6 +1033,80 @@ def finalizar_commita_so_o_estado_com_indice_sujo():
 
 
 @teste
+def finalizar_prazo_de_rede_padrao_abaixo_de_100_s():
+    """P1 (rev3): os padroes de rede cabem com folga nos 120 s do timeout padrao do Bash — fetch da conferencia +
+    todas as tentativas de push cortadas + as esperas < 100 s (antes: 20 + 5 x 20 + 90 = 210 s)."""
+    src = open(os.path.join(WORK, "finalizar.sh")).read()
+    esperas = [int(x) for x in re.search(r"ESPERAS=\(\$\{ROBOZINHO_PUSH_ESPERAS:-([0-9 ]+)\}\)", src).group(1).split()]
+    limite = int(re.search(r"LIMITE_REDE=\$\{ROBOZINHO_LIMITE_REDE:-(\d+)\}", src).group(1))
+    pior = limite * (1 + len(esperas)) + sum(esperas)
+    ok(pior < 100 and len(esperas) >= 3, "pior caso de rede %d s (%s, %d s)" % (pior, esperas, limite))
+
+
+def finalizar_em_segundo_plano(run_env, sess, t, quando, alvo):
+    """Roda o finalizar.sh, espera `quando(t)` ficar verdadeiro e manda TERM (alvo 'bash': so ao processo do script;
+    'grupo': ao grupo inteiro, como o corte de um timeout). Devolve (rc, saida, segundos do sinal ao fim)."""
+    import signal
+    import time
+    p = subprocess.Popen(list(FINALIZAR), cwd=sess, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         text=True, start_new_session=True)
+    t0 = time.time()
+    while not quando(t) and time.time() - t0 < 60 and p.poll() is None:
+        time.sleep(0.1)
+    time.sleep(0.5)
+    t1 = time.time()
+    if alvo == "grupo":
+        os.killpg(p.pid, signal.SIGTERM)
+    else:
+        p.send_signal(signal.SIGTERM)
+    out, _ = p.communicate(timeout=60)
+    return p.returncode, out, time.time() - t1
+
+
+@teste
+def finalizar_interrompido_no_push_imprime_estado():
+    """P1 (rev3): TERM com o push travado (rede sem resposta) nao mata o script calado: sai na hora com PUSH: FALHOU
+    (interrompido) e a linha ESTADO da copia do estado — mandado so ao script ou ao grupo inteiro."""
+    for alvo in ("bash", "grupo"):
+        env = {"ROBOZINHO_PUSH_ESPERAS": "0 0", "ROBOZINHO_LIMITE_REDE": "60"}
+        base, sess, t, g, run = repo_finalizar(extra_env=env)
+        run(sys.executable, "work/montar_email.py")
+        hook(base, "sleep 20\nexit 0\n")
+        run_env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                       GIT_COMMITTER_EMAIL="t@t", ROBOZINHO_TMP=t, **env)
+        rc, out, dt = finalizar_em_segundo_plano(run_env, sess, t, lambda t: os.path.exists(
+            os.path.join(t, "finalizar-push.txt")), alvo)
+        ok(rc == 3 and dt < 8 and "INTERROMPIDO: sinal TERM recebido (fase copia)" in out
+           and "PUSH: FALHOU (interrompido) — registrar no relatorio final." in out
+           and re.search(r"^ESTADO: copia do estado do dia em .*robozinho-estado-backup-2026-11-17-7h\.tar\.gz \(commit "
+                         r"local \w+\) — para reaplicar: tar -xzf", out, re.M), "%s (%.1f s): %s" % (alvo, dt, out[-900:]))
+        ok(os.path.exists(os.path.join(t, "robozinho-estado-backup-2026-11-17-7h.tar.gz")), "a copia existe")
+
+
+@teste
+def finalizar_interrompido_no_helper_restaura():
+    """P1 (rev3): TERM durante a 1a rodada do helper (antes da copia do estado): os arquivos de estado voltam ao que
+    eram antes dele e PERSISTENCIA ABORTADA (nada commitado), sem morrer calado."""
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    p = os.path.join(sess, "work", "robozinho-aprendizado.json")
+    antes = md5(p)
+    helper_falso(sess, "open('work/robozinho-aprendizado.json', 'w').write('{\"concursos\": [')\n"
+                       "open(os.path.join(os.environ['ROBOZINHO_TMP'], 'helper-no-meio'), 'w').close()\n"
+                       "import time; time.sleep(30)\n")
+    run_env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                   GIT_COMMITTER_EMAIL="t@t", ROBOZINHO_TMP=t, ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0")
+    rc, out, dt = finalizar_em_segundo_plano(run_env, sess, t, lambda t: os.path.exists(
+        os.path.join(t, "helper-no-meio")), "grupo")
+    ok(rc == 2 and dt < 8 and "INTERROMPIDO: sinal TERM recebido (fase helper)" in out
+       and "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper" in out
+       and "PERSISTENCIA ABORTADA: interrompido (TERM) antes do commit — nada foi commitado" in out
+       and "PUSH:" not in out, "(%.1f s) %s" % (dt, out[-900:]))
+    ok(md5(p) == antes and g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout,
+       "ledger de volta, nada commitado")
+
+
+@teste
 def finalizar_caminho_feliz_sem_alarme():
     base, sess, t, g, run = repo_finalizar()
     run(sys.executable, "work/montar_email.py")

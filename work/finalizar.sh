@@ -50,9 +50,13 @@
 #        tem; as novas da origin/main, depois do helper (work/migracoes.py), antes da trava —
 #        a correcao/remocao do dono vale por cima do que o dia gravou. O finalizar.sh repetido
 #        reaplica as vistas que faltarem no ledger antes da 1a rodada ("MIGRACOES DO DIA: ");
-#      - rede com prazo: cada push/fetch ate ROBOZINHO_LIMITE_REDE s (20), esperas
-#        ROBOZINHO_PUSH_ESPERAS ("0 5 15 30 40"): pior caso abaixo de 300 s (o Bash do
-#        passo 7 roda com timeout 300000);
+#      - rede com prazo (rev3, P1): cada push/fetch ate ROBOZINHO_LIMITE_REDE s (12), 4
+#        tentativas com esperas ROBOZINHO_PUSH_ESPERAS ("0 5 10 15"): pior caso ~90 s de rede
+#        + o helper, abaixo de 100 s (o Bash do passo 7 roda com timeout 300000; o padrao
+#        do Bash e 120 s);
+#      - TERM/INT (corte do timeout, Ctrl-C): nunca morre calado — antes da copia do estado,
+#        RESTAURADO + PERSISTENCIA ABORTADA (exit 2); depois, PUSH: FALHOU (interrompido)
+#        com a linha ESTADO (exit 3);
 #      - falha definitiva: copia em tar do estado do dia (ESTADO: ...). Nenhuma outra branch
 #        e criada no remoto: a tarefa agendada so autoriza push na main. Falha depois de
 #        comecar a reaplicacao: os arquivos de estado voltam ao ultimo commit ("RESTAURADO: ...
@@ -199,6 +203,52 @@ helper() {   # $1 = arquivo de entrada (uma copia: o helper o normaliza no lugar
   [[ $rc -eq 0 ]] && grep -q '^STATUS: OK' "$T/relatorio.txt" 2>/dev/null
 }
 
+BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0 PID_REDE="" FASE=inicio
+# rede com prazo (verified[44]; rev3, P1): cada push/fetch tem LIMITE_REDE s; 4 tentativas de push, com esperas que
+# somam 30 s. Pior caso (rede sem resposta): fetch 12 + 4 x 12 de push + 30 de espera = 90 s, mais as rodadas do
+# helper (~1-3 s cada) — abaixo dos 100 s, folga dentro dos 120 s do timeout padrao do Bash, se o passo 7 esquecer o
+# timeout 300000. Reaplicacao: o push recusado responde logo e soma 1 fetch (12) e o helper; a reaplicacao por
+# commits fora da main nao busca de novo. Os dois sao configuraveis (testes: ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0").
+ESPERAS=(${ROBOZINHO_PUSH_ESPERAS:-0 5 10 15})
+LIMITE_REDE=${ROBOZINHO_LIMITE_REDE:-12}
+# o comando de rede e a espera rodam em segundo plano + wait: TERM/INT interrompem na hora (o trap mata o filho);
+# em primeiro plano, ou dentro de $( ), o bash so atenderia o sinal quando o comando terminasse. A saida vai para
+# um arquivo pelo --saida (redirecionar a chamada da funcao mandaria para la tambem as linhas do trap)
+rede() {   # rede [--saida ARQUIVO] comando...
+  if [[ "$1" == --saida ]]; then
+    local arq="$2"
+    shift 2
+    timeout "$LIMITE_REDE" "$@" > "$arq" 2>&1 &
+  else
+    timeout "$LIMITE_REDE" "$@" &
+  fi
+  PID_REDE=$!
+  wait "$PID_REDE"
+  local rc=$?
+  PID_REDE=""
+  return $rc
+}
+pausa() { sleep "$1" & PID_REDE=$!; wait "$PID_REDE"; PID_REDE=""; }
+
+# Interrupcao (rev3, P1): TERM/INT (o corte do timeout do Bash, Ctrl-C) nao matam o script calado. Antes de work/ mudar
+# (FASE=inicio): PERSISTENCIA ABORTADA. Durante a 1a rodada (FASE=helper): os arquivos de estado voltam ao que eram
+# antes do helper (RESTAURADO) e PERSISTENCIA ABORTADA. Com a copia do estado feita (FASE=copia): a saida de falhou —
+# PUSH: FALHOU (interrompido), a linha ESTADO e, na reaplicacao, os arquivos de estado de volta ao ultimo commit.
+interrompido() {
+  trap '' TERM INT                       # a limpeza nao se interrompe
+  [[ -n "$PID_REDE" ]] && kill "$PID_REDE" 2>/dev/null
+  echo "INTERROMPIDO: sinal $1 recebido (fase $FASE)"
+  if [[ "$FASE" == copia ]]; then
+    falhou "interrompido"
+  fi
+  [[ "$FASE" == helper ]] && restaurar_antes
+  echo "PERSISTENCIA ABORTADA: interrompido ($1) antes do commit — nada foi commitado; repita o finalizar.sh com os" \
+       "mesmos argumentos."
+  exit 2
+}
+trap 'interrompido TERM' TERM
+trap 'interrompido INT' INT
+
 # estado de work/ antes do helper (com a migracao que o inicio.py aplicou): se o helper nao terminar com
 # STATUS: OK, os arquivos voltam a isto — nada fica gravado pela metade diante do hook de parada (verified[14])
 ANTES="$T/finalizar-antes"
@@ -287,6 +337,7 @@ PY
 
 migracoes_vistas "MIGRACOES DO DIA: "     # normalmente nada: o inicio.py ja as aplicou neste ledger
 guardar_antes || { echo "PERSISTENCIA ABORTADA: copia do estado antes do helper falhou em $ANTES — nada foi commitado."; exit 2; }
+FASE=helper
 
 cp "$COPIA" "$T/finalizar-rodada1.json"
 if ! helper "$T/finalizar-rodada1.json"; then
@@ -298,13 +349,6 @@ cp "$T/finalizar-rodada1.json" "$ENTRADA"      # a entrada fica normalizada, com
 
 EXEC=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['execution_id'])" "$ENTRADA")
 BACKUP_ARQ="$T/robozinho-estado-backup-$EXEC.tar.gz"
-BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0
-# rede com prazo (verified[44]): cada push/fetch tem LIMITE_REDE s; as esperas entre as 5 tentativas somam 90 s.
-# Pior caso (rede caida): ~90 s de espera + 5 x 20 s de push + fetch + 2 rodadas do helper < 300 s, o
-# timeout do Bash do passo 7. Os dois sao configuraveis (testes: ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0").
-ESPERAS=(${ROBOZINHO_PUSH_ESPERAS:-0 5 15 30 40})
-LIMITE_REDE=${ROBOZINHO_LIMITE_REDE:-20}
-rede() { timeout "$LIMITE_REDE" "$@"; }
 
 copiar_estado() {   # copia do estado da ULTIMA rodada OK do helper ($1 = rodada1|rodada2); falha = fica a anterior
   if tar -czf "$BACKUP_ARQ.tmp" $(arquivos_estado) 2>/dev/null && mv -f "$BACKUP_ARQ.tmp" "$BACKUP_ARQ"; then
@@ -455,13 +499,14 @@ if ! trava; then
   exit 2
 fi
 copiar_estado rodada1
+FASE=copia
 
 # sessao fora da main (lows[13]): a branch da sessao contem a origin/main E commits que nao estao nela (sessao nascida
 # numa branch velha ou com commit avulso) — o push seria aceito e os levaria para a main. Grava sobre a origin/main.
 # Fetch que falha (rev3, P8): a conferencia segue com a origin/main da hora do clone (antes ela era pulada e um push
 # aceito depois levava os commits avulsos para a main).
 fora="" fora_msgs=""
-if ! rede git fetch -q origin main 2>/dev/null; then
+if ! rede --saida /dev/null git fetch -q origin main; then
   echo "AVISO: git fetch origin main falhou — commits fora da main conferidos contra a origin/main da hora do clone"
 fi
 if git rev-parse -q --verify refs/remotes/origin/main >/dev/null && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
@@ -481,9 +526,10 @@ if [[ -n "$fora" ]]; then
 fi
 
 for espera in "${ESPERAS[@]}"; do
-  sleep "$espera"
-  saida=$(rede git push -q -u origin main 2>&1)
+  pausa "$espera"
+  rede --saida "$T/finalizar-push.txt" git push -q -u origin main     # sem $( ): o trap atende o sinal na hora
   rc=$?
+  saida=$(cat "$T/finalizar-push.txt" 2>/dev/null)
   if [[ $rc -eq 0 ]]; then
     echo "PUSH: OK (main $(git rev-parse --short HEAD))"
     if [[ $reaplicado -eq 1 ]] && ! git diff --quiet HEAD 2>/dev/null; then
