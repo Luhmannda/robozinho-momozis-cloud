@@ -938,6 +938,27 @@ REGRAS_ATUALIZADAS = {
                   "pedidos) do número novo logo depois de uma edição — e guarda o PDF no cache. ERRO só se cita com"
                   " o e-mail da edição; a anunciada que não abriu volta como EM ATRASO."),
     },
+    "cloud_egress_bloqueado": {
+        # a medicao fixa de rede ("Medido em 17/11/2026 — abrem: ... Recusados ...") envelhece: a situacao do dia esta
+        # nas linhas REDE do passo 1. A regra nova e a que o inicio.regra_impressa ja imprimia em memoria (test_doc:
+        # regra_de_armadilha_impressa_igual_a_gravada)
+        "antigas": (
+            "Leitura direta e sempre curl (scripts work/*.py); nunca WebFetch em dominio externo. 000/403 numa "
+            "fonte: WebSearch para ela e aviso no quadro. Medido em 17/11/2026 — abrem: conjur.com.br, "
+            "migalhas.com.br, congressonacional.leg.br, www.camara.leg.br, www.stj.jus.br, processo.stj.jus.br, "
+            "www.stf.jus.br e portal.stf.jus.br (com 403 intermitente do firewall do STF: o informativos.py "
+            "insiste), conhecimento.fgv.br, www.cebraspe.org.br, www.gov.br, www.jota.info, dailyverses.net. "
+            "Recusados pela politica de rede do ambiente (CONNECT 403; so o dono libera, nas configuracoes do "
+            "ambiente): noticias.stf.jus.br, www12.senado.leg.br, normas.leg.br, www.in.gov.br, www.trt4.jus.br, "
+            "www.vunesp.com.br, www.concursosfcc.com.br, diariodopara.com.br. Liberados, mas o proprio site "
+            "recusa ou nao responde a nuvem (nada a fazer daqui): www.trf3.jus.br, www.trt8.jus.br, "
+            "www.planalto.gov.br, legislacao.presidencia.gov.br. O inicio.py testa os dominios dos concursos "
+            "todo dia.",
+        ),
+        "regra": ("Leitura direta e sempre curl (scripts work/*.py); nunca WebFetch em dominio externo. 000/403 numa "
+                  "fonte: WebSearch para ela e aviso no quadro. Situação da rede hoje: linhas REDE acima (proxy = só "
+                  "o dono libera; sem resposta/http = o próprio site)."),
+    },
 }
 
 
