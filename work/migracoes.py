@@ -31,11 +31,32 @@
 #     migracoes_aplicadas (o helper preserva a lista). Idempotente: a marcada nao reaplica. Se a
 #     execucao cair antes do commit, o clone do dia seguinte nao tem a marca e a migracao e
 #     aplicada de novo sobre o ledger da main (upsert: o mesmo resultado, com mudou_em do novo dia).
+#   - resumo para o leitor (23/11/2026, ensaio: o ENAM criado pela migracao saia sem NOVO, PGE-RJ/DPE-SP sem
+#     "Atualizado hoje" e as remocoes sem "Saiu do acompanhamento", porque o montador so via o ledger_updates do
+#     dia e o ledger ja chegava migrado): as aplicadas NESTA chamada vao para $ROBOZINHO_TMP/migracoes-hoje.json
+#     (RESUMO, abaixo), que o montar_email.py le para as marcas do dia e os itens concurso|<id>|novo/atualizado
+#     do historico — sem reaplicar nada. Acumula as chamadas do mesmo dia; arquivo de outra data e substituido.
+#     Falha ao gravar = linha ALERTA (o ledger ja foi gravado; so as marcas do dia se perdem).
 # Linhas devolvidas (o inicio.py as imprime logo abaixo de HOJE):
 #   MIGRACAO <id>: aplicada (<n> concursos, <m> pendências)[ — <k> remoção(ões) já feita(s) antes]
 #   ALERTA: migracao <id> recusada: <erros>
 #   ALERTA: migracao <arquivo>: ilegível (<erro>)
+#   ALERTA: migracoes-hoje.json não gravado (<erro>): ...
 # Nada pendente -> [] (nada impresso).
+#
+# RESUMO ($ROBOZINHO_TMP/migracoes-hoje.json; so o que o leitor ve mudar):
+#   {"data": "AAAA-MM-DD",                       # a data `hoje` da aplicacao; o montador so le o de janela.data
+#    "base_execucao": "<atualizado_por_execucao do ledger antes da 1a migracao do dia>",
+#    "migracoes": ["<id>", ...],                  # aplicadas hoje, na ordem
+#    "concursos": {"<id>": "novo" | "alterado"    # criado | linha/selo/prazos mudados com mudou_em = hoje
+#                        | {"removido": "<desfecho>", "linha": "<linha de antes>", "bloco": "<bloco de antes>"}},
+#    "pendencias": {"<id>": "alterado"            # criada ou com o texto mudado
+#                         | {"removido": "<desfecho>", "texto": "<texto de antes>", "faixa": "<faixa de antes>",
+#                            "concurso": "<id do concurso ligado a ela antes>"}}}   # (concurso: so se havia)
+#   So banca_slug/fonte/verificado_em (sem mudar linha/selo/prazos) ou movimento: false nao entram. Varias
+#   migracoes no mesmo id: criado e removido no dia some; criado e depois alterado fica "novo"; removido e
+#   recriado vira "alterado". base_execucao: o montador ignora o resumo se o ledger ja foi gravado por outra
+#   execucao depois da migracao (edicao extra na mesma maquina nao repete o NOVO da diaria).
 #
 # USO avulso: python3 work/migracoes.py [--hoje AAAA-MM-DD] [--work DIR]
 #   (sem --hoje: a data do $ROBOZINHO_TMP/janela.json, senao hoje em America/Sao_Paulo)
@@ -54,6 +75,7 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 LEDGER = "robozinho-aprendizado.json"
 PASTA = "migracoes"
 CHAVE = "migracoes_aplicadas"
+RESUMO = "migracoes-hoje.json"
 _UH = None
 
 
@@ -125,15 +147,105 @@ def erros_da_migracao(upd, led, hoje):
     return [e for e in erros if e not in do_dia]
 
 
+def _texto(x):
+    return str((x or {}).get("texto") or "").strip()
+
+
+def resumir(upd, antes, depois, hj):
+    """O que a migracao (ja aplicada: `antes` -> `depois`) muda para o leitor hoje, no formato do RESUMO."""
+    uh = helper()
+    out = {"concursos": {}, "pendencias": {}}
+    ca = {c.get("id"): c for c in antes.get("concursos") or [] if isinstance(c, dict)}
+    cd = {c.get("id"): c for c in depois.get("concursos") or [] if isinstance(c, dict)}
+    for ident, campos in (upd.get("concursos") or {}).items():
+        if not isinstance(campos, dict):
+            continue
+        a, d = ca.get(ident), cd.get(ident)
+        if campos.get("remover"):
+            if a is not None and d is None:
+                out["concursos"][ident] = {"removido": str(campos.get("desfecho") or "").strip(),
+                                           "linha": a.get("linha") or "", "bloco": a.get("bloco") or ""}
+        elif a is None and d is not None:
+            out["concursos"][ident] = "novo"
+        elif a is not None and d is not None and uh.selos.mudou(a, d) and d.get("mudou_em") == hj:
+            out["concursos"][ident] = "alterado"      # o mesmo criterio do mudou_em do helper (movimento: false fica)
+    pa = {p.get("id"): p for p in antes.get("pendencias_vivas") or [] if isinstance(p, dict)}
+    pd = {p.get("id"): p for p in depois.get("pendencias_vivas") or [] if isinstance(p, dict)}
+    ligada = {c.get("pendencia"): c.get("id") for c in antes.get("concursos") or []
+              if isinstance(c, dict) and c.get("pendencia")}
+    for ident, campos in (upd.get("concursos") or {}).items():          # vinculo criado pela propria migracao
+        if isinstance(campos, dict) and campos.get("pendencia"):
+            ligada.setdefault(campos["pendencia"], ident)
+    for ident, campos in (upd.get("pendencias") or {}).items():
+        if not isinstance(campos, dict):
+            continue
+        a, d = pa.get(ident), pd.get(ident)
+        if campos.get("remover"):
+            if a is not None and d is None:
+                r = {"removido": str(campos.get("desfecho") or "").strip(), "texto": _texto(a),
+                     "faixa": a.get("faixa") or ""}
+                if ligada.get(ident):
+                    r["concurso"] = ligada[ident]
+                out["pendencias"][ident] = r
+        elif d is not None and (a is None or _texto(a) != _texto(d)):
+            out["pendencias"][ident] = "alterado"
+    return out
+
+
+def juntar(antes, novo):
+    """Duas migracoes do mesmo dia no mesmo id (RESUMO). None = some do resumo."""
+    if antes == "novo" and isinstance(novo, dict):
+        return None                  # criado e removido no mesmo dia: o leitor nunca o viu
+    if antes == "novo":
+        return "novo"
+    if isinstance(antes, dict) and novo in ("novo", "alterado"):
+        return "alterado"            # removido e recriado no dia: o leitor o via ontem
+    return novo
+
+
+def caminho_resumo(tmp_dir=None):
+    return os.path.join(tmp_dir or os.environ.get("ROBOZINHO_TMP") or "/tmp", RESUMO)
+
+
+def gravar_resumo(hj, base, feitas, tmp_dir=None):
+    """Acrescenta as migracoes aplicadas agora (feitas = [(id, resumir(...))]) ao RESUMO de hoje; o de outra data
+    (ou ilegivel) e substituido. Gravacao atomica (arquivo temporario + os.replace)."""
+    p = caminho_resumo(tmp_dir)
+    try:
+        with open(p, encoding="utf-8") as f:
+            atual = json.load(f)
+    except (OSError, ValueError):
+        atual = None
+    if not (isinstance(atual, dict) and atual.get("data") == hj and isinstance(atual.get("migracoes"), list)):
+        atual = {"data": hj, "base_execucao": base, "migracoes": [], "concursos": {}, "pendencias": {}}
+    for ident, r in feitas:
+        if ident not in atual["migracoes"]:
+            atual["migracoes"].append(ident)
+        for secao in ("concursos", "pendencias"):
+            bloco = atual.setdefault(secao, {})
+            for i, v in r[secao].items():
+                x = juntar(bloco.get(i), v)
+                if x is None:
+                    bloco.pop(i, None)
+                else:
+                    bloco[i] = x
+    tmp_p = "%s.%d.tmp" % (p, os.getpid())
+    with open(tmp_p, "w", encoding="utf-8") as f:
+        json.dump(atual, f, ensure_ascii=False, indent=1)
+    os.replace(tmp_p, p)
+    return p
+
+
 def contagem(upd):
     n = len(upd.get("concursos") or {}) if isinstance(upd.get("concursos"), dict) else 0
     m = len(upd.get("pendencias") or {}) if isinstance(upd.get("pendencias"), dict) else 0
     return n, m
 
 
-def aplicar(hoje, work_dir=None):
+def aplicar(hoje, work_dir=None, tmp_dir=None):
     """Aplica as migracoes pendentes de <work_dir>/migracoes ao <work_dir>/robozinho-aprendizado.json.
-    hoje: date (ou AAAA-MM-DD). Devolve as linhas para o relatorio (vazia sem nada pendente)."""
+    hoje: date (ou AAAA-MM-DD). Devolve as linhas para o relatorio (vazia sem nada pendente). As aplicadas
+    agora vao para o RESUMO em <tmp_dir> (padrao: $ROBOZINHO_TMP, senao /tmp)."""
     work_dir = work_dir or AQUI
     hj = hoje.isoformat() if isinstance(hoje, (date, datetime)) else str(hoje)[:10]
     date.fromisoformat(hj)                                 # data invalida: erro (o inicio.py vira ALERTA)
@@ -149,6 +261,8 @@ def aplicar(hoje, work_dir=None):
         return linhas
     uh = helper()
     mudou = False
+    base = led.get("atualizado_por_execucao")
+    feitas = []
     for ident, dados, nome in pendentes:
         upd = dados.get("ledger_updates")
         if not isinstance(upd, dict) or not upd:
@@ -170,6 +284,7 @@ def aplicar(hoje, work_dir=None):
             linhas.append("ALERTA: migracao %s recusada: falha ao aplicar (%s: %s)" % (ident, type(e).__name__, e))
             continue
         novo.setdefault(CHAVE, []).append({"id": ident, "aplicada_em": hj})
+        feitas.append((ident, resumir(upd, led, novo, hj)))
         led, mudou = novo, True
         n, m = contagem(upd)
         linhas.append("MIGRACAO %s: aplicada (%d concursos, %d pendências)%s" % (
@@ -177,6 +292,12 @@ def aplicar(hoje, work_dir=None):
                                                               "" if ja_feitas == 1 else "s")) if ja_feitas else ""))
     if mudou:
         uh.gravar_ledger(caminho, led)
+        try:
+            gravar_resumo(hj, base, feitas, tmp_dir)
+        except (OSError, TypeError, ValueError) as e:
+            linhas.append("ALERTA: %s não gravado (%s: %s): o ledger já está migrado, mas o e-mail de hoje não "
+                          "marcará NOVO/Atualizado hoje/Saiu do acompanhamento pelas migrações"
+                          % (RESUMO, type(e).__name__, e))
     return linhas
 
 

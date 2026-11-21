@@ -1874,6 +1874,151 @@ def t_teses_stj_vai_para_stj_jurisprudencia():
        "JT sai em STJ Jurisprudência com selo oficial (rc=%s)" % rc)
 
 
+# ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
+def pasta_migrada(upd=None, dia="2026-11-23"):
+    """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do
+    repositorio (work/migracoes/), aplicada em `dia` pelo work/migracoes.py como o inicio.py faz: o ledger fica
+    migrado e o RESUMO vai para o ROBOZINHO_TMP da pasta. Devolve (pasta, linhas do aplicar)."""
+    import migracoes
+    t = pasta_dia(dia, upd, ledger=fx("ledger-2011.json"), banca=False)
+    shutil.copy(os.path.join(t, "led.json"), os.path.join(t, "robozinho-aprendizado.json"))
+    shutil.copytree(os.path.join(WORK, "migracoes"), os.path.join(t, "migracoes"))
+    linhas = migracoes.aplicar(date.fromisoformat(dia), work_dir=t, tmp_dir=t)
+    shutil.copy(os.path.join(t, "robozinho-aprendizado.json"), os.path.join(t, "led.json"))
+    return t, linhas
+
+
+def linha_tr(html, cabeca):
+    """A <tr> do registro cuja cabeca (orgao — cargo) comeca por `cabeca`."""
+    i = html.find("<b>" + cabeca)
+    return html[html.rfind("<tr", 0, i):html.find("</tr>", i)] if i >= 0 else ""
+
+
+@teste
+def t_mon_migracao_do_dia_visivel():
+    """E1 (ensaio de 23/11): a migracao 2026-11-21-escopo-e-concursos aplicada no dia cria o ENAM, reescreve PGE-RJ e
+    DPE-SP e tira 5 registros do quadro de apoio; o ledger chega migrado ao montador e o ledger_updates do dia nao a
+    traz. Com o RESUMO do migracoes.py ($ROBOZINHO_TMP/migracoes-hoje.json): ENAM com NOVO, PGE-RJ/DPE-SP com
+    'Atualizado hoje' (verificado em 21/11, sem 'herdada'), 'Saiu do acompanhamento' com o desfecho e os itens
+    concurso|<id>|novo/atualizado no historico — uma vez so, mesmo com o update do dia tocando o id."""
+    t, linhas = pasta_migrada()
+    ok(linhas == ["MIGRACAO 2026-11-21-escopo-e-concursos: aplicada (14 concursos, 5 pendências)"], linhas)
+    res = json.load(open(os.path.join(t, "migracoes-hoje.json"), encoding="utf-8"))
+    ok(res["data"] == "2026-11-23" and res["base_execucao"] == "2026-11-20-7h"
+       and res["migracoes"] == ["2026-11-21-escopo-e-concursos"]
+       and {k: v for k, v in res["concursos"].items() if isinstance(v, str)} == {"enam": "novo", "pge_rj": "alterado",
+                                                                                  "dpe_sp": "alterado"}
+       and sorted(k for k, v in res["concursos"].items() if isinstance(v, dict))
+       == ["dpdf_apoio", "dpe_pb_apoio", "mppa_apoio", "tjpb_apoio", "trt8_apoio"]
+       and res["concursos"]["trt8_apoio"]["bloco"] == "Quadro de apoio"
+       and res["pendencias"]["pge_rj_edital_verificar"]["concurso"] == "pge_rj",
+       "resumo da migracao (so linha/selo/prazos; banca_slug nao entra): %s" % {k: v for k, v in res.items()
+                                                                               if k != "pendencias"})
+    out, html, _, _ = montador_e_helper(t)
+    ok(linha(out, "MONTAGEM: OK") and "(1 novos, 2 atualizados hoje" in out, "montagem: %s" % out[-700:])
+    enam = linha_tr(html, "ENAM — 6º Exame")
+    ok('bgcolor="#fdf6e9"' in enam and ">NOVO</b>" in enam, "ENAM com NOVO e fundo creme: %s" % enam[:300])
+    for cab in ("PGE-RJ — 19º concurso", "DPE-SP — X Concurso"):
+        tr = linha_tr(html, cab)
+        ok('bgcolor="#fdf6e9"' in tr and "Atualizado hoje:</b>" in tr and "<i>(verificado em 21/11)</i>" in tr
+           and "herdada" not in tr, "%s com 'Atualizado hoje', verificado em 21/11, sem 'herdada': %s" % (cab, tr[-200:]))
+    apoio = html.split("Concursos jurídicos — Quadro de apoio")[1].split("Se saiu na mídia")[0]
+    ok("Saiu do acompanhamento: <b>TRT8</b> — fora do escopo regional do quadro de apoio (só Sul e Sudeste, decisão "
+       "do dono de 20/11/2026).</td></tr>" in apoio and apoio.count("Saiu do acompanhamento") == 5
+       and html.count("Saiu do acompanhamento") == 5, "5 saidas no quadro de apoio, com o desfecho")
+    ok("TRT8 — Analista" not in html, "o registro removido nao sai")
+    ok("AVISO: migração de hoje (2026-11-21-escopo-e-concursos) já nas marcas do dia — NOVO: ENAM; Atualizado hoje: "
+       "PGE-RJ, DPE-SP; Saiu do acompanhamento: TRT8, DPE-PB" in out, "AVISO comum com as marcas da migracao")
+    # pendencias da migracao ligadas a concurso: nao vao ao quadro (o registro ja diz), como as do update do dia
+    ok("Saiu do acompanhamento: PGE-RJ" not in quadro_leitor(html), "pendencia ligada a concurso fica fora do quadro")
+    resolvido = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
+    chaves = sorted(i["chave"] for i in resolvido["items"] if i["chave"].startswith("concurso|"))
+    ok(chaves == ["concurso|dpe_sp|atualizado|2026|2026-11-23", "concurso|enam|novo|2026|2026-11-23",
+                  "concurso|pge_rj|atualizado|2026|2026-11-23"], "itens do historico: %s" % chaves)
+    hist = json.load(open(os.path.join(t, "hist.json"), encoding="utf-8"))
+    dia = next(e for e in hist["executions"] if e.get("execution_id") == "2026-11-23-7h")
+    ok(sorted(i["chave"] for i in dia["items"] if i["chave"].startswith("concurso|")) == chaves,
+       "o helper gravou os mesmos itens no historico")
+    led = json.load(open(os.path.join(t, "led.json"), encoding="utf-8"))
+    ok(next(c for c in led["concursos"] if c["id"] == "enam")["mudou_em"] == "2026-11-23", "ledger com mudou_em de hoje")
+
+    # o update do dia tambem toca os ids da migracao: uma marca e um item so (novo prevalece)
+    t2, _ = pasta_migrada({"enam": {"verificado_em": "2026-11-23"},
+                           "pge_rj": {"linha": "PGE-RJ — 19º concurso de Procurador do Estado: provas específicas de "
+                                               "08/11 a 06/12/2026, conforme o DO de 28/10", "verificado_em": "2026-11-23"}})
+    out2, html2, _, _ = montador_e_helper(t2)
+    res2 = json.load(open(os.path.join(t2, "execucao.resolvido.json"), encoding="utf-8"))
+    ch2 = sorted(i["chave"] for i in res2["items"] if i["chave"].startswith("concurso|"))
+    ok(ch2 == ["concurso|dpe_sp|atualizado|2026|2026-11-23", "concurso|enam|novo|2026|2026-11-23",
+               "concurso|pge_rj|atualizado|2026|2026-11-23"] and "(1 novos, 2 atualizados hoje" in out2,
+       "update do dia + migracao no mesmo id: sem item duplicado (%s) %s" % (ch2, linha(out2, "MONTAGEM")))
+    pge2 = linha_tr(html2, "PGE-RJ — 19º concurso")
+    ok(linha_tr(html2, "ENAM — 6º Exame").count(">NOVO</b>") == 1 and "Atualizado hoje:</b> Provas específicas" in pge2
+       and "verificado em" not in pge2, "ENAM NOVO uma vez; PGE-RJ verificado hoje, sem cauda: %s" % pge2[-160:])
+
+    # sem o resumo, de outro dia, ou com o ledger ja gravado por outra execucao: nada (comportamento anterior)
+    for rotulo, mexe in (("sem resumo", lambda r: None),
+                         ("outro dia", lambda r: dict(r, data="2026-11-22")),
+                         ("ledger gravado por outra execucao", lambda r: dict(r, base_execucao="2026-11-19-7h"))):
+        t3, _ = pasta_migrada()
+        p = os.path.join(t3, "migracoes-hoje.json")
+        r = mexe(json.load(open(p, encoding="utf-8")))
+        if r is None:
+            os.remove(p)
+        else:
+            json.dump(r, open(p, "w", encoding="utf-8"), ensure_ascii=False)
+        rc, out3, _ = subprocess.run([sys.executable, os.path.join(WORK, "montar_email.py"), "--ledger",
+                                      os.path.join(t3, "led.json"), "--historico", os.path.join(t3, "hist.json")],
+                                     capture_output=True, text=True, env=dict(os.environ, ROBOZINHO_TMP=t3),
+                                     cwd=WORK).__dict__["returncode"], None, None
+        h3 = open(os.path.join(t3, "email.html"), encoding="utf-8").read() if rc == 0 else ""
+        ok(rc == 0 and ">NOVO</b>" not in h3 and "Saiu do acompanhamento" not in h3
+           and "(herdada; verificado em 21/11)" in linha_tr(h3, "PGE-RJ — 19º concurso"), "%s: sem marcas" % rotulo)
+
+
+@teste
+def t_mon_migracao_pendencias_e_refazer():
+    """E1: pendencia removida pela migracao sem concurso ligado sai no quadro ('Saiu do acompanhamento: <rotulo> —
+    <desfecho>'); a criada/reescrita conta como texto novo (vai ao quadro fora da 1a da semana); o --refazer da mesma
+    execucao (ledger ja gravado por ela) mantem as marcas."""
+    import migracoes
+    t = pasta_dia("2026-11-24", None, ledger=fx("ledger-2011.json"), banca=False)
+    os.makedirs(os.path.join(t, "migracoes"))
+    json.dump({"id": "2026-11-23-pendencias", "descricao": "teste", "criado_em": "2026-11-23", "ledger_updates": {
+        "pendencias": {"crise_institucional_stf_pgr_acompanhar": {"remover": True,
+                                                                  "desfecho": "a PGR apresentou a denúncia em 23/11"},
+                       "nova_mig": {"texto": "CNJ: consulta pública sobre o exame da magistratura até 05/12.",
+                                    "faixa": "longo_prazo"}}}},
+              open(os.path.join(t, "migracoes", "2026-11-23-pendencias.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    shutil.copy(os.path.join(t, "led.json"), os.path.join(t, "robozinho-aprendizado.json"))
+    linhas = migracoes.aplicar(date(2026, 11, 24), work_dir=t, tmp_dir=t)
+    shutil.copy(os.path.join(t, "robozinho-aprendizado.json"), os.path.join(t, "led.json"))
+    ok(linhas == ["MIGRACAO 2026-11-23-pendencias: aplicada (0 concursos, 2 pendências)"], linhas)
+    res = json.load(open(os.path.join(t, "migracoes-hoje.json"), encoding="utf-8"))
+    ok(res["pendencias"]["nova_mig"] == "alterado" and "concurso" not in res["pendencias"][
+        "crise_institucional_stf_pgr_acompanhar"], res["pendencias"])
+    out, html, _, _ = montador_e_helper(t)
+    q = quadro_leitor(html)
+    ok("Saiu do acompanhamento: Caso Master — a PGR apresentou a denúncia em 23/11." in q
+       and "CNJ: consulta pública sobre o exame da magistratura até 05/12." in q, "quadro: %s" % q[-400:])
+    # --refazer: o helper ja gravou o ledger com esta execucao (atualizado_por_execucao = 2026-11-24-7h)
+    led = json.load(open(os.path.join(t, "led.json"), encoding="utf-8"))
+    ok(led.get("atualizado_por_execucao") == "2026-11-24-7h", "helper gravou")
+    j = json.load(open(os.path.join(t, "janela.json"), encoding="utf-8"))
+    ok(M.migracoes_do_dia(j, led, os.path.join(t, "migracoes-hoje.json"))["pendencias"],
+       "refazer da mesma execucao: o resumo vale")
+    ok(not M.migracoes_do_dia(dict(j, execution_id="2026-11-24-extra"), led,
+                              os.path.join(t, "migracoes-hoje.json"))["pendencias"],
+       "edicao extra depois da diaria gravada: o resumo nao repete as marcas")
+    # controle: sem o resumo, a pendencia criada pela migracao (texto igual ao do ledger migrado) e a removida somem
+    os.remove(os.path.join(t, "migracoes-hoje.json"))
+    r = subprocess.run([sys.executable, os.path.join(WORK, "montar_email.py"), "--ledger", os.path.join(t, "led.json"),
+                        "--historico", os.path.join(t, "hist.json")], capture_output=True, text=True,
+                       env=dict(os.environ, ROBOZINHO_TMP=t), cwd=WORK)
+    q = quadro_leitor(corpo(r.stdout)) if r.returncode == 0 else "?"
+    ok("Caso Master —" not in q and "CNJ: consulta" not in q, "sem o resumo: nada no quadro (%s)" % q[-200:])
+
+
 def main():
     try:
         for t in TESTES:

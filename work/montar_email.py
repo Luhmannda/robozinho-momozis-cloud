@@ -40,7 +40,9 @@
 #        com ERRO: linhas "ERRO: ..." + "MONTAGEM: ERRO ...", exit 2, nenhum HTML.
 # ARQUIVOS ($ROBOZINHO_TMP, padrao /tmp): le execucao.json, janela.json,
 #        coleta_web.json, informativos.json, versiculo.json, bancas.json,
-#        fontes_status.json; grava execucao.resolvido.json (o passo 7 usa) e
+#        fontes_status.json, migracoes-hoje.json (work/migracoes.py: o que as
+#        migracoes de dado aplicadas hoje mudaram — marcas do dia e itens do
+#        historico, sem reaplicar); grava execucao.resolvido.json (o passo 7 usa) e
 #        email.html — ou email-com-avisos.html quando houver AVISO ACIONÁVEL
 #        (os dois sao apagados no inicio de cada rodada).
 # =====================================================================
@@ -950,6 +952,34 @@ def ler_banca(caminho, hoje):
     return res
 
 
+MIGRACOES_HOJE = "migracoes-hoje.json"
+
+
+def migracoes_do_dia(j, led, caminho=None):
+    """O RESUMO que o work/migracoes.py grava em $ROBOZINHO_TMP/migracoes-hoje.json (formato no cabecalho de la):
+    {"migracoes": [ids], "concursos": {id: "novo"|"alterado"|{"removido": desfecho, "linha", "bloco"}},
+    "pendencias": {id: "alterado"|{"removido": desfecho, "texto", "faixa"[, "concurso"]}}}. 23/11/2026 (ensaio): o
+    ledger chega ao montador ja migrado e o ledger_updates do dia nao traz a migracao, entao o ENAM criado por ela
+    saia sem NOVO, PGE-RJ/DPE-SP sem "Atualizado hoje" e as remocoes sem "Saiu do acompanhamento". Vale so o de
+    HOJE (janela.data) e so enquanto o ledger nao foi gravado por outra execucao depois da migracao (base_execucao:
+    a edicao extra na mesma maquina nao repete o NOVO da diaria; o --refazer da mesma execucao repete). Ausente,
+    ilegivel ou de outro dia: nada."""
+    vazio = {"migracoes": [], "concursos": {}, "pendencias": {}}
+    r = ler(caminho or tmp(MIGRACOES_HOJE))
+    if not isinstance(r, dict) or r.get("data") != j.get("data"):
+        return vazio
+    if "base_execucao" in r and (led or {}).get("atualizado_por_execucao") not in (r.get("base_execucao"),
+                                                                                   j.get("execution_id")):
+        return vazio
+    return {"migracoes": [str(x) for x in r.get("migracoes") or [] if x],
+            "concursos": r["concursos"] if isinstance(r.get("concursos"), dict) else {},
+            "pendencias": r["pendencias"] if isinstance(r.get("pendencias"), dict) else {}}
+
+
+def removido_na_migracao(m):
+    return isinstance(m, dict) and "removido" in m
+
+
 def execucoes_historico(caminho, com_arquivos=False):
     """Execucoes do historico principal (e, se pedido, dos arquivos mensais listados em archive_files)."""
     h = ler(caminho, {}) or {}
@@ -1030,7 +1060,10 @@ def estado_concursos(ex, j, led, op, avisos):
     - carimbo e contexto da banca com o update de hoje: o registro que AINDA diverge do edital nao e
       carimbado nem conta como banca lida (bancas.divergencias_pendentes);
     - selo por data por bancas.selo_do_dia (a regra unica): com divergencia pendente — inclusive o prazo escrito
-      hoje que contradiz o edital lido hoje — fica SUSPENSO (o selo do registro) e sai AVISO ACIONÁVEL."""
+      hoje que contradiz o edital lido hoje — fica SUSPENSO (o selo do registro) e sai AVISO ACIONÁVEL;
+    - migracao aplicada hoje (migracoes_do_dia): os ids dela entram nas marcas do dia como os do ledger_updates
+      (NOVO, "Atualizado hoje", "Saiu do acompanhamento") sem reaplicar nada — o ledger ja esta migrado; id que o
+      update do dia tambem toca nao se repete (novo prevalece sobre alterado)."""
     hoje = date.fromisoformat(j["data"])
     upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
     antes = {c.get("id"): c for c in led.get("concursos") or []}
@@ -1077,6 +1110,17 @@ def estado_concursos(ex, j, led, op, avisos):
         ignorar = {j.get("execution_id"), j.get("ignorar_execucao")} - {None, ""}
         selos.garantir_mudou_em(regs, lambda: [e for e in execucoes_historico(op.get("historico"), True)
                                                if e.get("execution_id") not in ignorar])
+    mig = migracoes_do_dia(j, led, op.get("migracoes"))
+    for ident, m in mig["concursos"].items():
+        c = por_id.get(ident)
+        if c is None or m not in ("novo", "alterado"):
+            continue
+        if m == "novo":
+            novos.add(ident)
+            alterados.discard(ident)
+        elif ident not in novos:
+            alterados.add(ident)
+        c["_migracao"] = m                    # so em memoria (linha_concurso): a verificacao pode ser de outro dia
     for ident in novos | alterados:
         por_id[ident]["mudou_em"] = j["data"]
     # concurso removido hoje: sai do bloco com uma linha "Saiu do acompanhamento" e o desfecho (so neste dia)
@@ -1084,8 +1128,13 @@ def estado_concursos(ex, j, led, op, avisos):
                   "desfecho": str(campos.get("desfecho") or "").strip()}
                  for ident, campos in upd.items()
                  if isinstance(campos, dict) and campos.get("remover") and ident in antes and ident not in por_id]
+    ja = {r["id"] for r in removidos}
+    removidos += [{"id": ident, "orgao": orgao({"id": ident, "linha": m.get("linha")}), "bloco": m.get("bloco"),
+                   "desfecho": str(m.get("removido") or "").strip()}
+                  for ident, m in mig["concursos"].items()
+                  if removido_na_migracao(m) and ident not in por_id and ident not in ja]
     return {"regs": regs, "novos": novos, "alterados": alterados, "selo_mudou": selo_mudou,
-            "banca": banca or {}, "pendentes": set(pendentes), "removidos": removidos}
+            "banca": banca or {}, "pendentes": set(pendentes), "removidos": removidos, "migracoes": mig}
 
 
 # ------------------------------------------------------------------ 3. secoes do e-mail
@@ -1246,19 +1295,25 @@ def partes_linha(linha):
 
 
 def linha_concurso(c, hoje, novos, alterados, zebra):
-    """Uma linha: órgão — cargo em negrito + selo; abaixo, os detalhes. Novidade em fundo creme."""
+    """Uma linha: órgão — cargo em negrito + selo; abaixo, os detalhes. Novidade em fundo creme. Registro mudado
+    pela migracao de hoje (_migracao, de estado_concursos) e novidade para o leitor mesmo verificado antes (a
+    migracao e escrita fora da rotina): "Atualizado hoje" e, sem verificacao de hoje, "(verificado em DD/MM)", sem
+    "herdada"."""
     try:
         ver = date.fromisoformat(c.get("verificado_em", ""))
     except ValueError:
         ver = None
     idade = (hoje - ver).days if ver else 999
     linha = (c.get("linha") or "").rstrip(".")
-    novo, mudou = c["id"] in novos, c["id"] in alterados and idade == 0
+    migrou = bool(c.get("_migracao")) and (c["id"] in novos or c["id"] in alterados)
+    novo, mudou = c["id"] in novos, c["id"] in alterados and (idade == 0 or migrou)
     cabeca, corpo = partes_linha(linha)
     corpo = corpo[:1].upper() + corpo[1:]
     selos_html = (selo("NOVO", True) + " " if novo else "") + selo(c.get("selo"), True)
     marca = '<b style="color:#8a6d1d">Atualizado hoje:</b> ' if mudou else ""
-    cauda = "" if idade == 0 else " <i>(herdada; verificado em %s)</i>" % (ver.strftime("%d/%m") if ver else "?")
+    quando = ver.strftime("%d/%m") if ver else "?"
+    cauda = "" if idade == 0 else (" <i>(verificado em %s)</i>" % quando if migrou
+                                   else " <i>(herdada; verificado em %s)</i>" % quando)
     fundo = ' bgcolor="#fdf6e9"' if (novo or mudou) else (' bgcolor="#f4f6fa"' if zebra else "")
     topo = ("<b>%s</b> " % esc(cabeca)) if cabeca else ""
     return "<tr%s><td>%s%s<br>%s%s.%s</td></tr>" % (fundo, topo, selos_html, marca, esc(corpo), cauda)
@@ -1574,7 +1629,7 @@ def pendencia_no_quadro(p, quadro):
     if not texto.strip() or pendencia_operacional(texto):
         return False
     antes = (quadro.get("antes") or {}).get(p["id"]) or {}
-    mudou = p.get("_nova") or texto.strip() != str(antes.get("texto") or "").strip()
+    mudou = p.get("_nova") or p.get("_migracao") or texto.strip() != str(antes.get("texto") or "").strip()
     if not (p.get("faixa") == "ativa" or mudou or quadro.get("primeira")):
         return False
     return not any(ja_em_limitacoes(texto, t) for t in quadro.get("textos") or ())
@@ -1701,11 +1756,12 @@ def janela_txt(j, limitacoes):
 
 
 # ------------------------------------------------------------------ 4. montagem
-def quadro_pendencias(led, upd_pend, regs, ex, j):
+def quadro_pendencias(led, upd_pend, regs, ex, j, mig=None):
     """Contexto do quadro de pendencias (sec_pendencias): o ledger de antes (texto mudou hoje?), a 1a execucao da
     semana, o texto da edicao (itens de noticia, limitacoes, observacoes: pendencia que o repete nao sai) e as
     pendencias removidas hoje que o leitor via — sem concurso ligado, sem errata, fora da 'cronica' e sem texto
-    operacional —, ditas uma vez com o desfecho ("Saiu do acompanhamento")."""
+    operacional —, ditas uma vez com o desfecho ("Saiu do acompanhamento"). mig (migracoes_do_dia): as removidas
+    pela migracao de hoje, com o texto/faixa/vinculo de antes guardados no resumo (o ledger ja chega sem elas)."""
     antes = {p.get("id"): p for p in led.get("pendencias_vivas") or []}
     em = ex.get("email") or {}
     textos = ["%s. %s" % (it.get("titulo") or "", it.get("resumo") or "") for it in ex.get("items") or []
@@ -1720,6 +1776,13 @@ def quadro_pendencias(led, upd_pend, regs, ex, j):
             continue
         if str(campos.get("desfecho") or "").strip():
             removidas.append((rotulo_pendencia(p.get("texto")), str(campos["desfecho"]).strip()))
+    vivas = antes.keys() | set(upd_pend or ())
+    for ident, m in ((mig or {}).get("pendencias") or {}).items():
+        if not removido_na_migracao(m) or ident in vivas or ident.startswith("errata_") or m.get("concurso") \
+                or ident in ligadas or m.get("faixa") == "cronica" or pendencia_operacional(m.get("texto")):
+            continue
+        if str(m.get("removido") or "").strip():
+            removidas.append((rotulo_pendencia(m.get("texto")), str(m["removido"]).strip()))
     return {"antes": antes, "primeira": bool(j.get("primeira_semana")), "textos": [t for t in textos if t.strip()],
             "removidas": removidas}
 
@@ -1739,10 +1802,14 @@ def montar(ex, j, led, ev, v, agora, ctx=None):
                 if not (k.startswith("errata_") and c.get("remover")
                         and str(c.get("desfecho", "")).startswith("Errata publicada na edição de"))}
     pend = aplicar_pendencias(led.get("pendencias_vivas") or [], upd_pend)
+    mig = ctx.get("migracoes") or {}
+    for p in pend:
+        if (mig.get("pendencias") or {}).get(p["id"]) == "alterado":
+            p["_migracao"] = True            # criada ou reescrita pela migracao de hoje: texto novo para o leitor
     por_cat = {}
     for it in ex["items"]:
         por_cat.setdefault(it["categoria"], []).append(it)
-    quadro = quadro_pendencias(led, upd_pend, regs, ex, j)
+    quadro = quadro_pendencias(led, upd_pend, regs, ex, j, mig)
 
     pre = ('<div style="display:none;font-size:1px;color:#eef1f4;line-height:1px;max-height:0;max-width:0;opacity:0;'
            'overflow:hidden">%s%s</div>' % (esc(em["preheader"]), "&#847;&zwnj;&nbsp;" * 12))
@@ -2246,6 +2313,7 @@ def preparar(ex, j, led, ev, v, op=None):
     # concursos: registro do dia (com carimbo da banca e selo por data); os que mudaram hoje vao ao historico
     ctx = estado_concursos(ex, j, led, op, avisos)
     regs, novos, alterados = ctx["regs"], ctx["novos"], ctx["alterados"]
+    avisos += marcas_da_migracao(ctx)
     avisos += cards_citam_descartados(em, itens, fora, regs)
     for c in regs:
         if c["id"] in novos or c["id"] in alterados:
@@ -2314,6 +2382,26 @@ def preparar(ex, j, led, ev, v, op=None):
         avisos.append("há prazo de concurso em até 7 dias ou concurso novo e nenhum card do resumo executivo trata disso")
     ctx["descartadas"] = descartadas
     return erros, avisos, ctx
+
+
+def marcas_da_migracao(ctx):
+    """AVISO (comum) com o que a migracao de hoje pos no e-mail sozinha: o orquestrador nao a escreveu e o resumo
+    executivo pode querer cita-la. Vazio sem migracao hoje."""
+    mig = ctx.get("migracoes") or {}
+    if not mig.get("migracoes"):
+        return []
+    por_id = {c["id"]: c for c in ctx.get("regs") or []}
+    grupos = [("NOVO", [orgao(por_id[i]) for i, m in mig["concursos"].items() if m == "novo" and i in ctx["novos"]
+                        and i in por_id]),
+              ("Atualizado hoje", [orgao(por_id[i]) for i, m in mig["concursos"].items()
+                                   if m == "alterado" and i in ctx["alterados"] and i in por_id]),
+              ("Saiu do acompanhamento", [r.get("orgao") or r["id"] for r in ctx.get("removidos") or ()
+                                          if removido_na_migracao(mig["concursos"].get(r["id"]))])]
+    partes = ["%s: %s" % (rot, ", ".join(nomes)) for rot, nomes in grupos if nomes]
+    if not partes:
+        return []
+    return ["migração de hoje (%s) já nas marcas do dia — %s; itens do histórico automáticos, não repita em "
+            "ledger_updates" % (", ".join(mig["migracoes"]), "; ".join(partes))]
 
 
 def segunda_tentativa(itens, ev, avisos):
