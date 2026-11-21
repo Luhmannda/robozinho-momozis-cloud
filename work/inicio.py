@@ -3,9 +3,10 @@
 # inicio.py — passo 1 da ROTINA num comando so. Calcula tudo o que e
 # deterministico e o orquestrador antes fazia a mao:
 #   - ancora de data (America/Sao_Paulo), dia do ano, execution_id;
-#   - migracoes de dado (work/migracoes.py: aplicar(hoje, work_dir)) ANTES de ler
-#     estado e ledger; as linhas que devolvem saem logo abaixo de HOJE; modulo
-#     ausente ou erro = "ALERTA: migracoes: <erro>" e segue;
+#   - migracoes de dado (work/migracoes.py: aplicar(hoje, work_dir)) DEPOIS do teste
+#     de RE-EXECUCAO (nesse ramo nada e aplicado: o ledger fica limpo, sem commit
+#     a fazer) e ANTES de ler o ledger; as linhas que devolvem saem logo abaixo de
+#     HOJE; modulo ausente ou erro = "ALERTA: migracoes: <erro>" e segue;
 #   - janela elastica a partir do window_end do estado (teto de 7 dias),
 #     1a execucao da semana/gap, recesso forense, FERIADOS (work/feriados.py:
 #     nacionais, pontos facultativos e Lei 5.010/66 art. 62) — a edicao sai
@@ -408,16 +409,7 @@ def main():
     doy = int(agora.strftime("%j"))
     os.makedirs(tmp(""), exist_ok=True)
 
-    # migracoes de dado (work/migracoes.py), antes de ler o estado e o ledger: o que elas gravam ja vale hoje e vai
-    # no commit do finalizar.sh. Modulo ausente (merge parcial) ou falha: segue com os dados como estao.
-    try:
-        import migracoes
-        migr = [str(x) for x in (migracoes.aplicar(hoje, work_dir=AQUI) or [])]
-    except Exception as e:  # noqa: BLE001 — nunca bloqueia o passo 1
-        migr = ["ALERTA: migracoes: %s" % (str(e) or type(e).__name__)]
     estado = ler("robozinho-estado.json")
-    ledger = ler("robozinho-aprendizado.json")
-    migrar_armadilhas(ledger)
     ult = estado.get("ultima_execucao") or {}
 
     alertas = []
@@ -438,8 +430,6 @@ def main():
                     f.write("RE-EXECUÇÃO: a edição de hoje já existe; não há coleta. Siga a saída do work/inicio.py.\n")
             print("HOJE %s (%s) %s | execution_id=%s" % (hoje_br, DIAS[agora.weekday()],
                                                        agora.strftime("%H:%M:%S %z"), exec_id))
-            for l in migr:
-                print(l)
             print("ASSUNTO HOJE: %s" % assunto)
             print("RE-EXECUÇÃO: a edição de hoje já está registrada (delivery %s, draft_id %s, janela até %s)."
                   % (ult.get("delivery"), ult.get("draft_id"), ult.get("window_end")))
@@ -464,6 +454,18 @@ def main():
         ult = dict(antes[-1]) if antes else {}
         if de_hoje.get("window_start"):
             ult["window_end"] = de_hoje["window_start"]
+
+    # migracoes de dado (work/migracoes.py), DEPOIS do ramo RE-EXECUCAO (rev3 P4: ali nada roda depois do inicio e o
+    # ledger ficava sujo, sem commit) e antes de ler o ledger: o que elas gravam ja vale hoje e vai no commit do
+    # finalizar.sh. So mexem no ledger (o estado lido acima nao muda). Modulo ausente (merge parcial) ou falha: segue
+    # com os dados como estao.
+    try:
+        import migracoes
+        migr = [str(x) for x in (migracoes.aplicar(hoje, work_dir=AQUI) or [])]
+    except Exception as e:  # noqa: BLE001 — nunca bloqueia o passo 1
+        migr = ["ALERTA: migracoes: %s" % (str(e) or type(e).__name__)]
+    ledger = ler("robozinho-aprendizado.json")
+    migrar_armadilhas(ledger)
 
     inicio = datetime.fromisoformat(ult["window_end"]) if ult.get("window_end") else \
         agora - timedelta(hours=72 if agora.weekday() == 0 else 24)

@@ -11,7 +11,7 @@
 #   palavra-chave com data, titulo repetido com data nova e MUDOU, reordenar
 #   nao e MUDOU, carimbo "atualizado em" nao e item, os 5 mais recentes na NOVA,
 #   estado v1 relido sem MUDOU falso, IGUAL numa linha, FORA_DA_REDE sem baixar.
-#   inicio.py: migracoes antes do ledger (linhas impressas; ausente/erro =
+#   inicio.py: migracoes antes do ledger e nunca na RE-EXECUCAO (linhas impressas; ausente/erro =
 #   ALERTA), escopo regional (FORA DO ESCOPO, sem fila/rodizio/foco/registro
 #   atual), sonda proxy x site x SPA e REDE do ambiente (sem resposta = indeterminado,
 #   nao liberado), url_oficial lida todo
@@ -395,6 +395,14 @@ def inicio_migracoes_antes_do_ledger():
     ok("ALERTA: migracoes: estado ilegível" in out and "==== LEDGER" in out, "erro: ALERTA e segue")
     out, _, _, _ = rodar("2026-12-02T07:05:00-03:00", "2026-12-01", migr=None)
     ok(re.search(r"^ALERTA: migracoes: .+", out, re.M) and "PASSO 2" in out, "ausente: ALERTA e segue")
+    # rev3 P4: RE-EXECUCAO (a edicao de hoje ja esta no estado) nao aplica migracao nem suja o ledger: nada roda
+    # depois dela para commitar
+    chamadas.clear()
+    out, cc, d, _ = rodar("2026-12-02T16:40:00-03:00", "2026-12-02", migr=stub_migracoes(aplicar))
+    led = json.load(open(os.path.join(d, "robozinho-aprendizado.json"), encoding="utf-8"))
+    ok("RE-EXECUÇÃO: a edição de hoje já está registrada" in out and chamadas == [] and "MIGRACAO" not in out
+       and any(c["id"] == "trt8_apoio" for c in led["concursos"]) and cc.startswith("RE-EXECUÇÃO"),
+       (chamadas, out[:300]))
 
 
 @teste
