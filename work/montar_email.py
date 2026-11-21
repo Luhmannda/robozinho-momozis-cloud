@@ -150,13 +150,14 @@ ROTULO_FONTE = {  # id do source_status -> como aparece em "Fontes consultadas" 
     "gmail_camara": "boletim da Agência Câmara", "camara_noticias": "Agência Câmara (site)",
     "congresso_ultimas_leis": "Congresso Nacional (últimas leis)",
     "congresso_mpvs": "Congresso Nacional (medidas provisórias)",
+    "camara_legin": "Câmara (Legislação Informatizada)",
     "informativos_docs": "documentos oficiais dos informativos (STF/STJ)",
     "gmail_jota": "JOTA (clipping, opinião e bastidores)", "conjur": "ConJur (mídia especializada)",
     "migalhas": "Migalhas (mídia especializada)", "youversion": "YouVersion (versículo)",
     "dailyverses": "DailyVerses.net (versículo)",
 }
-OFICIAIS = ["gmail_push_planalto", "congresso_ultimas_leis", "congresso_mpvs", "camara_noticias", "gmail_camara",
-            "gmail_push_stf", "gmail_push_stf_informativos", "gmail_stj_codju", "informativos_docs"]
+OFICIAIS = ["gmail_push_planalto", "congresso_ultimas_leis", "congresso_mpvs", "camara_legin", "camara_noticias",
+            "gmail_camara", "gmail_push_stf", "gmail_push_stf_informativos", "gmail_stj_codju", "informativos_docs"]
 SECUNDARIAS = ["gmail_jota", "conjur", "migalhas", "youversion", "dailyverses"]
 STATUS_FONTE = ("ok", "vazio", "falha", "nao_tentada")
 WRAPPER = re.compile(r"t\.rdsv2\.net|google\.com/url|[?&]utm_")
@@ -652,6 +653,8 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "titulo": e["titulo"], "resumo": "" if opiniao else (e.get("resumo") or ""),
                 "url": e["url"], "fonte": veic, "data": dia, "hora": q[11:16] if len(q) > 15 else "",
                 "chave": "%s|%s|%s|%s|%s" % (e["_fonte"], "opiniao" if opiniao else "noticia", sl, dia[:4], dia)}
+        if opiniao and e.get("autor"):
+            base["autor"] = e["autor"]          # assinatura da pagina (coleta_web), nunca o meta author do editor
     elif e and e["_fonte"] == "informativo" and e.get("ok"):
         idx = selecionar(it.get("destaques"), len(e["itens"]), ref, erros, avisos)
         anunciada = e.get("anunciada_em") or e.get("anunciada_na_edicao") or ""
@@ -703,7 +706,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
 
 # fontes de ato federal lidas em pagina oficial (ALTERNATIVA) cujo ref aceita `resenha` (o mesmo ato na Resenha do
 # PUSH): outra fonte de lei/ato lida por script entra aqui. Noticia (Agencia Camara) nao: nao e o ato.
-FONTES_ATO_RESENHA = ("congresso_leis", "congresso_mpv")
+FONTES_ATO_RESENHA = ("congresso_leis", "congresso_mpv", "legin")
 
 
 def resenha_no_ref(novo, it, e, ref, avisos):
