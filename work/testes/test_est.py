@@ -1304,9 +1304,14 @@ def inicio_prazo_vencido_confirmado_pela_banca():
     out, _, _ = rodar_inicio("2026-11-19T07:05:00-03:00", estado_data="2026-11-18")
     for org, ident, ret in (("TJAP", "tjap_juiz", "13/11"), ("TJPB", "tjpb_apoio", "12/11")):
         ok("ALERTA: prazo vencido 18/11 (ontem) %s" % org not in out, "sem ALERTA: %s" % org)
-        ok(("PRAZO VENCIDO (sem ação): 18/11 (ontem) %s — fim das inscrições" % org) in out and
-           ("(id %s) — encerramento confirmado pela banca oficial lida hoje (última retificação %s): selo INSCRIÇÕES "
-            "ENCERRADAS automático" % (ident, ret)) in out, [l for l in out.splitlines() if ident in l][:3])
+        if ident == "tjpb_apoio":       # apoio na PB: fora do escopo regional (work/escopo.py) — só a linha FORA DO ESCOPO
+            ok("PRAZO VENCIDO (sem ação): 18/11 (ontem) TJPB" not in out and
+               re.search(r"^FORA DO ESCOPO .*tjpb_apoio", out, re.M), [l for l in out.splitlines() if ident in l][:3])
+        else:
+            ok(("PRAZO VENCIDO (sem ação): 18/11 (ontem) %s — fim das inscrições" % org) in out and
+               ("(id %s) — encerramento confirmado pela banca oficial lida hoje (última retificação %s): selo "
+                "INSCRIÇÕES ENCERRADAS automático" % (ident, ret)) in out,
+               [l for l in out.splitlines() if ident in l][:3])
         ok("SELO POR DATA: %s ENCERRA EM BREVE → INSCRIÇÕES ENCERRADAS" % ident in out, "o selo por data continua")
     # dia seguinte, com o selo já ENCERRADAS no registro: continua sem ALERTA (a banca segue confirmando)
     def encerradas(cs):
@@ -1323,7 +1328,7 @@ def inicio_prazo_vencido_confirmado_pela_banca():
                 c["ultima_retificacao"] = "2026-11-18"
     out, _, _ = rodar_inicio("2026-11-19T07:05:00-03:00", estado_data="2026-11-18", banca_mod=retificou)
     ok("ALERTA: prazo vencido 18/11 (ontem) TJAP" in out and "PRAZO VENCIDO (sem ação): 18/11 (ontem) TJAP" not in out
-       and "PRAZO VENCIDO (sem ação): 18/11 (ontem) TJPB" in out, "retificação em 18/11")
+       and "ALERTA: prazo vencido 18/11 (ontem) TJPB" not in out, "retificação em 18/11")
     def sem_tjap(b):
         b["concursos"] = [c for c in b["concursos"] if c["slug"] != "tjap26"]
     out, _, _ = rodar_inicio("2026-11-19T07:05:00-03:00", estado_data="2026-11-18", banca_mod=sem_tjap)

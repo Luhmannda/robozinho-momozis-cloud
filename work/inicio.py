@@ -3,6 +3,9 @@
 # inicio.py — passo 1 da ROTINA num comando so. Calcula tudo o que e
 # deterministico e o orquestrador antes fazia a mao:
 #   - ancora de data (America/Sao_Paulo), dia do ano, execution_id;
+#   - migracoes de dado (work/migracoes.py: aplicar(hoje, work_dir)) ANTES de ler
+#     estado e ledger; as linhas que devolvem saem logo abaixo de HOJE; modulo
+#     ausente ou erro = "ALERTA: migracoes: <erro>" e segue;
 #   - janela elastica a partir do window_end do estado (teto de 7 dias),
 #     1a execucao da semana/gap, recesso forense, FERIADOS (work/feriados.py:
 #     nacionais, pontos facultativos e Lei 5.010/66 art. 62) — a edicao sai
@@ -28,10 +31,28 @@
 #   - concursos: banca oficial (work/bancas.py: arquivos novos, DIVERGE DO
 #     REGISTRO), selo por data (work/selos.py), prazos do registro em ordem,
 #     os de ate 7 dias como VERIFICAR PRIMEIRO, os vencidos para confirmar,
-#     candidatos a remocao; teste de rede (curl) das paginas oficiais;
+#     candidatos a remocao (prazos confirmados ou so de secundaria); prazo so em
+#     secundaria com a pagina oficial fora da rede so ganha busca ao cruzar D-7,
+#     D-1, D0 e D+1 (depois: "PRAZO VENCIDO (só secundária; ...)"); pendencia do
+#     concurso cujo prazo ja tem busca = COBERTA; ativa so-secundaria e sem
+#     oficial na rede = SO VIGIAR (salvo na 1a da semana);
+#   - escopo regional (work/escopo.py): apoio fora de SP/RJ/MG/ES/PR/SC/RS (e nao
+#     nacional) sai da fila, do rodizio, do foco, do "Registro atual" e da
+#     leitura da pagina oficial; a linha FORA DO ESCOPO pede a remocao;
+#     descoberta do apoio com consultas regionais e mes/ano; {prox} (ano seguinte
+#     de outubro em diante) na consulta de previsao de cada dia; NOVO so com fato
+#     desde DATA_MIN_NOVO (1o/jan ou, em jan-fev, hoje - 60 dias);
+#   - rede (curl na raiz, uma rodada paralela): proxy (CONNECT 403: so o dono
+#     libera) x sem resposta x http NNN x so JavaScript (SPA: www.cebraspe.org.br
+#     nunca e "leia por curl") x ok, para os dominios dos concursos e os que so o
+#     dono libera (REDE_DONO) — linha "REDE (...) | REDE do ambiente: ...";
+#   - pagina oficial (work/paginas_oficiais.py) de TODA url_oficial no escopo,
+#     todo dia (dominio recusado/sem resposta nao e baixado); MUDOU/NOVA entra no foco;
 #   - LEDGER resumido e enxuto: so os concursos EM FOCO com a linha completa
 #     (prazo em ate 30 dias, mudanca recente, pendencia ativa, rodizio, banca
-#     lida hoje); os demais contados por bloco, com os ids;
+#     lida hoje, pagina oficial com item novo); os demais contados por bloco, com
+#     os ids; regra de armadilha sem a medicao fixa de rede ("Medido em ...": a
+#     situacao do dia esta nas linhas REDE);
 #   - $ROBOZINHO_TMP/janela.json, lido pelos demais scripts (janela, assunto,
 #     cabecalho, rodape, Munger, feriados: nada disso e redigitado).
 #   - RE-EXECUCAO (a edicao de hoje ja esta no estado): saida curta, so com o
@@ -60,6 +81,7 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import feriados
+import escopo
 import selos
 
 TZ = ZoneInfo("America/Sao_Paulo")
@@ -70,28 +92,33 @@ DIAS = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
 ASSUNTO = "Robozinho dos Momozis até Passar - %s - 7h"
 ASSUNTO_EXTRA = "Robozinho dos Momozis até Passar - %s - Extra"     # prompt mestre §15
 # Descoberta de concursos NOVOS (abertos ou que vao abrir), uma carreira por dia util.
-# O registro do ledger so cresce com o que esta varredura encontra.
+# O registro do ledger so cresce com o que esta varredura encontra. A consulta de previsao (comissao, banca,
+# edital previsto) de cada dia usa {prox}: de outubro em diante, o ano seguinte (a fila de comissoes e bancas do
+# proximo ano, que a busca com o ano corrente perdia: TJ-PE de 2026 encerrado em 17/11); {ano} fica nas de
+# inscricoes abertas.
 DESCOBERTA = {
     0: ("Varredura geral (1ª do ciclo semanal)",
         ["concursos carreiras jurídicas inscrições abertas {mes} {ano}",
-         "concursos jurídicos editais previstos autorizados {ano} juiz promotor procurador defensor",
+         "concursos jurídicos editais previstos autorizados {prox} juiz promotor procurador defensor",
          "concurso edital publicado {mes} {ano} procurador OR defensor OR juiz OR promotor"]),
     1: ("Magistratura Estadual e Federal",
         ["concurso juiz substituto edital {ano} inscrições",
          "concurso juiz federal TRF edital {ano} OR comissão formada OR banca definida",
-         "tribunal de justiça concurso magistratura {ano} comissão banca previsto"]),
+         "tribunal de justiça concurso magistratura {prox} comissão banca previsto"]),
     2: ("Ministério Público (estadual, MPF/MPU) e Defensorias (DPE, DPU)",
         ["concurso promotor de justiça edital {ano} inscrições OR comissão OR banca",
          "concurso defensor público edital {ano} inscrições OR comissão OR banca",
-         "concurso MPU OR MPF procurador da república {ano} edital previsto"]),
+         "concurso MPU OR MPF procurador da república {prox} edital previsto"]),
     3: ("Procuradorias (PGE, PGM, assembleias) e AGU/PFN",
         ["concurso procurador do estado PGE edital {ano} inscrições OR comissão OR banca",
          "concurso procurador do município PGM edital {ano} inscrições abertas",
-         "concurso AGU procurador da fazenda nacional {ano} banca edital"]),
-    4: ("Quadro de apoio (analista/técnico de TJ, MP, Defensoria, TRF/TRT)",
-        ["concurso analista judiciário técnico judiciário edital {ano} inscrições abertas",
-         "concurso analista ministério público defensoria edital {ano} inscrições",
-         "concurso TJ OR TRF OR TRT servidores edital previsto {ano} banca definida"]),
+         "concurso AGU procurador da fazenda nacional {prox} banca edital"]),
+    # escopo do dono (work/escopo.py): apoio so com lotacao em SP, RJ, MG, ES, PR, SC ou RS (ou nacional); a busca
+    # nacional sem mes trazia TJ-CE encerrado (20/11/2026)
+    4: ("Quadro de apoio (analista/técnico de TJ, MP, Defensoria, TRF/TRT) no Sul e Sudeste",
+        ["concurso analista técnico tribunal de justiça SP MG RJ ES PR SC RS inscrições abertas {mes} {ano}",
+         "concurso analista ministério público defensoria SP MG RJ ES PR SC RS edital {mes} {ano}",
+         "concurso servidores TRF TRT sul sudeste edital previsto {prox} banca definida"]),
 }
 MESES_PT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto",
             "setembro", "outubro", "novembro", "dezembro"]
@@ -102,6 +129,17 @@ FOCO_PRAZO_DIAS = 30   # concurso com prazo ate aqui fica "em foco" (linha compl
 FOCO_MUDANCA_DIAS = 3  # ... e o que mudou nos ultimos N dias
 NOTA_CURTA = 160       # nota de fonte nao saudavel no LEDGER
 REMOCAO_DIAS = 30      # candidato a remocao: prazos confirmados vencidos ha mais disso
+# prazo so em fonte secundaria, com a pagina oficial fora da rede: busca so ao cruzar D-7 (entrada), D-1, D0 e
+# D+1 (o desfecho), contados desde a ultima execucao registrada — antes era todo dia de D-7 a D+3 e a busca so
+# renovava o verificado_em (TRF3, Suzano, SETEC Campinas em 18-20/11); a sobra vai para a descoberta
+MARCOS_SECUNDARIO = (7, 1, 0, -1)
+# raiz responde 200, mas a pagina e so JavaScript (SPA): "leia por curl" so gastava turno do coletor
+SPA = frozenset({"www.cebraspe.org.br"})
+# dominios que so o dono libera (rede do ambiente): sondados todo dia, para a liberacao chegar a rotina
+REDE_DONO = ("www.in.gov.br", "noticias.stf.jus.br", "www.vunesp.com.br", "www.concursosfcc.com.br",
+             "normas.leg.br", "www12.senado.leg.br", "apis.cebraspe.org.br", "cdn.cebraspe.org.br")
+# detalhe da ultima sonda (alcancaveis): ok | proxy | sem resposta | http NNN | só JavaScript
+SONDA = {}
 PASSO2 = ("coleta_web", "informativos", "versiculo")
 ORDEM_BLOCOS = ["Magistratura Estadual", "Magistratura Federal", "Promotor de Justiça (Estadual)",
                 "MPF/MPU — Procurador da República", "PFN", "AGU — Advogado da União",
@@ -138,19 +176,39 @@ def em_recesso(d):
     return (d.month == 7 and d.day >= 2) or (d.month == 12 and d.day >= 20) or d.month == 1
 
 
+def classificar(conexao, codigo, dominio=""):
+    """Resultado do curl na raiz: 'proxy' (CONNECT 403/407: a politica de rede do ambiente recusa — so o dono
+    libera), 'sem resposta' (passou pelo proxy e o site nao respondeu), 'http NNN' (o site recusou), 'só JavaScript'
+    (SPA: abre, mas o curl nao le nada) ou 'ok'."""
+    if conexao in ("403", "407"):
+        return "proxy"
+    if codigo[:1] in ("2", "3"):
+        return "só JavaScript" if dominio in SPA else "ok"
+    return "sem resposta" if codigo in ("", "000") else "http " + codigo
+
+
 def alcancaveis(dominios):
-    """{dominio: bool}. False = a rede do ambiente bloqueia (curl devolve 000) ou o
-    servidor recusa (403/5xx): mandar o coletor "ler por curl" nesses casos so gasta turno."""
+    """{dominio: bool}: True so com 'ok' (curl le a pagina). Mandar o coletor "ler por curl" o que o proxy recusa,
+    o que nao responde, o que recusa (403/5xx) ou a SPA so gasta turno. O detalhe fica em SONDA. Em paralelo:
+    a recusa do proxy volta em ~0,2 s, o teto e 6 s."""
     def teste(d):
         try:
-            r = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "-m", "6",
+            r = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_connect} %{http_code}", "-m", "6",
                                 "https://%s/" % d], capture_output=True, timeout=10)
-            return r.stdout.decode().strip()[:1] in ("2", "3")
-        except Exception:
-            return False
+            con, _, cod = r.stdout.decode().strip().partition(" ")
+            return classificar(con, cod, d)
+        except Exception:  # noqa: BLE001
+            return "sem resposta"
     ds = sorted({d for d in dominios if d})
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        return dict(zip(ds, ex.map(teste, ds)))
+    with ThreadPoolExecutor(max_workers=16) as ex:
+        res = dict(zip(ds, ex.map(teste, ds)))
+    SONDA.update(res)
+    return {d: s == "ok" for d, s in res.items()}
+
+
+def situacao_rede(d, rede):
+    """Rotulo do dominio para as linhas REDE: o detalhe da sonda ou, sem ele (teste), ok/fora."""
+    return SONDA.get(d) or ("ok" if rede.get(d) else "fora")
 
 
 def orgao(c):
@@ -218,11 +276,20 @@ def disparar_passo2(exec_id, desligado):
     return sorted(pids)
 
 
-def resumo_ledger(led, foco, motivos, pend_no_coletor):
+def regra_impressa(regra):
+    """A medicao fixa de rede numa regra de armadilha ("Medido em DD/MM/AAAA — abrem: ... Recusados ...") envelhece e
+    custava ~900 caracteres por dia: a situacao do dia esta nas linhas REDE do passo 1 (so no texto impresso)."""
+    i = regra.find(" Medido em ")
+    return regra if i < 0 else regra[:i] + (" Situação da rede hoje: linhas REDE acima (proxy = só o dono libera; "
+                                            "sem resposta/http = o próprio site).")
+
+
+def resumo_ledger(led, foco, motivos, pend_no_coletor, omitir=()):
     """O que o orquestrador precisa do ledger, enxuto (A7/E8): fontes saudaveis so listadas, as demais
     com nota curta; armadilhas com id + regra; pendencias de concurso que ja estao com texto no
     coletor-concursos.md so pelo id; concursos em foco com a linha completa, os demais so contados
-    (a linha deles esta no fim do $ROBOZINHO_TMP/coletor-concursos.md)."""
+    (a linha deles esta no fim do $ROBOZINHO_TMP/coletor-concursos.md). `omitir`: pendencias de registro fora do
+    escopo, ja citadas na linha FORA DO ESCOPO."""
     out = ["", "==== LEDGER (resumo; em conflito com o prompt mestre, o ledger vence) ===="]
     mortas = [f["id"] for f in led.get("fontes", []) if f.get("status") in ("bloqueado", "descontinuado", "indisponivel")]
     saud = [f["id"] for f in led.get("fontes", []) if f.get("status") == "saudavel"]
@@ -238,10 +305,12 @@ def resumo_ledger(led, foco, motivos, pend_no_coletor):
     if mortas:
         out.append("- não tentar (bloqueado/descontinuado/indisponível): " + ", ".join(mortas))
     out.append("ARMADILHAS (checklist antes de publicar — id: regra):")
-    out += ["- %s: %s" % (x["id"], x.get("regra", "")) for x in led.get("armadilhas", [])]
+    out += ["- %s: %s" % (x["id"], regra_impressa(x.get("regra", ""))) for x in led.get("armadilhas", [])]
     out.append("PENDÊNCIAS VIVAS:")
     compactas = []
     for p in led.get("pendencias_vivas", []):
+        if p["id"] in omitir:
+            continue
         cab = "%s [%s, %s execuções, desde %s]" % (p["id"], p.get("faixa"), p.get("execucoes"), br(p.get("desde")))
         if p["id"] in pend_no_coletor:      # politica so das ativas (as longo_prazo repetem a regra geral)
             compactas.append("%s [%s, %sx]%s" % (p["id"], p.get("faixa"), p.get("execucoes"), " política: " + p["politica"]
@@ -313,6 +382,13 @@ def main():
     doy = int(agora.strftime("%j"))
     os.makedirs(tmp(""), exist_ok=True)
 
+    # migracoes de dado (work/migracoes.py), antes de ler o estado e o ledger: o que elas gravam ja vale hoje e vai
+    # no commit do finalizar.sh. Modulo ausente (merge parcial) ou falha: segue com os dados como estao.
+    try:
+        import migracoes
+        migr = [str(x) for x in (migracoes.aplicar(hoje, work_dir=AQUI) or [])]
+    except Exception as e:  # noqa: BLE001 — nunca bloqueia o passo 1
+        migr = ["ALERTA: migracoes: %s" % (str(e) or type(e).__name__)]
     estado = ler("robozinho-estado.json")
     ledger = ler("robozinho-aprendizado.json")
     migrar_armadilhas(ledger)
@@ -336,6 +412,8 @@ def main():
                     f.write("RE-EXECUÇÃO: a edição de hoje já existe; não há coleta. Siga a saída do work/inicio.py.\n")
             print("HOJE %s (%s) %s | execution_id=%s" % (hoje_br, DIAS[agora.weekday()],
                                                        agora.strftime("%H:%M:%S %z"), exec_id))
+            for l in migr:
+                print(l)
             print("ASSUNTO HOJE: %s" % assunto)
             print("RE-EXECUÇÃO: a edição de hoje já está registrada (delivery %s, draft_id %s, janela até %s)."
                   % (ult.get("delivery"), ult.get("draft_id"), ult.get("window_end")))
@@ -443,8 +521,19 @@ def main():
                      (not p.get("coletor") and p.get("faixa") != "cronica"
                       and PALAVRAS_CONCURSO.search(p.get("texto", ""))))]
     concursos = ledger.get("concursos", [])
-    rede = alcancaveis([p.get("dominio_oficial") for p in pend_conc] +
-                       [c.get("dominio_oficial") for c in concursos])
+    # escopo do dono (work/escopo.py, 20/11/2026): registro do quadro de apoio sem lotacao em SP, RJ, MG, ES, PR, SC
+    # ou RS (e nao nacional) nao ganha busca, fila, rodizio, foco nem leitura da pagina oficial; a linha FORA DO
+    # ESCOPO pede a remocao. Carreira final e apoio sem UF identificada ("indefinido") seguem no escopo.
+    fora = [c["id"] for c in concursos if escopo.registro_no_escopo(c) == "fora"]
+    pend_fora = sorted({c["pendencia"] for c in concursos if c["id"] in fora and c.get("pendencia")})
+    no_escopo = [c for c in concursos if c["id"] not in fora]
+    # sonda de rede numa rodada paralela: dominios oficiais de pendencias e concursos, host das url_oficial e os
+    # dominios que so o dono libera (REDE_DONO: a liberacao aparece na linha "REDE do ambiente")
+    dom_conc = {d for d in [p.get("dominio_oficial") for p in pend_conc if p["id"] not in pend_fora] +
+                [c.get("dominio_oficial") for c in no_escopo] +
+                [selos.host(c.get("url_oficial")) for c in no_escopo] if d}
+    SONDA.clear()
+    rede = alcancaveis(sorted(dom_conc | set(REDE_DONO)))
     # banca oficial lida por script (work/bancas.py): o que ela cobre sai da fila do coletor
     try:
         import bancas
@@ -460,29 +549,43 @@ def main():
     # DIVERGE DO REGISTRO: a banca lida hoje contradiz o registro -> nao conta como "banca lida" no selo
     ctx_selo = bancas.contexto_selos(banca, concursos, hoje, upd={}) if bancas else {}
     pend_selo = bancas.divergencias_pendentes(banca, concursos, hoje, {}) if bancas else {}
-    pend_coberta = {c.get("pendencia") for c in concursos if c.get("id") in cobertos and c.get("pendencia")}
-    linhas = []
-    for p in pend_conc:
-        dom = p.get("dominio_oficial")
-        bloqueado = bool(dom) and not rede.get(dom, False)
-        if p["id"] in pend_coberta:
-            continue                      # o orquestrador ja tem a pagina oficial da banca
-        if p.get("faixa") == "ativa" and bloqueado and not primeira:
-            acao = ("SÓ VIGIAR MOVIMENTO NOVO — a página oficial (%s) está bloqueada pela rede; "
-                    "reverificar na 1ª execução da semana" % dom)
-        elif p.get("faixa") == "ativa" or (primeira and p.get("faixa") == "longo_prazo"):
-            acao = "REVERIFICAR" + ((" — página oficial %s acessível: leia por curl" % dom)
-                                    if dom and not bloqueado else "")
-        else:
-            acao = "SÓ VIGIAR MOVIMENTO NOVO"
-        linhas.append("- [%s | %s] %s: %s" % (p.get("faixa"), acao, p["id"], p.get("texto", "")))
-    pend_no_coletor = {p["id"] for p in pend_conc if p["id"] not in pend_coberta}
+
+    # B10: pagina oficial (url_oficial) de TODOS os concursos no escopo, lida por script todo dia (~1 s em paralelo,
+    # sem tokens; antes so a dos em foco, e o registro que saia do foco so voltava no rodizio); MUDOU/NOVA entra no
+    # foco. Dominio que o proxy recusa ou que nao respondeu a sonda nao e baixado (o TRF3 dava HTTP 0 todo dia);
+    # so-JavaScript sai do "acessivel".
+    paginas = []
+    alvos_pag = {c["id"] for c in no_escopo if c.get("url_oficial")}
+    if alvos_pag:
+        pular = {h: SONDA[h] for h in (selos.host(c["url_oficial"]) for c in no_escopo if c["id"] in alvos_pag)
+                 if SONDA.get(h) in ("proxy", "sem resposta")}
+        try:
+            import paginas_oficiais
+            paginas = paginas_oficiais.verificar(concursos, bancas.carregar_estado() if bancas else {},
+                                                 hoje.isoformat(), ids=alvos_pag, pular=pular)
+        except Exception as e:  # noqa: BLE001 — reforco, nunca bloqueia
+            paginas = [{"id": "-", "url": "", "http": 0, "situacao": "HTTP", "erro": str(e)}]
+        for r in paginas:
+            if r.get("situacao") == "SEM_TEXTO":
+                rede[selos.host(r["url"])] = False
+                SONDA[selos.host(r["url"])] = "só JavaScript"
+    gravar_json(tmp("paginas_oficiais.json"), {"data": hoje.isoformat(), "execution_id": exec_id, "paginas": paginas})
+    pag_novidade = {r["id"]: r["situacao"] for r in paginas if r.get("situacao") in ("MUDOU", "NOVA")}
+
+    def offline(c):
+        """A pagina oficial do concurso esta fora do alcance do curl hoje (ou o registro nao tem dominio oficial)."""
+        dom = c.get("dominio_oficial") or selos.host(c.get("url_oficial"))
+        return not (dom and rede.get(dom))
+
+    def so_secundaria(c):
+        return (not any(isinstance(z, dict) and z.get("confirmado") for z in c.get("prazos") or [])
+                and not selos.fonte_oficial(c.get("fonte")))
 
     # prazos do registro: <= 7 dias e vencidos recentes vao primeiro na fila do coletor. A faixa dos
     # vencidos cobre o intervalo desde a ultima execucao (fim de semana, feriado, falha), de 3 a 7 dias.
     lim_venc = min(7, max(3, (hoje - ult_data).days))
     proximos, vencidos = [], []
-    for c in concursos:
+    for c in no_escopo:
         for pz in c.get("prazos") or []:
             try:
                 d = date.fromisoformat(pz.get("data", ""))
@@ -494,13 +597,54 @@ def main():
             elif 0 <= dias <= FOCO_PRAZO_DIAS:
                 proximos.append((dias, d, c, pz))
     proximos.sort(key=lambda x: x[0])
-    fila = lambda x: x[2].get("id") not in cobertos      # so vai ao coletor o que a banca nao cobriu
+
+    def busca_hoje(x):
+        """O prazo ganha busca do coletor hoje? Nao, se a banca ja o cobriu. Prazo so em secundaria com a pagina
+        oficial fora da rede: so quando a execucao cruza D-7, D-1, D0 ou D+1 (MARCOS_SECUNDARIO, desde a ultima
+        execucao registrada). Os demais (confirmado, ou oficial legivel por curl): todo dia, como antes."""
+        dias, d, c, pz = x
+        if c.get("id") in cobertos:
+            return False
+        if pz.get("confirmado") or not offline(c):
+            return True
+        return any(ult_data < d - timedelta(days=k) <= hoje for k in MARCOS_SECUNDARIO)
+
     fmt_pz = lambda dias, d, c, pz: "%s (%s) %s — %s [%s] (id %s)" % (
         d.strftime("%d/%m"), quando(dias), orgao(c), pz.get("evento"),
         "confirmado" if pz.get("confirmado") else "a confirmar", c.get("id"))
-    prioridade = (["- confirmar desfecho: " + fmt_pz(*x) for x in vencidos if fila(x)] +
-                  ["- " + fmt_pz(*x) for x in proximos if x[0] <= 7 and fila(x)])
-    na_fila = {x[2].get("id") for x in vencidos} | {x[2].get("id") for x in proximos if x[0] <= 7}
+    janela_a = vencidos + [x for x in proximos if x[0] <= 7]
+    prioridade = (["- confirmar desfecho: " + fmt_pz(*x) for x in vencidos if busca_hoje(x)] +
+                  ["- " + fmt_pz(*x) for x in proximos if x[0] <= 7 and busca_hoje(x)])
+    na_fila = {x[2].get("id") for x in janela_a}
+    buscados = {x[2].get("id") for x in janela_a if busca_hoje(x)}
+    sem_busca_venc = {id(x[3]) for x in vencidos if x[2].get("id") not in cobertos and not busca_hoje(x)}
+
+    # pendencias de concurso: o que ganha busca propria (REVERIFICAR) e o que so se vigia
+    pend_coberta = {c.get("pendencia") for c in concursos if c.get("id") in cobertos and c.get("pendencia")}
+    conc_pend = {c["pendencia"]: c for c in no_escopo if c.get("pendencia")}
+    linhas = []
+    for p in pend_conc:
+        if p["id"] in pend_coberta or p["id"] in pend_fora:
+            continue                      # banca oficial ja lida / registro fora do escopo
+        dom = p.get("dominio_oficial")
+        bloqueado = bool(dom) and not rede.get(dom, False)
+        c = conc_pend.get(p["id"])
+        if c is not None and c["id"] in buscados:
+            acao = "COBERTA PELO PRAZO de %s (acima)" % c["id"]
+        elif p.get("faixa") == "ativa" and bloqueado and not primeira:
+            acao = ("SÓ VIGIAR MOVIMENTO NOVO — a página oficial (%s) está bloqueada pela rede; "
+                    "reverificar na 1ª execução da semana" % dom)
+        elif (p.get("faixa") == "ativa" and not primeira and c is not None and so_secundaria(c)
+              and not dom and offline(c)):
+            # a busca so repetia a secundaria de ontem (SETEC Campinas em 18-20/11, com prazo a 14 dias)
+            acao = "SÓ VIGIAR MOVIMENTO NOVO — só secundária, oficial fora da rede"      # reverifica na 1a da semana
+        elif p.get("faixa") == "ativa" or (primeira and p.get("faixa") == "longo_prazo"):
+            acao = "REVERIFICAR" + ((" — página oficial %s acessível: leia por curl" % dom)
+                                    if dom and not bloqueado else "")
+        else:
+            acao = "SÓ VIGIAR MOVIMENTO NOVO"
+        linhas.append("- [%s | %s] %s: %s" % (p.get("faixa"), acao, p["id"], p.get("texto", "")))
+    pend_no_coletor = {p["id"] for p in pend_conc if p["id"] not in pend_coberta and p["id"] not in pend_fora}
 
     # rodizio: os registros com verificacao mais antiga (fora da fila de prazos) ganham busca propria
     def idade(c):
@@ -508,7 +652,7 @@ def main():
             return dias_uteis_entre(date.fromisoformat(c.get("verificado_em", "")), hoje)
         except ValueError:
             return 999
-    velhos = sorted((c for c in concursos if c.get("id") not in na_fila | cobertos and idade(c) >= RODIZIO_DIAS),
+    velhos = sorted((c for c in no_escopo if c.get("id") not in na_fila | cobertos and idade(c) >= RODIZIO_DIAS),
                     key=idade, reverse=True)[:RODIZIO_N]
     rodizio = ["- %s (id %s; verificado há %d dias úteis; selo %s): %s" % (
         orgao(c), c.get("id"), idade(c), c.get("selo"), c.get("linha", "")) +
@@ -516,7 +660,11 @@ def main():
          if c.get("dominio_oficial") and rede.get(c["dominio_oficial"]) else "")
         for c in velhos]
     tema, consultas = DESCOBERTA.get(0 if primeira else agora.weekday(), DESCOBERTA[0])
-    consultas = [q_.format(mes=MESES_PT[hoje.month - 1], ano=hoje.year) for q_ in consultas]
+    prox_ano = hoje.year + 1 if hoje.month >= 10 else hoje.year
+    consultas = [q_.format(mes=MESES_PT[hoje.month - 1], ano=hoje.year, prox=prox_ano) for q_ in consultas]
+    # NOVO exige fato datado a partir daqui: 1o/jan do ano ou, de janeiro a ~fevereiro, os ultimos 60 dias
+    # (a comissao de dezembro ainda vale em janeiro); a trava contra edital antigo continua apertada
+    data_min_novo = min(date(hoje.year, 1, 1), hoje - timedelta(days=60))
     acompanhados = "; ".join("%s [%s]" % (orgao(c), c.get("id")) for c in concursos)
     regra = ("1ª execução da semana (ou após gap): até 12 WebSearch — 4 em prazos/pendências "
              "(ativa E longo_prazo), 3 no rodízio, 5 na descoberta (varredura geral)."
@@ -547,14 +695,18 @@ def main():
             selo_auto.append("%s %s" % (c["id"], m))
         elif m:
             selo_alerta.append("%s: %s" % (c["id"], m))
-    candidatos = [c["id"] for c in concursos if selos.candidato_remocao(c, hoje, REMOCAO_DIAS)]
+    candidatos = {}                 # id -> "confirmados" | "secundária" (selos.candidato_remocao)
+    for c in no_escopo:
+        k = selos.candidato_remocao(c, hoje, REMOCAO_DIAS)
+        if k:
+            candidatos[c["id"]] = k
 
     # foco do dia: linha completa no LEDGER (os demais, so contados)
     motivos = {}
     ativas = {p["id"] for p in ledger.get("pendencias_vivas", []) if p.get("faixa") == "ativa"}
     for x in vencidos + proximos:
         motivos.setdefault(x[2]["id"], []).append("prazo %s" % x[1].strftime("%d/%m"))
-    for c in concursos:
+    for c in no_escopo:
         m = motivos.setdefault(c["id"], [])
         try:
             if (hoje - date.fromisoformat(c.get("mudou_em", ""))).days <= FOCO_MUDANCA_DIAS:
@@ -569,23 +721,13 @@ def main():
             m.append("DIVERGE")
         if c["id"] in candidatos:
             m.append("candidato a remoção")
+        if c["id"] in pag_novidade:
+            m.append("página oficial mudou" if pag_novidade[c["id"]] == "MUDOU" else "página oficial lida")
     for c in velhos:
         motivos.setdefault(c["id"], []).append("rodízio")
     motivos = {k: list(dict.fromkeys(v)) for k, v in motivos.items() if v}
     foco = set(motivos)
-    # B10: pagina oficial (url_oficial) dos concursos em foco, lida por script; so-JavaScript sai do "acessivel"
-    paginas = []
-    if any(c.get("url_oficial") and c["id"] in foco for c in concursos):
-        try:
-            import paginas_oficiais
-            paginas = paginas_oficiais.verificar(concursos, bancas.carregar_estado() if bancas else {},
-                                                 hoje.isoformat(), ids=foco)
-        except Exception as e:  # noqa: BLE001 — reforco, nunca bloqueia
-            paginas = [{"id": "-", "url": "", "http": 0, "situacao": "HTTP", "erro": str(e)}]
-        for r in paginas:
-            if r.get("situacao") == "SEM_TEXTO":
-                rede[selos.host(r["url"])] = False
-    gravar_json(tmp("paginas_oficiais.json"), {"data": hoje.isoformat(), "execution_id": exec_id, "paginas": paginas})
+    rede_fora = ["%s (%s)" % (d, situacao_rede(d, rede)) for d in sorted(dom_conc) if not rede.get(d)]
 
     vars_ = {
         "HOJE_BR": hoje_br, "DIA_SEMANA": DIAS[agora.weekday()],
@@ -606,7 +748,10 @@ def main():
         "CONCURSOS_ACOMPANHADOS": acompanhados or "(nenhum)",
         "BANCA_COBERTOS": "; ".join("%s (id %s)" % (orgao(c), c["id"]) for c in concursos
                                     if c["id"] in cobertos) or "(nenhum hoje)",
-        "REGISTRO_ATUAL": registro_atual(concursos, foco).strip(),
+        "REGISTRO_ATUAL": registro_atual(no_escopo, foco).strip(),
+        "ESCOPO_APOIO": escopo.TEXTO_ESCOPO_APOIO,
+        "DATA_MIN_NOVO": data_min_novo.strftime("%d/%m/%Y"),
+        "REDE_FORA": ", ".join(sorted(d for d in dom_conc if not rede.get(d))) or "nenhum",
     }
 
     def sub(m):
@@ -624,7 +769,7 @@ def main():
         bruto = open(modelo, encoding="utf-8").read()
         texto = re.sub(r"\{\{([A-Z_]+(?::[a-z0-9_]+)?)\}\}", sub, bruto)
         if os.path.basename(modelo) == "coletor-concursos.md" and "{{REGISTRO_ATUAL}}" not in bruto:
-            texto = texto.rstrip("\n") + "\n" + registro_atual(concursos, foco)
+            texto = texto.rstrip("\n") + "\n" + registro_atual(no_escopo, foco)
         destino = tmp(os.path.basename(modelo))
         with open(destino, "w", encoding="utf-8") as f:
             f.write(texto)
@@ -636,6 +781,7 @@ def main():
     out.append("HOJE %s (%s) %s | doy=%d | execution_id=%s%s" % (
         hoje_br, DIAS[agora.weekday()], agora.strftime("%H:%M:%S %z"), doy, exec_id,
         " | EDIÇÃO EXTRA" if a.extra else ""))
+    out += migr
     out.append("ASSUNTO HOJE:     %s" % janela["assunto"])
     out.append("ASSUNTO ANTERIOR: %s | exec %s | delivery %s | draft_id %s" % (
         janela["assunto_anterior"], ult.get("execution_id"), ult.get("delivery"), ult.get("draft_id")))
@@ -650,7 +796,7 @@ def main():
         out.append("FERIADOS NA JANELA: %s" % fer_txt)
     out.append("MUNGER idx=%d/%d tipo=%s | cabeçalho, rodapé (\"Próxima edição: %s\") e citação vão do janela.json "
                "para o montador" % (idx, len(q["quotes"]), cit.get("tipo") or "?", rodape))
-    out.append("PENDENCIAS DE CONCURSO p/ coletor: %d (orçamento de buscas no coletor-concursos.md)" % len(pend_conc))
+    out.append("PENDENCIAS DE CONCURSO p/ coletor: %d (orçamento de buscas no coletor-concursos.md)" % len(linhas))
     radar = [fmt_pz(*x) for x in proximos if x[3].get("confirmado")]
     a_conf = {}
     for x in proximos:
@@ -672,6 +818,12 @@ def main():
                            fmt_pz(*x), "última retificação %s" % enc[1].strftime("%d/%m") if enc[1] else
                            "sem retificação"))
             continue
+        if id(x[3]) in sem_busca_venc:
+            # so secundaria, oficial fora da rede: o coletor buscou o desfecho ao cruzar D0/D+1; repetir a busca
+            # todo dia so renovava o verificado_em
+            out.append("PRAZO VENCIDO (só secundária; desfecho já buscado pelo coletor, sem busca hoje): %s — "
+                       "atualize o registro só com fato novo" % fmt_pz(*x))
+            continue
         out.append("ALERTA: prazo vencido %s — confirmar desfecho/prorrogação e atualizar o registro "
                    "(ledger_updates.concursos)" % fmt_pz(*x))
     for s in selo_auto:
@@ -680,13 +832,26 @@ def main():
         out.append("ALERTA: selo por data — %s" % s)
     for s in selo_suspenso:
         out.append("ALERTA: " + s)
-    for i in candidatos:
-        out.append("ALERTA: candidato a remoção (%s) — todos os prazos confirmados venceram há mais de %d dias e "
-                   "não há etapa futura: confirme o desfecho e remova (remover + desfecho) ou atualize"
-                   % (i, REMOCAO_DIAS))
-    bloq = [d for d, ok in rede.items() if not ok]
-    out.append("REDE: páginas oficiais bloqueadas: %s | acessíveis: %s" % (
-        ", ".join(bloq) or "nenhuma", ", ".join(d for d, ok in rede.items() if ok) or "nenhuma"))
+    for i, k in candidatos.items():
+        out.append("ALERTA: candidato a remoção (%s) — todos os prazos %s venceram há mais de %d dias e não há etapa "
+                   "futura: confirme o desfecho e remova (remover + desfecho) ou atualize"
+                   % (i + (", prazos só em secundária" if k == "secundária" else ""),
+                      "(só de fonte secundária)" if k == "secundária" else "confirmados", REMOCAO_DIAS))
+    if fora:
+        out.append("FORA DO ESCOPO (apoio só %s ou nacional): %s — sem busca nem foco; remova (remover + desfecho "
+                   "\"fora do escopo regional\", que não vai ao leitor)%s"
+                   % ("/".join(escopo.UFS_APOIO), ", ".join(fora),
+                      ", com as pendências " + ", ".join(pend_fora) if pend_fora else ""))
+    # REDE do ambiente: os dominios que so o dono libera (REDE_DONO); a liberacao tem de chegar ao ledger
+    dono = {d: situacao_rede(d, rede) for d in REDE_DONO}
+    livres = ["%s (%s)" % (d, s_) for d, s_ in dono.items() if s_ != "proxy"]
+    out.append("REDE (domínios oficiais dos concursos, curl na raiz): %d legíveis; fora: %s" % (
+        sum(1 for d in dom_conc if rede.get(d)), ", ".join(rede_fora) or "nenhum"))
+    out.append("REDE do ambiente: %s" % (
+        "LIBERADO pelo proxy: %s — atualize em ledger_updates as fontes (status, nota) e as pendências "
+        "(dominio_oficial) ligadas; o proxy ainda recusa: %s" % (
+            ", ".join(livres), ", ".join(d for d, s_ in dono.items() if s_ == "proxy") or "nenhum")
+        if livres else "o proxy recusa os %d domínios que só o dono libera" % len(dono)))
     for p in ledger.get("pendencias_vivas", []):
         if p.get("faixa") == "ativa" and int(p.get("execucoes") or 0) >= LIMITE_ATIVA:
             alertas.append("pendência %s ativa há %s execuções (limite %d): no passo 4, em "
@@ -708,7 +873,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             print("PAGINA OFICIAL: não lida (%s) — os concursos com url_oficial seguem pelo coletor"
                   % (next((r.get("erro") for r in paginas if r.get("erro")), None) or e))
-    print("\n".join(resumo_ledger(ledger, foco, motivos, pend_no_coletor)))
+    print("\n".join(resumo_ledger(ledger, foco, motivos, pend_no_coletor, omitir=set(pend_fora))))
     print("PROMPTS: " + " ".join(gerados))
     print("PASSO 2 (uma mensagem): 3 buscas de anti-duplicata no Gmail + Agent coletor-gmail, coletor-jota e "
           "coletor-concursos (primeiro plano) + Bash: python3 work/aguardar_coleta.py — %s" % (
