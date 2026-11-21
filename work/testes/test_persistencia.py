@@ -14,6 +14,13 @@
 #   (push com espera configuravel, sem branch extra no remoto, estado restaurado quando o
 #   helper falha, trava de sanidade, sessao fora da origin/main, migracao reaplicada
 #   na reaplicacao).
+#   Revisao 3: prazo de rede padrao < 100 s e TERM/INT com a linha ESTADO (P1); na
+#   reaplicacao, a migracao vista pelo dia antes do helper e a nova da main depois (P2,
+#   cenarios s9 e s2) e o finalizar repetido que reaplica a vista; commit so do estado com
+#   o indice sujo (P3); mensagem <synthetic> fora da medicao (P6); base do ALERTA_ECONOMIA
+#   sem draft_ja_existente/extra e com o arquivo mensal (P7); commits fora da main com
+#   fetch falho (P8); reaplicacao que falha devolve o estado ao commit (P9); VALIDACAO com
+#   o caminho real; §R1 sugere o fim da janela da edicao achada.
 # USO: python3 work/testes/test_persistencia.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda em pastas temporarias (ROBOZINHO_TMP proprio).
 # =====================================================================
