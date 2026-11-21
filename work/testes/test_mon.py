@@ -1895,6 +1895,27 @@ def t_mon_parenteses_no_meio_da_frase():
         ok("(" not in r and ")" not in r and not r.startswith("—") and not r.endswith("—") and "— —" not in r
            and r.count("  ") == 0, "sem parentese nem travessao solto: %r" % r)
 
+@teste
+def t_mon_titulo_curto_nas_mensagens():
+    """E-min (b), ensaio de 23/11: "ERRO: STJ vai julgar se ANPP deve ser rescindido por juiz que homo: STJ
+    Jurisprudência só aceita…" — o titulo da mensagem e cortado em fronteira de palavra, com "…"."""
+    t = "STJ vai julgar se ANPP deve ser rescindido por juiz que homologou o acordo sem ouvir o MP"
+    ok(M.curto(t) == "STJ vai julgar se ANPP deve ser rescindido por juiz que…", M.curto(t))
+    ok(M.curto("curto") == "curto" and M.curto("x" * 70) == "x" * 59 + "…" and M.curto("abc def, ghi", 8) == "abc def…"
+       and M.curto("a  b\n c") == "a b c", "curto: casos")
+    ex = {"items": [{"categoria": "STJ Jurisprudência", "titulo": t, "fonte": "Migalhas", "data": "2026-11-21",
+                     "url": "https://www.migalhas.com.br/quentes/1/x", "status": "MÍDIA ESPECIALIZADA"},
+                    {"categoria": "Nada", "titulo": "Uma categoria inexistente com um título bem comprido demais",
+                     "data": "2026-11-21"}],
+          "email": {}}
+    j = fx("janela-1711.json")
+    erros, _, _ = M.preparar(ex, j, fx("ledger-1611.json"), {}, {}, {"historico": os.path.join(FIX, "historico.json"),
+                                                                     "bancas": "/inexistente", "fontes_status": "/x"})
+    ok(any(e.startswith("STJ vai julgar se ANPP deve ser rescindido por juiz que…: STJ Jurisprudência só aceita")
+           for e in erros), "ERRO com o titulo cortado na palavra: %s" % erros[:1])
+    ok(any(e.startswith("Uma categoria inexistente com um título bem…: categoria 'Nada'") for e in erros),
+       "categoria fora da lista: %s" % erros)
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do

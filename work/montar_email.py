@@ -419,6 +419,17 @@ def caixa_titulo(s):
     return " ".join(w if (n and w in MINUSCULAS) else w[:1].upper() + w[1:] for n, w in enumerate(p))
 
 
+def curto(s, n=60):
+    """Texto (titulo, evento, resenha) numa mensagem de ERRO/AVISO: ate n caracteres, cortado em fronteira de
+    palavra e com "…" (23/11, ensaio: "STJ vai julgar se ANPP deve ser rescindido por juiz que homo" — o corte no
+    meio da palavra parecia o titulo). Palavra unica maior que n: corte seco com "…"."""
+    t = re.sub(r"\s+", " ", str(s or "")).strip()
+    if len(t) <= n:
+        return t
+    corte = t[:n] if t[n] == " " else t[:n].rsplit(" ", 1)[0] if " " in t[:n] else t[:n - 1]
+    return corte.rstrip(" ,;:.—–-") + "…"
+
+
 def limpo(s):
     """Espacos que a extracao do documento deixa antes de pontuacao e dentro de parenteses."""
     s = re.sub(r"\s+([,.;:)])", r"\1", s or "")
@@ -721,7 +732,7 @@ def resenha_no_ref(novo, it, e, ref, avisos):
     g = grupo_resenha(it["resenha"])
     if not g:
         avisos.append("ref %s: \"resenha\" sem data reconhecível (%s) — escreva \"grupo\"" % (
-            ref, str(it["resenha"])[:60]))
+            ref, curto(it["resenha"])))
         return
     novo["grupo"] = g
     novo["fonte"] = it.get("fonte") or "PUSH Planalto"
@@ -1049,7 +1060,7 @@ def tipo_contra_evento(upd, por_id, hoje, ctx_banca):
             out.append("ledger_updates.concursos.%s.prazos[%d].tipo: %r num prazo cujo evento é %s («%s») — com "
                        "esse tipo o selo por data ignora o prazo%s; se é %s, escreva tipo '%s' ou omita o tipo; "
                        "se não é, aceite o aviso" % (
-                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], str(p.get("evento") or "")[:80],
+                           ident, n, p.get("tipo"), CLASSE_INSCRICAO[pelo_evento], curto(p.get("evento"), 80),
                            daria, CLASSE_INSCRICAO[pelo_evento], pelo_evento))
     return out
 
@@ -1972,7 +1983,7 @@ def cards_citam_descartados(em, ficam, fora, regs=()):
         ondes = achados[i]
         out.append("%s %s item descartado («%s», %s): troque o card/o trecho ou marque \"desdobramento\": true "
                    "no item" % (" e ".join(ondes), "citam" if len(ondes) > 1 else "cita",
-                                (it.get("titulo") or "")[:60], motivo.split(":")[0].split(" ")[0]))
+                                curto(it.get("titulo")), motivo.split(":")[0].split(" ")[0]))
     return out
 
 
@@ -2018,10 +2029,10 @@ def relacionados_informativos(itens, ev):
                 desc = "Tema %s, %s" % (d.get("tema"), rot[:1].lower() + rot[1:])
                 pede = "cite o tema; o resultado segue só na mídia"
             else:
-                desc = limpo(d.get("titulo") or d.get("tema") or "")[:70]
+                desc = curto(limpo(d.get("titulo") or d.get("tema") or ""), 70)
                 pede = "cite o informativo; a nota de confirmação não muda"
             avisos.append("Mídia «%s» relacionado a %s[%d] (%s): %s" % (
-                (it.get("titulo") or "")[:60], ref, i, desc, pede))
+                curto(it.get("titulo")), ref, i, desc, pede))
     return avisos
 
 
@@ -2209,7 +2220,7 @@ def teses_stj(it, avisos):
     if it.get("categoria") in ("Informativos", "STJ Notícias") and it.get("status") != "MÍDIA ESPECIALIZADA" \
             and (not it.get("fonte") or item_oficial(it)):
         avisos.append("%s: Jurisprudência em Teses vai em STJ Jurisprudência (era %s)" % (
-            str(it["titulo"])[:60], it["categoria"]))
+            curto(it["titulo"]), it["categoria"]))
         it["categoria"] = "STJ Jurisprudência"
     if it.get("categoria") == "STJ Jurisprudência" and not it.get("fonte"):
         it["fonte"] = JT_FONTE
@@ -2245,13 +2256,13 @@ def preparar(ex, j, led, ev, v, op=None):
         teses_stj(it, avisos)           # Jurisprudência em Teses -> STJ Jurisprudência
         cat = it.get("categoria")
         if cat not in CATEGORIAS_NOTICIA:
-            erros.append("%s: categoria %r fora de %s" % ((it.get("titulo") or it.get("ref") or "item")[:50],
+            erros.append("%s: categoria %r fora de %s" % (curto(it.get("titulo") or it.get("ref") or "item", 50),
                                                           cat, " | ".join(CATEGORIAS_NOTICIA)))
             continue
         if not it.get("titulo"):
             erros.append("item sem titulo: %s" % json.dumps(it, ensure_ascii=False)[:120])
             continue
-        rot = it["titulo"][:60]
+        rot = curto(it["titulo"])
         if "nota" in it:
             it["nota"] = limpar_nota(it["nota"])          # D10: "sem link" e automatico
             if not it["nota"]:
@@ -2288,7 +2299,7 @@ def preparar(ex, j, led, ev, v, op=None):
                 if not it["grupo"]:
                     del it["grupo"]
                     avisos.append("%s: \"resenha\" sem data reconhecível (%s) — escreva \"grupo\"" % (
-                        rot, str(it["resenha"])[:60]))
+                        rot, curto(it["resenha"])))
             if it.get("meta"):
                 it["meta"] = norm_meta(it["meta"])
             it["_rotina"] = eh_rotina(it) or bool(it.get("_pln"))
@@ -2314,7 +2325,7 @@ def preparar(ex, j, led, ev, v, op=None):
     if any(it.get("categoria") in SECOES_APOIO for it in itens):
         itens, fora = descartar_repetidos(itens, execucoes_historico(op["historico"]), ignorar)
         for it, motivo in fora:
-            descartadas.append("DESCARTADA %s — %s" % (it.get("ref") or "«%s»" % (it.get("titulo") or "")[:70], motivo))
+            descartadas.append("DESCARTADA %s — %s" % (it.get("ref") or "«%s»" % curto(it.get("titulo"), 70), motivo))
             if it.get("ref"):
                 ex.setdefault("_refs_descartadas", []).append(it["ref"])
     avisos += relacionados_informativos(itens, ev)
