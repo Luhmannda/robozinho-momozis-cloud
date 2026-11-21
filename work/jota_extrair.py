@@ -27,6 +27,10 @@
 #   - espacos de diagramacao viram " | ", um bloco ("EDITORIA | Titulo [L4] |
 #     linha-fina | Por Autor") por linha.
 # O resolver_jota.py aceita "titulo<TAB>L<n>" e resolve o indice.
+# - (21/11) A mesma saida compacta vai tambem para $ROBOZINHO_TMP/jota_extrato.txt (a 2a chamada
+#   da mesma execucao acrescenta): e o "funil" do JOTA — manchetes com [L<n>] que o e-mail trouxe —
+#   para um script cruzar com o jota_links.tsv (selecao do coletor) e com o que foi publicado, sem
+#   token nenhum (antes nao se sabia quem cortou "Fachin suspende prazos apos falha da Microsoft").
 #
 # ENTRADA: o arquivo em que o harness salvou um get_thread grande (JSON do MCP
 #   do Gmail: {"id", "messages": [{"subject", "date", "internalDate",
@@ -34,6 +38,7 @@
 #   [{"type": "text", "text": "<json>"}], ou com texto antes do JSON), ou um
 #   texto puro (e-mail colado). Varios arquivos numa chamada; "-" = stdin.
 # USO:   python3 work/jota_extrair.py ARQ [ARQ ...] [--urls $ROBOZINHO_TMP/jota_urls.tsv] [--novo]
+#        [--extrato $ROBOZINHO_TMP/jota_extrato.txt]
 #        --novo: recomeca a numeracao (padrao: continua o indice gravado ha menos
 #        de 12 h, para duas chamadas na mesma execucao nao trocarem os numeros).
 # SAIDA: JOTA_EXTRAIR: <m> mensagem(ns) | links L<a>–L<b> em <indice> | omitidos: ...
@@ -425,8 +430,11 @@ def main(argv=None):
     ap.add_argument("arquivos", nargs="+")
     ap.add_argument("--urls", default=os.path.join(TMP, "jota_urls.tsv"))
     ap.add_argument("--novo", action="store_true", help="recomeca a numeracao do indice")
+    ap.add_argument("--extrato", default=os.path.join(TMP, "jota_extrato.txt"),
+                    help="copia da saida compacta (funil do JOTA); a 2a chamada da execucao acrescenta")
     a = ap.parse_args(argv)
     indice = Indice(a.urls, a.novo)
+    continua = indice.inicio > 1          # indice recente: mesma execucao
     conta = {"descadastro": 0, "sem_texto": 0, "propaganda": 0, "leia_mais": 0, "mailto": 0}
     blocos, vistos, erros = [], set(), []
     for arq in a.arquivos:
@@ -454,6 +462,12 @@ def main(argv=None):
         print(b)
     print("(links: grave titulo<TAB>L<n> em %s e rode python3 work/resolver_jota.py)"
           % os.path.join(TMP, "jota_links.tsv"))
+    if blocos and a.extrato:
+        try:
+            with open(a.extrato, "a" if continua else "w", encoding="utf-8") as f:
+                f.write("\n".join(blocos) + "\n")
+        except OSError:
+            pass                          # acessorio: a saida impressa e o que o coletor usa
     return 1 if erros and not blocos else 0
 
 

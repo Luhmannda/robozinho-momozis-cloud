@@ -1263,6 +1263,45 @@ def t_core_resumo_truncado():
 
 
 @teste
+def t_legin_por_ref():
+    """(21/11) Ato do DOU lido no LEGIN (Legislacao Informatizada da Camara) pelo coleta_web.py: o ref (dec13167) vira
+    item de Planalto/Legislacao com selo de fonte oficial alternativa, DOU (edicao extra), ementa inteira, link da
+    Camara e a chave do Congresso/PUSH; sem a data do DOU, PENDENCIA DE VERIFICACAO."""
+    ex = fx(CENARIOS["1711"]["execucao"])
+    ex["items"].insert(0, {"ref": "dec13167", "impacto": "Novo sistema de satélites de defesa"})
+    ex["items"].insert(1, {"ref": "dec13168"})
+    t = preparar_pasta("1711", execucao=ex)
+    cw = json.load(open(os.path.join(t, "coleta_web.json"), encoding="utf-8"))
+    url = "https://www2.camara.leg.br/legin/fed/decret/2026/decreto-13167-16-novembro-2026-800184-norma-pe.html"
+    cw.append({"fonte": "legin", "http": 200, "paginas": 1, "listadas": 20, "itens": [
+        {"situacao": "NOVA", "tipo": "Decreto", "tipo_chave": "decreto", "prefixo": "dec", "numero": "13167",
+         "data_ato": "16/11/2026", "dou": "17/11/2026", "extra": True, "id": "dec13167",
+         "ementa": "Institui o Sistema de Satélites de Defesa e Comunicações Estratégicas.", "url": url,
+         "chave": "planalto|decreto|13167|2026|2026-11-16"},
+        {"situacao": "SEM_DATA_OFICIAL", "tipo": "Decreto", "tipo_chave": "decreto", "prefixo": "dec",
+         "numero": "13168", "data_ato": "16/11/2026", "dou": "", "id": "dec13168",
+         "ementa": "Promulga o Acordo entre o Governo da República Federativa do Brasil e o Governo da República da "
+                   "Eslovênia sobre Cooperação no Campo de Defesa.", "url": url.replace("13167", "13168"),
+         "chave": "planalto|decreto|13168|2026|2026-11-16"}]})
+    json.dump(cw, open(os.path.join(t, "coleta_web.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    rc, out, err = rodar("1711", t)
+    ok(rc == 0 and linha(out, "MONTAGEM: OK"), "montagem com ref do LEGIN: rc=%s %s %s" % (rc, out[-600:], err[-300:]))
+    if rc != 0:
+        return
+    sec = corpo(out).split("Planalto — Resenha Diária")[1].split("STF — Notícias")[0]
+    ok("Decreto nº 13.167, de 16/11/2026" in sec and 'href="%s"' % url in sec and "DOU 17/11 · edição extra" in sec
+       and "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" in sec and "Câmara dos Deputados — Legislação Informatizada" in sec
+       and "Institui o Sistema de Satélites de Defesa e Comunicações Estratégicas" in sec
+       and "Novo sistema de satélites de defesa" in sec, "item do LEGIN na seção Planalto: %s" % sec[:900])
+    ok("Decreto nº 13.168, de 16/11/2026" in sec and "PENDÊNCIA DE VERIFICAÇÃO" in sec
+       and "data do DOU não confirmada na página oficial" in sec, "sem DOU: pendência de verificação")
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
+    dec = [i for i in res["items"] if (i.get("chave") or "").startswith("planalto|decreto|1316")]
+    ok(len(dec) == 2 and dec[0]["chave"] == "planalto|decreto|13167|2026|2026-11-16" and dec[0]["data"] == "2026-11-16"
+       and dec[0]["categoria"] == "Planalto/Legislação" and dec[0]["url"] == url, "resolvido: chave, data e url: %s" % dec)
+
+
+@teste
 def t_camara_site_por_ref():
     """Agencia Camara lida no site pelo coleta_web.py (cam1, cam2): o ref vira item de Planalto/Legislacao com
     selo de fonte oficial alternativa, link, data/hora e chave — nada redigitado pelo orquestrador."""

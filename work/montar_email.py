@@ -613,6 +613,22 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "resumo": e["ementa"], "url": e["url"], "fonte": "Congresso Nacional",
                 "data": datetime.strptime(dou, "%d/%m/%Y").date().isoformat() if dou else "",
                 "grupo": "Congresso Nacional — medidas provisórias", "chave": e["chave"] if dou else ""}
+    elif e and e["_fonte"] == "legin":
+        # ato do DOU lido na Legislacao Informatizada da Camara pelo coleta_web.py (dec13173, lc239, ec141, dleg12;
+        # lei/mpv so quando o Congresso nao listou): o formato do ato do Congresso; sem a data do DOU no detalhe,
+        # PENDENCIA DE VERIFICACAO. A chave e a do Congresso/PUSH (planalto|tipo|numero|ano|data do ato)
+        n = int(e["numero"])
+        dou = e.get("dou") or ""
+        base = {"categoria": "Planalto/Legislação",
+                "status": "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" if dou else "PENDÊNCIA DE VERIFICAÇÃO",
+                "titulo": "%s nº %s, de %s" % (e["tipo"], "{:,}".format(n).replace(",", "."), e["data_ato"]),
+                "meta": ("DOU %s%s" % (dou[:5], " · edição extra" if e.get("extra") else "")) if dou
+                else "data do DOU não confirmada na página oficial",
+                "resumo": e["ementa"], "url": e["url"], "fonte": "Câmara dos Deputados (Legislação Informatizada)",
+                "data": datetime.strptime(e["data_ato"], "%d/%m/%Y").date().isoformat(),
+                # o selo sai uma vez por grupo (_grupos_planalto): o ato sem DOU confirmado fica num grupo proprio
+                "grupo": "Câmara dos Deputados — Legislação Informatizada%s" % ("" if dou else " (DOU a confirmar)"),
+                "chave": e["chave"]}
     elif e and e["_fonte"] == "camara_noticias":
         # noticia da Agencia Camara lida no site (cam1, cam2): sancao/veto/MP ([LEI]) ou votacao de Plenario
         # a chave e a automatica (agencia-camara|ato|<titulo>|ano|data): a mesma do item escrito a partir do

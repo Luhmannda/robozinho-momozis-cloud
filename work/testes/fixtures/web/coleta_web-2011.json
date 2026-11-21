@@ -1,0 +1,695 @@
+[
+ {
+  "fonte": "congresso_leis",
+  "http": 200,
+  "tentativas": 1,
+  "itens": [
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15545",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor do Tribunal de Contas da União, das Justiças Federal, Eleitoral e do Trabalho, da Defensoria Pública da União, e do Ministério Público da União, crédito especial no valor de R$ 114.969.959,00, para os fins que especifica.",
+    "materia": "PLN 35/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44447059",
+    "chave": "planalto|lei|15545|2026|2026-11-18",
+    "id": "lei15545"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15544",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento de Investimento da União, em favor do Serviço Federal de Processamento de Dados, crédito suplementar no valor de R$ 34.941.713,00, para reforço de dotações constantes da Lei Orçamentária vigente.",
+    "materia": "PLN 22/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44447391",
+    "chave": "planalto|lei|15544|2026|2026-11-18",
+    "id": "lei15544"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15543",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor dos Ministérios da Justiça e Segurança Pública, da Cultura, da Integração e do Desenvolvimento Regional e dos Direitos Humanos e da Cidadania, e de Operações Oficiais de Crédito, crédito suplementar no valor de R$ 520.535.876,00, para reforço de dotações constantes da Lei Orçamentária vigente.",
+    "materia": "PLN 20/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44447208",
+    "chave": "planalto|lei|15543|2026|2026-11-18",
+    "id": "lei15543"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15542",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor dos Ministérios da Educação, da Justiça e Segurança Pública e dos Transportes, crédito especial no valor de R$ 130.041.737,00, para os fins que especifica.",
+    "materia": "PLN 19/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446866",
+    "chave": "planalto|lei|15542|2026|2026-11-18",
+    "id": "lei15542"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15541",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Altera o art. 4º da Lei nº 15.346, de 14 de janeiro de 2026, que estima a receita e fixa a despesa da União para o exercício financeiro de 2026.",
+    "materia": "PLN 18/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446959",
+    "chave": "planalto|lei|15541|2026|2026-11-18",
+    "id": "lei15541"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15540",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento da Seguridade Social da União, em favor do Ministério da Educação, crédito especial no valor de R$ 45.369,00, para os fins que especifica.",
+    "materia": "PLN 16/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446201",
+    "chave": "planalto|lei|15540|2026|2026-11-18",
+    "id": "lei15540"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15539",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre aos Orçamentos Fiscal e da Seguridade Social da União, em favor dos Ministérios de Minas e Energia, da Saúde, da Integração e do Desenvolvimento Regional, e de Portos e Aeroportos, crédito suplementar no valor de R$ 24.431.895,00, para reforço de dotações constantes da Lei Orçamentária vigente.",
+    "materia": "PLN 15/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446103",
+    "chave": "planalto|lei|15539|2026|2026-11-18",
+    "id": "lei15539"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15538",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor de Encargos Financeiros da União, crédito suplementar no valor de R$ 488.112.855,00, para reforço de dotação constante da Lei Orçamentária vigente.",
+    "materia": "PLN 13/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446005",
+    "chave": "planalto|lei|15538|2026|2026-11-18",
+    "id": "lei15538"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15537",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor dos Ministérios da Justiça e Segurança Pública, das Comunicações, da Cultura e da Integração e do Desenvolvimento Regional, e de Operações Oficiais de Crédito, crédito suplementar no valor de R$ 168.145.850,00, para reforço de dotações constantes da Lei Orçamentária vigente.",
+    "materia": "PLN 12/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44445933",
+    "chave": "planalto|lei|15537|2026|2026-11-18",
+    "id": "lei15537"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15536",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor da Justiça Federal, da Justiça do Trabalho, e do Ministério Público da União, crédito suplementar no valor de R$ 56.250.092,00, para reforço de dotações constantes da Lei Orçamentária vigente.",
+    "materia": "PLN 11/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44445861",
+    "chave": "planalto|lei|15536|2026|2026-11-18",
+    "id": "lei15536"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15535",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor dos Ministérios da Educação, do Desenvolvimento, Indústria, Comércio e Serviços, da Justiça e Segurança Pública, e do Planejamento e Orçamento, crédito especial no valor de R$ 11.528.608,00, para os fins que especifica.",
+    "materia": "PLN 10/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44445741",
+    "chave": "planalto|lei|15535|2026|2026-11-18",
+    "id": "lei15535"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15534",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Altera a Lei nº 15.321, de 31 de dezembro de 2025, que dispõe sobre as diretrizes para a elaboração e a execução da Lei Orçamentária de 2026.",
+    "materia": "PLN 7/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446661",
+    "chave": "planalto|lei|15534|2026|2026-11-18",
+    "id": "lei15534"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15533",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor dos Ministérios da Justiça e Segurança Pública e de Minas e Energia, e de Operações Oficiais de Crédito, crédito suplementar no valor de R$ 543.681.108,00, para reforço de dotações constantes da Lei Orçamentária vigente.",
+    "materia": "PLN 6/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446547",
+    "chave": "planalto|lei|15533|2026|2026-11-18",
+    "id": "lei15533"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15532",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor do Ministério da Fazenda, crédito suplementar no valor de R$ 34.000.000,00, para reforço de dotação constante da Lei Orçamentária vigente.",
+    "materia": "PLN 4/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44445608",
+    "chave": "planalto|lei|15532|2026|2026-11-18",
+    "id": "lei15532"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15531",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Abre ao Orçamento Fiscal da União, em favor do Ministério da Ciência, Tecnologia e Inovação, crédito suplementar no valor de R$ 13.186.131,00, para reforço de dotação constante da Lei Orçamentária vigente.",
+    "materia": "PLN 3/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44446455",
+    "chave": "planalto|lei|15531|2026|2026-11-18",
+    "id": "lei15531"
+   },
+   {
+    "situacao": "NOVA",
+    "tipo": "Lei",
+    "numero": "15530",
+    "data_ato": "18/11/2026",
+    "dou": "19/11/2026",
+    "ementa": "Altera o Anexo V à Lei nº 15.346, de 14 de janeiro de 2026, que estima a receita e fixa a despesa da União para o exercício financeiro de 2026.",
+    "materia": "PLN 1/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44447361",
+    "chave": "planalto|lei|15530|2026|2026-11-18",
+    "id": "lei15530"
+   },
+   {
+    "situacao": "JA_PUBLICADA",
+    "tipo": "Lei",
+    "numero": "15528",
+    "data_ato": "11/11/2026",
+    "dou": "12/11/2026",
+    "ementa": "Autoriza a concessão de apoio financeiro aos produtores independentes de cana-de-açúcar da Região Nordeste no exercício de 2026 e a destinação de recursos a linhas de financiamento reembolsável para a renovação de frota; e altera as Leis nºs 9.818, de 23 de agosto de 1999, 11.540, de 12 de novembro de 2007, e 14.947, de 2 de agosto de 2024.",
+    "materia": "PL 5649/2026",
+    "veto": "",
+    "url": "https://legis.senado.leg.br/norma/44386606",
+    "chave": "planalto|lei|15528|2026|2026-11-11"
+   }
+  ],
+  "listadas": 62,
+  "mais_recente": "Lei nº 15.545 de 18/11/2026, DOU 19/11/2026"
+ },
+ {
+  "fonte": "congresso_mpv",
+  "http": 200,
+  "tentativas": 1,
+  "itens": [],
+  "listadas": 22
+ },
+ {
+  "fonte": "camara_noticias",
+  "http": 200,
+  "tentativas": 1,
+  "paginas": 4,
+  "itens": [],
+  "lidas": 40,
+  "na_janela": 32,
+  "resto": 32,
+  "duvidosos": [],
+  "completa": true
+ },
+ {
+  "fonte": "conjur",
+  "http": {
+   "noticia": 200,
+   "artigo": 200,
+   "coluna": 200
+  },
+  "itens": [
+   {
+    "tipo": "noticia",
+    "titulo": "Autistas podem concorrer a vagas de concurso reservadas para deficientes",
+    "url": "https://conjur.com.br/2026-nov-19/candidatos-autistas-tem-direito-a-concorrer-a-vagas-reservadas-para-pcds/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T21:45:43-03:00",
+    "situacao": "NOVA",
+    "resumo": "TJ-DF concedeu mandado de segurança para assegurar que candidato autista concorra às vagas reservadas para deficientes",
+    "id": "c1"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Supremo vai julgar validade do ‘milagre da contribuição única’",
+    "url": "https://conjur.com.br/2026-nov-19/supremo-vai-julgar-validade-do-milagre-da-contribuicao-unica/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T21:18:47-03:00",
+    "situacao": "NOVA",
+    "resumo": "Controvérsia sobre “milagre da contribuição única” é tema de recurso extraordinário que, por unanimidade, teve repercussão geral reconhecida.",
+    "id": "c2"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "STF tem cinco votos para anular condenação de TV por críticas a policial",
+    "url": "https://conjur.com.br/2026-nov-19/stf-tem-cinco-votos-para-anular-condenacao-de-tv-por-criticas-a-policial/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T20:56:27-03:00",
+    "situacao": "NOVA",
+    "resumo": "Corte começou a julgar reclamação contra a condenação por veicular reportagem e comentários com críticas a um PM acusado de homicídio.",
+    "id": "c3"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "No domingo, Exame Nacional dos Cartórios será aplicado pela quarta vez",
+    "url": "https://conjur.com.br/2026-nov-19/exame-nacional-dos-cartorios-sera-aplicado-pela-quarta-vez/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T20:38:02-03:00",
+    "situacao": "NOVA",
+    "resumo": "Neste domingo (22/11), acontece a 4ª edição da prova do Enac, pré-requisito para concursos públicos de cartórios",
+    "id": "c4"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Empresa é condenada por condicionar promoção a corte de cabelo afro",
+    "url": "https://conjur.com.br/2026-nov-19/empresa-e-condenada-por-condicionar-promocao-de-cargo-a-corte-de-cabelo-afro/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T19:58:32-03:00",
+    "situacao": "NOVA",
+    "resumo": "TRT-3 condenou empresa a pagar R$ 15 mil por danos morais a trabalhador depois que chefe condicionou promoção ao corte de seu cabelo afro",
+    "id": "c5"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "PSD recorre de decisão de Cristiano Zanin que negou segundo turno no Rio",
+    "url": "https://conjur.com.br/2026-nov-19/psd-recorre-de-decisao-de-cristiano-zanin-que-negou-segundo-turno-no-rio/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T19:37:08-03:00",
+    "situacao": "NOVA",
+    "resumo": "Partido interpôs agravo regimental contra a decisão de Zanin que negou liminar para a realização de segundo turno na eleição para governador.",
+    "id": "c6"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Alexandre libera para julgamento ações sobre Lei da Dosimetria",
+    "url": "https://conjur.com.br/2026-nov-19/alexandre-libera-para-julgamento-acoes-sobre-lei-da-dosimetria/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T18:55:56-03:00",
+    "situacao": "NOVA",
+    "resumo": "Ministro liberou para julgamento as Ações Diretas de Inconstitucionalidade 7.966, 7.967, 7.968 e 7.969, que impugnaram a Lei da Dosimetria.",
+    "id": "c7"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Supremo tem maioria contra dispensa de honorários em acordos com governo",
+    "url": "https://conjur.com.br/2026-nov-19/stf-tem-maioria-contra-alteracao-ou-dispensa-de-honorarios-em-acordos-com-governo/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T18:33:49-03:00",
+    "situacao": "NOVA",
+    "resumo": "STF tem maioria contra alteração ou dispensa de honorários em acordos com governo",
+    "id": "c8"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Com empate, STJ mantém nulidade de ação por morte de ex-ministro",
+    "url": "https://conjur.com.br/2026-nov-19/stj-tem-empate-sobre-nulidade-da-acao-por-morte-de-ex-ministro-do-tse/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T17:52:39-03:00",
+    "situacao": "NOVA",
+    "resumo": "Empate nos embargos de declaração deve favorecer a manutenção da anulação da ação penal que condenou Adriana Vilela pela morte dos pais.",
+    "id": "c9"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Em Buenos Aires, Salomão defende papel da democracia para o desenvolvimento",
+    "url": "https://conjur.com.br/2026-nov-19/em-buenos-aires-salomao-defende-papel-da-democracia-para-desenvolvimento/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T16:51:33-03:00",
+    "situacao": "NOVA",
+    "resumo": "Luis Felipe Salomão defendeu fortalecimento das instituições democráticas e da segurança jurídica na abertura do II Fórum de Buenos Aires",
+    "id": "c10"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Quem não aceita derrota, foge da democracia, diz Gilmar em Buenos Aires",
+    "url": "https://conjur.com.br/2026-nov-19/quem-nao-aceita-derrota-foge-da-democracia-diz-gilmar-em-buenos-aires/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T15:51:55-03:00",
+    "situacao": "NOVA",
+    "resumo": "Gilmar Mendes afirmou, na abertura do II Fórum de Buenos Aires, que quem não aceita derrotas eleitorais se coloca fora do regime democrático",
+    "id": "c11"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Presidente assina decreto que regulamenta o fim da escala 6×1",
+    "url": "https://conjur.com.br/2026-nov-19/presidente-assina-decreto-que-regulamenta-o-fim-da-escala-6x1/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T15:08:36-03:00",
+    "situacao": "NOVA",
+    "resumo": "Luiz Inácio Lula da Silva (PT) assinou nesta quinta-feira (19/11) o Decreto 13.173/2026, que regulamenta a Emenda Constitucional 141/2026.",
+    "id": "c12"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Ausência de autorização judicial anula empréstimo em nome de menor",
+    "url": "https://conjur.com.br/2026-nov-19/falta-de-autorizacao-judicial-anula-emprestimo-em-nome-de-menor/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T14:44:17-03:00",
+    "situacao": "NOVA",
+    "resumo": "Juiz anulou empréstimo contratado por uma mãe em nome de sua filha menor de idade e determinou restituição dos valores descontados",
+    "id": "c13"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "STJ julga apuração do ganho de capital para tributar investidor estrangeiro",
+    "url": "https://conjur.com.br/2026-nov-19/stj-julga-apuracao-do-ganho-de-capital-para-tributar-investidor-estrangeiro/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T14:13:21-03:00",
+    "situacao": "NOVA",
+    "resumo": "STJ vai decidir como deve ser feita a apuração do ganho de capital por investidor estrangeiro para fins de incidência do IRRF",
+    "id": "c14"
+   },
+   {
+    "tipo": "noticia",
+    "titulo": "Plano de saúde deve demonstrar sinistralidade que gerou reajuste",
+    "url": "https://conjur.com.br/2026-nov-19/ausencia-de-nota-atuarial-gera-abusividade-de-reajuste-de-plano-coletivo/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T13:47:10-03:00",
+    "situacao": "NOVA",
+    "resumo": "TJ-SP reconheceu a abusividade nos reajustes de um plano de saúde e condenou a operadora a substituir os percentuais pela taxa da ANS",
+    "id": "c15"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Quando o ajuste fiscal alcança o crédito do contribuinte: limites constitucionais do PLP nº 299",
+    "url": "https://conjur.com.br/2026-nov-20/quando-o-ajuste-fiscal-alcanca-o-credito-do-contribuinte-os-limites-constitucionais-do-plp-no-299-2026/",
+    "data": "2026-11-20",
+    "quando": "2026-11-20T07:06:21-03:00",
+    "situacao": "NOVA",
+    "resumo": "O equilíbrio das contas públicas é uma exigência constitucional. Mas sua busca não pode ignorar a segurança jurídica, a neutralidade tributária e o custo econômico imposto às empresas.",
+    "id": "c16"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Reforma tributária não pode restringir autonomia federativa",
+    "url": "https://conjur.com.br/2026-nov-20/reforma-tributaria-nao-pode-restringir-autonomia-federativa/",
+    "data": "2026-11-20",
+    "quando": "2026-11-20T06:33:40-03:00",
+    "situacao": "NOVA",
+    "resumo": "A questão é saber se a reforma promoveu concentração de poderes incompatível com a cláusula pétrea federativa",
+    "id": "c17"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Superendividamento sem honorários: quem paga o preço?",
+    "url": "https://conjur.com.br/2026-nov-20/superendividamento-sem-honorarios-quem-paga-o-preco/",
+    "data": "2026-11-20",
+    "quando": "2026-11-20T06:04:08-03:00",
+    "situacao": "NOVA",
+    "resumo": "Muita gente que precisa da Lei do Superendividamento não tem dinheiro para pagar honorários contratuais no início do processo",
+    "id": "c18"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Sequestro de bens: o atalho penal que sobreviveu ao STF",
+    "url": "https://conjur.com.br/2026-nov-19/sequestro-de-bens-o-atalho-penal-que-sobreviveu-ao-stf/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T20:21:41-03:00",
+    "situacao": "NOVA",
+    "resumo": "Quando a Lei 14.230/2021 endureceu os requisitos da indisponibilidade de bens na improbidade, parte do Ministério Público encontrou a saída no juízo criminal.",
+    "id": "c19"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "ADI 2.039: a legitimidade da investigação do MP se prova nos autos",
+    "url": "https://conjur.com.br/2026-nov-19/adi-2-039-a-legitimidade-da-investigacao-do-mp-se-prova-nos-autos/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T19:19:06-03:00",
+    "situacao": "NOVA",
+    "resumo": "Uma investigação que pode ser reconstituída a partir dos próprios autos é uma investigação que resiste ao contraditório. E é essa capacidade de resistir, mais do que qualquer proclamação de competência, que lhe confere legitimidade.",
+    "id": "c20"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Incidente no Porto de Santos e os desafios da governança algorítmica",
+    "url": "https://conjur.com.br/2026-nov-19/incidente-no-porto-de-santos-e-os-desafios-da-governanca-algoritmica/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T18:21:03-03:00",
+    "situacao": "NOVA",
+    "resumo": "Na madrugada de sexta-feira, 6 de novembro, uma queda de energia atingiu os servidores da Autoridade Portuária de Santos",
+    "id": "c21"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Presumida ou comprovada, interposição fraudulenta não se troca no julgamento",
+    "url": "https://conjur.com.br/2026-nov-19/presumida-ou-comprovada-interposicao-fraudulenta-nao-se-troca-no-julgamento/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T17:24:11-03:00",
+    "situacao": "NOVA",
+    "resumo": "Se capitulou a presumida, pode cair antes mesmo da contraprova, bastando demonstrar que a presunção não chegou a nascer",
+    "id": "c22"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "O que a lei brasileira garante a quem é transferido para trabalhar no exterior",
+    "url": "https://conjur.com.br/2026-nov-19/o-que-a-lei-brasileira-garante-a-quem-e-transferido-para-trabalhar-no-exterior/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T16:23:59-03:00",
+    "situacao": "NOVA",
+    "resumo": "Toda transferência desse tipo carrega a mesma pergunta: qual lei rege o contrato de quem sai do Brasil para trabalhar no exterior?",
+    "id": "c23"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Redução da maioridade penal afronta cláusula pétrea da Constituição",
+    "url": "https://conjur.com.br/2026-nov-19/reducao-da-maioridade-penal-afronta-clausula-petrea-da-constituicao/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T15:22:05-03:00",
+    "situacao": "NOVA",
+    "resumo": "Com a aprovação da PEC da Segurança Pública, Congresso não encerrou a discussão sobre a maioridade penal. Apenas a deslocou",
+    "id": "c24"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Votos anulados para Garotinho devem gerar segundo turno no Rio",
+    "url": "https://conjur.com.br/2026-nov-19/votos-anulados-para-garotinho-devem-gerar-segundo-turno-no-rio/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T13:19:45-03:00",
+    "situacao": "NOVA",
+    "resumo": "No dia 4 de outubro a população do estado do Rio de Janeiro votou para governador. Nenhum dos candidatos alcançou maioria absoluta",
+    "id": "c25"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Voto distrital misto, entre a desinformação e o preconceito",
+    "url": "https://conjur.com.br/2026-nov-19/voto-distrital-misto-entre-a-desinformacao-e-o-preconceito/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T11:20:47-03:00",
+    "situacao": "NOVA",
+    "resumo": "Debate sobre adoção do sistema distrital misto nas eleições proporcionais foi contaminado por desinformação e merece reflexão mais cuidadosa",
+    "id": "c26"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Limites constitucionais a restrições à compensação tributária cruzada",
+    "url": "https://conjur.com.br/2026-nov-19/limite-constitucional-a-restricoes-a-compensacao-tributaria-cruzada/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T09:21:46-03:00",
+    "situacao": "NOVA",
+    "resumo": "A compensação tributária ocupa posição singular: constitui instrumento legítimo de racionalidade administrativa, equilíbrio patrimonial e eficiência na extinção de obrigações fiscais.",
+    "id": "c27"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Reforma tributária: o início de uma nova guerra judicial de teses",
+    "url": "https://conjur.com.br/2026-nov-19/reforma-tributaria-o-inicio-de-uma-nova-guerra-judicial-de-teses/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T07:03:21-03:00",
+    "situacao": "FORA"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "ADPF 1.183/STF: risco de esvaziamento da consensualidade no TCU",
+    "url": "https://conjur.com.br/2026-nov-19/adpf-1-183-stf-risco-de-esvaziamento-da-consensualidade-no-tcu/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T06:30:22-03:00",
+    "situacao": "JA_PUBLICADA"
+   },
+   {
+    "tipo": "artigo",
+    "titulo": "Compensação tributária em mandado de segurança: percurso até o STF",
+    "url": "https://conjur.com.br/2026-nov-19/compensacao-tributaria-em-mandado-de-seguranca-o-percurso-ate-o-tema-1-500-no-stf/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T06:02:53-03:00",
+    "situacao": "JA_PUBLICADA"
+   },
+   {
+    "tipo": "coluna",
+    "titulo": "Estados do futuro",
+    "url": "https://conjur.com.br/2026-nov-19/estados-do-futuro/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T08:00:44-03:00",
+    "situacao": "NOVA",
+    "resumo": "Superar o isolamento burocrático do Estado e “escutar o Brasil real” tem o sentido político de fortalecer a confiança na democracia",
+    "id": "c28"
+   },
+   {
+    "tipo": "coluna",
+    "titulo": "Correu sozinho e chegou em segundo lugar!",
+    "url": "https://conjur.com.br/2026-nov-19/correu-sozinho-e-chegou-em-segundo-lugar/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T08:00:34-03:00",
+    "situacao": "NOVA",
+    "resumo": "Se eu tivesse de resumir a trama numa frase, seria esta: “No Direito, é possível correr sozinho e chegar em segundo lugar”",
+    "id": "c29"
+   },
+   {
+    "tipo": "coluna",
+    "titulo": "Tema 222 do TST: nem todo empregado que manuseia mercadorias é ‘movimentador’",
+    "url": "https://conjur.com.br/2026-nov-19/tema-222-do-tst-nem-todo-empregado-que-manuseia-mercadorias-e-movimentador/",
+    "data": "2026-11-19",
+    "quando": "2026-11-19T08:00:26-03:00",
+    "situacao": "NOVA",
+    "resumo": "Tribunal Superior do Trabalho conta com um precedente vinculante sobre o enquadramento sindical dos movimentadores de mercadorias",
+    "id": "c30"
+   },
+   {
+    "tipo": "coluna",
+    "titulo": "Saga da reforma tributária: agora o ISS é o novo susto dos contribuintes?",
+    "url": "https://conjur.com.br/2026-nov-18/saga-da-reforma-tributaria-agora-o-iss-e-o-novo-susto-dos-contribuintes/",
+    "data": "2026-11-18",
+    "situacao": "FORA"
+   },
+   {
+    "tipo": "coluna",
+    "titulo": "Sexto aniversário na ConJur : ITR em terrenos ocupados",
+    "url": "https://conjur.com.br/2026-nov-18/sexto-aniversario-na-conjur-itr-em-terrenos-ocupados/",
+    "data": "2026-11-18",
+    "situacao": "FORA"
+   }
+  ]
+ },
+ {
+  "fonte": "migalhas",
+  "http": 200,
+  "tentativas": 1,
+  "itens": [
+   {
+    "titulo": "CNJ aprova política para agilizar processos previdenciários e assistenciais",
+    "resumo": "Medida busca reduzir a judicialização, uniformizar procedimentos e ampliar a integração entre tribunais e órgãos previdenciários.",
+    "badge": "20.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/468548/cnj-aprova-politica-para-agilizar-demandas-previdenciarias",
+    "quando": "2026-11-20T07:00:00-03:00",
+    "situacao": "NOVA",
+    "id": "m1"
+   },
+   {
+    "titulo": "TST mantém indenização a trabalhador chamado de \"neguinho\" por chefe",
+    "resumo": "Para colegiado, apelidos de cunho racial usados em tom de brincadeira configuram discriminação e assédio moral.",
+    "badge": "20.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/468959/tst-mantem-indenizacao-a-trabalhador-chamado-de-neguinho-por-chefe",
+    "quando": "2026-11-20T06:31:00-03:00",
+    "situacao": "NOVA",
+    "id": "m2"
+   },
+   {
+    "titulo": "Aula ao vivo organiza a reta final de estudos para 1ª Fase 48º Exame",
+    "resumo": "A inciativa é do Ceisc e permite que o candidato receba direcionamento gratuito.",
+    "badge": "20.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/468974/aula-ao-vivo-organiza-a-reta-final-de-estudos-para-1-fase-48-exame",
+    "quando": "2026-11-20T06:30:17-03:00",
+    "situacao": "NOVA",
+    "id": "m3"
+   },
+   {
+    "titulo": "TJ/SP: Influenciadora pagará R$ 30 mil por chamar advogado de \"demônio\" e \"sujo\"",
+    "resumo": "Colegiado manteve condenação por danos morais ao entender que publicações ultrapassaram os limites da liberdade de expressão e permitiam identificar o advogado, mesmo sem menção expressa ao seu nome.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/469010/influenciadora-pagara-r-30-mil-por-chamar-advogado-de-demonio",
+    "quando": "2026-11-19T19:20:06-03:00",
+    "situacao": "NOVA",
+    "id": "m4"
+   },
+   {
+    "titulo": "Toffoli critica sensacionalismo em reportagem: \"sociedade extremista\"",
+    "resumo": "Durante julgamento sobre reportagem considerada vexatória contra policial, ministro classificou a abordagem como \"ovo da serpente de uma sociedade extremista\" e defendeu a retirada do conteúdo do ar.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/469012/toffoli-critica-sensacionalismo-em-reportagem--sociedade-extremista",
+    "quando": "2026-11-19T19:13:47-03:00",
+    "situacao": "NOVA",
+    "id": "m5"
+   },
+   {
+    "titulo": "Toffoli defende fim do Tribunal do Júri: \"Não faz mais sentido\"",
+    "resumo": "Ministro afirmou que apenas 7% dos homicídios registrados em uma década chegaram ao júri e citou o caso Boate Kiss como exemplo da demora na execução das penas.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/469011/toffoli-defende-fim-do-tribunal-do-juri--nao-faz-mais-sentido",
+    "quando": "2026-11-19T18:41:00-03:00",
+    "situacao": "NOVA",
+    "id": "m6"
+   },
+   {
+    "titulo": "Cármen Lúcia vê censura judicial em retirada de reportagem sobre policial",
+    "resumo": "Ministra criticou linguagem da publicação, mas votou por novo julgamento da decisão que impôs indenização e remoção do conteúdo.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/469009/carmen-ve-censura-judicial-em-retirada-de-reportagem-sobre-policial",
+    "quando": "2026-11-19T18:08:34-03:00",
+    "situacao": "NOVA",
+    "id": "m7"
+   },
+   {
+    "titulo": "Atestado falso para justificar ausência em audiência gera condenação por má-fé",
+    "resumo": "Unidade de saúde informou que não havia registro de atendimento da parte na data indicada no documento.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/468942/atestado-falso-apos-ausencia-em-audiencia-gera-condenacao-por-ma-fe",
+    "quando": "2026-11-19T18:01:00-03:00",
+    "situacao": "NOVA",
+    "id": "m8"
+   },
+   {
+    "titulo": "STF: Moraes critica excessos da imprensa e relembra caso Escola Base",
+    "resumo": "Ao discutir a responsabilidade da imprensa, ministro distinguiu a crítica jornalística da ofensa feita para atrair público.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/469008/stf-moraes-critica-excessos-da-imprensa-e-relembra-caso-escola-base",
+    "quando": "2026-11-19T17:54:00-03:00",
+    "situacao": "NOVA",
+    "id": "m9"
+   },
+   {
+    "titulo": "Dino critica jornalismo \"repugnante e abjeto\", mas vota contra indenização a policial",
+    "resumo": "Ministro reconheceu abuso na reportagem, mas ponderou que indenização a policial acusado de homicídio também transmitiria mensagem problemática.",
+    "badge": "19.nov.2026",
+    "url": "https://www.migalhas.com.br/quentes/469006/dino-critica-jornalismo-abjeto-mas-vota-contra-indenizacao-a-policial",
+    "quando": "2026-11-19T17:47:22-03:00",
+    "situacao": "NOVA",
+    "id": "m10"
+   }
+  ]
+ }
+]
