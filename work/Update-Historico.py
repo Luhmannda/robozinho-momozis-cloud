@@ -222,6 +222,15 @@ def completar_cabecalho(ex, caminho_janela):
     return preenchidos
 
 
+def arquivo_a_corrigir(caminho):
+    """O arquivo que o orquestrador escreve: o --nova-execucao, ou, quando ele e a versao resolvida pelo montador
+    (<pasta>/execucao.resolvido.json, em $ROBOZINHO_TMP), o execucao.json ao lado dela — nunca um /tmp fixo."""
+    pasta, nome = os.path.split(os.path.abspath(caminho))
+    if nome.endswith(".resolvido.json"):
+        return os.path.join(pasta, nome[:-len(".resolvido.json")] + ".json")
+    return caminho
+
+
 def janela_fim(caminho_janela):
     try:
         return read_json(caminho_janela).get("fim")
@@ -1653,7 +1662,8 @@ def executar(args, add_log, emitir):
     if erros:
         for e in erros:
             add_log("ERRO: " + e)
-        emitir("VALIDACAO: ERRO — corrija /tmp/execucao.json e valide de novo." if args.validar
+        emitir("VALIDACAO: ERRO — corrija %s e valide de novo." % arquivo_a_corrigir(args.nova_execucao_path)
+               if args.validar
                else "STATUS: ERRO DE VALIDACAO — nada foi gravado. Corrija o arquivo da "
                     "nova execucao e rode de novo.")
         sys.exit(2)

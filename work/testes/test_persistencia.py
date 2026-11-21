@@ -380,6 +380,23 @@ def validar_nao_grava_nem_o_envelope():
 
 
 @teste
+def validacao_aponta_o_execucao_json_de_verdade():
+    """VALIDACAO (rev3): o ERRO do --validar manda corrigir o execucao.json que o orquestrador escreveu (em
+    $ROBOZINHO_TMP, ao lado do execucao.resolvido.json que o montador passa), nunca um /tmp/execucao.json fixo."""
+    d = pasta_helper()
+    ruim = {"delivery": "draft", "items": [{"chave": "x", "categoria": "Nada", "status": "NOVO", "titulo": "t"}]}
+    gravar(os.path.join(d, "execucao.resolvido.json"), ruim)
+    r = subprocess.run([sys.executable, os.path.join(WORK, "Update-Historico.py"), "--validar", "--nova-execucao",
+                        os.path.join(d, "execucao.resolvido.json"), "--historico", os.path.join(d, "hist.json"),
+                        "--ledger", os.path.join(d, "led.json"), "--janela", os.path.join(d, "janela.json"),
+                        "--bancas", os.path.join(d, "bancas.json"), "--fontes-status", os.path.join(d, "fs.json"),
+                        "--relatorio-path", os.path.join(d, "relatorio.txt")], capture_output=True, text=True)
+    ok(r.returncode == 2 and "VALIDACAO: ERRO — corrija %s e valide de novo." % os.path.join(d, "execucao.json")
+       in r.stdout and "/tmp/execucao.json" not in r.stdout, r.stdout[-500:])
+    ok(uh.arquivo_a_corrigir("/x/y/ex.json") == "/x/y/ex.json", "outro nome: o proprio arquivo")
+
+
+@teste
 def r1_exige_window_end_do_rascunho_achado():
     d = pasta_helper()
     j = ler(os.path.join(d, "janela.json"))
