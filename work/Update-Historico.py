@@ -48,7 +48,8 @@
 #                    prazo confirmado so com fonte oficial (selos.py); remover
 #                    exige desfecho; concurso novo exige fonte http; linha sem
 #                    "hoje/amanha/ontem"; verificado_em ate a data da janela;
-#                    url_oficial e dominio_oficial escritos so oficiais. AVISOs:
+#                    url_oficial e dominio_oficial escritos so oficiais;
+#                    banca_slug (vinculo da pagina da banca) no formato e unico. AVISOs:
 #                    DIVERGE DO REGISTRO nao corrigido; prazo escrito hoje que
 #                    difere do edital lido hoje (ALERTA na gravacao); selo
 #                    escrito que contradiz o selo por data.
@@ -238,8 +239,11 @@ CAMPOS_EDITAVEIS = {
     "fontes": {"nota", "status"},
     "pendencias": {"texto", "faixa", "politica", "coletor", "dominio_oficial", "remover", "desfecho"},
     "concursos": {"bloco", "linha", "selo", "prazos", "fonte", "verificado_em",
-                  "dominio_oficial", "pendencia", "url_oficial", "remover", "desfecho"},
+                  "dominio_oficial", "pendencia", "url_oficial", "remover", "desfecho", "banca_slug"},
 }
+# banca_slug: vinculo explicito da pagina da banca (bancas.py) com o registro — o slug da FGV, minusculo, sem
+# "concursos/": tjap26, dperj2026, exames/enam/6exame; "" desfaz o vinculo. Unico entre os registros.
+RE_BANCA_SLUG = re.compile(r"[a-z0-9]+(?:[-/][a-z0-9]+)*")
 # mecanicos (gravados so por este helper): concursos.mudou_em; fontes: ultimo_sucesso, sem_sucesso...
 OBRIGATORIOS_NOVO = {"pendencias": ("texto", "faixa"),
                      "concursos": ("bloco", "linha", "selo", "verificado_em")}
@@ -272,6 +276,28 @@ def pendencias_estouradas(upd, led):
                      "faixa (longo_prazo ou cronica) ou remova com desfecho" % (
                          p.get("id"), p.get("execucoes"), LIMITE_ATIVA))
     return erros
+
+
+def banca_slug_repetido(upd, led):
+    """banca_slug escrito hoje que ficaria em dois registros (ledger + update; remover libera): a pagina da banca
+    vincula um registro so (carimbo, selo por data e DIVERGE iriam para os dois)."""
+    conc = (upd or {}).get("concursos") if isinstance((upd or {}).get("concursos"), dict) else {}
+    tocados = {i for i, c in conc.items() if isinstance(c, dict) and c.get("banca_slug") and not c.get("remover")}
+    if not tocados:
+        return []
+    final = {r.get("id"): r.get("banca_slug") for r in led.get("concursos") or []}
+    for ident, c in conc.items():
+        if isinstance(c, dict) and c.get("remover"):
+            final.pop(ident, None)
+        elif isinstance(c, dict) and "banca_slug" in c:
+            final[ident] = c["banca_slug"]
+    donos = {}
+    for ident, s in final.items():
+        if isinstance(s, str) and s:
+            donos.setdefault(s, []).append(ident)
+    return ["ledger_updates.concursos.%s.banca_slug: %r também é de %s — a página da banca vincula um registro só"
+            % (ident, final[ident], ", ".join(sorted(i for i in donos[final[ident]] if i != ident)))
+            for ident in sorted(tocados) if isinstance(final.get(ident), str) and len(donos.get(final[ident], [])) > 1]
 
 
 def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
@@ -346,6 +372,11 @@ def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
                     erros.append("%s.prazos[%d].tipo: %r fora de %s" % (rot, n, p["tipo"], "/".join(selos.TIPOS_PRAZO)))
             if secao != "concursos" or campos.get("remover"):
                 continue
+            bs = campos.get("banca_slug")
+            if "banca_slug" in campos and bs != "" and not (
+                    isinstance(bs, str) and RE_BANCA_SLUG.fullmatch(bs) and not bs.startswith("concursos/")):
+                erros.append("%s.banca_slug: %r fora do formato — o slug da página na banca, minúsculo [a-z0-9/-], sem "
+                             "'concursos/' (tjap26, dperj2026, exames/enam/6exame); \"\" desfaz o vínculo" % (rot, bs))
             # ---- padrao de prova do concurso (so o que este update toca; o legado continua passando)
             if "selo" in campos and campos["selo"] in SELOS and campos["selo"] not in selos.SELOS_CONCURSO:
                 erros.append("%s.selo: %r nao e selo de concurso (use %s)" % (rot, campos["selo"],
@@ -381,6 +412,7 @@ def validar_ledger_updates(upd, led, hoje=None, ex_id=None, carimbos=None):
             if campos.get("pendencia") and campos["pendencia"] not in pend_ids:
                 erros.append("%s.pendencia: %r nao existe em pendencias_vivas (nem e criada neste update)"
                              % (rot, campos["pendencia"]))
+    erros += banca_slug_repetido(upd, led)
     ativas = {x.get("id") for x in led.get("armadilhas") or []}
     erros += pendencias_estouradas(upd, led)
     for ident in upd.get("armadilhas_detectadas") or []:
