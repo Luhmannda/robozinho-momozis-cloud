@@ -119,6 +119,20 @@ def corpo(saida):
         return f.read()
 
 
+# 21/11/2026 (montador): reescritas de estilo com a MESMA renderizacao (capturas de tela da edicao de 20/11 antes e
+# depois, Chromium, deviceScaleFactor 1, larguras 700 e 360: 0 pixel diferente). #ffffff -> #fff e 0px -> 0 dentro de
+# style; a frase do Planalto sem a margem negativa (-4px), com o titulo da secao em margin-bottom 6px (10 - 4, as
+# margens colapsavam) — o cliente que recusa margem negativa descartava a declaracao inteira.
+PLANALTO_TITULO_6PX = ('border-left:4px solid #c5a253;padding-left:10px;font-size:16px;line-height:22px;'
+                       'font-weight:bold;color:#0b2545;margin-bottom:6px">🏛️ Planalto')
+
+
+def estilo_equivalente(e):
+    e = e.replace("#ffffff", "#fff")
+    e = re.sub(r"margin:0px\b", "margin:0", e)
+    return e.replace("font-style:italic;margin:-4px 0 12px 14px", "font-style:italic;margin:0 0 12px 14px")
+
+
 # ------------------------------------------------------------------ funcoes puras
 @teste
 def t_ponto_e_nota():
@@ -424,12 +438,14 @@ def t_replay_1611():
     ok("AVISO: Planalto sem \"impacto\"" in out and "Decreto nº 13.166" in linha(out, "AVISO: Planalto sem"),
        "AVISO de ato oficial sem impacto")
     ok("card de Legislação e preheader citam só ato de rotina" in out, "AVISO do card/preheader so com rotina")
-    # identidade visual: todo estilo do e-mail enviado em 16/11 continua no novo
+    # identidade visual: todo estilo do e-mail enviado em 16/11 continua no novo, a menos das reescritas equivalentes
+    # (mesma renderizacao, provada por captura de tela pixel a pixel em 21/11: estilo_equivalente)
     with open(os.path.join(FIX, "estilos-1611.txt"), encoding="utf-8") as f:
-        estilos = [l.rstrip("\n") for l in f if l.strip()]
+        estilos = [estilo_equivalente(l.rstrip("\n")) for l in f if l.strip()]
     novos = set(re.findall(r'style="([^"]*)"', html))
     faltam = [e for e in estilos if e not in novos]
     ok(not faltam, "identidade visual: estilos de 16/11 preservados (faltam %s)" % faltam[:3])
+    ok(PLANALTO_TITULO_6PX in html, "Planalto: titulo com 6px embaixo (a frase sem margem negativa)")
 
 
 @teste
@@ -512,8 +528,9 @@ def t_simulacao_1711():
     ok("Em atraso — edições anteriores cujo documento só agora abriu" in html and "destaques da edição anunciada em 21/10"
        in html, "sub-bloco Em atraso (revisitas)")
     stj = html.split("⚖️ STJ — Notícias")[1].split("⚖️ STJ — Jurisprudência")[0]
-    ok("MÍDIA ESPECIALIZADA" in stj and "STJ define diretrizes" in stj and "sem confirmação oficial localizada" in stj,
-       "STJ Noticias aceita midia com selo e nota")
+    ok("MÍDIA ESPECIALIZADA" in stj and "STJ define diretrizes" in stj and "sem confirmação oficial localizada" not in stj
+       and stj.count(M.LINHA_STJ_MIDIA) == 1 and stj.index(M.LINHA_STJ_MIDIA) < stj.index("STJ define diretrizes"),
+       "STJ Noticias aceita midia com selo, sem nota por item e com a linha fixa no topo")
     ok(linha(out, "DESCARTADA ").startswith("DESCARTADA «Senado aprova texto-base") and "REPUBLICADA" in out,
        "republicada de apoio descartada")
     ok("lição inspirada em Charlie Munger" in html, "Munger licao")
@@ -1331,6 +1348,391 @@ def t_waf_segunda_tentativa_insiste_e_guarda():
             os.environ["ROBOZINHO_INF_CACHE"] = velhos[3]
         os.unlink(os.path.join(tmp, "janela.json"))
         shutil.rmtree(os.path.join(tmp, "informativos-cache"), ignore_errors=True)
+
+
+# ------------------------------------------------------------------ frente 'montador' (21/11/2026)
+def secao_html(html, titulo, proximo):
+    return html.split(titulo)[1].split(proximo)[0]
+
+
+def quadro_leitor(html):
+    return html.split("📋 Observações de verificação")[1]
+
+
+@teste
+def t_mon_pendencias_quadro():
+    """verified[3]: pendencia sem concurso vai ao leitor so com faixa 'ativa', texto mudado hoje ou na 1a execucao da
+    semana; nunca quando repete item/limitacao/observacao da edicao nem com texto operacional (decisao 5)."""
+    base = {"id": "p1", "texto": "Concurso de cartórios do TJXX: resultado da prova oral esperado para dezembro",
+            "faixa": "longo_prazo"}
+    q = {"antes": {"p1": dict(base)}, "primeira": False, "textos": []}
+    ok(not M.pendencia_no_quadro(dict(base), q), "longo_prazo igual, fora da 1a da semana: fora do quadro")
+    ok(M.pendencia_no_quadro(dict(base, faixa="ativa"), q), "ativa: no quadro")
+    ok(M.pendencia_no_quadro(dict(base, texto=base["texto"] + "; edital de convocação publicado"), q),
+       "texto mudado hoje: no quadro")
+    ok(M.pendencia_no_quadro(dict(base, _nova=True), dict(q, antes={})), "criada hoje: no quadro")
+    ok(M.pendencia_no_quadro(dict(base), dict(q, primeira=True)), "1a execucao da semana: no quadro")
+    oper = dict(base, faixa="ativa", texto="PUSH Planalto: resenha de 19/11 recebida; manter 1 sonda por dia.")
+    ok(not M.pendencia_no_quadro(oper, q), "texto operacional (sonda) nunca vai ao leitor")
+    ok(not M.pendencia_no_quadro(dict(base, faixa="ativa", texto="Falha do coleta_web.py com http 403"), q),
+       "texto tecnico (script, http) nunca vai ao leitor")
+    ok(M.pendencia_no_quadro(dict(base, faixa="ativa", texto="Execução fiscal: STJ julga tema de protocolo"), q),
+       "'execução' e 'protocolo' soltos sao vocabulario juridico")
+    master = ("Caso Master: em 18/11 o diretor-geral da PF entregou a Fachin os relatórios sobre menções a ministros do "
+              "STF no celular de Daniel Vorcaro; Fachin os enviará sob sigilo à PGR, que terá 15 dias.")
+    fofoca = ("PGR terá 15 dias para analisar relatórios da PF sobre ministros no caso Master. Fachin enviou à PGR, "
+              "sob sigilo, os relatórios da PF sobre menções a ministros no celular de Daniel Vorcaro.")
+    ok(not M.pendencia_no_quadro(dict(base, faixa="ativa", texto=master), dict(q, textos=[fofoca])),
+       "pendencia que repete item da edicao (Caso Master na Fofoquinha) fica fora")
+    ok(M.pendencia_no_quadro(dict(base, faixa="ativa", texto=master), dict(q, textos=["STF julga ICMS sobre energia."])),
+       "sem item parecido: fica")
+    ok(M.rotulo_pendencia("PUSH Planalto: resenha de 19/11") == "PUSH Planalto"
+       and M.rotulo_pendencia("Sem dois-pontos; segundo trecho") == "Sem dois-pontos", "rotulo da pendencia")
+    # ponta a ponta (17/11, terca): as duas pendencias sem concurso sao longo_prazo e nao mudaram -> fora do quadro;
+    # o historico continua com a lista inteira
+    t = preparar_pasta("1711")
+    rc, out, err = rodar("1711", t)
+    html = corpo(out)
+    q17 = quadro_leitor(html)
+    ok(rc == 0 and "PUSH Planalto: resenhas" not in q17 and "Caso Master" not in q17, "17/11: quadro sem as longo_prazo")
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
+    ok(len(res.get("pendencias") or []) == len(fx("ledger-1611.json")["pendencias_vivas"]),
+       "execucao.pendencias segue com a lista inteira (contadores e historico)")
+    # segunda-feira (1a da semana): o Caso Master volta; o PUSH (operacional) nunca
+    j = fx("janela-1711.json")
+    j["primeira_semana"] = True
+    t = preparar_pasta("1711", janela=j)
+    rc, out, _ = rodar("1711", t)
+    q17 = quadro_leitor(corpo(out))
+    ok(rc == 0 and "Caso Master: Folha (13/11)" in q17 and "PUSH Planalto: resenhas" not in q17,
+       "1a da semana: Caso Master no quadro, PUSH Planalto (manter 1 sonda) fora")
+    # texto reescrito hoje: volta no mesmo dia
+    ex = fx("execucao-1711.json")
+    ex["ledger_updates"] = {"pendencias": {"crise_institucional_stf_pgr_acompanhar": {
+        "texto": "Caso Master: a PGR recebeu os relatórios da PF em 18/11 e tem 15 dias para se manifestar."}}}
+    t = preparar_pasta("1711", execucao=ex)
+    rc, out, _ = rodar("1711", t)
+    ok(rc == 0 and "a PGR recebeu os relatórios da PF em 18/11" in quadro_leitor(corpo(out)),
+       "texto mudado hoje: no quadro (%s)" % (out[-300:] if rc else ""))
+
+
+@teste
+def t_mon_alvo_nao_vale_para_legislacao():
+    """verified[2]: 'alvo ~10' nunca em Planalto/Legislação (secao central: entra completa); Midia continua."""
+    ex = fx("execucao-1711.json")
+    for n in range(13):
+        ex["items"].insert(0, {"categoria": "Planalto/Legislação", "status": "CONFIRMADO POR FONTE OFICIAL",
+                               "titulo": "Lei nº %d, de 16/11/2026" % (99000 + n), "data": "2026-11-16",
+                               "meta": "DOU 17/11", "url": "https://www.planalto.gov.br/l%d.htm" % n,
+                               "resumo": ("Abre ao Orçamento Fiscal da União crédito suplementar no valor de R$ %d,00."
+                                          % (n + 1)) if n < 10 else "Institui a Semana Nacional %d." % n,
+                               "impacto": "" if n < 10 else "Data comemorativa"})
+    t = preparar_pasta("1711", execucao=ex)
+    rc, out, _ = rodar("1711", t)
+    html = corpo(out)
+    plan = secao_html(html, "Planalto — Resenha Diária", "STF — Notícias")
+    ok(rc == 0 and "AVISO: Planalto/Legislação com" not in out and "alvo" not in linha(out, "AVISO: Planalto"),
+       "sem 'alvo ~10' para Planalto/Legislação")
+    ok(all(("Lei nº %d" % (99000 + n)) in plan for n in range(13)), "os 13 atos saem")
+    ok(all(plan.index("Lei nº %d" % (99000 + n)) > plan.index("Atos de rotina") for n in range(10))
+       and all(plan.index("Lei nº %d" % (99000 + n)) < plan.index("Atos de rotina") for n in range(10, 13)),
+       "creditos depois de 'Atos de rotina', o resto antes")
+    # Midia (apoio) segue com o alvo, em tom de aviso comum (nao pede rodada sozinho)
+    midia = [{"categoria": "Mídia", "titulo": "Matéria de teste número %d sobre tema distinto %d" % (n, n * 7),
+              "fonte": "ConJur", "url": "https://www.conjur.com.br/2026-nov-17/teste-%d/" % n, "data": "2026-11-17"}
+             for n in range(13)]
+    erros, avisos, _ = M.preparar({"items": midia, "email": {}}, fx("janela-1711.json"), fx("ledger-1611.json"), {}, {},
+                                  {"historico": os.path.join(FIX, "historico.json"), "bancas": "/inexistente",
+                                   "fontes_status": "/inexistente"})
+    ok(any(a.startswith("Mídia com 13 itens (alvo ~10): numa nova rodada") for a in avisos)
+       and not M.ACIONAVEL.search(next(a for a in avisos if a.startswith("Mídia com"))),
+       "Midia: alvo como aviso comum (%s)" % [a for a in avisos if "alvo" in a])
+
+
+ROTINA_20_11 = [
+    "Altera o art. 4º da Lei nº 15.346, de 14 de janeiro de 2026, que estima a receita e fixa a despesa da União para o "
+    "exercício financeiro de 2026.",
+    "Altera a Lei nº 15.321, de 31 de dezembro de 2025, que dispõe sobre as diretrizes para a elaboração e a execução da "
+    "Lei Orçamentária de 2026.",
+    "Altera o Anexo V à Lei nº 15.346, de 14 de janeiro de 2026, que estima a receita e fixa a despesa da União para o "
+    "exercício financeiro de 2026.",
+]
+TITULOS_18_11 = ["Deputados aprovam crédito de R$ 6,6 bi para pagar subvenção aos combustíveis",
+                 "Câmara aprova crédito de R$ 925 milhões para prevenir efeitos do El Niño",
+                 "Câmara aprova crédito extra de R$ 360 milhões para ações de defesa civil"]
+
+
+@teste
+def t_mon_rotina_orcamento():
+    """verified[22]: LOA/LDO/PPA, credito em valor e lei de materia PLN vao para 'Atos de rotina' (ementa inteira);
+    linha de credito, consignado e Credito do Trabalhador nao."""
+    for em in ROTINA_20_11:
+        ok(M.eh_rotina({"titulo": "Lei nº 15.541, de 18/11/2026", "resumo": em}), "rotina: %s" % em[:60])
+    for tit in TITULOS_18_11:
+        ok(M.eh_rotina({"titulo": tit}), "rotina: %s" % tit)
+    ok(M.eh_rotina({"titulo": "Lei nº 1", "resumo": "Dispõe sobre o Plano Plurianual da União para 2028-2031."}), "PPA")
+    for tit in ("Câmara aprova crédito consignado para trabalhadores do setor privado",
+                "Câmara aprova MP que cria linha de crédito de R$ 30 bilhões para exportadores",
+                "Senado aprova crédito do trabalhador", "MP abre linhas de crédito de R$ 5 bi para pequenas empresas"):
+        ok(not M.eh_rotina({"titulo": tit}), "nao rotina: %s" % tit)
+    ev = {"lei1": {"_fonte": "congresso_leis", "numero": "15531", "tipo": "Lei", "data_ato": "18/11/2026",
+                   "dou": "19/11/2026", "ementa": "Altera a Lei nº 14.133, de 1º de abril de 2021, para dispor sobre x.",
+                   "materia": "PLN 2/2026", "veto": "", "url": "https://legis.senado.leg.br/norma/1",
+                   "chave": "planalto|lei|15531|2026|2026-11-18", "id": "lei1"},
+          "lei2": {"_fonte": "congresso_leis", "numero": "15532", "tipo": "Lei", "data_ato": "18/11/2026",
+                   "dou": "19/11/2026", "ementa": "Altera o Decreto-Lei nº 2.848 (Código Penal) para tipificar x.",
+                   "materia": "PL 10/2026", "veto": "", "url": "https://legis.senado.leg.br/norma/2",
+                   "chave": "planalto|lei|15532|2026|2026-11-18", "id": "lei2"}}
+    r1, r2 = M.resolver({"ref": "lei1"}, ev, []), M.resolver({"ref": "lei2"}, ev, [])
+    ok(r1.get("_pln") is True and r2.get("_pln") is False, "_pln pela materia")
+    ok("_pln" not in M.limpar_para_gravar({"items": [r1]})["items"][0], "_pln nao vai ao resolvido")
+    ex = fx("execucao-1711.json")
+    ex["items"][:0] = [{"ref": "lei2"}, {"ref": "lei1"}]
+    t = preparar_pasta("1711", execucao=ex)
+    cw = json.load(open(os.path.join(t, "coleta_web.json"), encoding="utf-8"))
+    cw.append({"fonte": "congresso_leis", "itens": [dict(e, situacao="NOVA") for e in ev.values()]})
+    json.dump(cw, open(os.path.join(t, "coleta_web.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    rc, out, err = rodar("1711", t)
+    plan = secao_html(corpo(out), "Planalto — Resenha Diária", "STF — Notícias") if rc == 0 else ""
+    ok(rc == 0 and plan.index("Lei nº 15.532") < plan.index(M.SUBTITULO_ROTINA) < plan.index("Lei nº 15.531")
+       and "para dispor sobre x." in plan, "lei PLN de ementa atipica na rotina, com a ementa inteira (%s)"
+       % (out + err)[-300:])
+
+
+RESENHA_20_11 = "Resenha Diária PUSH Legislação - 19/11/2026 · recebida 19/11 10:37"
+
+
+@teste
+def t_mon_resenha_no_ref():
+    """verified[24]: `resenha` num ref de lei/MPV do Congresso da o grupo, a fonte e o selo oficial do PUSH."""
+    ev = {"lei15541": {"_fonte": "congresso_leis", "numero": "15541", "tipo": "Lei", "data_ato": "18/11/2026",
+                       "dou": "19/11/2026", "ementa": ROTINA_20_11[0], "materia": "PLN 18/2026", "veto": "",
+                       "url": "https://legis.senado.leg.br/norma/44447000",
+                       "chave": "planalto|lei|15541|2026|2026-11-18", "id": "lei15541"},
+          "mpv1400": {"_fonte": "congresso_mpv", "numero": "1400", "ano": "2026", "dou": "19/11/2026",
+                      "ementa": "Dispõe sobre x.", "url": "https://www.congressonacional.leg.br/mpv1400",
+                      "chave": "planalto|mpv|1400|2026|2026-11-19", "id": "mpv1400"}}
+    avisos = []
+    r = M.resolver({"ref": "lei15541", "resenha": RESENHA_20_11}, ev, [], avisos)
+    ok(r["grupo"] == "Resenha Diária PUSH Legislação de 19/11 (recebida em 19/11, 10h37)" and r["fonte"] == "PUSH Planalto"
+       and r["status"] == "CONFIRMADO POR FONTE OFICIAL" and r["chave"] == "planalto|lei|15541|2026|2026-11-18"
+       and not avisos, "ref + resenha: grupo, fonte e selo do PUSH; a chave nao muda (%s)" % r)
+    r = M.resolver({"ref": "lei15541"}, ev, [])
+    ok(r["status"] == "CONFIRMADO POR FONTE OFICIAL ALTERNATIVA" and r["fonte"] == "Congresso Nacional"
+       and r["grupo"] == "Congresso Nacional — últimas leis publicadas", "sem resenha: pagina do Congresso")
+    r = M.resolver({"ref": "lei15541", "resenha": RESENHA_20_11, "grupo": "Meu grupo", "status": "PENDÊNCIA DE "
+                    "VERIFICAÇÃO"}, ev, [])
+    ok(r["grupo"] == "Meu grupo" and r["status"] == "PENDÊNCIA DE VERIFICAÇÃO", "grupo/status escritos vencem")
+    r = M.resolver({"ref": "mpv1400", "resenha": RESENHA_20_11, "fonte": "PUSH Planalto (edição extra)"}, ev, [])
+    ok(r["grupo"].startswith("Resenha Diária PUSH Legislação de 19/11") and r["fonte"] == "PUSH Planalto (edição extra)"
+       and r["status"] == "CONFIRMADO POR FONTE OFICIAL", "MPV + resenha; fonte escrita vence")
+    avisos = []
+    r = M.resolver({"ref": "lei15541", "resenha": "e-mail qualquer"}, ev, [], avisos)
+    ok(r["grupo"] == "Congresso Nacional — últimas leis publicadas" and any("resenha\" sem data" in a for a in avisos),
+       "resenha irreconhecivel: AVISO e fica a base")
+    # ponta a ponta: o cabecalho do grupo e o do PUSH; o historico grava a fonte PUSH Planalto
+    ex = fx("execucao-1711.json")
+    ex["items"].insert(0, {"ref": "lei15541", "resenha": RESENHA_20_11})
+    t = preparar_pasta("1711", execucao=ex)
+    cw = json.load(open(os.path.join(t, "coleta_web.json"), encoding="utf-8"))
+    cw.append({"fonte": "congresso_leis", "itens": [dict(ev["lei15541"], situacao="NOVA")]})
+    json.dump(cw, open(os.path.join(t, "coleta_web.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    rc, out, err = rodar("1711", t)
+    plan = secao_html(corpo(out), "Planalto — Resenha Diária", "STF — Notícias") if rc == 0 else ""
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8")) if rc == 0 else {"items": []}
+    lei = next((i for i in res["items"] if i.get("ref") == "lei15541"), {})
+    ok(rc == 0 and "CONFIRMADO POR FONTE OFICIAL</b> <span style=\"font-size:12px;color:#5a6773\">— Resenha Diária PUSH "
+       "Legislação de 19/11 (recebida em 19/11, 10h37)." in plan and "Congresso Nacional — últimas" not in plan
+       and lei.get("fonte") == "PUSH Planalto" and lei.get("status") == "CONFIRMADO POR FONTE OFICIAL",
+       "e-mail e resolvido com a atribuicao do PUSH (%s)" % (out + err)[-300:])
+
+
+def ctx_1811(upd):
+    led = fx("ledger-1611.json")
+    j = fx("janela-1711.json")
+    j.update(data="2026-11-18", execution_id="2026-11-18-7h", execucao_anterior="2026-11-17-7h")
+    return M.estado_concursos({"ledger_updates": {"concursos": upd}}, j, led,
+                              {"historico": os.path.join(FIX, "historico.json"), "bancas": "/inexistente"}, []), led, j
+
+
+@teste
+def t_mon_movimento_falso():
+    """verified[28]: ledger_updates.concursos.<id>.movimento = false grava a linha sem 'Atualizado hoje', sem fundo
+    creme, sem item 'atualizado' e sem mudar o mudou_em; o campo nao vai ao registro."""
+    nova = fx("ledger-1611.json")["concursos"][0]["linha"] + "; buscas devolvem o ciclo anterior, sem fato novo"
+    ctx, led, j = ctx_1811({"tjrs_juiz": {"linha": nova, "movimento": False, "verificado_em": "2026-11-18"}})
+    reg = next(c for c in ctx["regs"] if c["id"] == "tjrs_juiz")
+    antes = next(c for c in led["concursos"] if c["id"] == "tjrs_juiz")
+    ok(reg["linha"] == nova and "movimento" not in reg, "linha gravada, sem o campo movimento")
+    ok("tjrs_juiz" not in ctx["alterados"] and reg.get("mudou_em") != "2026-11-18"
+       and (not antes.get("mudou_em") or reg.get("mudou_em") == antes.get("mudou_em")), "nao e alterado; mudou_em mantido")
+    html = M.linha_concurso(reg, date(2026, 11, 18), ctx["novos"], ctx["alterados"], 0)
+    ok("Atualizado hoje" not in html and "#fdf6e9" not in html, "sem 'Atualizado hoje' nem fundo creme")
+    ctx2, _, _ = ctx_1811({"tjrs_juiz": {"linha": nova, "verificado_em": "2026-11-18"}})
+    reg2 = next(c for c in ctx2["regs"] if c["id"] == "tjrs_juiz")
+    ok("tjrs_juiz" in ctx2["alterados"] and reg2["mudou_em"] == "2026-11-18"
+       and "Atualizado hoje" in M.linha_concurso(reg2, date(2026, 11, 18), ctx2["novos"], ctx2["alterados"], 0),
+       "sem o campo: linha mudada = movimento (padrao mantido)")
+    ok(M.sem_movimento({"movimento": False}) and M.sem_movimento({"movimento": "false"})
+       and not M.sem_movimento({"movimento": True}) and not M.sem_movimento({}), "sem_movimento")
+    # preparar: nenhum item 'concurso|tjrs_juiz|atualizado' no historico
+    ex = {"items": [], "email": {}, "ledger_updates": {"concursos": {"tjrs_juiz": {"linha": nova, "movimento": False}}}}
+    M.preparar(ex, j, led, {}, {}, {"historico": os.path.join(FIX, "historico.json"), "bancas": "/inexistente",
+                                    "fontes_status": "/inexistente"})
+    ok(not any(i.get("chave", "").startswith("concurso|tjrs_juiz|") for i in ex["items"]),
+       "sem item 'atualizado' no historico")
+
+
+@teste
+def t_mon_saiu_do_acompanhamento():
+    """verified[46]: concurso removido sai do bloco com 'Saiu do acompanhamento: <órgão> — <desfecho>' so no dia;
+    pendencia visivel (sem concurso, sem errata, fora da cronica, nao operacional) removida idem, no quadro."""
+    ctx, led, j = ctx_1811({"pgm_curitiba": {"remover": True, "desfecho": "inscrições encerradas em 05/11 sem prorrogação"}})
+    ok(ctx["removidos"] == [{"id": "pgm_curitiba", "orgao": "PGM Curitiba", "bloco": "Procurador do Município (PGM)",
+                             "desfecho": "inscrições encerradas em 05/11 sem prorrogação"}], "removidos: %s" % ctx["removidos"])
+    html = M.sec_concursos(ctx["regs"], date(2026, 11, 18), ctx["novos"], ctx["alterados"], removidos=ctx["removidos"])
+    pgm = html.split("Procurador do Município (PGM)</td>")[1].split("Defensor Público Estadual (DPE)")[0]
+    ok("Saiu do acompanhamento: <b>PGM Curitiba</b> — inscrições encerradas em 05/11 sem prorrogação." in pgm
+       and html.count("Saiu do acompanhamento") == 1, "linha no bloco PGM")
+    ok("PGM Curitiba — Procurador" not in html, "o registro removido nao sai")
+    ctx2, _, _ = ctx_1811({})
+    ok(not ctx2["removidos"] and "Saiu do acompanhamento" not in M.sec_concursos(
+        ctx2["regs"], date(2026, 11, 18), ctx2["novos"], ctx2["alterados"]), "sem remocao hoje: nada")
+    # pendencias
+    upd = {"crise_institucional_stf_pgr_acompanhar": {"remover": True, "desfecho": "a PGR apresentou a denúncia em 19/11"},
+           "trf2_oral_divergencia": {"remover": True, "desfecho": "TRF2 confirmou o resultado"},
+           "planalto_push_mudo": {"remover": True, "desfecho": "PUSH diário desde 09/11"},
+           "errata_2026_11_16": {"remover": True, "desfecho": "Errata publicada na edição de 17/11."}}
+    ex = {"items": [], "email": {}}
+    q = M.quadro_pendencias(led, upd, ctx2["regs"], ex, j)
+    ok(q["removidas"] == [("Caso Master", "a PGR apresentou a denúncia em 19/11")],
+       "so a pendencia visivel: sem a ligada a concurso, a errata e a operacional (%s)" % q["removidas"])
+    pend = M.aplicar_pendencias(led["pendencias_vivas"], upd)
+    box = M.sec_pendencias(pend, ctx2["regs"], {"email": {}}, {}, q)
+    ok("Saiu do acompanhamento: Caso Master — a PGR apresentou a denúncia em 19/11." in box
+       and "trf2" not in box.lower() and "PUSH" not in box, "quadro com o desfecho")
+
+
+@teste
+def t_mon_compacto_regra_do_radar():
+    """verified[30]: a compactacao usa a regra do radar (prazo_em_destaque); a linha compacta mostra a inscricao/
+    prova a confirmar de 15 a 30 dias."""
+    hoje = date(2026, 11, 20)
+    pz = lambda d, ev, conf: {"data": d, "evento": ev, "confirmado": conf}
+    ok(not M.prazo_em_destaque(pz("2026-12-13", "prova", False), hoje), "prova a confirmar em 23 dias: fora")
+    ok(M.prazo_em_destaque(pz("2026-11-30", "prova", False), hoje), "prova a confirmar em 10 dias: destaque")
+    ok(not M.prazo_em_destaque(pz("2026-12-08", "edital de convocação (previsto)", False), hoje),
+       "classe 'outro' a confirmar em 18 dias: fora")
+    ok(M.prazo_em_destaque(pz("2026-12-15", "resultado", True), hoje), "confirmado em 25 dias: destaque")
+    ok(not M.prazo_em_destaque(pz("2026-11-19", "prova", True), hoje) and not M.prazo_em_destaque(
+        pz("2026-12-25", "prova", True), hoje), "passado ou alem de 30 dias: fora")
+    ok(M.prazo_em_destaque(pz("2026-12-03", "início das inscrições", False), hoje),
+       "inscricao a confirmar em 13 dias (mesmo divergente): destaque")
+    led = fx("ledger-1611.json")
+    por = {c["id"]: dict(c, mudou_em="2026-11-05") for c in led["concursos"]}
+    f = M.criterio_compacto({"primeira_semana": False, "execucao_anterior": "2026-11-19-7h"}, hoje, set(), set(), set())
+    ok(f(por["alepa_procurador"]) == "sem_mudanca" and f(por["pgm_curitiba"]) == "sem_mudanca"
+       and f(por["trt8_apoio"]) == "sem_mudanca", "ALEPA, PGM Curitiba e TRT8 compactam (prova a 23 dias; 'outro')")
+    ok(f(por["tjrs_juiz"]) is None, "TJRS (prova confirmada em 13/12) segue cheio")
+    lc = M.linha_compacta([por["alepa_procurador"], por["trt8_apoio"]], 0, hoje)
+    ok("PENDÊNCIA DE VERIFICAÇÃO (desde 05/11; prova 13/12, a confirmar)" in lc
+       and "TRT8</b> — PENDÊNCIA DE VERIFICAÇÃO (desde 05/11)" in lc, "linha compacta com a data a confirmar: %s" % lc)
+    ok("a confirmar" not in M.linha_compacta([por["alepa_procurador"]], 0), "sem hoje: linha antiga")
+    r = M.radar([por["alepa_procurador"], dict(por["pgm_curitiba"], prazos=[pz("2026-11-30", "prova", False)])], hoje)
+    ok("PGM Curitiba" in r and "ALEPA" not in r, "radar: a confirmar so ate 14 dias (mesma regra)")
+
+
+@teste
+def t_mon_status_gmail():
+    """verified[37]: source_status dos gmail_* derivado de buscas_gmail (linha BUSCAS do coletor-gmail)."""
+    j = fx("janela-1711.json")            # segunda 16/11 07h -> terca 17/11 07h: sem fim de semana nem feriado
+    linha_b = "BUSCAS | a=2/3 b=0/1 c=0/0 d=0/2 e=0/1 | abertas=2 | anteriores à janela, não abertas=3 | erros: nenhum"
+    ex, avisos = {"buscas_gmail": linha_b}, []
+    M.status_gmail(ex, j, avisos)
+    ok(ex["source_status"] == {"gmail_push_stf": "ok", "gmail_push_stf_informativos": "ok", "gmail_stj_codju": "ok",
+                               "gmail_push_planalto": "vazio", "gmail_camara": "ok"} and not avisos,
+       "dia util: %s" % ex["source_status"])
+    ex = {"buscas_gmail": linha_b, "source_status": {"gmail_push_planalto": "falha", "gmail_camara": "vazio"}}
+    M.status_gmail(ex, j, [])
+    ok(ex["source_status"]["gmail_push_planalto"] == "falha" and ex["source_status"]["gmail_camara"] == "vazio"
+       and ex["source_status"]["gmail_push_stf"] == "ok", "o escrito pelo orquestrador prevalece")
+    for mud in ({"inicio": "2026-11-13T07:05:00-03:00", "fim": "2026-11-16T07:05:00-03:00"},
+                {"feriados_na_janela": [{"data": "2026-11-20", "tipo": "nacional"}]}, {"recesso": True}):
+        ex = {"buscas_gmail": "a=0/0 d=0/1"}
+        M.status_gmail(ex, dict(j, **mud), [])
+        ok(ex["source_status"] == {"gmail_push_stf": "ok", "gmail_push_planalto": "ok"},
+           "fim de semana, feriado ou recesso na janela: silencio ok (%s)" % list(mud))
+    ex = {"source_status": {"gmail_push_stf": "ok"}}
+    M.status_gmail(ex, j, [])
+    ok(ex["source_status"] == {"gmail_push_stf": "ok"}, "sem buscas_gmail: comportamento atual")
+    ex = {"buscas_gmail": "BUSCAS | a=3 b=0 c=1 d=0 e=2 | abertas=1"}
+    M.status_gmail(ex, j, [])
+    ok(ex["source_status"] == {"gmail_push_stf_informativos": "ok", "gmail_push_planalto": "vazio"},
+       "formato antigo (so o total): decide so o zero (%s)" % ex["source_status"])
+    avisos = []
+    M.status_gmail({"buscas_gmail": "abertas=2 erros: nenhum"}, j, avisos)
+    ok(len(avisos) == 1 and "buscas_gmail" in avisos[0], "sem contagem: AVISO curto")
+    # ponta a ponta: o rodape diz "sem e-mail na janela" para o PUSH Planalto
+    ex = fx("execucao-1711.json")
+    for k in list(ex["source_status"]):
+        if k.startswith("gmail_") and k != "gmail_jota":
+            del ex["source_status"][k]
+    ex["buscas_gmail"] = linha_b
+    t = preparar_pasta("1711", execucao=ex)
+    rc, out, _ = rodar("1711", t)
+    of = corpo(out).split("Fontes oficiais consultadas")[1].split("Fontes secundárias")[0] if rc == 0 else ""
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8")) if rc == 0 else {}
+    ok(rc == 0 and "PUSH Planalto (Resenha Diária) — sem e-mail na janela" in of
+       and "boletim da Agência Câmara —" not in of and res["source_status"]["gmail_push_planalto"] == "vazio",
+       "rodape e resolvido com o status derivado")
+
+
+@teste
+def t_mon_parenteses_e_stj():
+    """lows[3] (parenteses aninhados nas notas) e verified[38] (STJ Noticias de midia sem nota por item)."""
+    ok(M.sem_parenteses("o ConJur noticiou em 19/11 que Moraes liberou as ADIs (ver Mídia)")
+       == "o ConJur noticiou em 19/11 que Moraes liberou as ADIs — ver Mídia", "aninhado vira travessao")
+    ok(M.sem_parenteses("Valor (via JOTA (clipping))") == "Valor — via JOTA — clipping", "dois niveis")
+    ok(M.sem_parenteses("sem parenteses") == "sem parenteses", "texto comum intacto")
+    it = {"status": "RUMOR", "titulo": "T", "fonte": "JOTA", "data": "2026-11-19", "url": "https://www.jota.info/x",
+          "nota": "o ConJur noticiou em 19/11 que Moraes liberou as ADIs (ver Mídia)"}
+    h = M.item_padrao(it)
+    ok("((" not in h and "))" not in h and "(o ConJur noticiou em 19/11 que Moraes liberou as ADIs — ver Mídia)" in h,
+       "item_padrao sem parenteses aninhados: %s" % h[-140:])
+    p = "\n".join(M._grupos_planalto([{"status": "CONFIRMADO POR FONTE OFICIAL", "titulo": "Lei nº 1", "grupo": "G",
+                                        "nota": "republicada (ver DOU de 20/11)"}], False))
+    ok("<i>(republicada — ver DOU de 20/11)</i>" in p, "nota do Planalto sem parenteses aninhados")
+    # STJ Noticias: a nota "sem confirmação…" escrita a mao sai; o resto fica; a linha fixa so com item de midia
+    ex = fx("execucao-1711.json")
+    for i in ex["items"]:
+        if i.get("ref") == "c8":
+            i["nota"] = "sem confirmação oficial localizada nesta execução; julgamento de 13/11"
+    t = preparar_pasta("1711", execucao=ex)
+    rc, out, _ = rodar("1711", t)
+    stj = secao_html(corpo(out), "⚖️ STJ — Notícias", "⚖️ STJ — Jurisprudência") if rc == 0 else ""
+    ok(rc == 0 and "(julgamento de 13/11)" in stj and "sem confirmação" not in stj.replace(M.LINHA_STJ_MIDIA, ""),
+       "nota escrita sem a frase automatica")
+    ofic = [{"categoria": "STJ Notícias", "status": "CONFIRMADO POR FONTE OFICIAL", "titulo": "STJ x", "fonte": "STJ",
+             "url": "https://www.stj.jus.br/x", "data": "2026-11-17"}]
+    ok(M.LINHA_STJ_MIDIA not in M.sec_itens("STJ Notícias", "STJ", "vazio", ofic, {"email": {}}),
+       "so oficial: sem a linha")
+
+
+@teste
+def t_mon_tamanho_equivalente():
+    """verified[1] (so o tamanho) e lows[4]: estilos reescritos sem mudar a renderizacao (provado por captura de tela
+    da edicao de 20/11: 0 pixel diferente) — #fff e 0 sem unidade dentro de style; sem margem negativa."""
+    t = preparar_pasta("1711")
+    rc, out, _ = rodar("1711", t)
+    html = corpo(out)
+    estilos = re.findall(r'style="([^"]*)"', html)
+    ok(rc == 0 and not any("#ffffff" in e for e in estilos) and not any(re.search(r"\b0px\b", e) for e in estilos),
+       "sem #ffffff nem 0px dentro de style")
+    ok(not any(re.search(r"margin[\w-]*:[^;]*-\d", e) for e in estilos), "nenhuma margem negativa")
+    ok('bgcolor="#ffffff"' in html, "atributo bgcolor intacto")
+    ok(PLANALTO_TITULO_6PX in html and "font-style:italic;margin:0 0 12px 14px\">" + M.FRASE_PLANALTO in html,
+       "frase do Planalto: titulo 6px + frase sem margem negativa")
+    ok(M.px(0) == "0" and M.px(14) == "14px", "px()")
 
 
 def main():
