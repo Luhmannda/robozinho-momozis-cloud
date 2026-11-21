@@ -14,7 +14,9 @@
 #   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade);
 #   listagem ilegivel le os vinculados (rev1 C3); NOVA EDICAO de vinculado sem
 #   ano (rev1 C4); teto do paralelo limita o processo e o curl/pdftotext (C5);
-#   "será realizada no dia" so vira prova objetiva com "prova" na frase (C10).
+#   "será realizada no dia" so vira prova objetiva com "prova" na frase (C10);
+#   motivo da releitura sem confirmacao (E-min d); CANDIDATO com a evidencia do
+#   ciclo (ordinal/ano, abertura do edital, inscricoes) ou "não grave" (E5).
 # USO: python3 work/testes/test_bancas.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -313,8 +315,8 @@ def coleta_vinculo_candidato_travas_e_contagem():
     txt = saida(res)
     for trecho in (
             'CANDIDATO dpe_rj ← dperj2026 | Em Andamento | Concurso Público para a Defensoria Pública do Estado do Rio de '
-            'Janeiro | últ. 03/11 Prova Específica Dissertativa | ' + B + '/concursos/dperj2026 → confirme o ciclo '
-            '(ordinal/ano) e grave ledger_updates.concursos.dpe_rj.banca_slug="dperj2026"',
+            'Janeiro | últ. 03/11 Prova Específica Dissertativa | ' + B + '/concursos/dperj2026 | ciclo na página: ano '
+            '2026 (slug) → confirme o ciclo e grave ledger_updates.concursos.dpe_rj.banca_slug="dperj2026"',
             'CANDIDATO a registro NOVO enam ← exames/enam/6exame |',
             'banca_slug="exames/enam/6exame"',
             'NOVA EDIÇÃO? tjscjuiz27 |', 'tjsc_juiz está vinculado a tjscjuiz26',
@@ -443,6 +445,44 @@ def motivo_da_releitura_sem_confirmacao():
              ({"fonte": fgv, "prazos": pz(True), "selo": "EM ANDAMENTO"}, "")]
     for reg, esperado in casos:
         ok(bancas.motivo_releitura(c, [dict(reg, id="tjsc_juiz")], hoje) == esperado, (reg, esperado))
+
+
+@teste
+def candidato_com_evidencia_do_ciclo():
+    """E5: a linha CANDIDATO traz o que confirma o ciclo sem abrir a pagina — ordinal do titulo, ano do slug, trecho
+    de abertura do edital lido hoje (todo candidato rele o edital) e inscricoes, com o ordinal do registro ao lado;
+    sem nada disso, "não grave banca_slug hoje" (o trf2juiz saia so com o titulo generico)."""
+    ok(bancas.abertura_edital("RETIFICADO EM 28 DE ABRIL DE 2025 EDITAL DE ABERTURA Nº01/2025 XVIII CONCURSO PÚBLICO "
+                              "PARA PROVIMENTO DE CARGOS DE JUIZ FEDERAL SUBSTITUTO E DE JUÍZA FEDERAL SUBSTITUTA DO "
+                              "TRIBUNAL") == "EDITAL DE ABERTURA Nº01/2025 XVIII CONCURSO PÚBLICO PARA PROVIMENTO DE "
+                                            "CARGOS DE JUIZ FEDERAL…", "abertura TRF1")
+    trf2 = [{"id": "trf2_juiz", "bloco": "Magistratura Federal", "selo": "EM ANDAMENTO", "verificado_em": "2026-11-20",
+             "linha": "TRF2 — Juiz Federal Substituto (XIX concurso): sentenças corrigidas", "fonte": "https://x.com/t"}]
+    tit = "Concurso Público para o Tribunal Regional Federal da 2ª Região"
+    arqs = [("2026-05-20", "Resultado Definitivo da Prova Objetiva Seletiva", PDF + "trf2-res.pdf"),
+            ("2025-12-10", "Edital (retificado em 17/12/2025)", PDF + "edital-trf2.pdf")]
+    EDITAIS[PDF + "edital-trf2.pdf"] = ("TRIBUNAL REGIONAL FEDERAL DA 2ª REGIÃO EDITAL TRF2 Nº 154/2025 RETIFICADO EM "
+                                        "17 DE DEZEMBRO DE 2025 PELO EDITAL TRF2 Nº 157/2025 EDITAL DE ABERTURA O "
+                                        "presente edital torna pública a realização do XIX Concurso público de provas e "
+                                        "títulos para provimento de cargos de Juiz Federal Substituto da 2ª Região.")
+    r = bancas.analisar([pag("trf2juiz", tit, arqs)], HOJE, copy.deepcopy(trf2), {}, ler=ler_falso)
+    ok(r[0]["exibir"] == "candidato" and r[0]["releitura"] == "candidato: ciclo no edital"
+       and r[0]["ordinal_registro"] == {"trf2_juiz": "XIX"}, (r[0]["exibir"], r[0].get("releitura")))
+    lin = [l for l in saida({"http": 200, "concursos": r}).splitlines() if l.startswith("CANDIDATO")]
+    ok(len(lin) == 1 and '| ciclo na página: edital "EDITAL TRF2 Nº 154/2025 … XIX Concurso público de provas e '
+       'títulos para provimento de cargos de…" (registro: trf2_juiz XIX) → confirme o ciclo e grave '
+       'ledger_updates.concursos.trf2_juiz.banca_slug="trf2juiz"' in lin[0] and len(lin[0]) < 520, lin)
+    # sem evidencia (titulo generico, slug sem ano, edital ilegivel): nao manda gravar
+    del EDITAIS[PDF + "edital-trf2.pdf"]
+    r = bancas.analisar([pag("trf2juiz", tit, arqs)], HOJE, copy.deepcopy(trf2), {}, ler=ler_falso)
+    lin = [l for l in saida({"http": 200, "concursos": r}).splitlines() if l.startswith("CANDIDATO")]
+    ok(len(lin) == 1 and lin[0].endswith("| sem ordinal/ano na página: não grave banca_slug hoje")
+       and 'banca_slug="' not in lin[0], lin)
+    # o titulo com ordinal e as inscricoes do edital tambem sao evidencia
+    c = {"slug": "mpes25promotor", "titulo": "XIV Concurso para Promotor de Justiça",
+         "inscricoes": {"inicio": "2025-03-17", "fim": "2025-04-16"}}
+    ok(bancas.evidencia_ciclo(c) == "título XIV; ano 2025 (slug); inscrições 17/03/2025 a 16/04/2025",
+       bancas.evidencia_ciclo(c))
 
 
 # ------------------------------------------------------------------ vinculo e travas (analisar direto)

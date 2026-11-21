@@ -63,7 +63,11 @@
 # tjpb_apoio -> tjpb; slug sem ano e sem cargo: dperj2026 -> dperj) + cargo
 # (slug/titulo; sem cargo, o edital decide entre os registros da organizacao):
 #   - registro sem vinculo: CANDIDATO (1 linha pronta para o orquestrador gravar
-#     banca_slug; nao cobre). Travas de ciclo: ordinal do titulo/edital diferente
+#     banca_slug; nao cobre), com a evidencia do ciclo para confirma-lo sem abrir
+#     a pagina (E5): ordinal do titulo, ano do slug, abertura do edital (relido
+#     para todo candidato: numero/ano e ordinal) e inscricoes, com o ordinal do
+#     registro ao lado; sem nada disso, "não grave banca_slug hoje". Travas de
+#     ciclo: ordinal do titulo/edital diferente
 #     do da linha do registro (XXXIX x XL), slug do ano seguinte (SEM REGISTRO,
 #     ciclo seguinte) ou de 2+ anos antes, registro EM PLANEJAMENTO x edital de
 #     abertura com mais de PLANEJAMENTO_DIAS, exame que nao e a edicao mais nova
@@ -441,6 +445,31 @@ def datas_trecho(trecho):
     return out
 
 
+# "EDITAL DE ABERTURA Nº01/2025", "EDITAL TRF2 Nº 154/2025", "EDITAL N.° 33/2026", "EDITAL DE ABERTURA N. 02/2026"
+RE_NUM_EDITAL = re.compile(r"\bEDITAL\b[^.]{0,40}?\bN\s?(?:[º°o]|\.\s?[º°]?)?\s*\d{1,4}/\d{4}", re.I)
+ABERTURA_MAX = 120
+
+
+def abertura_edital(t):
+    """Trecho do comeco do edital que da o ciclo (E5): numero/ano do edital e o ordinal do concurso ou exame, juntos
+    quando vizinhos ("EDITAL DE ABERTURA Nº01/2025 XVIII CONCURSO PÚBLICO PARA…"; TRF2: "EDITAL TRF2 Nº 154/2025 …
+    XIX Concurso público de provas…"). None sem nenhum dos dois nos primeiros 2500 caracteres."""
+    cab = (t or "")[:2500]
+    me, mo = RE_NUM_EDITAL.search(cab), RE_ORDINAL.search(cab)
+    partes = sorted(([(me.start(), me.end())] if me else []) + ([(mo.start(), min(len(cab), mo.end() + 60))] if mo else []))
+    if not partes:
+        return None
+    if len(partes) == 2 and partes[1][0] - partes[0][1] <= 8:       # vizinhos ("Nº01/2025 XVIII", "3/2026 do XL")
+        partes = [(partes[0][0], max(partes[0][1], partes[1][1]))]
+    segs = []
+    for a, b in partes:
+        seg = cab[a:b].strip()
+        if mo and b == min(len(cab), mo.end() + 60) and b < len(cab):     # janela do ordinal cortada: na palavra
+            seg = seg.rsplit(" ", 1)[0] + "…"
+        segs.append(seg)
+    return _curto(" … ".join(segs), ABERTURA_MAX)
+
+
 def ler_edital(c, ler=texto_pdf):
     """{campos} do edital de abertura (PDF da banca) e, se houver retificacao posterior ao texto consolidado, do
     trecho de inscricoes do LEIA-SE dela: edital_url, edital, retificacao_inscricoes, inscricoes | edital_erro.
@@ -454,6 +483,9 @@ def ler_edital(c, ler=texto_pdf):
         return {"edital_erro": erro}
     out["edital_url"] = alvo["url"]
     out["edital"] = trechos(t)
+    ab = abertura_edital(t)
+    if ab:
+        out["abertura"] = ab
     consolidado = data_efetiva(alvo) if RE_RETIFICADO.search(alvo["titulo"]) else ""
     rets = [a for a in c["arquivos"] if RE_RETIFICACAO.search(a["titulo"]) and a["url"]
             and not a["titulo"].lower().startswith("edital") and a.get("data_efetiva", a["data"]) > consolidado]
@@ -572,9 +604,10 @@ def abertura_recente(c, hoje):
 
 def motivo_releitura(c, regs, hoje):
     if not regs:
-        # sem registro: so o candidato sem cargo (o edital decide) e o concurso novo com arquivo novo
-        if c.get("candidatos") and c.get("cargo_incerto"):
-            return "cargo do candidato não identificado"
+        # sem registro: o candidato (o edital decide o cargo incerto e da a evidencia do ciclo: E5) e o concurso novo
+        # com arquivo novo
+        if c.get("candidatos"):
+            return "cargo do candidato não identificado" if c.get("cargo_incerto") else "candidato: ciclo no edital"
         if c.get("novos_arquivos") and (c.get("ciclo_seguinte") or abertura_recente(c, hoje)) and not apoio_fora(c):
             return "concurso sem registro"
         return ""
@@ -966,6 +999,9 @@ def analisar(alvo, hoje, concursos, estado=None, ler=texto_pdf):
                     c["mesma_sigla"] = [r["id"] for r in cand]
                 c["cargo_incerto"] = bool(so) and not certo
         regs = [por_id[i] for i in c["registros"] if i in por_id]
+        # o ordinal da linha de cada candidato, ao lado da evidencia do ciclo na linha CANDIDATO (E5)
+        ords = {i: "/".join(ordinais(por_id[i].get("linha")).values()) for i in c.get("candidatos") or [] if i in por_id}
+        c["ordinal_registro"] = {i: o for i, o in ords.items() if o}
         # coberto = a pagina oficial deste registro foi lida hoje: o coletor nao gasta busca com ele
         c["coberto"] = c["registros"] if (len(c["registros"]) == 1 and c.get("http") == 200
                                           and c.get("arquivos")) else []
@@ -1266,6 +1302,38 @@ def _completo(c):
         print('DIVERGE DO REGISTRO: %s edital="%s" registro="%s"' % (d["id"], d["edital"], d["registro"]))
 
 
+def _dmy(iso):
+    return "%s/%s/%s" % (iso[8:10], iso[5:7], iso[:4])
+
+
+def evidencia_ciclo(c):
+    """O que a pagina do CANDIDATO diz do ciclo, para confirma-lo sem abrir a pagina (E5): ordinal do titulo, ano do
+    slug (ou a edicao do exame), trecho de abertura do edital lido hoje (numero/ano e ordinal) e as inscricoes dele;
+    ao lado, o ordinal da linha do registro (c["ordinal_registro"], de analisar). '' sem nada disso: o orquestrador
+    nao grava banca_slug no escuro (o trf2juiz saia so com o titulo generico)."""
+    partes = []
+    o = ordinais(c.get("titulo"))
+    if o:
+        partes.append("título %s" % "/".join(o.values()))
+    if c["slug"].startswith("exames/"):
+        n = ciclo(c["slug"])
+        if n:
+            partes.append("edição %d (slug)" % n)
+    else:
+        ano = partes_slug(c["slug"])[1]
+        if ano:
+            partes.append("ano %d (slug)" % ano)
+    if c.get("abertura"):
+        partes.append('edital "%s"' % c["abertura"])
+    ins = c.get("inscricoes") or {}
+    if ins.get("inicio") and ins.get("fim"):
+        partes.append("inscrições %s a %s" % (_dmy(ins["inicio"]), _dmy(ins["fim"])))
+    if not partes:
+        return ""
+    reg = ["%s %s" % (i, o) for i, o in sorted((c.get("ordinal_registro") or {}).items())]
+    return "; ".join(partes) + (" (registro: %s)" % ", ".join(reg) if reg else "")
+
+
 def _ult(c):
     a = (c.get("arquivos") or [None])[0]
     return ("últ. %s %s" % (dm(a.get("data_efetiva") or a["data"]), _curto(a["titulo"], 60))) if a else "sem arquivos"
@@ -1289,12 +1357,16 @@ def imprimir(res):
         _completo(c)
     for c in grupos.get("candidato", []):
         ids = c["candidatos"]
-        print('CANDIDATO %s ← %s | %s | %s | %s | %s%s → confirme o ciclo (ordinal/ano) e grave '
-              'ledger_updates.concursos.%s.banca_slug="%s"' % (
-                  " ou ".join(ids), c["slug"], c.get("situacao") or "?", _curto(c.get("titulo"), 90), _ult(c),
-                  c["url"], (" (cargo não identificado: confirme qual)" if len(ids) > 1 else
-                             " (cargo não identificado no título nem no edital)") if c.get("cargo_incerto") else "",
-                  ids[0] if len(ids) == 1 else "<id>", c["slug"]))
+        ev = evidencia_ciclo(c)
+        cargo = ((" (cargo não identificado: confirme qual)" if len(ids) > 1 else
+                  " (cargo não identificado no título nem no edital)") if c.get("cargo_incerto") else "")
+        if ev:
+            fim = ' | ciclo na página: %s%s → confirme o ciclo e grave ledger_updates.concursos.%s.banca_slug="%s"' % (
+                ev, cargo, ids[0] if len(ids) == 1 else "<id>", c["slug"])
+        else:
+            fim = " | sem ordinal/ano na página: não grave banca_slug hoje%s" % cargo
+        print("CANDIDATO %s ← %s | %s | %s | %s | %s%s" % (
+            " ou ".join(ids), c["slug"], c.get("situacao") or "?", _curto(c.get("titulo"), 90), _ult(c), c["url"], fim))
     for c in grupos.get("exame", []):
         x = c["exame_sem_registro"]
         print('CANDIDATO a registro NOVO %s ← %s | %s | %s | %s | %s → exame nacional sem registro: crie '
