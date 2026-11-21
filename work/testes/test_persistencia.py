@@ -379,6 +379,31 @@ def validar_nao_grava_nem_o_envelope():
     ok(rc == 0 and "VALIDACAO: OK" in out and not os.path.exists(os.path.join(d, "hist.json")), out[-400:])
 
 
+@teste
+def r1_exige_window_end_do_rascunho_achado():
+    d = pasta_helper()
+    j = ler(os.path.join(d, "janela.json"))
+    j["fim"] = "2026-11-23T16:40:00-03:00"            # re-execucao a tarde (sessao da manha caiu antes do push)
+    gravar(os.path.join(d, "janela.json"), j)
+    base = {"delivery": "draft_ja_existente", "items": [], "verification_notes": ["rascunho r-manha achado"]}
+    rc, out = rodar_helper(d, base)
+    ok(rc == 2 and "ERRO: window_end ausente — §R1:" in out and "(2026-11-23T16:40:00-03:00)" in out
+       and "campo obrigatorio ausente: window_end" not in out, out[-600:])
+    rc, out = rodar_helper(d, dict(base, window_end="2026-11-23T17:00:00-03:00"))
+    ok(rc == 2 and "depois desta re-execução" in out, out[-400:])
+    rc, out = rodar_helper(d, dict(base, window_end="2026-11-23T07:14:00-03:00"))
+    ok(rc == 0 and "STATUS: OK" in out and "itens de noticia" not in out, out[-600:])
+    est = ler(os.path.join(d, "robozinho-estado.json"))
+    ok(est["ultima_execucao"]["window_end"] == "2026-11-23T07:14:00-03:00", est["ultima_execucao"])
+    # registro de hoje ja existe: nada muda (o janela.fim nao importa, nada e gravado)
+    rc, out = rodar_helper(d, base)
+    ok(rc == 0 and "nada a gravar (duplicata" in out, out[-300:])
+    # execucao normal: o helper continua completando o window_end do inicio.py
+    d = pasta_helper()
+    rc, out = rodar_helper(d, {"delivery": "draft", "items": itens(12)}, "--draft-id", "r1")
+    ok(rc == 0 and ler(os.path.join(d, "hist.json"))["executions"][-1]["window_end"] == "2026-11-23T07:05:00-03:00", out)
+
+
 def main():
     for t in TESTES:
         try:

@@ -1515,7 +1515,8 @@ def helper_relatorio_sem_ruido():
     uh.aplicar_updates(led, {"concursos": {"ofi": {}}, "pendencias": {"ofi_verificar": {}}}, "2026-11-17", log.append)
     ok(log == [], "update vazio não é registrado: %r" % log)
     d = pasta_helper()
-    rc, out = rodar_helper(d, {"delivery": "draft_ja_existente", "items": [], "source_status": {}}, "--draft-id", "r1")
+    rc, out = rodar_helper(d, {"delivery": "draft_ja_existente", "items": [], "source_status": {},
+                               "window_end": "2026-11-18T07:04:00-03:00"}, "--draft-id", "r1")   # §R1 escreve
     ok(rc == 0 and "STATUS: OK" in out and "nao foi a edicao" not in out, out)
     d = pasta_helper()
     rc, out = rodar_helper(d, {"delivery": "draft", "items": [], "source_status": {}}, "--draft-id", "r1")

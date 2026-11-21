@@ -206,6 +206,43 @@ def completar_cabecalho(ex, caminho_janela):
     return preenchidos
 
 
+def janela_fim(caminho_janela):
+    try:
+        return read_json(caminho_janela).get("fim")
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def _instante(v):
+    try:
+        t = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else None
+
+
+def erros_window_end_r1(ex, erros, fim_inicio):
+    """§R1: window_end obrigatorio e escrito pelo orquestrador (data do rascunho achado ou do envio, -03:00), entre
+    o inicio da janela e a hora desta re-execucao (o fim da janela do inicio.py)."""
+    erros = [e for e in erros if e != "campo obrigatorio ausente: window_end"]
+    we = ex.get("window_end")
+    if we in (None, ""):
+        return erros + ["window_end ausente — §R1: escreva \"window_end\" = a data/hora em que o rascunho achado foi "
+                        "criado (list_drafts) ou a edição foi enviada (search_threads in:sent), em -03:00; o fim da "
+                        "janela do inicio.py (%s) é a hora desta re-execução e deixaria sem cobertura o que saiu "
+                        "entre a edição achada e agora" % (fim_inicio or "?")]
+    t, ini, fim = _instante(we), _instante(ex.get("window_start")), _instante(fim_inicio)
+    if t is None:
+        return erros + ["window_end %r: use AAAA-MM-DDTHH:MM:SS-03:00 (§R1: data do rascunho ou do envio achado)" % we]
+    if ini and t < ini:
+        return erros + ["window_end %s antes do início da janela (%s) — §R1: a data do rascunho ou do envio achado"
+                        % (we, ex.get("window_start"))]
+    if fim and t > fim:
+        return erros + ["window_end %s depois desta re-execução (%s) — §R1: a data do rascunho ou do envio achado"
+                        % (we, fim_inicio)]
+    return erros
+
+
 def checar_repeticao(ex, execucoes, chaves_anteriores):
     """Avisos de materia ja publicada por outra fonte e de duplicata dentro
     da propria edicao (work/repeticao.py). So no modo --validar."""
@@ -1310,7 +1347,18 @@ def executar(args, add_log, emitir):
         for it in e.get("items") or []
         if it.get("chave")
     }
+    # §R1 (verified[45]): a edicao de hoje ja existe sem registro (sessao que caiu antes do finalizar.sh). O fim da
+    # janela do inicio.py e a hora DESTA re-execucao: grava-lo como window_end pularia tudo o que saiu entre a edicao
+    # achada e agora. O orquestrador escreve a data do rascunho/envio achado; o helper nao completa o campo.
+    r1 = (not args.validar and nova_exec.get("delivery") == "draft_ja_existente"
+          and not any(e.get("execution_id") == nova_exec["execution_id"] for e in historico["executions"]))
+    fim_inicio = None
+    if r1 and "window_end" in preenchidos:
+        fim_inicio = nova_exec.pop("window_end")
+        preenchidos.remove("window_end")
     erros, avisos = validar(nova_exec, chaves_anteriores, pre_rascunho=args.validar)
+    if r1:
+        erros = erros_window_end_r1(nova_exec, erros, fim_inicio or janela_fim(args.janela))
     banca_res = ler_banca(args.bancas, nova_exec.get("date"))
     led_atual = None
     if args.ledger_path and os.path.exists(args.ledger_path):
@@ -1588,7 +1636,9 @@ def executar(args, add_log, emitir):
                           if f.get("tipo") in ("nacional", "justica_federal")]
     except Exception:  # noqa: BLE001
         pass
-    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")) and not feriado_janela:
+    # §R1 (draft_ja_existente, sem itens): a contagem baixa e do registro, nao de fonte em falha — sem ALERTA
+    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")) and not feriado_janela \
+            and ultima.get("delivery") != "draft_ja_existente":
         add_log("ALERTA: so %d itens de noticia (fora concursos/versiculo/Munger) numa janela "
                 "fora do recesso — sinal de falha de fonte; conferir os coletores."
                 % metricas["itens_noticia_ultima"])
