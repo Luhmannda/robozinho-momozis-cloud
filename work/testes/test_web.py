@@ -658,6 +658,27 @@ def coleta_conjur_pela_api():
         assert coleta_web.conjur(*_janela(*J2011), set())["via"] == "html"
 
 
+@teste
+def coleta_conjur_api_class_list_objeto():
+    """(rev2 R7) O WordPress serializa o class_list com buracos (array_unique/filter) como objeto {"0": ..., "3": ...}:
+    o tipo sai dos valores — antes todo post virava noticia (artigo/coluna no meio das noticias, Estudio sem PROMO)."""
+    posts = json.load(open(os.path.join(FIX, "conjur-api-2011.json"), encoding="utf-8"))
+    for p in posts:
+        p["class_list"] = {str(n * 2): c for n, c in enumerate(p["class_list"])}
+    api, art = json.dumps(posts), pagina_fixture("conjur-artigo-c19-2011.html")
+    inicio, fim = J2011[0], datetime.fromisoformat("2026-11-20T16:00:00-03:00")
+    with Rede(lambda u: (200, api) if "/wp-json/" in u else (200, art)):
+        out = coleta_web.conjur(*_janela(inicio, fim), set())
+    tipos = {i["titulo"][:20]: (i["tipo"], i["situacao"]) for i in out["itens"]}
+    assert tipos["Sequestro de bens: o"] == ("artigo", "NOVA") and tipos["Tema 222 do TST: nem"][0] == "coluna", tipos
+    assert tipos["Livros sobre advocac"] == ("noticia", "PROMO"), tipos           # tipos-estudio
+    assert [i["tipo"] for i in out["itens"]][-2:] == ["artigo", "coluna"]
+    # valor que nao e texto no class_list nao derruba o item
+    posts[0]["class_list"] = {"0": None, "1": 7, "2": "tipos-artigos"}
+    with Rede(lambda u: (200, json.dumps(posts[:1])) if "/wp-json/" in u else (200, art)):
+        assert coleta_web.conjur(*_janela(inicio, fim), set())["itens"][0]["tipo"] == "artigo"
+
+
 def _h2(url, tit="T"):
     return '<h2 class="conjur-posts-tipo-titulo"><a href="https://conjur.com.br/%s">%s</a></h2>' % (url, tit)
 

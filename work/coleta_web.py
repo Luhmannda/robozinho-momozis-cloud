@@ -992,7 +992,10 @@ def _item_api(p, inicio, fim, recorte):
         quando = datetime.fromisoformat(p["date_gmt"] + "+00:00").astimezone(TZ)
     except (KeyError, TypeError, ValueError):
         return None
-    tipo = next((TIPOS_WP[c] for c in p.get("class_list") or [] if c in TIPOS_WP), "noticia")
+    classes = p.get("class_list") or []
+    if isinstance(classes, dict):   # o WordPress serializa a lista com buracos como objeto {"0": "post-1", "3": ...}
+        classes = list(classes.values())
+    tipo = next((TIPOS_WP[c] for c in classes if isinstance(c, str) and c in TIPOS_WP), "noticia")
     titulo = limpa(((p.get("title") or {}).get("rendered")) or "")
     y = p.get("yoast_head_json") or {}
     corpo = ((p.get("content") or {}).get("rendered")) or ""
