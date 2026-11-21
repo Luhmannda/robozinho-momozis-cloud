@@ -793,6 +793,10 @@ def coleta_migalhas_paginado():
               "STF realiza audiência pública sobre a escala 6x1", "Advogado é preso suspeito de sequestrar namorada",
               "Professor é condenado por assédio"):
         assert not coleta_web.PROMO.search(t) and not coleta_web.OPINIAO_DISFARCADA.search(t), t
+    for t in ("Juiz decide na sexta-feira de manhã sobre prisão", "TJ-SP realiza mutirão na segunda-feira",
+              "STF realiza audiência pública sobre a escala 6x1", "Advogado é preso suspeito de sequestrar namorada",
+              "Professor é condenado por assédio"):
+        assert not coleta_web.eh_promo(t) and not coleta_web.eh_opiniao_disfarcada(t), t
     # pagina 2 sem URL nova (o site ignorou ?pagina=): para, parcial
     with Rede(lambda u: (200, pags["1"]) if "quentes" in u and "/quentes/" not in u else resp(u)):
         out = coleta_web.migalhas(*_janela(*J2011), set())
@@ -807,6 +811,55 @@ def coleta_migalhas_paginado():
         coleta_web.ORCAMENTO_PAGINACAO = antigo
     assert out["orcamento"] == 2 and out["paginas"] == 1 and out["cobertura"] == "parcial", out
     assert any("site lento: parou antes da página 2" in l for l in coleta_web.imprimir([out], *_janela(*J2011)))
+
+
+@teste
+def coleta_promo_nao_esconde_julgado():
+    """(rev2 R3) PROMO e opiniao disfarcada tiram o item do indice: nunca um julgado. live/podcast/videocast/webinario
+    e feira so no inicio do titulo ou com verbo de evento; opiniao so com o verbo logo depois do sujeito no inicio (ou
+    ', alerta advogado' no fim); nada com verbo de decisao, tribunal ou julgador. Os 991 titulos publicados ate 20/11
+    (Midia, STJ/STF Noticias, Fofoquinha, Opiniao) nao viram PROMO nem opiniao; a propaganda real continua so contada."""
+    julgados = ["Advogado pagará custas após Justiça apontar litigância predatória",
+                "TSE: live de Bolsonaro no Alvorada configurou abuso de poder político",
+                "Live de Bolsonaro foi abuso de poder, diz TSE", "Juiz anula prova obtida em podcast",
+                "Advogado não pode ser preso por defender cliente em podcast, avalia STJ",
+                "Feira de rua sem licença deve ser fechada, decide TJ-SP", "Justiça anula sorteio de vagas em creche",
+                "Especialista: STF errou ao modular efeitos", "Advogado apontado como chefe de facção é condenado",
+                "Advogados alertam que decisão do STJ muda cálculo de honorários",
+                "Desembargador participa de live e é alvo de reclamação no CNJ"]
+    for t in julgados:
+        assert not coleta_web.eh_promo(t) and not coleta_web.eh_opiniao_disfarcada(t), t
+    assert coleta_web.OPINIAO_DISFARCADA.search(julgados[0]) is None             # antes: "Advogado ... apontar"
+    propaganda = ["Sorteio de livros para leitores do Migalhas", "Live debate a reforma tributária nesta quinta",
+                  "Podcast do Migalhas conversa com tributarista", "Webinário gratuito discute LGPD",
+                  "CropLife Brasil aborda endividamento do agro em episódio do videocast \"Caminhos do Agro\"",
+                  "Escritório transmite ao vivo podcast sobre compliance",
+                  "OAB/RJ realiza \"Feira de Estágios de 2026\" no dia 25/11", "Feira do livro jurídico abre inscrições",
+                  "Biografia do criminalista Nélio Machado será lançada em 1º/12, no Rio",
+                  "AJER promove debate sobre inclusão racial e ascensão de negros no Direito"]
+    for t in propaganda:
+        assert coleta_web.eh_promo(t), t
+    opiniao = ["Advogado aponta impactos de inspeções do CNJ no mercado de precatórios",
+               "Especialistas apontam riscos da tokenização de imóveis", "Professora avalia a nova lei de alimentos",
+               "Pena maior pode equiparar homicídios culposo e doloso, alerta advogado",
+               "Especialista: GTA 6 amplia debate sobre licenciamento digital e direitos dos gamers"]
+    for t in opiniao:
+        assert coleta_web.eh_opiniao_disfarcada(t), t
+    # live/podcast/feira no meio do titulo, sem verbo de evento: nao e PROMO
+    for t in ("Influenciador é investigado por declarações em live", "Município regula feira de artesanato"):
+        assert not coleta_web.eh_promo(t), t
+    # o historico publicado: nenhum titulo escondido
+    pub = ler("titulos-publicados-ate-2011.json")["titulos"]
+    assert sum(len(v) for v in pub.values()) == 991 and len(pub["Mídia"]) == 438
+    escondidos = [(c, t) for c, ts in pub.items() for t in ts
+                  if coleta_web.eh_promo(t) or coleta_web.eh_opiniao_disfarcada(t)]
+    assert not escondidos, escondidos
+    # de ponta a ponta: o julgado fica NOVA (com id no indice), a propaganda vira PROMO
+    r = {"fonte": "migalhas", "itens": [{"situacao": "NOVA", "titulo": t, "url": "https://www.migalhas.com.br/quentes/"
+                                         "%d/x" % n} for n, t in enumerate(julgados + propaganda + opiniao)]}
+    coleta_web.marcar_promo_e_repetidas([r], [])
+    sit = {i["titulo"]: i["situacao"] for i in r["itens"]}
+    assert all(sit[t] == "NOVA" for t in julgados) and all(sit[t] == "PROMO" for t in propaganda + opiniao), sit
 
 
 @teste

@@ -39,7 +39,8 @@
 #   materias contra as URLs ja publicadas; e, por semelhanca de titulo
 #   (work/repeticao.py), materia que ja saiu por OUTRA fonte ganha a marca
 #   [REPETIDA?~chave] — o orquestrador nao precisa ler as chaves publicadas.
-# - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados).
+# - Sorteios e eventos promocionais do Migalhas/ConJur viram PROMO (so contados); nunca
+#   titulo com verbo de decisao, tribunal ou julgador (eh_promo/eh_opiniao_disfarcada).
 #
 # - Cada item publicavel ganha um id curto (lei15527, mpv1400, cam2, c7, m3): o
 #   orquestrador cita o id em $ROBOZINHO_TMP/execucao.json ({"ref": "c7", ...}) e o
@@ -135,21 +136,34 @@ CAM_INTERNO = re.compile(r"\bPRC\b|projeto de resolu[çc][ãa]o|\bselos?\b|\bmed
                          r"\bSemana Nacional\b|\bM[êe]s Nacional\b|honra ao m[ée]rito|t[íi]tulo de cidad", re.I)
 CAM_DUVIDA = re.compile(r"plen[aá]rio|sancion|promulg|\bvetos?\b|medidas? provis[oó]rias?", re.I)
 IGNORAR_EXEC = ""   # re-execucao (inicio.py --refazer): a edicao de hoje nao conta como publicada
-PROMO = re.compile(r"^\s*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
+# PROMO e opiniao disfarcada saem do indice (so contadas): na duvida, NAO esconder. (rev2 R3) "live|podcast" em
+# qualquer posicao, "feira d..." solto e sujeito + verbo a 60 caracteres escondiam julgado real ("Advogado pagara custas
+# apos Justica apontar litigancia predatoria"; "TSE: live de Bolsonaro... abuso de poder"; "Juiz anula prova obtida em
+# podcast"): live/webinario/videocast/podcast e feira so no inicio do titulo ou com verbo de evento, e nada com verbo
+# de decisao, tribunal ou julgador no titulo vira PROMO nem opiniao disfarcada (eh_promo, eh_opiniao_disfarcada).
+PROMO = re.compile(r"^\W*sorteio\b|\bsorteio d[aoe]\b|\bpromove (congresso|semin[aá]rio|evento|"
                    r"webin[aá]rio|curso|encontro|jornada)\b|\blan[cç]amento d[eo] livro\b|"
                    # (21/11, Migalhas p. 2-6) cursinho, evento, feira, live, lancamento
-                   r"\baula (?:ao vivo|gratuita|inaugural)\b|\b(?:live|webin[aá]rio|videocast|podcast)\b|"
-                   r"(?<![-\w])feira d[aeo]s?\b|\b(?:realiza|promove|participa d[aoe]s?|homenage\w*)\b.{0,40}?(?<![-\w])(?:feira|congresso|"
+                   r"\baula (?:ao vivo|gratuita|inaugural)\b|^\W*(?:live|webin[aá]rio|videocast|podcast|feira d[aeo]s?)\b|"
+                   r"\b(?:realiza|promove|participa d[aoe]s?|homenage\w*)\b.{0,40}?(?<![-\w])(?:feira|congresso|"
                    r"semin[aá]rio|evento|encontro|jornada|debate|palestra|f[óo]rum|webin[aá]rio|curso|aula|videocast|"
-                   r"podcast|live|pr[eê]mio)\b|\b(?:livros?|obras?|biografia)\b.{0,60}?\bser[aáã]o? lan[cç]ad[oa]s?\b|"
+                   r"podcast|live|pr[eê]mio)\b|"
+                   r"\b(?:aborda|apresenta|debate|discute|comenta|analisa|explica|estreia|lan[cç]a|transmite|"
+                   r"entrevista)\w*\b.{0,40}?\b(?:live|webin[aá]rio|videocast|podcast)\b|"
+                   r"\b(?:livros?|obras?|biografia)\b.{0,60}?\bser[aáã]o? lan[cç]ad[oa]s?\b|"
                    r"\blan[cç]a (?:livro|obra|biografia)\b", re.I)
-# Opiniao disfarcada de noticia (so contada, como PROMO): "Especialista: ...", "Advogado aponta ...",
-# "..., alerta advogado"
-OPINIAO_DISFARCADA = re.compile(r"^\s*especialistas?\s*:|^\s*(?:especialistas?|advogad[oa]s?|tributaristas?|"
-                                r"professor[ae]?s?|juristas?|consultor[ae]?s?)\b.{0,60}?\b(?:aponta|alerta|explica|"
-                                r"comenta|analisa|avalia|orienta|esclarece|lista|recomenda)\w*\b|"
-                                r",\s*(?:aponta|alerta|explica|avalia|diz|afirma)\s+(?:advogad[oa]|especialista|"
+# Opiniao disfarcada de noticia (so contada, como PROMO): "Especialista: ...", "Advogado aponta ..." (o verbo logo
+# depois do sujeito, no inicio), "..., alerta advogado"
+OPINIAO_DISFARCADA = re.compile(r"^\W*especialistas?\s*:|^\W*(?:especialistas?|advogad[oa]s?|tributaristas?|"
+                                r"professor(?:a|es|as)?|juristas?|consultor(?:a|es|as)?)\s+(?:aponta|alerta|explica|"
+                                r"comenta|analisa|avalia|orienta|esclarece|lista|recomenda)m?\b|"
+                                r",\s*(?:aponta|alerta|explica|avalia|diz|afirma)m?\s+(?:advogad[oa]|especialista|"
                                 r"tributarista|professor[a]?|jurista)s?\s*$", re.I)
+# veto (rev2 R3): tribunal (sigla, sem os conselhos CNJ/CNMP) ou julgador no titulo; o verbo de decisao e o DECISAO
+TRIBUNAL_TITULO = re.compile(r"\b(?:STF|STJ|TST|TSE|STM|TCU|TNU|TJM?|TRE|TRF|TRT)(?:[-/ ]?(?:[A-Z]{2}|\d{1,2}))?\b")
+JULGADOR_TITULO = re.compile(r"\b(?:supremo|tribuna(?:l|is)|ju[íi]z(?:a|es|as)?|desembargador(?:a|es|as)?|"
+                             r"ministr[oa]s?|relator(?:a|es|as)?|turmas?|plen[áa]rio|corte|colegiado|magistrad[oa]s?)\b",
+                             re.I)
 
 
 def _fetch1(url, timeout):
@@ -1246,6 +1260,22 @@ def migalhas(inicio, fim, recorte, urls_pub):
     return out
 
 
+def julgado_no_titulo(titulo):
+    """Verbo de decisao (DECISAO), tribunal ou julgador no titulo: o item nunca vira PROMO nem opiniao disfarcada."""
+    t = titulo or ""
+    return bool(DECISAO.search(t) or TRIBUNAL_TITULO.search(t) or JULGADOR_TITULO.search(t))
+
+
+def eh_promo(titulo):
+    """Sorteio, evento, curso, live/podcast, lancamento de livro (so contado) — nunca com julgado no titulo."""
+    return bool(PROMO.search(titulo or "")) and not julgado_no_titulo(titulo)
+
+
+def eh_opiniao_disfarcada(titulo):
+    """'Especialista: ...', 'Advogado alerta ...', '..., alerta advogado' (so contado) — nunca com julgado no titulo."""
+    return bool(OPINIAO_DISFARCADA.search(titulo or "")) and not julgado_no_titulo(titulo)
+
+
 def marcar_promo_e_repetidas(res, h=None):
     """PROMO: sorteio/evento promocional (nao e noticia). REPETIDA?: mesma
     materia ja publicada por outra fonte nas ultimas edicoes.
@@ -1259,10 +1289,10 @@ def marcar_promo_e_repetidas(res, h=None):
         for i in r["itens"]:
             if i["situacao"] not in ("NOVA", "HERDADA", "SEM_DATA"):
                 continue
-            if PROMO.search(i["titulo"]):
+            if eh_promo(i["titulo"]):
                 i["situacao"], i["promo"] = "PROMO", "promo"
                 continue
-            if OPINIAO_DISFARCADA.search(i["titulo"]) and i.get("tipo", "noticia") == "noticia":
+            if eh_opiniao_disfarcada(i["titulo"]) and i.get("tipo", "noticia") == "noticia":
                 i["situacao"], i["promo"] = "PROMO", "opiniao_disfarcada"
                 continue
             m = repeticao.procurar(repeticao.tokens(i["titulo"]), idx)
