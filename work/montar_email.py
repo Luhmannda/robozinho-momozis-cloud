@@ -476,16 +476,24 @@ def texto_destaque(tipo, d, hoje=None):
         else:
             cauda = ""
         return "%s%s — %s%s" % (_tema_rg(d), rot, esc(ponto(limpo(d["titulo"]))), cauda)
-    # stj: o tipo do precedente vem antes (Repetitivo/RQF com o tema; Corte Especial)
+    # stj: o tipo do precedente vem antes (Afetação/Repetitivo/RQF com o tema; Corte Especial). Afetação (nota da
+    # secao PROPOSTA DE ..., desde o 910): "Afetação · Tema 1484" e a controversia afetada. Sem o ramo (o 910 nao
+    # trouxe o do Tema 1469), sem o separador solto ("Repetitivo · — i) Nos termos...")
     ramo = esc(caixa_titulo(d.get("ramo")))
     t = d.get("tipo") or ""
-    if t in ("Repetitivo", "RQF"):
-        cab = "<b>%s</b> · %s" % (esc(" · ".join(x for x in (t, d.get("precedente") or "") if x)), ramo)
+    if t in ("Repetitivo", "RQF", "Afetação"):
+        rot = " · ".join(x for x in (t, d.get("precedente") or "") if x)
     elif t == "Corte Especial":
-        cab = "<b>Corte Especial</b> · %s" % ramo
+        rot = "Corte Especial"
     else:
-        cab = "<b>%s</b>" % ramo
-    return "%s — %s <i>%s</i>" % (cab, esc(ponto(limpo(d["destaque"]))), esc(ponto(limpo(d["processo"]))))
+        rot = ""
+    if rot:
+        cab = "<b>%s</b>%s" % (esc(rot), (" · " + ramo) if ramo else "")
+    else:
+        cab = "<b>%s</b>" % (ramo or esc(d.get("orgao") or "")) if (ramo or d.get("orgao")) else ""
+    proc = esc(ponto(limpo(d.get("processo"))))
+    corpo = esc(ponto(limpo(d["destaque"]))) + ((" <i>%s</i>" % proc) if proc else "")
+    return ("%s — %s" % (cab, corpo)) if cab else corpo
 
 
 def grupo_rg(d):
@@ -1490,7 +1498,7 @@ def fontes_consultadas(ss, ex, v):
             st = ss.get(i)
             if st in (None, "nao_tentada"):
                 continue
-            rot = ROTULO_FONTE[i]
+            rot = rotulo_fonte(i, ex) if st == "falha" else ROTULO_FONTE[i]
             if i.startswith("congresso_"):
                 rot = "Congresso Nacional (últimas leis e MPVs)"
             if rot in usados:
@@ -1574,7 +1582,7 @@ def sec_pendencias(pend, regs, ex, ss, quadro=None):
         errata.insert(0, {"id": "errata_hoje", "texto": ex["email"]["errata"]})
     lim = ex["email"].get("limitacoes") or ""
     linhas = [esc(o) for o in ex["email"].get("observacoes") or [] if not ja_em_limitacoes(o, lim)]
-    falhas = [ROTULO_FONTE.get(i, i) for i, st in ss.items() if st == "falha"]
+    falhas = [rotulo_fonte(i, ex) for i, st in ss.items() if st == "falha"]
     if falhas and not linhas and not lim:
         linhas.append("Falha técnica nesta execução: " + "; ".join(falhas) + ".")
     ids_conc = {c.get("pendencia") for c in regs if c.get("pendencia")}
@@ -1617,15 +1625,15 @@ def tecnico_para_leitor(texto):
     return out
 
 
-def suporte_txt(ss, em=None):
+def suporte_txt(ss, em=None, ex=None):
     """G8: rodape para o leitor — o que foi usado e, em linguagem simples, que fonte falhou (sem codigo http
     nem nome de script; o detalhe tecnico fica em errors/verification_notes no historico). Sempre o texto
     calculado: o email.suporte escrito a mao e ignorado (AVISO em preparar), porque a limpeza automatica
-    embaralhava a frase e deixava codigo e nome de script."""
+    embaralhava a frase e deixava codigo e nome de script. ex: para o rotulo por produto (rotulo_fonte)."""
     falhas = []
     for i in OFICIAIS + SECUNDARIAS:
         if ss.get(i) == "falha":
-            rot = ROTULO_FONTE.get(i, i)
+            rot = rotulo_fonte(i, ex)
             if rot not in falhas:
                 falhas.append(rot)
     base = ("Leitura automática dos e-mails oficiais (Push STF, PUSH Planalto, CodJu, Câmara) e do JOTA, das páginas "
@@ -1770,7 +1778,7 @@ def montar(ex, j, led, ev, v, agora, ctx=None):
            'margin-bottom:6px">Suporte usado na execução</div><div style="font-size:11px;line-height:17px;color:%s">'
            '%s</div><div style="font-size:10px;line-height:15px;color:#8b95a1;margin-top:8px">Gerado em %s '
            '(América/São Paulo) · execução %s</div></td></tr>' % (
-               FONTE, NAVY, APOIO_COR, esc(ponto(suporte_txt(ss, em))), agora.strftime("%d/%m/%Y %H:%M"),
+               FONTE, NAVY, APOIO_COR, esc(ponto(suporte_txt(ss, em, ex))), agora.strftime("%d/%m/%Y %H:%M"),
                j["execution_id"]))
     secoes.append(("Rodapé", rodape + "\n" + sup))
     # sentinela oculta no fim do corpo: conferencia barata de completude da copia (decisao 2)
@@ -1971,7 +1979,8 @@ def mesclar_status(ex, j, caminho, v, avisos):
         st = aguardar_coleta.ler_fontes_status(caminho, j.get("execution_id"))
     except Exception:  # noqa: BLE001 — acessorio
         st = {}
-    script = {k: (x or {}).get("status") for k, x in st.items()}
+    # status_script: o que o script gravou, antes da decisao do montador sobre informativos_docs (status_informativos)
+    script = {k: (x or {}).get("status_script") or (x or {}).get("status") for k, x in st.items()}
     for k, s in ((v or {}).get("source_status") or {}).items():
         script.setdefault(k, s)
     trocas = []
@@ -2040,6 +2049,79 @@ def status_gmail(ex, j, avisos):
         ss[fid] = "ok" if achados[letra] > 0 or fid in GMAIL_SEM_CADENCIA_DIARIA or folga else "vazio"
 
 
+def status_informativos(ex, itens, caminho, j):
+    """informativos_docs depois da segunda tentativa: "falha" so quando o leitor fica sem conteudo — um informativo
+    citado saiu sem destaques (edicao anunciada por e-mail cujo documento nao abriu) — ou quando o informativos.py
+    acusou falha de leitura (parser, produto sem historico: o status do script). A sonda de numero ainda nao
+    anunciado (403 do firewall: 18 a 20/11/2026 o leitor viu "falhou" ao lado dos informativos completos) e a
+    revisita que nao abriu ficam "ok". Na falha, o rotulo nomeia o produto (ex["_falha_informativos"], lido por
+    rotulo_fonte). A decisao tambem vai ao fontes_status.json — o helper faz o status de script prevalecer — com
+    o do script guardado em status_script, de onde a rodada seguinte do montador parte."""
+    ss = ex.setdefault("source_status", {})
+    try:
+        import aguardar_coleta
+        e = aguardar_coleta.ler_fontes_status(caminho, j.get("execution_id")).get("informativos_docs")
+    except Exception:  # noqa: BLE001 — acessorio
+        e = None
+    base = ((e.get("status_script") or e.get("status")) if e else ss.get("informativos_docs"))
+    sem = [it["titulo"] for it in itens if it.get("categoria") == "Informativos" and it.get("sem_conteudo")
+           and it.get("titulo")]
+    nomes = list(sem)
+    if base == "falha" and e:
+        nomes += [x for x in (nome_informativo(i) for i in e.get("falhas") or []) if x and x not in nomes]
+    final = "falha" if (sem or base == "falha") else base
+    ex.pop("_falha_informativos", None)
+    if final == "falha" and nomes:
+        ex["_falha_informativos"] = "%s %s" % ("documentos oficiais" if len(nomes) > 1 else "documento oficial", " e ".join(
+            ("da " if n.startswith("Repercussão") else "do ") + n for n in nomes))
+    if final:
+        ss["informativos_docs"] = final
+    if e and final and final != e.get("status"):
+        try:
+            import informativos
+            detalhe = re.sub(r"^citada sem conteúdo: [^;]*; ", "", str(e.get("detalhe") or ""))
+            if sem:
+                detalhe = ("citada sem conteúdo: %s; %s" % (", ".join(sem), detalhe))[:200]
+            informativos.gravar_fontes_status({"informativos_docs": dict(e, status=final, status_script=base,
+                                                                         detalhe=detalhe)}, caminho)
+        except Exception:  # noqa: BLE001 — o e-mail ja diz a verdade; o fontes_status e reforco
+            pass
+
+
+def nome_informativo(rid):
+    """'stj910' -> 'Informativo STJ nº 910'; 'stj' (produto sem historico) -> 'Informativo STJ'; outro -> ''."""
+    m = re.fullmatch(r"(stf|rg|stj)(\d*)", str(rid or ""))
+    if not m:
+        return ""
+    return NOME_INF[m.group(1)] % int(m.group(2)) if m.group(2) else NOME_INF[m.group(1)].replace(" nº %d", "")
+
+
+JT_TITULO = re.compile(r"(?i)^\s*jurisprud[êe]ncia em teses\b")
+JT_FONTE = "Jurisprudência em Teses (STJ)"
+
+
+def teses_stj(it, avisos):
+    """Jurisprudência em Teses (linha STJ_TESES do coletor-gmail, e-mail do CodJu) vai em STJ Jurisprudência — a secao
+    feita para ela —, nunca em Informativos nem em STJ Notícias; sem "fonte", a dela (oficial também sem URL). Item
+    de mídia (fonte não oficial) fica onde está."""
+    if it.get("ref") or not JT_TITULO.match(str(it.get("titulo") or "")):
+        return
+    if it.get("categoria") in ("Informativos", "STJ Notícias") and it.get("status") != "MÍDIA ESPECIALIZADA" \
+            and (not it.get("fonte") or item_oficial(it)):
+        avisos.append("%s: Jurisprudência em Teses vai em STJ Jurisprudência (era %s)" % (
+            str(it["titulo"])[:60], it["categoria"]))
+        it["categoria"] = "STJ Jurisprudência"
+    if it.get("categoria") == "STJ Jurisprudência" and not it.get("fonte"):
+        it["fonte"] = JT_FONTE
+
+
+def rotulo_fonte(fid, ex=None):
+    """Como a fonte aparece ao leitor; informativos_docs em falha nomeia o produto (status_informativos)."""
+    if fid == "informativos_docs" and ex and ex.get("_falha_informativos"):
+        return ex["_falha_informativos"]
+    return ROTULO_FONTE.get(fid, fid)
+
+
 def preparar(ex, j, led, ev, v, op=None):
     """Resolve refs, completa campos deterministicos e devolve (erros, avisos, ctx)."""
     op = dict(op or {})
@@ -2060,6 +2142,7 @@ def preparar(ex, j, led, ev, v, op=None):
             continue
         if it.get("categoria") in ("Versículo", "Munger", "Concursos - Carreira", "Concursos - Apoio"):
             continue                    # gerados aqui; versao escrita a mao e descartada
+        teses_stj(it, avisos)           # Jurisprudência em Teses -> STJ Jurisprudência
         cat = it.get("categoria")
         if cat not in CATEGORIAS_NOTICIA:
             erros.append("%s: categoria %r fora de %s" % ((it.get("titulo") or it.get("ref") or "item")[:50],
@@ -2124,6 +2207,7 @@ def preparar(ex, j, led, ev, v, op=None):
             if WRAPPER.search(str(it.get(campo) or "")):
                 erros.append("%s: wrapper/rastreio em %s" % (it["chave"], campo))
         itens.append(it)
+    status_informativos(ex, itens, op.get("fontes_status") or tmp("fontes_status.json"), j)
     # decisao 8: repetido certo nas secoes de apoio sai sozinho (listado como DESCARTADA)
     ignorar = {j.get("execution_id"), j.get("ignorar_execucao")} - {None, ""}
     descartadas, fora = [], []
@@ -2261,6 +2345,7 @@ def limpar_para_gravar(ex):
     """Versao resolvida para o passo 7: sem os campos internos (_*) e os so de exibicao."""
     out = copy.deepcopy(ex)
     out.pop("_refs_descartadas", None)
+    out.pop("_falha_informativos", None)       # rotulo da falha dos informativos, so para o e-mail
     for it in out.get("items") or []:
         for k in [k for k in it if k.startswith("_") or k in ("resenha", "impacto", "desdobramento", "resumo_truncado")]:
             del it[k]

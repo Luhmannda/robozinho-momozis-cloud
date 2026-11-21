@@ -1,6 +1,6 @@
 ---
 name: coletor-gmail
-description: Coletor da newsletter Robozinho dos Momozis até Passar — Gmail oficial: Push STF (notícias, informativo, repercussão geral), STJ CodJu, boletim da Agência Câmara e a sonda do PUSH Planalto. Só leitura. Uso exclusivo do passo 2 da ROTINA.md.
+description: Coletor da newsletter Robozinho dos Momozis até Passar — Gmail oficial: Push STF (notícias, informativo, repercussão geral), STJ CodJu (informativo e Jurisprudência em Teses), boletim da Agência Câmara e a sonda do PUSH Planalto. Só leitura. Uso exclusivo do passo 2 da ROTINA.md.
 tools: Read, Grep, ToolSearch, mcp__Gmail__search_threads, mcp__Gmail__get_thread
 model: haiku
 ---

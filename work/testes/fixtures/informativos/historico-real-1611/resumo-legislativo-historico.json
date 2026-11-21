@@ -1,0 +1,633 @@
+{
+ "executions": [
+  {
+   "execution_id": "2026-07-24-7h",
+   "date": "2026-07-24",
+   "items": [
+    {
+     "chave": "stj|informativo|extraordinario-32|2026|2026-07-21",
+     "fonte": "STJ CodJu",
+     "categoria": "Informativos",
+     "titulo": "STJ publica Informativo de Jurisprudência Edição Extraordinária n. 32 (21/07/2026)",
+     "status": "PENDENCIA_DE_VERIFICACAO",
+     "url": null
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-07-29-7h",
+   "date": "2026-07-29",
+   "items": [
+    {
+     "chave": "stj|informativo|33|2026|2026-07-28",
+     "fonte": "STJ CodJu",
+     "categoria": "Informativos",
+     "titulo": "STJ divulga Informativo de Jurisprudência nº 33",
+     "data": "2026-07-28",
+     "url": "",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-08-05-7h",
+   "date": "2026-08-05",
+   "items": [
+    {
+     "chave": "stj|informativo|895|2026|2026-08-04",
+     "fonte": "gmail_stj_codju",
+     "categoria": "informativo",
+     "titulo": "STJ retoma Informativo de Jurisprudencia com o n.895, pos-recesso",
+     "data": "2026-08-04",
+     "status": "confirmado_oficial",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=895.cod."
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-08-07-7h",
+   "date": "2026-08-07",
+   "items": [
+    {
+     "fonte": "stf_push",
+     "categoria": "informativo",
+     "titulo": "Informativo n.383 - Boletim Repercussao Geral em Pauta",
+     "data": "2026-08-05",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio383.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "chave": "stf|informativo|repercussao-geral-383|2026|2026-08-05"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-08-17-7h",
+   "date": "2026-08-17",
+   "items": [
+    {
+     "fonte": "stf",
+     "categoria": "informativo",
+     "titulo": "Boletim Repercussao Geral em Pauta, edicao 384",
+     "data": "2026-08-14",
+     "chave": "stf|informativo|repercussao-geral-384|2026|2026-08-14",
+     "status": "confirmado_fonte_oficial"
+    },
+    {
+     "fonte": "stj",
+     "categoria": "informativo",
+     "titulo": "Informativo de Jurisprudencia n. 896",
+     "data": "2026-08-12",
+     "chave": "stj|informativo|896|2026|2026-08-12",
+     "status": "confirmado_fonte_oficial"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-01-7h",
+   "date": "2026-09-01",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-386|2026|2026-08-26",
+     "fonte": "gmail_push_stf_informativos",
+     "categoria": "informativo",
+     "titulo": "Boletim RG em Pauta n.386",
+     "data": "2026-08-26",
+     "status": "confirmado_oficial"
+    },
+    {
+     "chave": "stf|informativo|1223|2026|2026-08-22",
+     "fonte": "gmail_push_stf_informativos",
+     "categoria": "informativo",
+     "titulo": "Informativo STF 1223 (herdada)",
+     "data": "2026-08-22",
+     "status": "confirmado_oficial"
+    },
+    {
+     "chave": "stf|informativo|1224|2026|2026-08-22",
+     "fonte": "gmail_push_stf_informativos",
+     "categoria": "informativo",
+     "titulo": "Informativo STF 1224 (herdada)",
+     "data": "2026-08-22",
+     "status": "confirmado_oficial"
+    },
+    {
+     "chave": "stj|informativo|898|2026|2026-08-25",
+     "fonte": "gmail_stj_codju",
+     "categoria": "informativo",
+     "titulo": "Informativo STJ 898",
+     "data": "2026-08-25",
+     "status": "confirmado_oficial"
+    },
+    {
+     "chave": "stj|informativo|897|2026|2026-08-18",
+     "fonte": "gmail_stj_codju",
+     "categoria": "informativo",
+     "titulo": "Informativo STJ 897 (herdada)",
+     "data": "2026-08-18",
+     "status": "confirmado_oficial"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-02-7h",
+   "date": "2026-09-02",
+   "items": [
+    {
+     "fonte": "stj",
+     "categoria": "stj_informativo",
+     "titulo": "Informativo de Jurisprudência n. 899 (execução penal, salário-educação, MS coletivo, prescrição intercorrente)",
+     "data": "2026-09-01",
+     "url": "https://scon.stj.jus.br/jurisprudencia/externo/informativo/",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "chave": "stj|informativo|899|2026|2026-09-01"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-04-7h",
+   "date": "2026-09-04",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-387|2026|2026-09-04",
+     "fonte": "push_stf_informativos",
+     "categoria": "informativo",
+     "titulo": "Boletim Repercussão Geral em Pauta - Edição nº 387",
+     "data": "2026-09-04",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio387.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-10-7h",
+   "date": "2026-09-10",
+   "items": [
+    {
+     "fonte": "stj_codju",
+     "categoria": "Informativos",
+     "titulo": "STJ divulga Informativo de Jurisprudência nº 900",
+     "data": "2026-09-08",
+     "identificador": "Informativo 900",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "chave": "stj|informativo|900|2026|2026-09-08"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-11-7h",
+   "date": "2026-09-11",
+   "items": [
+    {
+     "fonte": "gmail_push_stf_informativos",
+     "categoria": "informativo",
+     "titulo": "Boletim de Repercussão Geral em Pauta nº 388",
+     "data": "2026-09-10",
+     "chave": "stf|informativo|repercussao-geral-388|2026|2026-09-10",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio388.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-17-7h",
+   "date": "2026-09-17",
+   "items": [
+    {
+     "fonte": "stf_push",
+     "categoria": "stf_informativo",
+     "titulo": "Boletim Repercussão Geral em Pauta n. 389",
+     "data": "2026-09-16",
+     "identificador": "389",
+     "url_oficial": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio389.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "chave": "stf|informativo|repercussao-geral-389|2026|2026-09-16"
+    },
+    {
+     "fonte": "stj_codju",
+     "categoria": "stj_informativo",
+     "titulo": "Informativo de Jurisprudência STJ n. 901",
+     "data": "2026-09-15",
+     "identificador": "901",
+     "url_oficial": null,
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "chave": "stj|informativo|901|2026|2026-09-15",
+     "herdada": true,
+     "nota": "link do documento malformado no e-mail; teses individuais não extraídas"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-22-7h",
+   "date": "2026-09-22",
+   "items": [
+    {
+     "chave": "stf|informativo|1225|2026|2026-09-21",
+     "fonte": "stf_push",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1225/2026",
+     "data": "2026-09-21",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "obs": "conteudo nao resumido nesta execucao"
+    },
+    {
+     "chave": "stf|informativo|1226|2026|2026-09-21",
+     "fonte": "stf_push",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1226/2026",
+     "data": "2026-09-21",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "obs": "conteudo nao resumido nesta execucao"
+    },
+    {
+     "chave": "stf|informativo|1227|2026|2026-09-21",
+     "fonte": "stf_push",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1227/2026",
+     "data": "2026-09-21",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "obs": "conteudo nao resumido nesta execucao"
+    },
+    {
+     "chave": "stf|informativo|1228|2026|2026-09-21",
+     "fonte": "stf_push",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1228/2026",
+     "data": "2026-09-21",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "obs": "conteudo nao resumido nesta execucao"
+    },
+    {
+     "chave": "stf|informativo|1229|2026|2026-09-21",
+     "fonte": "stf_push",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1229/2026",
+     "data": "2026-09-21",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "obs": "conteudo nao resumido nesta execucao"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-24-7h",
+   "date": "2026-09-24",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-390|2026|2026-09-24",
+     "fonte": "gmail_push_stf_informativos",
+     "categoria": "STF Jurisprudência",
+     "titulo": "Boletim Repercussão Geral em Pauta n. 390",
+     "data": "2026-09-24",
+     "identificador": "RG 390/2026",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio390.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "Conteúdo temático específico não extraído nesta coleta (armadilha stf_informativo_link_generico)."
+    },
+    {
+     "chave": "stj|informativo|902|2026|2026-09-22",
+     "fonte": "gmail_stj_codju",
+     "categoria": "Informativos",
+     "titulo": "STJ — Informativo de Jurisprudência n. 902",
+     "data": "2026-09-22",
+     "identificador": "Informativo 902",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0902.cod.",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-29-7h",
+   "date": "2026-09-29",
+   "items": [
+    {
+     "chave": "stf|informativo|1230|2026|2026-09-29",
+     "fonte": "STF (push Informativo)",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF nº 1230",
+     "data": "2026-09-29",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "Link genérico do e-mail, sem indicação dos temas específicos da edição (armadilha conhecida)."
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-09-30-7h",
+   "date": "2026-09-30",
+   "items": [
+    {
+     "chave": "stj|informativo|903|2026|2026-09-29",
+     "fonte": "STJ CodJu",
+     "categoria": "Informativos",
+     "titulo": "Informativo de Jurisprudência do STJ nº 903",
+     "data": "2026-09-29",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0903.cod.&from=feed",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "corpo do e-mail sem teses"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-01-7h",
+   "date": "2026-10-01",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-391|2026|2026-10-01",
+     "fonte": "STF",
+     "categoria": "STF Jurisprudência",
+     "titulo": "Boletim Repercussão Geral em Pauta — edição 391",
+     "data": "2026-10-01",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio391.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-06-7h",
+   "date": "2026-10-06",
+   "items": [
+    {
+     "chave": "stf|informativo|1231|2026|2026-10-05",
+     "fonte": "STF (Push Informativo)",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1231/2026",
+     "data": "2026-10-05",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "e-mail de 05/10 22:09 BRT; corpo sem temas (link genérico)"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-07-7h",
+   "date": "2026-10-07",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-392|2026|2026-10-07",
+     "fonte": "STF",
+     "categoria": "STF Jurisprudência",
+     "titulo": "Boletim Repercussão Geral em Pauta nº 392",
+     "data": "2026-10-07",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio392.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-08-7h",
+   "date": "2026-10-08",
+   "items": [
+    {
+     "chave": "stj|informativo|904|2026|2026-10-06",
+     "fonte": "STJ CodJu",
+     "categoria": "Informativos",
+     "titulo": "Informativo de Jurisprudência do STJ nº 904, de 6 de outubro de 2026",
+     "data": "2026-10-06",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0904.cod.&from=feed",
+     "observacao": "Corpo do e-mail sem teses"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-14-7h",
+   "date": "2026-10-14",
+   "items": [
+    {
+     "chave": "stf|informativo|1232|2026|2026-10-13",
+     "fonte": "STF",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF nº 1232/2026",
+     "data": "2026-10-13",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    },
+    {
+     "chave": "stj|informativo|905|2026|2026-10-13",
+     "fonte": "STJ",
+     "categoria": "Informativos",
+     "titulo": "Informativo STJ nº 905 — 13 de outubro de 2026",
+     "data": "2026-10-13",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0905.cod.&from=feed",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-20-7h",
+   "date": "2026-10-20",
+   "items": [
+    {
+     "chave": "stf|informativo|1233|2026|2026-10-19",
+     "fonte": "Informativo STF",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1233/2026",
+     "data": "2026-10-19",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "conteudo nao acessivel nesta execucao (403)"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-21-7h",
+   "date": "2026-10-21",
+   "items": [
+    {
+     "chave": "stj|informativo|906|2026|2026-10-20",
+     "fonte": "STJ CodJu",
+     "categoria": "Informativos",
+     "titulo": "Informativo STJ nº 906 (20 de outubro de 2026)",
+     "data": "2026-10-20",
+     "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0906.cod.",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-22-7h",
+   "date": "2026-10-22",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-394|2026|2026-10-21",
+     "fonte": "STF (Push RG em Pauta)",
+     "categoria": "Informativos",
+     "titulo": "Informativo nº 394 - Repercussão Geral em Pauta",
+     "data": "2026-10-21",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio394.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "conteudo nao acessivel nesta execucao (http 403)"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-27-7h",
+   "date": "2026-10-27",
+   "items": [
+    {
+     "chave": "stf|informativo|1234|2026|2026-10-26",
+     "fonte": "STF",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF 1234",
+     "data": "2026-10-26",
+     "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1234.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-28-7h",
+   "date": "2026-10-28",
+   "items": [
+    {
+     "chave": "stj|informativo|907|2026|2026-10-27",
+     "fonte": "STJ",
+     "categoria": "Informativos",
+     "titulo": "Informativo STJ 907 (27/10/2026) — 10 destaques",
+     "data": "2026-10-27",
+     "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0907.cod.",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "chave do informativos.py; seis destaques publicados"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-10-29-7h",
+   "date": "2026-10-29",
+   "items": [
+    {
+     "chave": "stf|informativo|repercussao-geral-395|2026|2026-10-26",
+     "fonte": "STF - Repercussão Geral em Pauta",
+     "categoria": "Informativos",
+     "titulo": "Repercussão Geral em Pauta nº 395 (20 a 26 de outubro de 2026)",
+     "data": "2026-10-26",
+     "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio395.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-05-7h",
+   "date": "2026-11-05",
+   "items": [
+    {
+     "chave": "stf|informativo|1235|2026|2026-11-04",
+     "fonte": "stf",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF nº 1235 (04/11/2026)",
+     "data": "2026-11-04",
+     "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1235.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "4 destaques copiados do PDF oficial"
+    },
+    {
+     "chave": "stf|informativo|repercussao-geral-396|2026|2026-11-03",
+     "fonte": "stf",
+     "categoria": "Informativos",
+     "titulo": "Repercussão Geral em Pauta nº 396 (27/10 a 03/11/2026)",
+     "data": "2026-11-03",
+     "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio396.pdf",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "9 destaques no PDF oficial"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-11-7h",
+   "date": "2026-11-11",
+   "items": [
+    {
+     "chave": "stf|informativo|1236|2026|2026-11-10",
+     "fonte": "Push STF Informativo",
+     "categoria": "Informativos",
+     "titulo": "Informativo STF nº 1236/2026",
+     "data": "2026-11-10",
+     "url": "http://portal.stf.jus.br/textos/verTexto.asp?servico=informativoSTF",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "conteúdo não acessível (http 403)"
+    },
+    {
+     "chave": "stj|informativo|909|2026|2026-11-10",
+     "fonte": "STJ CodJu",
+     "categoria": "Informativos",
+     "titulo": "Informativo STJ nº 909 (10/11/2026)",
+     "data": "2026-11-10",
+     "url": "https://ww2.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0909.cod.&from=feed",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "observacao": "só número, data e link; conteúdo não lido"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-12-7h",
+   "date": "2026-11-12",
+   "items": [
+    {
+     "categoria": "Informativos",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "titulo": "Repercussão Geral em Pauta nº 397",
+     "sem_conteudo": true,
+     "fonte": "Push STF Informativo",
+     "chave": "stf|informativo|repercussao-geral-397|2026|2026-11-11",
+     "ref": "rg397",
+     "data": "2026-11-11",
+     "url": "http://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio397.pdf"
+    },
+    {
+     "categoria": "Informativos",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "titulo": "Informativo STJ nº 908",
+     "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0908.cod.",
+     "data": "2026-11-03",
+     "fonte": "STJ — página oficial do informativo",
+     "chave": "stj|informativo|908|2026|2026-11-03",
+     "observacao": "6 de 10 destaques publicados",
+     "ref": "stj908"
+    },
+    {
+     "categoria": "Informativos",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "titulo": "Informativo STJ nº 909",
+     "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0909.cod.",
+     "data": "2026-11-10",
+     "fonte": "STJ — página oficial do informativo",
+     "chave": "stj|informativo|909-conteudo|2026|2026-11-10",
+     "observacao": "6 de 10 destaques publicados",
+     "ref": "stj909"
+    }
+   ]
+  },
+  {
+   "execution_id": "2026-11-16-7h",
+   "date": "2026-11-16",
+   "items": [
+    {
+     "categoria": "Informativos",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "titulo": "Informativo STF nº 1236",
+     "url": "https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_1236.pdf",
+     "data": "2026-11-10",
+     "fonte": "STF — documento oficial",
+     "chave": "stf|informativo|1236-conteudo|2026|2026-11-10",
+     "observacao": "4 de 4 destaques publicados",
+     "ref": "stf1236"
+    },
+    {
+     "categoria": "Informativos",
+     "status": "CONFIRMADO POR FONTE OFICIAL",
+     "titulo": "Repercussão Geral em Pauta nº 397",
+     "url": "https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/Edio397.pdf",
+     "data": "2026-11-09",
+     "fonte": "STF — documento oficial",
+     "chave": "stf|informativo|repercussao-geral-397-conteudo|2026|2026-11-09",
+     "observacao": "6 de 10 destaques publicados",
+     "ref": "rg397"
+    }
+   ]
+  }
+ ]
+}

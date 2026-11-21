@@ -9,15 +9,23 @@
 #     pagina do STJ sem o cabecalho do numero), um 403/0 no numero seguinte
 #     e "nao verificavel", nunca ERRO (em 16/11/2026 o 1238 deu 403 depois do
 #     404 do 1237 e virou "limitacao" falsa no e-mail). 403/0 sem 404 antes:
-#     o script INSISTE ate uma resposta definitiva (200 ou 404) e so entao,
-#     persistindo, e ERRO — ver "WAF do STF" abaixo;
+#     o script INSISTE ate uma resposta definitiva (200 ou 404) — exceto a
+#     SONDA CURTA (MAX_TENTATIVAS_SONDA) do STF/RG quando a edicao anterior
+#     saiu ha menos de CADENCIA_SONDA_DIAS dias: a cadencia e semanal e o 403
+#     esconde o 404 de numero que ainda nao saiu de forma sistematica (60 de 60
+#     pedidos ao stf1238/rg399 em 18-20/11/2026, 24 pedidos e ~45 s por dia).
+#     Persistindo, e ERRO (cite so com o e-mail da edicao) — ver "WAF do STF";
+#     documento que nao abriu NAO derruba a fonte (status_fonte): a edicao
+#     anunciada por e-mail que sai sem conteudo quem acusa e o montador;
 #   - as edicoes ATRASADAS: as duas ultimas que sairam so com numero/data/link
 #     ("conteudo nao acessivel") ou que foram puladas — o conteudo entra
 #     quando o documento abrir (em 11/11/2026 o 1236 do STF e o 909 do STJ
 #     tinham saido sem destaques e nunca mais seriam buscados; o 908 nem saiu);
-#   - as REVISITAS: ate MAX_REVISITAS_ANTIGAS edicoes mais antigas (ate
-#     JANELA_REVISITA numeros para tras) anunciadas sem conteudo, as mais
-#     recentes primeiro, parando no 404 — saem no sub-bloco EM ATRASO.
+#   - as REVISITAS: ate MAX_REVISITAS_ANTIGAS edicoes mais antigas do STF/RG e,
+#     a parte, MAX_REVISITAS_STJ do STJ (ate JANELA_REVISITA numeros para tras)
+#     anunciadas sem conteudo, as mais recentes primeiro, parando no 404 — saem
+#     no sub-bloco EM ATRASO. A vaga do STJ (o STF barrado nao a toma) nao estica
+#     a execucao: passado o PRAZO_S, fica para o dia seguinte.
 #     Na RG em Pauta, o tema "em votacao"/"em pauta" de uma edicao que ja tem
 #     dois boletins posteriores publicados sai de "itens" (vai para
 #     "itens_superados"): a situacao dele e de semanas atras e o resultado ja
@@ -34,7 +42,10 @@
 # Cada edicao ganha um id (stf1236, rg397, stj909): o orquestrador escolhe os
 # destaques pelo indice e o work/montar_email.py copia o texto oficial
 # (STF: titulo do sumario + RESUMO oficial; RG: tema, estagio, previsao, tese;
-#  STJ: tema, tipo/orgao, destaque completo).
+#  STJ: tema, tipo/orgao, destaque completo; a afetacao — secao PROPOSTA DE
+#  RELEVANCIA DA QUESTAO FEDERAL ou PROPOSTA DE AFETACAO, sem "Destaque" — sai
+#  com a controversia afetada, tipo "Afetação"). A linha TECNICO acusa o que o
+# parser perdeu: "resumo k/N" (RESUMO do STF recusado) e "k de N notas lidas" (STJ).
 #
 #   Informativo STF  https://www.stf.jus.br/arquivo/cms/informativoSTF/anexo/Informativo_PDF/Informativo_stf_N.pdf
 #   RG em Pauta      https://www.stf.jus.br/arquivo/cms/newsletterInformativoRG/anexo/EdioN.pdf
@@ -50,12 +61,15 @@
 #   depois, abre. Nao depende do intervalo (3 s ou 20 s), do host (www.stf.jus.br
 #   ou portal.stf.jus.br, que servem o mesmo arquivo) nem dos cabecalhos (o curl
 #   puro passou na mesma proporcao); e o 403 esconde ate o 404 de edicao ainda nao
-#   publicada (a RG 398 dava 403 no script e 404 quando o pedido passava). Uma
+#   publicada (a RG 398 dava 403 no script e 404 quando o pedido passava) — para
+#   numero que ainda nao existe, de forma sistematica, nao ao acaso (60 de 60
+#   pedidos em 18-20/11/2026): insistir nele nao converge (sonda curta). Uma
 #   tentativa por execucao deixava a edicao nova sem destaques na maioria dos dias
 #   e as revisitas (1233, RG 394) paradas ha um mes. Por isso:
 #   - baixar_documento() repete o pedido, com espera curta e alternando os dois
 #     hosts, ate 200 (PDF) ou 404 do endereco oficial: MAX_TENTATIVAS para edicao
-#     nova ou anunciada sem conteudo, MAX_TENTATIVAS_REVISITA para revisita antiga,
+#     nova ou anunciada sem conteudo, MAX_TENTATIVAS_SONDA na sonda curta,
+#     MAX_TENTATIVAS_REVISITA para revisita antiga,
 #     MAX_TENTATIVAS_MONTADOR na segunda tentativa do montador; por execucao, no
 #     maximo ORCAMENTO_EXTRAS pedidos a mais e nenhum depois de PRAZO_S segundos.
 #     Erro que nao e 403 (rede, 5xx) so ganha 2 pedidos a mais;
@@ -69,8 +83,9 @@
 # SAIDA: indice compacto em stdout (id, data, destaques numerados e curtos, uma
 #        linha SEM EDICAO por produto, uma linha TECNICO com os codigos http e a
 #        linha SOURCE_STATUS {"informativos_docs": "ok|falha"}); texto integral em $ROBOZINHO_TMP/informativos.json
-#        e o status da fonte (id informativos_docs) mesclado em
-#        $ROBOZINHO_TMP/fontes_status.json (ROBOZINHO_TMP padrao: /tmp).
+#        e o status da fonte (id informativos_docs, com sem_abrir e falhas: ids) mesclado em
+#        $ROBOZINHO_TMP/fontes_status.json (ROBOZINHO_TMP padrao: /tmp); o montador grava ali
+#        a decisao final (status_script guarda o deste script).
 # AMBIENTE: ROBOZINHO_TMP (pasta dos arquivos temporarios, padrao /tmp);
 #        ROBOZINHO_INF_ESPERA (segundos entre as tentativas do mesmo documento, padrao 2);
 #        ROBOZINHO_INF_CACHE=0 desliga o cache de PDFs (os testes desligam).
@@ -86,6 +101,8 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
+from datetime import date
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -101,9 +118,12 @@ MESES = {m: i + 1 for i, m in enumerate(MES.split("|"))}
 MAX_TXT = 520                 # so para o indice impresso: o JSON guarda o texto sem corte
 MAX_INDICE = 25               # linhas de destaque impressas por edicao (o JSON guarda todas)
 JANELA_REVISITA = 8           # revisita edicoes sem conteudo ate base-8 (~2 meses no STF)
-MAX_REVISITAS_ANTIGAS = 2     # por execucao, somando os produtos (as mais recentes primeiro)
+MAX_REVISITAS_ANTIGAS = 2     # por execucao, somando STF e RG (as mais recentes primeiro)
+MAX_REVISITAS_STJ = 1         # idem, STJ, em vaga propria (sem firewall: 1 pedido; o STF barrado nao a toma)
 HOSTS_STF = ("https://www.stf.jus.br/", "https://portal.stf.jus.br/")   # o mesmo PDF nos dois (conferido em 17/11/2026)
 MAX_TENTATIVAS = 12           # pedidos por documento (edicao nova ou anunciada sem conteudo), ate 200 ou 404
+MAX_TENTATIVAS_SONDA = 2      # idem, numero novo do STF/RG com a edicao anterior de menos de CADENCIA_SONDA_DIAS
+CADENCIA_SONDA_DIAS = 6       # STF e RG em Pauta sao semanais: antes disso a edicao seguinte quase nunca saiu
 MAX_TENTATIVAS_REVISITA = 4   # idem, revisita antiga e conferencia de temas
 MAX_TENTATIVAS_MONTADOR = 8   # idem, na segunda tentativa do montador
 MAX_OUTROS_ERROS = 3          # pedidos com erro que nao e 403 (rede, 5xx) antes de desistir do documento
@@ -264,8 +284,29 @@ def caixa_alta(s):
     return any(c.isupper() for c in s) and not any(c.islower() for c in s if c not in "ºª")
 
 
+# palavra composta com hifen que cai no fim da linha: o hifen e da palavra, nao da hifenizacao (no STF 1237
+# saiu "licençasprêmio"). 1a parte (antes do hifen) ou 2a parte (comeco da linha seguinte), sem acento e em
+# minusculas; so palavras que nao sao pedaco de outra na hifenizacao
+COMPOSTA_1A = {"licenca", "licencas", "auxilio", "auxilios", "salario", "salarios"}
+COMPOSTA_2A = {"premio", "premios", "maternidade", "paternidade", "familia", "doenca", "reclusao", "alimentacao",
+               "transporte", "refeicao", "geral", "gerais", "membro", "membros", "moradia", "saude", "creche",
+               "funeral", "acidente", "natalidade", "presidente", "presidentes"}
+
+
+def sem_acento(s):
+    return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+
+
+def hifen_de_composta(antes, depois):
+    """'licenças-' + 'prêmio': o hifen e da palavra composta (fica)."""
+    a = sem_acento((re.findall(r"[^\W\d_]+(?=-$)", antes) or [""])[-1]).lower()
+    d = sem_acento((re.findall(r"^[^\W\d_]+", depois) or [""])[0]).lower()
+    return a in COMPOSTA_1A or d in COMPOSTA_2A
+
+
 def juntar(partes):
-    """Junta linhas desfazendo a hifenizacao do fim de linha ('tempora-' + 'riamente')."""
+    """Junta linhas desfazendo a hifenizacao do fim de linha ('tempora-' + 'riamente'); o hifen da palavra
+    composta ('licenças-' + 'prêmio') fica."""
     txt = ""
     for p in partes:
         p = p.strip()
@@ -276,7 +317,8 @@ def juntar(partes):
         elif txt.endswith("/"):
             txt += p                        # "ARE 1.593.784 ED/" + "SC"
         elif txt.endswith("-") and not txt.endswith(" -"):
-            if re.search(r"[^\W\d_]-$", txt) and txt[-2].islower() and p[:1].islower():
+            if (re.search(r"[^\W\d_]-$", txt) and txt[-2].islower() and p[:1].islower()
+                    and not hifen_de_composta(txt, p)):
                 txt = txt[:-1] + p          # hifenizacao: some o hifen
             else:
                 txt += p                    # hifen de palavra composta (ED-segundos)
@@ -299,9 +341,10 @@ def stf(dados):
     return stf_texto(pdf_texto(dados, layout=True))
 
 
-def stf_texto(t):
+def stf_texto(t, info=None):
     """(data, itens) do texto 'pdftotext -layout'. Item: secao, ramo, titulo e, quando o
-    RESUMO oficial foi lido e validado, resumo."""
+    RESUMO oficial foi lido e validado, resumo. info (dict, opcional) recebe "caixas" (RESUMO lidos)
+    e "recusados" ({indice: caracteres}) para a linha TECNICO: resumo perdido nao fica em silencio."""
     data = re.search(r"\d{1,2} de (?:%s) de \d{4}" % MES, t)
     ini = t.find("SUMÁRIO")
     fim = t.find("Edição", ini + 1) if ini >= 0 else -1
@@ -333,10 +376,15 @@ def stf_texto(t):
         it["titulo"] = espacos(re.sub(r"\s*\.{4,}.*$", "", it["titulo"]))
     # RESUMO oficial: so associa se houver um para cada item do sumario, na mesma ordem
     resumos = resumos_stf(t[fim:] if fim > 0 else t)
+    recusados = {}
     if itens and len(resumos) == len(itens):
-        for it, r in zip(itens, resumos):
+        for i, (it, r) in enumerate(zip(itens, resumos)):
             if resumo_valido(r):
                 it["resumo"] = r
+            else:
+                recusados[i] = len(r or "")
+    if info is not None:
+        info.update(caixas=len(resumos), recusados=recusados)
     return (data.group(0) if data else ""), itens
 
 
@@ -376,10 +424,20 @@ def resumos_stf(t):
     return out
 
 
+# depois da tese, o corpo da nota comeca por uma destas expressoes (rede do corpo_resumo)
+DEPOIS_DO_RESUMO = re.compile(r"(?<=\.)\s+(?=(?:No caso|Na espécie|Na hipótese|Com base)\b)")
+
+
 def corpo_resumo(linhas):
+    """Texto da caixa RESUMO. col = coluna da 1a linha do corpo (a 1a com recuo >= 20), nao o menor recuo:
+    no STF 1231 a linha "No caso, foram questionadas..." (recuo 37, corpo na 41) vinha logo depois da tese,
+    sem linha em branco (a coluna das palavras-chave ocupava a linha), puxava o minimo para 37 e o resumo
+    engolia a nota inteira (2.559 caracteres, recusado: a ADI 7.495 saiu sem a tese). A caixa termina na 1a
+    linha que abre paragrafo a esquerda da coluna do corpo (recuo entre 20 e col-3), sem ser palavra-chave,
+    depois de uma frase terminada em '.'. Rede: texto acima de RESUMO_MAX e cortado antes de "No caso",
+    "Na espécie", "Na hipótese" ou "Com base" que venham depois de um ponto (o resto e o corpo da nota)."""
     recuo = lambda m: len(m) - len(m.lstrip())  # noqa: E731
-    recuos = [recuo(m) for m in linhas if recuo(m) >= 20]
-    col = min(recuos) if recuos else None
+    col = next((recuo(m) for m in linhas if recuo(m) >= 20), None)
     partes = []
     for m in linhas:
         if col is not None and recuo(m) >= col - 2:
@@ -391,8 +449,15 @@ def corpo_resumo(linhas):
             continue
         if caixa_alta(m):
             continue                        # so palavra-chave
+        if col is not None and 20 <= recuo(m) < col - 2 and juntar(partes).endswith("."):
+            break                           # paragrafo novo fora da caixa ("No caso, ..."): o resumo acabou
         partes.append(m.strip())            # largura total
-    return juntar(partes)
+    texto = juntar(partes)
+    if len(texto) > RESUMO_MAX:
+        m = DEPOIS_DO_RESUMO.search(texto)
+        if m:
+            texto = texto[:m.start()]
+    return texto
 
 
 def resumo_valido(s):
@@ -431,7 +496,9 @@ RUIDO_RG = {"INTEIRO TEOR", "MANIFESTAÇÃO DO RELATOR", "QUESTÃO CONSTITUCIONA
             "REAFIRMAÇÃO DE JURISPRUDÊNCIA"}
 SEM_RG = re.compile(r"(?i)(aus[êe]ncia|inexist[êe]ncia) d[ae] repercuss[ãa]o geral|n[ãa]o h[áa] repercuss[ãa]o geral")
 PREVISAO = re.compile(r"\s*Data prevista para o fim do julgamento:\s*(\d{1,2}\.\d{1,2}\.\d{4})\.?")
-PROCESSO_RG = re.compile(r"^(?:RE|ARE|AI|Rcl|RCL|ADI|ADPF|ADC|ADO|MS|MI|HC|RHC|SL|STP|ACO)\s*\d[\d.]*")
+CLASSES_RG = r"RE|ARE|AI|Rcl|RCL|ADI|ADPF|ADC|ADO|MS|MI|HC|RHC|SL|STP|ACO"
+PROCESSO_RG = re.compile(r"^(?:%s)\s*\d[\d.]*" % CLASSES_RG)
+CLASSE_RG = re.compile(r"(?:%s)" % CLASSES_RG)                     # so a classe, sem o numero
 RELATOR_RG = re.compile(r"\s+(RELATORA?|RED\. ACÓRD\.):.*$")       # "PROCESSOS: RE 1.163.774-ED RELATORA: Min. ..." na mesma linha
 # resto do numero que quebrou de linha depois de "-" ou "/": "ED-segundos", "AgR", "ED-AgR", "SC" (so letras, sem espaco)
 SUFIXO_PROCESSO_RG = re.compile(r"[^\W\d_]{2,15}(?:[-/][^\W\d_]{2,15})*")
@@ -624,8 +691,14 @@ def rg_texto(t):
                 campo = None
                 continue
         m = re.match(r"^PROCESSOS?:\s*(.+)$", l)
+        num = (re.match(r"^(?:%s)?\s*(\d.*)$" % re.escape(atual["processo"]), l)
+               if campo == "processo" and CLASSE_RG.fullmatch(atual["processo"]) else None)
         if m:
             atual["processo"], campo = RELATOR_RG.sub("", m.group(1)), "processo"
+        elif num:
+            # so a classe na linha do TEMA ("PROCESSOS: RE") e o numero na seguinte ("RE1.612.904" ou "1.612.904"):
+            # um processo so (a RG 398 saiu com "Tema 1.491 (RE; RE1.612.904)")
+            atual["processo"] += " " + RELATOR_RG.sub("", num.group(1)).strip()
         elif campo == "processo" and PROCESSO_RG.match(l):
             atual["processo"] += "; " + l
         elif l.startswith("Título:"):
@@ -648,6 +721,7 @@ def rg_texto(t):
     for it in itens:                       # tema repetido entre secoes: vale o primeiro, completado
         for k in ("titulo", "tese", "processo", "decisao"):
             it[k] = espacos(it[k])
+        it["processo"] = re.sub(r"\b(%s)(?=\d)" % CLASSES_RG, r"\1 ", it["processo"])   # "RE1.612.904"
         if it["tema"] in vistos:
             prim = vistos[it["tema"]]
             for k in ("titulo", "tese", "previsao", "decisao"):
@@ -674,12 +748,23 @@ def rg_texto(t):
 SECOES_STJ = re.compile(r"^(RECURSOS REPETITIVOS|CORTE ESPECIAL|PRIMEIRA SEÇÃO|SEGUNDA SEÇÃO|TERCEIRA SEÇÃO|"
                         r"PRIMEIRA TURMA|SEGUNDA TURMA|TERCEIRA TURMA|QUARTA TURMA|QUINTA TURMA|SEXTA TURMA|"
                         r"EDIÇÃO EXTRAORDINÁRIA|PROCESSO EM SEGREDO DE JUSTIÇA|ÁREAS DO DIREITO|"
-                        r"RELEVÂNCIA DA QUESTÃO FEDERAL)$")
+                        r"RELEVÂNCIA DA QUESTÃO FEDERAL|PROPOSTAS? DE RELEVÂNCIA DA QUESTÃO FEDERAL|"
+                        r"PROPOSTAS? DE AFETAÇÃO)$")
+# secao de afetacao (desde o 910, 17/11/2026: "PROPOSTA DE RELEVÂNCIA DA QUESTÃO FEDERAL", Temas de Relevancia
+# 1480 a 1485): a nota nao tem o rotulo "Destaque" — o texto e a controversia afetada, no cabecalho da nota
+PROPOSTA_STJ = re.compile(r"^PROPOSTAS? DE ", re.I)
 ORGAO_STJ = re.compile(r"\b(Corte Especial|(?:Primeira|Segunda|Terceira) Seção|"
                        r"(?:Primeira|Segunda|Terceira|Quarta|Quinta|Sexta) Turma)\b", re.I)
-PRECEDENTE_STJ = re.compile(r"\(\s*(?:(Repetitivo|RQF)\s+)?Tema\s+([\d.]+)\s*\)", re.I)
+# "(Repetitivo Tema 1270 )" (ate o 909), "( Tema repetitivo 1180 )", "(Tema de Relevância 1334)" (desde o 910)
+PRECEDENTE_STJ = re.compile(r"\(\s*(?:(?P<antes>Repetitivo|RQF)\s+)?Tema(?:\s+(?P<depois>repetitivo|de\s+Relev\S*))?"
+                            r"\s+(?P<n>[\d.]+)\s*\)", re.I)
 ROTULOS_STJ = ("Processo", "Ramo do Direito", "Tema", "Destaque", "Informações do Inteiro Teor",
                "Informações Adicionais", "Compartilhe:")
+# uma linha do rotulo "Processo": numero (com "AgInt no", "AgInt nos EDcl no", "ProRQF no"...) e o resto (relator,
+# orgao, data, tema)
+PROCESSO_STJ = re.compile(r"^(?P<num>(?:[A-Za-z]+\s+n[oa]s?\s+)*[A-Z][A-Za-z]*\s+[\d.]+(?:-[A-Z]{2})?)\s*,\s*"
+                          r"(?P<resto>\S.*)$")
+NOTA_STJ = re.compile(r"[?&]livre=@CNOT=(\d+)")
 
 
 def stj(dados, numero):
@@ -691,15 +776,39 @@ def cabecalho_stj(t, numero):
     return bool(re.search(r"Informativo de Jurisprud\S* n(?:\.|º|°|o\.?)\s*0*%d\b" % numero, t))
 
 
+def processo_stj(linhas):
+    """As linhas do rotulo "Processo" numa so, sem espaco antes da virgula nem dentro dos parenteses
+    ("REsp 1.995.908-DF , Rel." / "( Tema repetitivo 1180 )"), sem linha repetida (o 904 trazia o
+    REsp 2.250.086-SP duas vezes) e, quando os processos so diferem no numero, juntos: "REsp 1-SP,
+    REsp 2-SP e REsp 3-SP, Rel. Ministro ..., julgado em ... (Tema 1281)." — no 904 a mesma linha
+    processual saia 4 vezes no Tema 1281."""
+    ls = []
+    for l in linhas:
+        l = re.sub(r"\(\s+", "(", re.sub(r"\s+([,;)])", r"\1", l)).strip()
+        if l and l not in ls:
+            ls.append(l)
+    partes = [PROCESSO_STJ.match(l) for l in ls]
+    if len(ls) > 1 and all(partes) and len({p.group("resto") for p in partes}) == 1:
+        nums = [p.group("num") for p in partes]
+        return "%s e %s, %s" % (", ".join(nums[:-1]), nums[-1], partes[0].group("resto"))
+    return " ".join(ls)
+
+
 def tipo_stj(secao, processo):
-    """(tipo, orgao, precedente): Repetitivo | RQF | Corte Especial | Seção | Turma."""
+    """(tipo, orgao, precedente): Afetação | Repetitivo | RQF | Corte Especial | Seção | Turma."""
     om = ORGAO_STJ.search(processo or "") or ORGAO_STJ.search(secao or "")
     orgao = " ".join(w.capitalize() for w in om.group(1).split()) if om else ""
     pm = PRECEDENTE_STJ.search(processo or "")
-    precedente = ("Tema %s" % pm.group(2)) if pm else ""
-    rotulo = (pm.group(1) or "").upper() if pm else ""
+    precedente = ("Tema %s" % pm.group("n")) if pm else ""
+    rotulo = ""
+    if pm and pm.group("antes"):
+        rotulo = pm.group("antes").upper()
+    elif pm and pm.group("depois"):
+        rotulo = "REPETITIVO" if pm.group("depois").lower() == "repetitivo" else "RQF"
     s = (secao or "").upper()
-    if s == "RECURSOS REPETITIVOS" or rotulo == "REPETITIVO":
+    if PROPOSTA_STJ.match(s):
+        tipo = "Afetação"
+    elif s == "RECURSOS REPETITIVOS" or rotulo == "REPETITIVO":
         tipo = "Repetitivo"
     elif s == "RELEVÂNCIA DA QUESTÃO FEDERAL" or rotulo == "RQF":
         tipo = "RQF"
@@ -714,11 +823,16 @@ def tipo_stj(secao, processo):
     return tipo, orgao, precedente
 
 
-def stj_html(t, numero):
+def stj_html(t, numero, info=None):
     """(data, itens, cabecalho_presente) da pagina da edicao. Item: secao, tema, processo,
-    ramo, destaque (todas as teses do bloco), tipo, orgao, precedente."""
+    ramo, destaque (todas as teses do bloco), tipo, orgao, precedente. Nota de afetacao (secao
+    PROPOSTA DE ...) nao tem "Destaque": o destaque e o proprio texto da nota (a controversia).
+    info (dict, opcional) recebe "notas": quantas notas a pagina tem (links @CNOT distintos, ou
+    cabecalhos de nota), para a linha TECNICO acusar nota que o parser nao leu."""
     cab_presente = cabecalho_stj(t, numero)
-    if "Destaque" not in t:
+    if info is not None:
+        info["notas"] = len(set(NOTA_STJ.findall(t)))
+    if "Destaque" not in t and not re.search(r"PROPOSTAS? DE ", t):
         return "", [], cab_presente
     t = re.sub(r"(?is)<(script|style).*?</\1>", " ", t)
     t = re.sub(r"(?i)<br\s*/?>|</p>|</div>|</tr>|</h\d>|</li>", "\n", t)
@@ -752,11 +866,16 @@ def stj_html(t, numero):
         if atual is None or i + 1 >= len(L):
             continue
         if l == "Processo" and not atual["processo"]:
-            atual["processo"] = " ".join(seguintes(i, 6))
+            atual["processo"] = processo_stj(seguintes(i, 6))
         elif l == "Ramo do Direito" and not atual["ramo"]:
             atual["ramo"] = L[i + 1]
         elif l == "Destaque" and not atual["destaque"]:
             atual["destaque"] = " ".join(seguintes(i, 10))
+    for it in itens:
+        if not it["destaque"] and PROPOSTA_STJ.match(it["secao"]):
+            it["destaque"] = it["tema"]     # afetacao: a nota e a controversia ("A Corte Especial acolheu a proposta...")
+    if info is not None:
+        info["notas"] = max(info.get("notas") or 0, len(itens))
     itens = [it for it in itens if it["destaque"]]
     for it in itens:
         it["tipo"], it["orgao"], it["precedente"] = tipo_stj(it["secao"], it["processo"])
@@ -902,13 +1021,29 @@ def obter(tipo, n, situacao="nova", anuncio=None, hist_produto=None, tentativas=
         if not dados.startswith(b"%PDF"):
             return dict(r, estado="indeterminado", motivo="resposta não é PDF")
         t = pdf_texto(dados, layout=(tipo == "stf"))
-        data, itens = (stf_texto if tipo == "stf" else rg_texto)(t)
+        if tipo == "stf":
+            info = {}
+            data, itens = stf_texto(t, info)
+            com = sum(1 for it in itens if it.get("resumo"))
+            if itens and com < len(itens):      # resumo perdido nao fica em silencio (TECNICO)
+                if info.get("recusados"):
+                    motivo = "; recusados: " + ", ".join("%d (%d car.)" % x for x in sorted(info["recusados"].items()))
+                elif info.get("caixas") != len(itens):
+                    motivo = " (%d caixas RESUMO)" % info.get("caixas", 0)
+                else:
+                    motivo = ""
+                r["resumos"] = "%d/%d%s" % (com, len(itens), motivo)
+        else:
+            data, itens = rg_texto(t)
         marcas = ("»" in t or "RESUMO:" in t) if tipo == "stf" else bool(re.search(r"(?m)^\s*TEMA:", t))
     else:
-        data, itens, marcas = stj_html(dados.decode("cp1252", "replace"), n)
+        info = {}
+        data, itens, marcas = stj_html(dados.decode("cp1252", "replace"), n, info)
         if not itens and not marcas:
             return dict(r, estado="inexistente", data="", itens=[],
                         motivo="ainda não publicada (página sem o cabeçalho do número)")
+        if (info.get("notas") or 0) > len(itens):
+            r["notas"] = info["notas"]          # nota que o parser nao leu: "k de N notas lidas" no TECNICO
     r.update(ok=bool(itens), data=data, itens=itens)
     if itens:
         r.update(estado="ok", motivo="")
@@ -957,12 +1092,42 @@ class Coleta:
         return r
 
 
+def hoje_iso():
+    """Data de hoje (AAAA-MM-DD): a do janela.json (o inicio.py grava "data"); sem ela, a do execution_id;
+    fora da rotina, a do relogio."""
+    j = janela()
+    for d in (str(j.get("data") or ""), str(j.get("execution_id") or "")[:10]):
+        if re.fullmatch(r"\d{4}-\d\d-\d\d", d):
+            return d
+    return date.today().isoformat()
+
+
+def tentativas_novo(tipo, anterior, hoje):
+    """Pedidos para o numero novo: MAX_TENTATIVAS_SONDA no STF e na RG quando a edicao anterior (data
+    AAAA-MM-DD do anuncio ou do documento) saiu ha menos de CADENCIA_SONDA_DIAS dias — a cadencia e semanal,
+    e o 403 do firewall esconde o 404 do numero que ainda nao saiu (60 de 60 pedidos em 18-20/11/2026):
+    insistir nao converge e so gasta pedidos e tempo. Senao (ou STJ, sem firewall), MAX_TENTATIVAS."""
+    if tipo in ("stf", "rg"):
+        try:
+            dias = (date.fromisoformat(hoje) - date.fromisoformat(anterior)).days
+        except (TypeError, ValueError):
+            dias = None
+        if dias is not None and dias < CADENCIA_SONDA_DIAS:
+            return MAX_TENTATIVAS_SONDA
+    return MAX_TENTATIVAS
+
+
 def coletar(hist):
     """Plano completo da execucao automatica: por produto, as revisitas recentes (base e
-    base-1), as novas e, no fim, ate MAX_REVISITAS_ANTIGAS revisitas antigas. Uma revisita
-    'superada' (aberta, todos os temas superados) conta como feita. No fim, o tema de RG herdada
-    que tambem esta numa RG posterior aberta agora fica so na posterior (deduplicar_temas)."""
+    base-1), as novas (sonda curta no STF/RG logo depois de uma edicao: tentativas_novo) e, no
+    fim, as revisitas antigas — ate MAX_REVISITAS_ANTIGAS do STF/RG e, a parte, ate
+    MAX_REVISITAS_STJ do STJ (sem firewall, 1 pedido: o STF barrado nao toma a vaga dele;
+    em 20/11/2026 o stj903 seguia parado porque o stf1231 e o stf1230 levavam as duas vagas),
+    so antes do PRAZO_S (o tempo da execucao nao cresce).
+    Uma revisita 'superada' (aberta, todos os temas superados) conta como feita. No fim, o tema de
+    RG herdada que tambem esta numa RG posterior aberta agora fica so na posterior (deduplicar_temas)."""
     c, resultados, antigas, parado = Coleta(), [], [], set()
+    hoje = hoje_iso()
     for tipo in ("stf", "rg", "stj"):
         h = hist.get(tipo) or {}
         if not h:
@@ -970,6 +1135,7 @@ def coletar(hist):
                                "motivo": "nenhuma edição no histórico"})
             continue
         base = max(h)
+        anterior = h[base].get("anunciada_em") or h[base].get("anunciada_na_edicao") or ""
         for n in (base, base - 1):         # as mais recentes primeiro
             if n not in h:
                 situacao = "pulada"
@@ -988,7 +1154,10 @@ def coletar(hist):
             if falhas >= 2:
                 break                       # dois numeros novos seguidos sem edicao: parar
             # depois de um "ainda nao publicada" o numero seguinte nao existe: 1 pedido basta
-            r = c.pedir(tipo, n, "nova", None, h, 1 if inexistente is not None else MAX_TENTATIVAS)
+            tentativas = 1 if inexistente is not None else tentativas_novo(tipo, anterior, hoje)
+            r = c.pedir(tipo, n, "nova", None, h, tentativas)
+            if inexistente is None and tentativas < MAX_TENTATIVAS:
+                r["sonda_curta"] = True
             if r["estado"] == "indeterminado":
                 if inexistente is not None:
                     r["estado"] = "nao_verificavel"
@@ -998,6 +1167,7 @@ def coletar(hist):
             resultados.append(r)
             if r["ok"]:
                 falhas = 0
+                anterior = (r.get("chave") or "").split("|")[-1] or hoje   # a seguinte se mede por esta
             else:
                 falhas += 1
                 if r["estado"] == "inexistente" and inexistente is None:
@@ -1005,13 +1175,14 @@ def coletar(hist):
         for n in range(base - 2, base - JANELA_REVISITA - 1, -1):
             if n in h and h[n]["vazio"]:
                 antigas.append((h[n]["anunciada_em"] or h[n]["anunciada_na_edicao"], tipo, n))
-    feitas = 0
+    feitas, teto = {}, {"stf": MAX_REVISITAS_ANTIGAS, "stj": MAX_REVISITAS_STJ}
     for _, tipo, n in sorted(antigas, key=lambda a: (a[0], a[2]), reverse=True):
-        if feitas >= MAX_REVISITAS_ANTIGAS:
-            break
-        if tipo in parado:
+        vaga = "stj" if tipo == "stj" else "stf"    # STF e RG dividem as vagas; o STJ tem a sua
+        if feitas.get(vaga, 0) >= teto[vaga] or tipo in parado:
             continue
-        feitas += 1
+        if vaga == "stj" and c.prazo is not None and relogio() >= c.prazo:
+            continue                    # a vaga do STJ nao estica a execucao: passado o PRAZO_S, fica para amanha
+        feitas[vaga] = feitas.get(vaga, 0) + 1
         r = c.pedir(tipo, n, "atrasada", hist[tipo].get(n), hist[tipo], MAX_TENTATIVAS_REVISITA)
         r["revisita"] = True
         resultados.append(r)
@@ -1032,12 +1203,12 @@ def linha_item(tipo, it):
             rotulo += " · sem RG"
         return "[%s] Tema %s — %s%s" % (rotulo, it["tema"], curto(it["titulo"], 150),
                                        " (com tese)" if it["tese"] else "")
-    if it.get("tipo") in ("Repetitivo", "RQF"):
+    if it.get("tipo") in ("Repetitivo", "RQF", "Afetação"):
         partes = (it["tipo"], it.get("precedente"), it.get("orgao"))
     else:
         partes = (it.get("orgao") or it.get("tipo"),)
     rotulo = " · ".join(x for x in partes if x) or it.get("secao") or "?"
-    return "[%s] %s — %s" % (rotulo, it["ramo"], curto(it["tema"], 150))
+    return "[%s] %s%s" % (rotulo, (it["ramo"] + " — ") if it.get("ramo") else "", curto(it["tema"], 150))
 
 
 def ddmm(iso):
@@ -1104,9 +1275,15 @@ def janela():
 
 
 def status_fonte(resultados):
-    """{"status", "detalhe", "script", "execution_id"} do id informativos_docs (contrato de
-    fontes_status.json; execution_id do janela.json, para descartar entrada velha)."""
-    falhas, abertas, revisitas, superadas = [], [], [], []
+    """{"status", "detalhe", "script", "execution_id", "sem_abrir", "falhas"} do id informativos_docs (contrato de
+    fontes_status.json; execution_id do janela.json, para descartar entrada velha). "falha" so quando o
+    script nao consegue ler: parser (layout mudou) ou produto sem historico. Documento que nao abriu (403
+    do firewall) nao derruba a fonte aqui: o numero novo ainda nao anunciado da 403 todo dia (o firewall
+    esconde o 404) e virava "falhou" ao leitor (18 a 20/11/2026, stf1238 e rg399); a edicao anunciada por
+    e-mail que nao abriu quem acusa e o montador (item citado que sai sem conteudo, montar_email.py).
+    sem_abrir: ids novos ou anunciados sem conteudo (base e base-1) que nao abriram; a revisita antiga que
+    nao abriu fica so no detalhe. falhas: ids com parser ou o produto sem historico (o montador os nomeia)."""
+    falhas, abertas, revisitas, superadas, sem_abrir, ids_falha = [], [], [], [], [], []
     for r in resultados:
         e = r.get("estado")
         if r.get("ok"):
@@ -1115,29 +1292,37 @@ def status_fonte(resultados):
             superadas.append(r["id"])                                     # abriu; nada novo a publicar
         elif e == "sem_historico":
             falhas.append("%s sem histórico" % r["tipo"])
+            ids_falha.append(r["tipo"])
         elif e == "parser":
             falhas.append("%s parser" % r["id"])
+            ids_falha.append(r["id"])
         elif e == "indeterminado" and r.get("revisita"):
             revisitas.append("%s http %s" % (r["id"], r.get("http")))   # passivo antigo: nao derruba a fonte
         elif e == "indeterminado":
-            falhas.append("%s http %s" % (r["id"], r.get("http")))
+            sem_abrir.append(r)
     partes = []
     if falhas:
-        partes.append("não abriu: " + ", ".join(falhas))
+        partes.append("falha: " + ", ".join(falhas))
     partes.append(("abertas: " + ", ".join(abertas)) if abertas else "sem edição aberta" if falhas
                   else "sem edição nova")
+    for sit, rotulo in (("nova", "nova sem abrir"), ("atrasada", "anunciada sem abrir"), ("pulada", "pulada sem abrir")):
+        ids = ["%s http %s" % (r["id"], r.get("http")) for r in sem_abrir if r.get("situacao") == sit]
+        if ids:
+            partes.append("%s: %s" % (rotulo, ", ".join(ids)))
     if superadas:
         partes.append("superadas: " + ", ".join(superadas))
     if revisitas:
         partes.append("revisita sem abrir: " + ", ".join(revisitas))
     return {"status": "falha" if falhas else "ok", "detalhe": "; ".join(partes)[:200], "script": SCRIPT,
-            "execution_id": janela().get("execution_id") or ""}
+            "execution_id": janela().get("execution_id") or "", "sem_abrir": [r["id"] for r in sem_abrir],
+            "falhas": ids_falha}
 
 
-def gravar_fontes_status(chaves):
+def gravar_fontes_status(chaves, caminho=None):
     """Mescla as chaves deste script em $ROBOZINHO_TMP/fontes_status.json (lido, atualizado e
-    regravado sob trava exclusiva em fontes_status.json.lock; troca atomica)."""
-    caminho = tmp("fontes_status.json")
+    regravado sob trava exclusiva em fontes_status.json.lock; troca atomica). caminho: outro arquivo
+    (o montador grava ali a decisao final de informativos_docs, montar_email.status_informativos)."""
+    caminho = caminho or tmp("fontes_status.json")
     try:
         os.makedirs(os.path.dirname(caminho), exist_ok=True)
         with open(caminho + ".lock", "a") as trava:
@@ -1184,9 +1369,10 @@ def imprimir(resultados):
                   "o montador tenta abrir de novo e, sem sucesso, descarta o item sozinho"
                   % (nome, r["numero"], r["id"], (" (anunciada em %s)" % quando) if quando else "", r["id"]))
         elif e == "indeterminado":
-            print("ERRO %s %d [id %s]: documento não abriu (servidor recusou o acesso; não é inexistência) — "
+            print("ERRO %s %d [id %s]: documento não abriu (%s) — "
                   "sem e-mail desta edição, não cite nem reporte ao leitor; com o e-mail do coletor Gmail: %s"
-                  % (nome, r["numero"], r["id"], ref_email(r)))
+                  % (nome, r["numero"], r["id"], "sonda curta; talvez ainda não publicada" if r.get("sonda_curta")
+                     else "servidor recusou o acesso; não é inexistência", ref_email(r)))
     for tipo in ("stf", "rg", "stj"):
         linha = sem_edicao(tipo, [r for r in resultados if r.get("tipo") == tipo])
         if linha:
@@ -1197,6 +1383,12 @@ def imprimir(resultados):
             tecnico.append("%s: %s" % (r["tipo"], r.get("motivo")))
             continue
         extra = [] if r.get("ok") else [r.get("estado") or "?"]
+        if r.get("sonda_curta") and r.get("estado") == "indeterminado":
+            extra.append("sonda curta")
+        if r.get("resumos"):
+            extra.append("resumo " + r["resumos"])
+        if r.get("notas"):
+            extra.append("%d de %d notas lidas" % (len(r.get("itens") or []), r["notas"]))
         if r.get("itens_superados"):
             extra.append("%d superados" % len(r["itens_superados"]))
         if (r.get("tentativas") or 0) > 1:
