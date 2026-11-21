@@ -851,6 +851,39 @@ def finalizar_push_que_trava_e_cortado():
 
 
 @teste
+def finalizar_commita_so_o_estado_com_indice_sujo():
+    """P3 (rev3): arquivo extra ja no indice (novo e alterado) nao vai no commit do estado nem para a main — com e sem
+    reaplicacao; fica no indice, com AVISO."""
+    for concorrente in (False, True):
+        base, sess, t, g, run = repo_finalizar()
+        run(sys.executable, "work/montar_email.py")
+        open(os.path.join(sess, "work", "extra.txt"), "w").write("rascunho avulso\n")
+        with open(os.path.join(sess, "work", "selos.py"), "a") as f:
+            f.write("\n# alteracao avulsa no indice\n")
+        g(sess, "add", "work/extra.txt", "work/selos.py")
+        if concorrente:
+            outro = os.path.join(base, "outro")
+            g(base, "clone", "-q", "origin.git", outro)
+            pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+            gravar(pl, dict(ler(pl), marca_concorrente="x"))
+            g(outro, "commit", "-qam", "concorrente")
+            ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+        rc, out = run(*FINALIZAR)
+        ok(rc == 0 and "PUSH: OK" in out and "AVISO: fora do commit do estado (ja estavam no indice): " in out
+           and "work/extra.txt" in out and ("PUSH: recusado" in out) == concorrente, out[-900:])
+        gd = ["--git-dir", os.path.join(base, "origin.git")]
+        enviados = g(base, *gd, "show", "--name-only", "--format=", "main").stdout.split()
+        ok(enviados and all(re.match(r"work/(robozinho-|resumo-legislativo-historico|concursos-estado)", f)
+                            for f in enviados), "so estado no commit: %s" % enviados)
+        ok("work/extra.txt" not in g(base, *gd, "ls-tree", "-r", "--name-only", "main").stdout
+           and "alteracao avulsa" not in g(base, *gd, "show", "main:work/selos.py").stdout, "nada avulso na main")
+        # sem reaplicacao o avulso fica no indice; com ela (reset --keep para origin/main), na arvore, fora do indice
+        ok(("work/extra.txt" in g(sess, "diff", "--cached", "--name-only").stdout) != concorrente
+           and os.path.exists(os.path.join(sess, "work", "extra.txt"))
+           and "alteracao avulsa" in open(os.path.join(sess, "work", "selos.py")).read(), "o avulso fica")
+
+
+@teste
 def finalizar_caminho_feliz_sem_alarme():
     base, sess, t, g, run = repo_finalizar()
     run(sys.executable, "work/montar_email.py")

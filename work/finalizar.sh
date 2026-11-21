@@ -14,7 +14,8 @@
 #      rascunho fica) e compara os itens com a montagem anterior; remontagem
 #      com ERRO = PERSISTENCIA ABORTADA com o que fazer. O execucao.json nao
 #      resolvido so entra sem ref e com chave (fluxo antigo, draft_ja_existente).
-#   2. Commit e push para main. Trabalha na branch LOCAL main: o hook de
+#   2. Commit (so dos arquivos de estado, por pathspec: o que mais estiver no
+#      indice fica fora, com AVISO) e push para main. Trabalha na branch LOCAL main: o hook de
 #      parada compara HEAD com origin/<branch atual>; commitando numa branch
 #      de sessao e empurrando so para main, o hook acusava "commit nao
 #      enviado" e a sessao acabava criando uma branch orfa no remoto.
@@ -288,13 +289,18 @@ sys.exit(1 if problemas else 0)
 PY
 }
 
-commitar() {
-  git add $(arquivos_estado)
-  if git diff --cached --quiet; then
+commitar() {   # so os arquivos de estado (pathspec): o que mais estiver no indice fica fora do commit (e no indice)
+  local arqs fora_do_commit
+  arqs=$(arquivos_estado)
+  git add $arqs
+  if git diff --cached --quiet -- $arqs; then
     echo "COMMIT: nada mudou nos arquivos de estado"
   else
-    git commit -q -m "Robozinho: execução $EXEC" ${TRAILER:+-m "$TRAILER"} || return 1
+    git commit -q -m "Robozinho: execução $EXEC" ${TRAILER:+-m "$TRAILER"} -- $arqs || return 1
   fi
+  fora_do_commit=$(git diff --cached --name-only 2>/dev/null | tr '\n' ' ')
+  [[ -n "$fora_do_commit" ]] && echo "AVISO: fora do commit do estado (ja estavam no indice): $fora_do_commit"
+  return 0
 }
 
 falhou() {
