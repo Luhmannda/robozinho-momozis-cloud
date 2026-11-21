@@ -920,9 +920,28 @@ def item_oficial(it):
 def sem_movimento(campos):
     """ledger_updates.concursos.<id>.movimento = false: a linha foi reescrita sem fato novo para o leitor (enriquecida
     com fato antigo, nota de busca): grava, mas sem "Atualizado hoje", fundo creme, item 'atualizado' nem mudou_em
-    (o helper faz o mesmo). O campo nao vai ao registro. Ausente ou true: linha/selo/prazos mudados = movimento."""
+    (o helper faz o mesmo). O campo nao vai ao registro. Ausente ou true: linha/selo/prazos mudados = movimento.
+    Com selo ou prazos mudados no mesmo update o opt-out e ignorado (movimento_ignorado, em estado_concursos)."""
     v = (campos or {}).get("movimento")
     return v is False or str(v).strip().lower() in ("false", "0", "nao", "não")
+
+
+def movimento_ignorado(upd, antes):
+    """E-min (e), ensaio de 23/11: `movimento: false` e para a linha reescrita sem fato novo. Junto com selo ou prazos
+    mudados (selo igual ao do registro e copia, nao mudanca) o leitor perderia a marca de um fato que ele ve: o
+    opt-out sai do update NO LUGAR — o execucao.resolvido.json leva o update sem ele e o helper grava o mudou_em, como
+    o e-mail mostra — e sai AVISO (comum). Devolve os AVISOs."""
+    out = []
+    for ident, campos in (upd or {}).items():
+        if not isinstance(campos, dict) or campos.get("remover") or not sem_movimento(campos) or ident not in antes:
+            continue
+        mudados = [k for k in ("selo", "prazos") if k in campos and campos[k] != antes[ident].get(k)]
+        if mudados:
+            del campos["movimento"]
+            out.append("ledger_updates.concursos.%s.movimento: false ignorado — %s mudou hoje: sai \"Atualizado hoje\" "
+                       "e o registro conta como mudado (movimento: false vale só para a linha reescrita sem fato novo)"
+                       % (ident, " e ".join(mudados)))
+    return out
 
 
 def aplicar_concursos(concursos, upd):
@@ -1092,6 +1111,7 @@ def estado_concursos(ex, j, led, op, avisos):
     hoje = date.fromisoformat(j["data"])
     upd = (ex.get("ledger_updates") or {}).get("concursos") or {}
     antes = {c.get("id"): c for c in led.get("concursos") or []}
+    avisos += movimento_ignorado(upd, antes)
     regs, novos, alterados = aplicar_concursos(led.get("concursos") or [], upd)
     por_id = {c["id"]: c for c in regs}
     banca = ler_banca(op.get("bancas") or tmp("bancas.json"), j["data"])

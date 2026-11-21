@@ -1916,6 +1916,40 @@ def t_mon_titulo_curto_nas_mensagens():
     ok(any(e.startswith("Uma categoria inexistente com um título bem…: categoria 'Nada'") for e in erros),
        "categoria fora da lista: %s" % erros)
 
+@teste
+def t_mon_movimento_falso_com_prazo_ou_selo_mudado():
+    """E-min (e), ensaio de 23/11: `movimento: false` junto com prazos (ou selo) mudados e ignorado — vale a marca de
+    alterado ('Atualizado hoje', item 'atualizado', mudou_em de hoje no ledger gravado pelo helper) e sai AVISO
+    comum; o resolvido leva o update sem o campo. So a linha mudada continua sem marca (t_mon_movimento_falso)."""
+    led = fx("ledger-1611.json")
+    tj = next(c for c in led["concursos"] if c["id"] == "tjrs_juiz")
+    pz = [{"data": "2026-12-14", "evento": "prova objetiva (prevista)", "confirmado": True}]
+    t = pasta_dia("2026-11-18", {"tjrs_juiz": {"prazos": pz, "movimento": False, "verificado_em": "2026-11-18"}},
+                  banca=False)
+    out, html, _, _ = montador_e_helper(t)
+    av = [l for l in out.splitlines() if "movimento: false ignorado" in l]
+    ok(len(av) == 1 and av[0].startswith("AVISO: ledger_updates.concursos.tjrs_juiz.movimento: false ignorado — prazos "
+                                         "mudou hoje"), "AVISO comum (nao acionavel): %s" % av)
+    tr = linha_tr(html, "TJRS — Juiz")
+    ok("Atualizado hoje:</b>" in tr and 'bgcolor="#fdf6e9"' in tr, "marca de alterado: %s" % tr[:200])
+    res = json.load(open(os.path.join(t, "execucao.resolvido.json"), encoding="utf-8"))
+    ok("movimento" not in res["ledger_updates"]["concursos"]["tjrs_juiz"]
+       and any(i["chave"] == "concurso|tjrs_juiz|atualizado|2026|2026-11-18" for i in res["items"]),
+       "resolvido sem o opt-out e com o item 'atualizado'")
+    reg = next(c for c in json.load(open(os.path.join(t, "led.json"), encoding="utf-8"))["concursos"]
+               if c["id"] == "tjrs_juiz")
+    ok(reg["mudou_em"] == "2026-11-18" and reg["prazos"] == pz and "movimento" not in reg,
+       "ledger do helper com o mudou_em de hoje (e-mail e ledger concordam): %s" % reg.get("mudou_em"))
+    # selo igual ao do registro (copia) + linha: nao e mudanca de selo; o opt-out vale
+    avisos = []
+    upd = {"tjrs_juiz": {"selo": tj["selo"], "linha": tj["linha"] + "; nota", "movimento": False}}
+    ok(not M.movimento_ignorado(upd, {"tjrs_juiz": tj}) and upd["tjrs_juiz"]["movimento"] is False,
+       "selo copiado nao conta")
+    upd = {"tjrs_juiz": {"selo": "PROVA EM BREVE", "movimento": "nao"}}
+    avisos = M.movimento_ignorado(upd, {"tjrs_juiz": tj})
+    ok(len(avisos) == 1 and "selo mudou hoje" in avisos[0] and "movimento" not in upd["tjrs_juiz"]
+       and not M.ACIONAVEL.search(avisos[0]), "selo mudado: ignorado, aviso comum: %s" % avisos)
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do
