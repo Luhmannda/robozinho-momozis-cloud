@@ -267,8 +267,12 @@ def t_apoio_calculado():
     ok(t.startswith("Teses e julgados do STF") and "Sem Repercussão" not in t, "RG nova nao vira 'sem RG nova'")
     ok(M.apoio_calculado("STF Jurisprudência", {}) is None, "sem informativo: linha padrao")
     stj = [{"ref": "stj909", "titulo": "Informativo STJ nº 909"}]
-    ok("Informativo STJ nº 909" in M.apoio_calculado("STJ Jurisprudência", {"Informativos": stj}), "STJ Jurisprudencia")
-    ok(M.apoio_calculado("STJ Jurisprudência", {}) == "Sem teses do CodJu nem Informativo STJ novo na janela.",
+    ok(M.apoio_calculado("STJ Jurisprudência", {"Informativos": stj}) == "Sem edição nova de Jurisprudência em Teses do "
+       "STJ na janela; teses dos julgados do STJ desta edição estão em 📚 Informativos (Informativo STJ nº 909).",
+       "STJ Jurisprudencia: a secao e da Jurisprudência em Teses")
+    ok("CodJu" not in "".join(v for c, _, v in M.SECOES if c == "STJ Jurisprudência"), "linha padrao sem 'teses do CodJu'")
+    ok(M.apoio_calculado("STJ Jurisprudência", {}) == "Sem edição nova de Jurisprudência em Teses do STJ nem "
+       "Informativo STJ novo na janela.",
        "STJ Jurisprudencia sem informativo nao manda ver Informativos")
     ok(M.apoio_calculado("STJ Notícias", {"Mídia": [{"titulo": "STJ limita x"}]}) is None, "STJ na midia: linha padrao")
     ok(M.apoio_calculado("STJ Notícias", {}) == "Nenhuma notícia do STJ localizada nesta janela.", "STJ sem nada")
@@ -1030,7 +1034,8 @@ def t_r2_baixos():
        "RG nova sem conteudo nao vira 'sem RG nova': %s" % t)
     stj = [{"ref": "stj910", "titulo": "Informativo STJ nº 910", "sem_conteudo": True}]
     t = M.apoio_calculado("STJ Jurisprudência", {"Informativos": stj})
-    ok(t.startswith("Sem teses do CodJu na janela; o documento do Informativo STJ nº 910 não abriu"), "STJ: %s" % t)
+    ok(t.startswith("Sem edição nova de Jurisprudência em Teses do STJ na janela; o documento do Informativo STJ nº "
+                    "910 não abriu"), "STJ: %s" % t)
     ok(M.apoio_calculado("STJ Notícias", {"Informativos": stj}) == "Nenhuma notícia do STJ localizada nesta janela.",
        "STJ Noticias nao aponta edicao vazia")
     # email.suporte escrito a mao: ignorado (o calculado sai), com AVISO
@@ -1870,7 +1875,7 @@ def t_teses_stj_vai_para_stj_jurisprudencia():
     sec = html.split("⚖️ STJ — Jurisprudência")[1].split("📚 Informativos")[0]
     ok(rc == 0 and "Jurisprudência em Teses nº 286" in sec and "CONFIRMADO POR FONTE OFICIAL" in sec
        and "Jurisprudência em Teses nº 286" not in html.split("📚 Informativos")[1].split("Concursos")[0]
-       and "Sem teses do CodJu" not in sec,
+       and "Sem edição nova de Jurisprudência em Teses" not in sec,
        "JT sai em STJ Jurisprudência com selo oficial (rc=%s)" % rc)
 
 

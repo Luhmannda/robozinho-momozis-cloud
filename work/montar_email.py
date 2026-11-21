@@ -135,7 +135,8 @@ SECOES = [
      "estão em Se saiu na mídia não é fofoca!"),
     ("STJ Notícias", "⚖️ STJ — Notícias",
      "O STJ da janela chegou só pela mídia — ver Se saiu na mídia não é fofoca!"),
-    ("STJ Jurisprudência", "⚖️ STJ — Jurisprudência", "Sem teses do CodJu na janela; ver Informativos."),
+    ("STJ Jurisprudência", "⚖️ STJ — Jurisprudência",
+     "Sem edição nova de Jurisprudência em Teses do STJ na janela; teses dos julgados estão em 📚 Informativos."),
     ("Informativos", "📚 Informativos",
      "Nenhuma edição nova de informativo (STF, Repercussão Geral em Pauta ou STJ) nesta janela — "
      "a cadência é semanal."),
@@ -1326,13 +1327,15 @@ def apoio_calculado(cat, por_cat):
         return "Nenhuma notícia do STJ localizada nesta janela%s." % (
             "; o %s está em 📚 Informativos" % stj[0]["titulo"] if stj else "")
     if cat == "STJ Jurisprudência":
+        # a secao e da Jurisprudência em Teses (linha STJ_TESES do coletor-gmail, teses_stj); as teses dos julgados
+        # vem no Informativo STJ
         if stj:
-            return "Sem teses do CodJu na janela; as do STJ desta edição estão em 📚 Informativos (%s)." % (
-                "; ".join(it["titulo"] for it in stj))
+            return ("Sem edição nova de Jurisprudência em Teses do STJ na janela; teses dos julgados do STJ desta "
+                    "edição estão em 📚 Informativos (%s)." % "; ".join(it["titulo"] for it in stj))
         vazias = edicoes("stj", False)
         if vazias:
-            return "Sem teses do CodJu na janela; %s." % nao_abriu(vazias)
-        return "Sem teses do CodJu nem Informativo STJ novo na janela."
+            return "Sem edição nova de Jurisprudência em Teses do STJ na janela; %s." % nao_abriu(vazias)
+        return "Sem edição nova de Jurisprudência em Teses do STJ nem Informativo STJ novo na janela."
     return None
 
 
