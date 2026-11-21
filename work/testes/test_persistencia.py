@@ -565,6 +565,206 @@ def metricas_de_custo_no_estado():
        and len(m["custo_usd_ultimas_10"]) == 4 and m["custo_usd_ultimas_10"][-1]["execution_id"] == "2026-11-23-7h", m)
 
 
+# ------------------------------------------------------------------ finalizar.sh (repositorio git descartavel)
+MONFIX = os.path.join(AQUI, "fixtures", "mon")
+MIGR_TESTE = {"id": "2026-11-16-teste", "descricao": "pendência criada por migração (teste)", "criado_em": "2026-11-16",
+              "ledger_updates": {"pendencias": {"migr_teste": {"texto": "Criada pela migração de teste.",
+                                                               "faixa": "longo_prazo"}}}}
+
+
+def repo_finalizar(migracao=False, extra_env=None):
+    """origin bare + clone da sessao (branch claude/sessao) com os dados do MON de 17/11 (como o test_est)."""
+    base = tempfile.mkdtemp(dir=TMPDIR)
+    seed = os.path.join(base, "seed")
+    os.makedirs(os.path.join(seed, "work"))
+    for f in os.listdir(WORK):
+        if f.endswith(".py") or f in ("finalizar.sh", "munger-quotes.json"):
+            shutil.copy(os.path.join(WORK, f), os.path.join(seed, "work", f))
+    shutil.copy(os.path.join(MONFIX, "ledger-1611.json"), os.path.join(seed, "work", "robozinho-aprendizado.json"))
+    shutil.copy(os.path.join(MONFIX, "historico.json"), os.path.join(seed, "work", "resumo-legislativo-historico.json"))
+    gravar(os.path.join(seed, "work", "robozinho-estado.json"), {"ultima_execucao": {"execution_id": "2026-11-16-7h"}})
+    if migracao:
+        os.makedirs(os.path.join(seed, "work", "migracoes"))
+        gravar(os.path.join(seed, "work", "migracoes", "2026-11-16-teste.json"), MIGR_TESTE)
+    open(os.path.join(seed, ".gitignore"), "w").write("__pycache__/\n")
+    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+               GIT_COMMITTER_EMAIL="t@t", ROBOZINHO_TMP=os.path.join(base, "tmp"), ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0")
+    env.update(extra_env or {})
+
+    def g(cwd, *a):
+        return subprocess.run(["git"] + list(a), cwd=cwd, env=env, capture_output=True, text=True)
+    g(seed, "init", "-q", "-b", "main")
+    g(seed, "add", "-A")
+    g(seed, "commit", "-qm", "seed")
+    g(base, "clone", "-q", "--bare", seed, "origin.git")
+    sess = os.path.join(base, "sess")
+    g(base, "clone", "-q", "origin.git", sess)
+    g(sess, "switch", "-q", "-c", "claude/sessao")
+    os.makedirs(env["ROBOZINHO_TMP"])
+    for a, b in (("janela-1711.json", "janela.json"), ("coleta_web-1711.json", "coleta_web.json"),
+                 ("informativos-1711.json", "informativos.json"), ("versiculo-1711.json", "versiculo.json"),
+                 ("bancas-1711.json", "bancas.json"), ("fontes_status-1711.json", "fontes_status.json"),
+                 ("execucao-1711.json", "execucao.json")):
+        shutil.copy(os.path.join(MONFIX, a), os.path.join(env["ROBOZINHO_TMP"], b))
+
+    def run(*cmd):
+        r = subprocess.run(list(cmd), cwd=sess, env=env, capture_output=True, text=True)
+        return r.returncode, r.stdout + r.stderr
+    return base, sess, env["ROBOZINHO_TMP"], g, run
+
+
+def helper_falso(sess, corpo):
+    """Troca o helper da sessao por um script (defeito simulado) que, importado, expoe as funcoes do helper real
+    (a trava do finalizar.sh as usa); o commit nao leva o arquivo (so estado e commitado)."""
+    real = os.path.join(sess, "work", "Update-Historico-real.py")
+    shutil.copy(os.path.join(sess, "work", "Update-Historico.py"), real)
+    cab = ("import json, os, sys, importlib.util\n"
+           "_s = importlib.util.spec_from_file_location('uh_real', %r)\n"
+           "_m = importlib.util.module_from_spec(_s); _s.loader.exec_module(_m)\n"
+           "trava_sanidade, removidos_pedidos = _m.trava_sanidade, _m.removidos_pedidos\n"
+           "if __name__ == '__main__':\n    args = sys.argv\n    rel = args[args.index('--relatorio-path') + 1]\n" % real)
+    open(os.path.join(sess, "work", "Update-Historico.py"), "w").write(
+        cab + "".join("    " + l + "\n" for l in corpo.splitlines()))
+
+
+FINALIZAR = ("bash", "work/finalizar.sh", "--draft-id", "r-X", "--message-id", "m-X")
+
+
+@teste
+def finalizar_helper_que_morre_restaura_o_estado_de_antes():
+    base, sess, t, g, run = repo_finalizar(migracao=True)
+    rc, out = run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")       # o que o inicio.py faz
+    ok(rc == 0 and "MIGRACAO 2026-11-16-teste: aplicada" in out, out)
+    run(sys.executable, "work/montar_email.py")
+    p = os.path.join(sess, "work", "robozinho-aprendizado.json")
+    migrado = md5(p)
+    # helper que grava o ledger pela metade e morre sem relatorio (o caso do verified[14] antes da correcao)
+    helper_falso(sess, "open('work/robozinho-aprendizado.json', 'w').write('{\"concursos\": [')\n"
+                       "open('work/resumo-legislativo-historico-arquivo-2026-11.json', 'w').write('{}')\n"
+                       "raise KeyError('contexto_selos')\n")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 2 and "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper" in out
+       and "PERSISTENCIA ABORTADA: o helper nao terminou com STATUS: OK" in out, out[-800:])
+    ok(md5(p) == migrado and not os.path.exists(os.path.join(sess, "work", "resumo-legislativo-historico-arquivo-2026-11.json")),
+       "o ledger volta ao de antes do helper (com a migracao do inicio.py); o arquivo criado sai")
+    st = g(sess, "status", "--porcelain", "--untracked-files=no").stdout
+    ok(sorted(l[3:] for l in st.splitlines()) == ["work/Update-Historico.py", "work/robozinho-aprendizado.json"], st)
+    ok(g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout, "nada commitado")
+
+
+@teste
+def finalizar_trava_de_sanidade():
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    p = os.path.join(sess, "work", "robozinho-aprendizado.json")
+    antes = md5(p)
+    # helper "OK" que perde dois concursos e uma pendencia sem `remover` (defeito de codigo simulado)
+    helper_falso(sess, "led = json.load(open('work/robozinho-aprendizado.json'))\n"
+                       "fora = [c['id'] for c in led['concursos'][:2]]\n"
+                       "led['concursos'] = led['concursos'][2:]\n"
+                       "led['pendencias_vivas'] = led['pendencias_vivas'][:-1]\n"
+                       "json.dump(led, open('work/robozinho-aprendizado.json', 'w'))\n"
+                       "open(rel, 'w').write('STATUS: OK')\nprint('STATUS: OK')\n")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 2 and re.search(r"^TRAVA: concursos: 2 sumiram sem `remover`", out, re.M)
+       and re.search(r"^TRAVA: pendencias_vivas: 1 sumiram .*\(pgm_campinas_setec_verificar\)", out, re.M)
+       and "PERSISTENCIA ABORTADA: trava de sanidade" in out and "RESTAURADO:" in out, out[-900:])
+    ok(md5(p) == antes and g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout,
+       "nada commitado, ledger de volta")
+    # a mesma perda pedida no update de hoje (remover + desfecho) passa
+    led = ler(p)
+    ids = [c["id"] for c in led["concursos"][:2]]
+    ok(uh.trava_sanidade(led, dict(led, concursos=led["concursos"][2:]),
+                         [{"concursos": {i: {"remover": True, "desfecho": "d"} for i in ids}}], {"a"}, {"a"}) == [],
+       "remover pedido")
+    ok(uh.trava_sanidade({"x": [1], "licoes_de_processo": []}, {}, [], {"a", "b"}, {"a"}) ==
+       ["ledger: a chave 'x' sumiu", "histórico: 1 execução(ões) sumiram do principal e dos arquivos mortos (b)"],
+       "chave e execucao")
+
+
+@teste
+def finalizar_sessao_com_commit_fora_da_main():
+    base, sess, t, g, run = repo_finalizar()
+    with open(os.path.join(sess, "work", "selos.py"), "a") as f:
+        f.write("\n# commit avulso da sessao\n")
+    g(sess, "commit", "-qam", "commit avulso na branch da sessao")
+    run(sys.executable, "work/montar_email.py")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "AVISO: a sessão partiu de um commit com 1 commit(s) fora da origin/main (commit avulso na branch "
+       "da sessao;)" in out and "PUSH: OK" in out and out.count("STATUS: OK") == 2, out[-900:])
+    ok(g(base, "--git-dir", os.path.join(base, "origin.git"), "log", "--format=%s", "main").stdout.splitlines()
+       == ["Robozinho: execução 2026-11-17-7h", "seed"], "o commit avulso nao foi para a main")
+    e = ler(os.path.join(sess, "work", "resumo-legislativo-historico.json"))["executions"][-1]
+    ok(e["execution_id"] == "2026-11-17-7h", "execucao gravada sobre a origin/main")
+
+
+@teste
+def finalizar_reaplicacao_reaplica_a_migracao():
+    base, sess, t, g, run = repo_finalizar(migracao=True)
+    run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")
+    run(sys.executable, "work/montar_email.py")
+    outro = os.path.join(base, "outro")
+    g(base, "clone", "-q", "origin.git", outro)
+    pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+    led = ler(pl)
+    led["marca_concorrente"] = "x"
+    gravar(pl, led)
+    g(outro, "commit", "-qam", "concorrente")
+    ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "PUSH: recusado (main andou no remoto)" in out
+       and "REAPLICACAO: MIGRACAO 2026-11-16-teste: aplicada (0 concursos, 1 pendências)" in out
+       and "PUSH: OK" in out, out[-900:])
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    ok(led.get("marca_concorrente") == "x" and any(p["id"] == "migr_teste" for p in led["pendencias_vivas"])
+       and led["migracoes_aplicadas"][0]["id"] == "2026-11-16-teste" and led["atualizado_por_execucao"] == "2026-11-17-7h",
+       "migracao + mudanca concorrente + execucao: %r" % {k: led.get(k) for k in ("migracoes_aplicadas", "marca_concorrente")})
+    ok(g(sess, "status", "--porcelain").stdout == "", "árvore limpa")
+
+
+def hook(base, script):
+    h = os.path.join(base, "origin.git", "hooks", "pre-receive")
+    open(h, "w").write("#!/bin/sh\n" + script)
+    os.chmod(h, 0o755)
+
+
+@teste
+def finalizar_push_falho_vai_para_a_branch_de_socorro():
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    # o remoto recusa a main (como em 09/10) e aceita outra branch
+    hook(base, 'while read a b ref; do [ "$ref" = refs/heads/main ] && { echo "main protegida" >&2; exit 1; }; done; exit 0\n')
+    rc, out = run(*FINALIZAR)
+    sha = g(sess, "rev-parse", "--short", "HEAD").stdout.strip()
+    ok(rc == 3 and "PUSH: FALHOU (apos 5 tentativas)" in out
+       and "SOCORRO: commit %s (estado do dia) enviado para a branch robozinho/socorro-2026-11-17-7h" % sha in out, out[-900:])
+    remoto = g(base, "--git-dir", os.path.join(base, "origin.git"), "rev-parse", "robozinho/socorro-2026-11-17-7h").stdout
+    ok(remoto.strip() == g(sess, "rev-parse", "HEAD").stdout.strip(), "o commit do estado esta no remoto")
+    ok(re.search(r"^ESTADO: copia do estado do dia em .* — para reaplicar: tar -xzf", out, re.M), "ESTADO continua")
+
+
+@teste
+def finalizar_push_que_trava_e_cortado():
+    base, sess, t, g, run = repo_finalizar(extra_env={"ROBOZINHO_PUSH_ESPERAS": "0 0", "ROBOZINHO_LIMITE_REDE": "2"})
+    run(sys.executable, "work/montar_email.py")
+    hook(base, "sleep 6\nexit 0\n")
+    import time
+    t0 = time.time()
+    rc, out = run(*FINALIZAR)
+    ok(rc == 3 and "push sem resposta em 2 s (cortado)" in out and "PUSH: FALHOU (apos 2 tentativas)" in out
+       and time.time() - t0 < 60, out[-900:])
+
+
+@teste
+def finalizar_caminho_feliz_sem_alarme():
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "PUSH: OK" in out and "TRAVA" not in out and "AVISO: a sessão partiu" not in out
+       and "SOCORRO" not in out and "RESTAURADO" not in out, out[-600:])
+    ok(g(sess, "status", "--porcelain").stdout == "", "árvore limpa")
+
+
 def main():
     for t in TESTES:
         try:

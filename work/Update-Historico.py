@@ -1370,6 +1370,44 @@ class Gravacoes:
             raise
 
 
+def removidos_pedidos(updates):
+    """{secao: ids} com `remover` em qualquer dos ledger_updates dados (o do dia e os das migracoes)."""
+    out = {"concursos": set(), "pendencias": set()}
+    for u in updates:
+        for secao in out:
+            bloco = (u or {}).get(secao) if isinstance(u, dict) else None
+            for ident, c in (bloco or {}).items() if isinstance(bloco, dict) else []:
+                if isinstance(c, dict) and c.get("remover"):
+                    out[secao].add(ident)
+    return out
+
+
+def trava_sanidade(led_antes, led_depois, updates, ids_hist_antes, ids_hist_depois):
+    """lows[13]: antes do commit, o que SUMIU do estado sem ter sido pedido (o validador so olha o update do dia;
+    um defeito que esvaziasse uma lista entraria na main sem alarme). Compara o ledger e os ids de execucao do HEAD
+    com os gravados: registro, pendencia, fonte ou armadilha ausente sem `remover` no update do dia ou numa migracao
+    aplicada agora; chave do ledger que tinha conteudo e sumiu; execucao que nao esta nem no historico nem num
+    arquivo morto. Devolve os problemas (vazio = segue)."""
+    problemas = []
+    pedidos = removidos_pedidos(updates)
+    for lista, secao in (("concursos", "concursos"), ("pendencias_vivas", "pendencias"), ("fontes", None),
+                         ("armadilhas", None)):
+        antes = {x.get("id") for x in led_antes.get(lista) or [] if isinstance(x, dict)}
+        depois = {x.get("id") for x in led_depois.get(lista) or [] if isinstance(x, dict)}
+        sumiram = sorted(i for i in antes - depois - pedidos.get(secao, set()) if i)
+        if sumiram:
+            problemas.append("%s: %d sumiram sem `remover` no update de hoje nem em migração (%s%s)"
+                             % (lista, len(sumiram), ", ".join(sumiram[:6]), "…" if len(sumiram) > 6 else ""))
+    for k, v in led_antes.items():
+        if k not in led_depois and v not in (None, "", [], {}):
+            problemas.append("ledger: a chave %r sumiu" % k)
+    perdidas = sorted(set(ids_hist_antes) - set(ids_hist_depois))
+    if perdidas:
+        problemas.append("histórico: %d execução(ões) sumiram do principal e dos arquivos mortos (%s)"
+                         % (len(perdidas), ", ".join(perdidas[:6])))
+    return problemas
+
+
 def onde_falhou(e):
     """arquivo:linha do ponto mais interno da excecao (o relatorio diz onde o codigo quebrou)."""
     import traceback
