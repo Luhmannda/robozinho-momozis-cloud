@@ -540,6 +540,7 @@ def alerta_economia_total_contra_media_do_mesmo_modelo():
     ok(len(al) == 1 and "a media das ultimas 5 com claude-fable-5-2" in al[0] and "buscas 40" in al[0]
        and "esforco xhigh" in al[0], log)
     ok(any(l.startswith("AVISO: coletor jota US$ 1.20 = 3.43x") for l in log), log)
+    ok("USO: custo total US$ 9.40; media das ultimas 5 com claude-fable-5-2: US$ 6.85 (1.37x)" in log, log)
     ok(any("ALERTA: modelo do orquestrador mudou: claude-opus-5-5 (2026-11-14-7h) -> claude-fable-5-2" in l
            and "(preco por token de entrada 2x)" in l for l in log), log)
     # dentro de 1,3x: nada
@@ -552,6 +553,7 @@ def alerta_economia_total_contra_media_do_mesmo_modelo():
     ok(not [l for l in log if l.startswith("ALERTA") or "mudou" in l], log)
     log = []
     uh.alertas_uso(base[:5] + [ex_medida(16, O, 9.0)], log.append)       # troca Fable -> Opus: so o ALERTA da troca
+    ok("USO: custo total US$ 9.85; sem execucao anterior com claude-opus-5-5" in log, log)
     ok(not [l for l in log if l.startswith("ALERTA_ECONOMIA")] and any("modelo do orquestrador mudou" in l
                                                                        and "(preco por token de entrada 0.5x)" in l
                                                                        for l in log), log)

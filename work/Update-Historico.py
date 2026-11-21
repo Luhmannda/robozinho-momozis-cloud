@@ -1252,6 +1252,10 @@ def alertas_uso(execucoes, add_log):
     cur = custo_usd_execucao(atual)
     base = base_economia(execucoes[:-1], o.get("modelo")) if o.get("modelo") else []
     media = sum(c["total"] for _, c in base) / len(base) if base else None
+    if cur and cur.get("total"):     # o numero que o dono acompanha (vai na notificacao do dia)
+        add_log("USO: custo total US$ %.2f%s" % (cur["total"], "; media das ultimas %d com %s: US$ %.2f (%.2fx)" % (
+            len(base), o.get("modelo"), media, cur["total"] / media) if base else "; sem execucao anterior com %s"
+            % (o.get("modelo") or "o mesmo modelo")))
     if cur and cur.get("total") and len(base) >= MIN_BASE_ECONOMIA and cur["total"] > 1.3 * media:
         add_log("ALERTA_ECONOMIA: custo total da execucao US$ %.2f = %.2fx a media das ultimas %d com %s (US$ %.2f) — "
                 "orquestrador US$ %.2f (chamadas_modelo %s, gravacao de cache %s, saida %s, esforco %s), coletores "
