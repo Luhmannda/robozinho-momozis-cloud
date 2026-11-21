@@ -484,7 +484,7 @@ reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, co
   migracoes_vistas "REAPLICACAO: "
   cp "$COPIA" "$T/finalizar-rodada2.json"
   helper "$T/finalizar-rodada2.json" || falhou "helper na reaplicacao sobre origin/main (STATUS != OK)"
-  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's/^/REAPLICACAO (nova da origin\/main, depois do helper): /'
+  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's|^|REAPLICACAO (nova da origin/main, depois do helper): |'
   trava || falhou "trava de sanidade na reaplicacao (linhas TRAVA acima)"
   copiar_estado rodada2
   SHA=""
