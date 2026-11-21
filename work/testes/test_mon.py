@@ -1333,6 +1333,75 @@ def t_waf_segunda_tentativa_insiste_e_guarda():
         shutil.rmtree(os.path.join(tmp, "informativos-cache"), ignore_errors=True)
 
 
+@teste
+def t_informativos_docs_falha_so_com_leitor_sem_conteudo():
+    """21/11/2026 (decisao do dono): informativos_docs so vira 'falha' quando um informativo citado saiu sem
+    conteudo ou o informativos.py acusou falha de leitura (parser, sem historico). A sonda de numero ainda nao
+    anunciado (403: stf1238/rg399 em 18-20/11) fica 'ok'. Na falha, o rotulo nomeia o produto (antes, fixo
+    'documentos oficiais dos informativos (STF/STJ)'), e a decisao vai ao fontes_status.json (o helper faz o
+    status de script prevalecer), com o do script em status_script."""
+    d = tempfile.mkdtemp(dir=BASE_TMP)
+    fs = os.path.join(d, "fontes_status.json")
+    j = {"execution_id": "2026-11-20-7h"}
+    entrada = {"status": "ok", "detalhe": "abertas: stf1231; nova sem abrir: stf1238 http 403", "script": "informativos.py",
+               "execution_id": "2026-11-20-7h", "sem_abrir": ["stf1238"], "falhas": []}
+    with open(fs, "w", encoding="utf-8") as f:
+        json.dump({"informativos_docs": entrada, "conjur": {"status": "ok", "execution_id": "2026-11-20-7h"}}, f)
+    aberta = {"categoria": "Informativos", "titulo": "Informativo STF nº 1231", "destaques_texto": ["x"]}
+    ex = {"source_status": {"informativos_docs": "ok"}}
+    M.status_informativos(ex, [aberta], fs, j)
+    ok(ex["source_status"]["informativos_docs"] == "ok" and "_falha_informativos" not in ex
+       and json.load(open(fs))["informativos_docs"] == entrada,
+       "sonda sem resposta não citada: ok, fontes_status intacto: %s" % ex)
+    sem = {"categoria": "Informativos", "titulo": "Informativo STF nº 1238", "sem_conteudo": True}
+    ex = {"source_status": {"informativos_docs": "ok"}, "items": [], "email": {}}
+    M.status_informativos(ex, [aberta, sem], fs, j)
+    e = json.load(open(fs))["informativos_docs"]
+    ok(ex["source_status"]["informativos_docs"] == "falha"
+       and ex["_falha_informativos"] == "documento oficial do Informativo STF nº 1238"
+       and e["status"] == "falha" and e["status_script"] == "ok"
+       and e["detalhe"].startswith("citada sem conteúdo: Informativo STF nº 1238; abertas: stf1231")
+       and json.load(open(fs))["conjur"]["status"] == "ok",
+       "informativo citado que saiu sem conteúdo: falha com o produto, gravada no fontes_status: %s / %s" % (ex, e))
+    ss = ex["source_status"]
+    sup = M.suporte_txt(ss, {}, ex)
+    fc = M.fontes_consultadas(ss, ex, {})
+    pend = M.sec_pendencias([], [], ex, ss)
+    ok("Fontes que falharam nesta execução: documento oficial do Informativo STF nº 1238" in sup
+       and "documento oficial do Informativo STF nº 1238 — falhou" in fc
+       and "Falha técnica nesta execução: documento oficial do Informativo STF nº 1238." in pend
+       and "(STF/STJ)" not in sup + fc + pend, "rótulo por produto no rodapé, nas fontes e nas pendências: %s" % sup)
+    ok("_falha_informativos" not in M.limpar_para_gravar(ex), "o rótulo não vai ao resolvido")
+    avisos = []
+    ex2 = {"source_status": {"informativos_docs": "ok"}}
+    M.mesclar_status(ex2, j, fs, {}, avisos)
+    ok(ex2["source_status"]["informativos_docs"] == "ok" and not any("informativos_docs" in a for a in avisos),
+       "rodada seguinte: mesclar_status parte do status_script (sem aviso falso ok→falha): %s" % avisos)
+    ex3 = {"source_status": dict(ex2["source_status"])}
+    M.status_informativos(ex3, [aberta], fs, j)
+    e = json.load(open(fs))["informativos_docs"]
+    ok(ex3["source_status"]["informativos_docs"] == "ok" and e["status"] == "ok" and e["status_script"] == "ok"
+       and e["detalhe"] == entrada["detalhe"],
+       "rodada seguinte em que o 1238 abriu (cache): volta a ok, detalhe do script de volta: %s" % e)
+    with open(fs, "w", encoding="utf-8") as f:
+        json.dump({"informativos_docs": dict(entrada, status="falha", detalhe="falha: stj910 parser; abertas: stf1231",
+                                             falhas=["stj910"])}, f)
+    ex4 = {"source_status": {}}
+    M.status_informativos(ex4, [aberta, dict(sem, titulo="Repercussão Geral em Pauta nº 399")], fs, j)
+    ok(ex4["source_status"]["informativos_docs"] == "falha" and ex4["_falha_informativos"] ==
+       "documentos oficiais da Repercussão Geral em Pauta nº 399 e do Informativo STJ nº 910",
+       "parser do script + RG citada sem conteúdo: falha com os dois produtos: %s" % ex4.get("_falha_informativos"))
+    ex5 = {"source_status": {"informativos_docs": "falha"}}
+    M.status_informativos(ex5, [aberta], os.path.join(d, "nao-existe.json"), j)
+    ok(ex5["source_status"]["informativos_docs"] == "falha" and "_falha_informativos" not in ex5,
+       "sem entrada do script, o status escrito fica (rótulo genérico)")
+    # STJ_TESES do coletor-gmail (Jurisprudência em Teses do CodJu) entra em STJ Jurisprudência como fonte oficial
+    teses = {"categoria": "STJ Jurisprudência", "titulo": "Jurisprudência em Teses nº 286 — Dosimetria da pena",
+             "fonte": "Jurisprudência em Teses (STJ)", "data": "2026-11-20"}
+    ok(M.item_oficial(teses) and M.item_oficial(dict(teses, url="https://scon.stj.jus.br/SCON/jt/?action=file&num=286"))
+       and M.chave_auto(teses).split("|")[1] == "tese", "STJ_TESES: oficial com e sem URL, chave de tese")
+
+
 def main():
     try:
         for t in TESTES:

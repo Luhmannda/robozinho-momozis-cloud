@@ -8,8 +8,14 @@
 #   rg397/396/394.txt                       pdftotext da RG em Pauta 397 (11 temas), 396 (9) e 394 (13)
 #   stj909.html                             pagina do Informativo STJ 909 (inteiro teor reduzido)
 #   stj910.html                             pagina de edicao inexistente (sem o cabecalho do numero)
+#   stj910-publicada.html                   pagina real do Informativo STJ 910 (17/11/2026), reduzida ao texto
+#                                           das notas: 17 notas, 5 afetacoes (PROPOSTA DE RELEVANCIA DA QUESTAO
+#                                           FEDERAL, sem "Destaque") e o tema no formato novo "( Tema repetitivo N )"
 #   stj912-layout-novo.html                 sintetica: cabecalho presente, rotulos desconhecidos
 #   historico/resumo-legislativo-historico.json  sintetico, com as edicoes vazias reais de set-nov/2026
+#   historico-real-1611/resumo-legislativo-historico.json  os itens reais stf|stj informativo das execucoes
+#                                           ate 16/11/2026, copiados sem alteracao (o P6 lia o historico vivo
+#                                           e ficou vermelho em 18/11, quando a RG 394 ganhou conteudo)
 # Os downloads sao simulados (informativos.baixar/pdf_texto trocados); tudo o que o script grava vai
 # para um ROBOZINHO_TMP temporario.
 # Fixture nova nesta pasta precisa de `git add` explicito no commit: um `git commit -a` deixa de fora
@@ -63,7 +69,8 @@ def fx(nome, modo="r"):
 # todas as fixtures usadas neste arquivo (caminhos relativos a FIX)
 FIXTURES = ("stf1231-layout.txt", "stf1233-layout.txt", "stf1234-layout.txt", "stf1236-layout.txt",
             "rg394.txt", "rg396.txt", "rg397.txt", "stj909.html", "stj910.html", "stj912-layout-novo.html",
-            os.path.join("historico", "resumo-legislativo-historico.json"))
+            "stj910-publicada.html", os.path.join("historico", "resumo-legislativo-historico.json"),
+            os.path.join("historico-real-1611", "resumo-legislativo-historico.json"))
 
 
 def t_fixtures():
@@ -259,9 +266,48 @@ def t_stf_titulo_processo_1231():
            and tit[1] == "Contratação de agentes temporários para o desempenho de atribuições da Polícia Penal – ADI 7.069/GO"
            and tit[5] == "Majoração de custas judiciais no Estado do Espírito Santo e anterioridade nonagesimal – ADI 7.935/ES"
            and not any(t.rstrip().endswith(("–", "-")) for t in tit), tit)
-    checar("stf1231: lista de processos com minúscula ('e') e resumos inalterados (5 de 6; o 1º cruza a página)",
+    checar("stf1231: lista de processos com minúscula ('e') e os 6 resumos validados",
            tit[3].endswith("– ADI 7.822/SP, ADI 7.830/SP, ADI 7.844/SP e ADI 7.848/SP")
-           and [bool(it.get("resumo")) for it in itens] == [False, True, True, True, True, True], tit[3])
+           and [bool(it.get("resumo")) for it in itens] == [True] * 6, (tit[3], [len(it.get("resumo", "")) for it in itens]))
+    t_stf_resumo_sem_linha_em_branco(texto, itens)
+
+
+def t_stf_resumo_sem_linha_em_branco(texto, itens):
+    """20/11/2026: na ADI 7.495 (STF 1231) a caixa RESUMO nao terminava em linha em branco (a coluna das
+    palavras-chave seguia ao lado) e o "No caso, ..." (recuo 37, corpo na 41) puxava a coluna para 37: o resumo
+    engolia a nota (2.559 caracteres), era recusado e a tese nao saia."""
+    r0 = itens[0].get("resumo") or ""
+    checar("stf1231[0]: RESUMO da ADI 7.495 inteiro e só ele (para antes do 'No caso')",
+           r0.startswith("A licença-maternidade deve ser assegurada de forma isonômica às mães biológicas e adotantes")
+           and r0.endswith("vínculo laboral ou funcional da beneficiária.") and "No caso" not in r0 and len(r0) == 214, r0)
+    # a rede sozinha: sem a regra do recuo (linhas do corpo todas na mesma coluna), o texto acima de RESUMO_MAX
+    # e cortado antes do "No caso"
+    corpo = (["                    A tese em uma frase curta que termina aqui, com mais de cem caracteres para "
+              "passar no mínimo do resumo."]
+             + ["                    No caso, foram questionadas normas que " + "x" * 60 + "."] * 15)
+    s = I.corpo_resumo(corpo)
+    checar("corpo_resumo: acima de RESUMO_MAX, corta antes de '. No caso' (rede)",
+           s.endswith("passar no mínimo do resumo.") and I.resumo_valido(s), s[:200])
+    longo = ["                    " + ("Frase longa do resumo que segue sem a expressão de corte " * 2) + "."] * 12
+    checar("corpo_resumo: sem a expressão de corte, o texto longo fica longo (recusado; sai só o título)",
+           not I.resumo_valido(I.corpo_resumo(longo)))
+    # a perda fica na linha TECNICO (antes: '6 de 6 destaques publicados' e nada no TECNICO)
+    PDF["stf1231"] = "stf1231-layout.txt"
+    t2 = texto.replace("ou funcional da beneficiária.", "ou funcional da beneficiária", 1)
+    velho = I.pdf_texto
+    try:
+        I.pdf_texto = lambda dados, layout: t2
+        I.baixar = Rede({"stf1231": [(200, "pdf")]}).baixar
+        r = I.obter("stf", 1231, "nova")
+    finally:
+        I.pdf_texto = velho
+        PDF.pop("stf1231", None)
+    saida = io.StringIO()
+    with contextlib.redirect_stdout(saida):
+        I.imprimir([r])
+    checar("TECNICO: resumo recusado aparece (stf1231=200(resumo 5/6; recusados: 0 (N car.)))",
+           r.get("resumos", "").startswith("5/6; recusados: 0 (") and "stf1231=200(resumo 5/6; recusados: 0 (" in saida.getvalue(),
+           (r.get("resumos"), saida.getvalue()[-200:]))
 
 
 # ------------------------------------------------------------------ 2. RG em Pauta
@@ -372,6 +418,78 @@ def t_stj():
     checar("stj912: cabeçalho presente, 0 destaques (layout novo)", not itens and cab)
     checar("tipo_stj: Seção sem repetitivo", I.tipo_stj("Segunda Seção", "REsp 1-SP, Segunda Seção, julgado") ==
            ("Seção", "Segunda Seção", ""))
+    t_stj_910_publicada()
+
+
+def t_stj_910_publicada():
+    """17/11/2026 (Informativo STJ 910): 17 notas; as 5 da secao nova PROPOSTA DE RELEVÂNCIA DA QUESTÃO FEDERAL
+    (afetacao, sem 'Destaque') eram descartadas e o e-mail dizia '12 de 12 destaques publicados'; o tema mudou de
+    formato ('( Tema repetitivo 1180 )', '(Tema de Relevância 1334)') e o cabecalho saia 'Repetitivo · ramo'."""
+    try:
+        pagina = fx("stj910-publicada.html", "rb")
+    except OSError as e:
+        checar("stj910-publicada: fixture legível", False, e)
+        return
+    info = {}
+    data, itens, cab = I.stj_html(pagina.decode("cp1252"), 910, info)
+    afet = [i for i in itens if i["tipo"] == "Afetação"]
+    checar("stj910: 17 notas lidas, 5 afetações (Temas de Relevância 1480, 1481, 1483, 1484 e 1485)",
+           len(itens) == 17 and info.get("notas") == 17 and cab and data == "17 de novembro de 2026"
+           and sorted(i["precedente"] for i in afet) == ["Tema 1480", "Tema 1481", "Tema 1483", "Tema 1484", "Tema 1485"],
+           (len(itens), info, [(i["tipo"], i["precedente"]) for i in itens]))
+    a = next(i for i in afet if i["precedente"] == "Tema 1484")
+    checar("stj910: afetação — o destaque é a controvérsia da nota; órgão, ramo e processo lidos",
+           a["destaque"].startswith("A Corte Especial acolheu a proposta de submissão do REsp 2.263.604-SP")
+           and "impenhorabilidade da quantia de até 40 (quarenta) salários mínimos" in a["destaque"]
+           and a["orgao"] == "Corte Especial" and a["ramo"] == "DIREITO DO TRABALHO, DIREITO PROCESSUAL CIVIL"
+           and a["processo"].startswith("ProRQF no REsp 2.263.604-SP, Rel. Ministra"), a)
+    checar("stj910: tema no formato novo — '( Tema repetitivo 1180 )' e '(Tema de Relevância 1334)'",
+           (itens[0]["tipo"], itens[0]["precedente"]) == ("Repetitivo", "Tema 1180")
+           and any((i["tipo"], i["precedente"]) == ("RQF", "Tema 1334") for i in itens)
+           and not any(i["tipo"] in ("Repetitivo", "RQF", "Afetação") and not i["precedente"] for i in itens),
+           [(i["tipo"], i["precedente"]) for i in itens])
+    checar("stj910: rótulo do índice da afetação",
+           I.linha_item("stj", a).startswith("[Afetação · Tema 1484 · Corte Especial] DIREITO DO TRABALHO"), I.linha_item("stj", a))
+    t1352 = next(i for i in itens if i["precedente"] == "Tema 1352")
+    checar("stj910: processos que só diferem no número numa linha só (Tema 1352: 4 REsps)",
+           t1352["processo"] == "REsp 2.189.004-SP, REsp 2.188.858-SP, REsp 2.188.859-SP e REsp 2.171.338-SP, Rel. "
+                                "Ministro Paulo Sérgio Domingues, Primeira Seção, por unanimidade, julgado em 11/11/2026 "
+                                "(Tema repetitivo 1352).", t1352["processo"])
+    checar("processo_stj: linha repetida sai uma vez (904: REsp 2.250.086-SP duas vezes); resto diferente não junta",
+           I.processo_stj(["REsp 1-SP , Rel. X, julgado em 1/1/2026 ( Tema 1 ).", "REsp 1-SP , Rel. X, julgado em 1/1/2026 ( Tema 1 )."])
+           == "REsp 1-SP, Rel. X, julgado em 1/1/2026 (Tema 1)."
+           and I.processo_stj(["REsp 1-SP, Rel. X, julgado em 1/1/2026.", "REsp 2-RJ, Rel. Y, julgado em 1/1/2026."])
+           == "REsp 1-SP, Rel. X, julgado em 1/1/2026. REsp 2-RJ, Rel. Y, julgado em 1/1/2026."
+           and I.processo_stj(["Processo em segredo de justiça, Rel. X."]) == "Processo em segredo de justiça, Rel. X.")
+    try:
+        import montar_email as M
+        html_a = M.texto_destaque("stj", a)
+        sem_ramo = next(i for i in itens if i["precedente"] == "Tema 1469")
+        html_r = M.texto_destaque("stj", sem_ramo)
+        checar("montador: cabeçalho 'Afetação · Tema 1484' · ramo — controvérsia, processo em itálico",
+               html_a.startswith("<b>Afetação · Tema 1484</b> · Direito do Trabalho, Direito Processual Civil — A Corte "
+                                 "Especial acolheu") and "<i>ProRQF no REsp 2.263.604-SP" in html_a, html_a[:160])
+        checar("montador: sem o ramo (Tema 1469), sem o separador solto ('Repetitivo · — i)')",
+               not sem_ramo["ramo"] and html_r.startswith("<b>Repetitivo · Tema 1469</b> — i) Nos termos"), html_r[:120])
+        checar("montador: Turma sem ramo nem órgão não abre com '<b></b>'",
+               M.texto_destaque("stj", {"tipo": "", "ramo": "", "orgao": "", "destaque": "Tese.", "processo": ""}) == "Tese.")
+    except ImportError as e:
+        print("AVISO   montar_email não importou (%s) — conferência do HTML pulada" % e)
+    # guarda: nota que o parser nao le aparece na linha TECNICO ("k de N notas lidas")
+    sem_destaque = pagina.replace(b"<p>Destaque</p>", b"<p>Destaque removido</p>", 1)
+    rede = Rede({"stj910": [(200, sem_destaque)]})
+    I.baixar = rede.baixar
+    r = I.obter("stj", 910, "nova")
+    saida = io.StringIO()
+    with contextlib.redirect_stdout(saida):
+        I.imprimir([r])
+    checar("guarda: nota sem 'Destaque' fora de seção de afetação não some em silêncio — TECNICO '16 de 17 notas lidas'",
+           r["ok"] and len(r["itens"]) == 16 and r.get("notas") == 17 and "stj910=200(16 de 17 notas lidas)" in saida.getvalue(),
+           (len(r.get("itens") or []), r.get("notas"), saida.getvalue()[-160:]))
+    rede = Rede({"stj910": [(200, pagina)]})
+    I.baixar = rede.baixar
+    r = I.obter("stj", 910, "nova")
+    checar("guarda: todas as notas lidas -> sem 'notas' no registro (nada a acusar)", r["ok"] and "notas" not in r, r.get("notas"))
 
 
 # ------------------------------------------------------------------ 4. historico e datas do anuncio
@@ -419,9 +537,10 @@ def t_replay_1611():
            and "REPERCUSSAO GERAL EM PAUTA 397 [id rg397] (4 a 9 de novembro de 2026) — ATRASADA (anunciada em 11/11) — 11 destaques" in out
            and "INFORMATIVO STF 1233 [id stf1233] (19 de outubro de 2026) — ATRASADA, revisita (anunciada em 19/10) — 4 destaques" in out,
            out)
-    checar("replay: revisitas antigas = 2, as mais recentes primeiro (rg394 de 21/10, stf1233 de 19/10)",
+    checar("replay: revisitas antigas = 2 do STF/RG, as mais recentes primeiro (rg394 de 21/10, stf1233 de 19/10), "
+           "e a do STJ na vaga própria (stj904 de 06/10; 404 para o STJ: o stj903 não é pedido)",
            [p for p in rede.pedidos if p in ("rg394", "stf1233", "stf1231", "stf1230", "stj904", "stj903")]
-           == ["rg394"] * I.MAX_TENTATIVAS_REVISITA + ["stf1233"], rede.pedidos)
+           == ["rg394"] * I.MAX_TENTATIVAS_REVISITA + ["stf1233", "stj904"], rede.pedidos)
     checar("replay: revisita que não abriu fica só na linha TECNICO",
            "rg394" not in "\n".join(linhas_leitor(out))
            and "rg394=403(indeterminado, %d tentativas, 1a=403, revisita)" % I.MAX_TENTATIVAS_REVISITA in out, out)
@@ -473,8 +592,15 @@ def t_403():
     checar("403 sem 404: espera entre as tentativas", ESPERAS.count(0) >= I.MAX_TENTATIVAS - 1, ESPERAS)
     checar("403 sem 404: não sonda 1238 nem imprime SEM EDICAO do STF",
            "stf1238" not in rede.pedidos and "SEM EDICAO NOVA INFORMATIVO STF" not in out)
-    checar("403 sem 404: SOURCE_STATUS falha", st["informativos_docs"]["status"] == "falha"
-           and "stf1237 http 403" in st["informativos_docs"]["detalhe"], st)
+    # 21/11/2026: documento que nao abriu nao derruba a fonte no script (quem acusa a edicao anunciada que saiu sem
+    # conteudo e o montador); antes, "falha" e o leitor via "falhou" com os informativos completos ao lado
+    checar("403 sem 404: SOURCE_STATUS ok; o número que não abriu fica no detalhe e em sem_abrir",
+           st["informativos_docs"]["status"] == "ok" and "nova sem abrir: stf1237 http 403" in st["informativos_docs"]["detalhe"]
+           and st["informativos_docs"]["sem_abrir"] == ["stf1237"] and st["informativos_docs"]["falhas"] == []
+           and 'SOURCE_STATUS {"informativos_docs": "ok"}' in out, st)
+    checar("403 sem 404: edição anterior há 6 dias (stf1236 de 10/11, hoje 16/11) — insistência inteira, sem 'sonda curta'",
+           not por_id(js)["stf1237"].get("sonda_curta") and "sonda curta" not in out.split("stf1237=")[1].split(" · ")[0],
+           out)
     rede = Rede(dict(base, stf1237=[(403, b""), (200, "pdf")]))
     I_PDF = dict(PDF)
     PDF["stf1237"] = "stf1233-layout.txt"
@@ -522,9 +648,10 @@ def t_403():
 def t_waf():
     base = {"stf1236": [(200, "pdf")], "rg397": [(200, "pdf")], "stj910": [(200, "stj910.html")],
             "rg394": [(200, "pdf")], "stf1233": [(200, "pdf")]}
-    # 17/11/2026: a RG 398 dava 403 no script e 404 quando o pedido passava pelo firewall
+    # 17/11/2026: a RG 398 dava 403 no script e 404 quando o pedido passava pelo firewall (a RG 397 era de 11/11:
+    # 6 dias, insistencia inteira; com a anterior de menos de 6 dias seria a sonda curta, t_sonda_curta)
     rede = Rede(dict(base, stf1237=[(403, b""), (403, b""), (404, b"")], rg398=[(403, b""), (404, b"")]))
-    out, js, st = rodar(rede, janela=JANELA)
+    out, js, st = rodar(rede, janela=dict(JANELA, data="2026-11-17"))
     r = por_id(js)
     checar("WAF: 403 e depois 404 = ainda não publicada (sem ERRO, fonte ok)",
            r["stf1237"]["estado"] == "inexistente" and r["stf1237"]["tentativas"] == 3 and "ERRO" not in out
@@ -621,9 +748,10 @@ def t_parser_e_404():
     checar("STJ: cabeçalho do número com 0 destaques vira ERRO PARSER",
            r["stj910"]["estado"] == "parser" and any(l.startswith("ERRO PARSER INFORMATIVO STJ 910 [id stj910]") for l in out.splitlines())
            and "SEM EDICAO NOVA INFORMATIVO STJ" not in out and st["informativos_docs"]["status"] == "falha", out)
-    checar("revisita: parar no 404 (rg397 404 -> rg394 não é pedida; vagas vão para stf1233 de 19/10 e stj904 de 06/10)",
+    checar("revisita: parar no 404 (rg397 404 -> rg394 não é pedida; as vagas do STF/RG vão para stf1233 de 19/10 e "
+           "stf1231 de 05/10; a do STJ, para stj904 de 06/10)",
            "rg394" not in rede.pedidos
-           and [p for p in rede.pedidos if p in ("stf1233", "stj904", "stf1231")] == ["stf1233", "stj904"],
+           and [p for p in rede.pedidos if p in ("stf1233", "stj904", "stf1231", "stf1230")] == ["stf1233", "stj904", "stf1231"],
            rede.pedidos)
     # edicao pulada (base-1 ausente do historico) que da 404: so na linha TECNICO
     hist = {"stf": {1236: {"vazio": False, "anunciada_em": "2026-11-10", "anunciada_na_edicao": "2026-11-11"}},
@@ -815,32 +943,29 @@ def limpar_consultas():
 
 
 def hist_real_ate_397():
-    """historico() do repositorio de verdade (work/resumo-legislativo-historico*.json, so leitura), RG ate a 397:
-    o estado de 16/11 (a execucao de 17/11 nao conta; RGs posteriores nao mudam o teste quando o arquivo crescer)."""
+    """historico() real congelado em 16/11 (fixtures/informativos/historico-real-1611: os itens stf|stj informativo
+    do repositorio ate a execucao de 16/11, sem alteracao), so a RG. Antes lia o historico vivo e filtrava pelo numero
+    da RG: em 18/11 a RG 394 ganhou conteudo e o teste ficou vermelho sem bug."""
     json.dump(JANELA_1711, open(os.path.join(TMP, "janela.json"), "w"))
     aqui = I.AQUI
-    I.AQUI = WORK
+    I.AQUI = os.path.join(FIX, "historico-real-1611")
     try:
         h = I.historico()
     finally:
         I.AQUI = aqui
-    return {"stf": {}, "rg": {m: v for m, v in h["rg"].items() if m <= 397}, "stj": {}}
+    return {"stf": {}, "rg": h["rg"], "stj": {}}
 
 
 def t_p6_historico_real():
     """P6: o registro da RG 397 de 16/11 foi gravado pelo montador antigo, sem `temas` ("6 de 10 destaques
     publicados"); na revisita da RG 394 o Tema 1.483 (saído em 16/11) voltava. O texto gravado não traz o número
     do tema: a lista é conferida no documento da RG 397 (1 pedido), e o tema sai da revisita."""
-    if not os.path.isfile(os.path.join(WORK, "resumo-legislativo-historico.json")):
-        checar("P6 histórico real: work/resumo-legislativo-historico.json presente", False)
-        return
     h = hist_real_ate_397()
     r397 = h["rg"].get(397) or {}
-    checar("P6 histórico real: RG 397 de 16/11 reconhecida como publicada com destaques, lista não gravada",
-           r397.get("vazio") is False and (r397.get("temas_desconhecidos") == "2026-11-16"
-                                           or "1.483" in (r397.get("temas") or {})), r397)
-    checar("P6 histórico real: RG 394 segue sem conteúdo (é revisitada)", (h["rg"].get(394) or {}).get("vazio") is True,
-           h["rg"].get(394))
+    checar("P6 histórico real congelado em 16/11: RG 397 reconhecida como publicada com destaques, lista não gravada",
+           r397.get("vazio") is False and r397.get("temas_desconhecidos") == "2026-11-16" and max(h["rg"]) == 397, r397)
+    checar("P6 histórico real congelado em 16/11: RG 394 sem conteúdo (é revisitada)",
+           (h["rg"].get(394) or {}).get("vazio") is True, h["rg"].get(394))
     PDF_ANTES = dict(PDF)
     PDF["rg394"] = "rg394.txt"
     PDF["rg397"] = "rg397.txt"
@@ -854,14 +979,14 @@ def t_p6_historico_real():
         limpar_consultas()
     temas = [it["tema"] for it in r.get("itens") or []]
     sup = {it["tema"]: it["superado_motivo"] for it in r.get("itens_superados") or []}
-    checar("P6 histórico real: revisita da RG 394 sem o Tema 1.483 (saiu com a RG 397 em 16/11)",
+    checar("P6 histórico real congelado:revisita da RG 394 sem o Tema 1.483 (saiu com a RG 397 em 16/11)",
            r.get("ok") and "1.483" not in temas and sup.get("1.483") == "tema também na RG 397, publicada em 16/11",
            (temas, sup))
-    checar("P6 histórico real: ficam 7 temas; os 5 em votação/pauta continuam fora pela data",
+    checar("P6 histórico real congelado:ficam 7 temas; os 5 em votação/pauta continuam fora pela data",
            temas == ["1.016", "106", "1.479", "1.480", "1.490", "1.491", "1.492"]
            and sorted(t for t, v in sup.items() if "boletins seguintes" in v) == sorted(["1.493", "1.494", "118", "488", "1.308"]),
            (temas, sup))
-    checar("P6 histórico real: 1 pedido a mais (o documento da RG 397), registrado em temas_consultados",
+    checar("P6 histórico real congelado:1 pedido a mais (o documento da RG 397), registrado em temas_consultados",
            rede.pedidos == ["rg394", "rg397"] and r.get("temas_consultados") == {"rg397": 200},
            (rede.pedidos, r.get("temas_consultados")))
     # execucao automatica de 17/11 (so a RG, historico real congelado ate a 397)
@@ -880,7 +1005,7 @@ def t_p6_historico_real():
         limpar_consultas()
         os.unlink(os.path.join(TMP, "janela.json"))
     out = saida.getvalue()
-    checar("P6 replay 17/11 (histórico real): RG 394 no EM ATRASO com 7 destaques, sem o Tema 1.483 no índice",
+    checar("P6 replay 17/11 (histórico real congelado): RG 394 no EM ATRASO com 7 destaques, sem o Tema 1.483 no índice",
            "REPERCUSSAO GERAL EM PAUTA 394 [id rg394] (14 a 19 de outubro de 2026) — ATRASADA, revisita (anunciada em 21/10) "
            "— 7 destaques" in out and not re.search(r"(?m)^  \d+ \[.*\] Tema 1\.483 ", out), out)
     checar("P6 replay 17/11: linha 'fora do e-mail' do Tema 1.483 e TECNICO com a conferência",
@@ -1009,6 +1134,125 @@ def t_p6_conferencia():
            saida.getvalue())
 
 
+# ------------------------------------------------------------------ 7d. sonda curta, vagas de revisita, status da fonte
+def t_sonda_curta():
+    """18 a 20/11/2026: stf1238 e rg399 (ainda nao publicados) davam 403 em todos os 12 pedidos (o firewall esconde
+    o 404), 24 pedidos e ~45 s por dia, e a fonte virava 'falha' ('falhou' ao leitor ao lado de 5 edicoes abertas).
+    Com a edicao anterior de menos de CADENCIA_SONDA_DIAS dias, a sonda do numero novo do STF/RG e curta."""
+    hist = {"stf": {1237: {"vazio": False, "anunciada_em": "2026-11-16", "anunciada_na_edicao": "2026-11-17"}},
+            "rg": {398: {"vazio": False, "anunciada_em": "2026-11-17", "anunciada_na_edicao": "2026-11-18"}},
+            "stj": {910: {"vazio": False, "anunciada_em": "2026-11-17", "anunciada_na_edicao": "2026-11-18"}}}
+    json.dump({"execution_id": "2026-11-20-7h", "data": "2026-11-20"}, open(os.path.join(TMP, "janela.json"), "w"))
+    try:
+        rede = Rede({"stf1238": [(403, b"")], "rg399": [(403, b"")], "stj911": [(200, "stj910.html")]})
+        I.baixar = rede.baixar
+        res = I.coletar(hist)
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            I.imprimir(res)
+        out = saida.getvalue()
+        st = I.status_fonte(res)
+    finally:
+        os.unlink(os.path.join(TMP, "janela.json"))
+    checar("sonda curta (20/11): stf1238 e rg399 com %d pedidos cada (antes %d), sem sondar o número seguinte"
+           % (I.MAX_TENTATIVAS_SONDA, I.MAX_TENTATIVAS),
+           rede.pedidos.count("stf1238") == I.MAX_TENTATIVAS_SONDA == rede.pedidos.count("rg399")
+           and "stf1239" not in rede.pedidos and "rg400" not in rede.pedidos and rede.pedidos.count("stj911") == 1,
+           rede.pedidos)
+    checar("sonda curta: fonte ok, números em sem_abrir; TECNICO diz 'sonda curta'",
+           st["status"] == "ok" and st["sem_abrir"] == ["stf1238", "rg399"]
+           and "nova sem abrir: stf1238 http 403, rg399 http 403" in st["detalhe"]
+           and "stf1238=403(indeterminado, sonda curta, 2 tentativas, 1a=403)" in out, (st, out))
+    checar("sonda curta: ERRO segue (com o e-mail da edição, o orquestrador cita o ref) e diz que pode não ter saído",
+           any(l.startswith("ERRO INFORMATIVO STF 1238 [id stf1238]: documento não abriu (sonda curta; talvez ainda não "
+                            "publicada) — sem e-mail desta edição, não cite nem reporte ao leitor") for l in out.splitlines()), out)
+    checar("tentativas_novo: STF/RG com a anterior de 5 dias = sonda curta; de 6 dias, sem data ou STJ = insistência inteira",
+           (I.tentativas_novo("stf", "2026-11-15", "2026-11-20"), I.tentativas_novo("rg", "2026-11-14", "2026-11-20"),
+            I.tentativas_novo("stf", "", "2026-11-20"), I.tentativas_novo("stj", "2026-11-19", "2026-11-20"))
+           == (I.MAX_TENTATIVAS_SONDA, I.MAX_TENTATIVAS, I.MAX_TENTATIVAS, I.MAX_TENTATIVAS))
+    # a edicao nova que abre muda a referencia: a seguinte se mede pela data dela
+    hist2 = {"stf": {1235: {"vazio": False, "anunciada_em": "2026-11-04", "anunciada_na_edicao": "2026-11-05"}},
+             "rg": {}, "stj": {}}
+    json.dump({"execution_id": "2026-11-16-7h", "data": "2026-11-16"}, open(os.path.join(TMP, "janela.json"), "w"))
+    try:
+        rede = Rede({"stf1236": [(200, "pdf")], "stf1237": [(403, b"")]})
+        I.baixar = rede.baixar
+        res = I.coletar(hist2)
+    finally:
+        os.unlink(os.path.join(TMP, "janela.json"))
+    checar("sonda curta: 1236 (anterior de 12 dias) com insistência inteira e aberta; 1237 medida pela data do 1236 "
+           "(10/11, 6 dias): insistência inteira",
+           rede.pedidos.count("stf1236") == 1 and rede.pedidos.count("stf1237") == I.MAX_TENTATIVAS
+           and not any(r.get("sonda_curta") for r in res if r.get("tipo") == "stf"), rede.pedidos)
+    t0 = len(rede.pedidos)
+    json.dump({"execution_id": "2026-11-12-7h", "data": "2026-11-12"}, open(os.path.join(TMP, "janela.json"), "w"))
+    try:
+        rede = Rede({"stf1236": [(200, "pdf")], "stf1237": [(403, b"")]})
+        I.baixar = rede.baixar
+        res = I.coletar(hist2)
+    finally:
+        os.unlink(os.path.join(TMP, "janela.json"))
+    checar("sonda curta: 1236 de 10/11 aberto hoje (12/11) -> o 1237 só ganha a sonda curta",
+           rede.pedidos.count("stf1237") == I.MAX_TENTATIVAS_SONDA and t0 > len(rede.pedidos), rede.pedidos)
+
+
+def t_revisitas_stj():
+    """20/11/2026: o stj903 (sem conteudo desde 29/09) nunca era tentado: stf1231 e stf1230, barrados pelo firewall,
+    levavam as duas vagas. O STJ (sem firewall, 1 pedido) tem vagas proprias."""
+    hist = {"stf": {1229: {"vazio": False, "anunciada_em": "2026-09-21", "anunciada_na_edicao": "2026-09-22"},
+                    1230: {"vazio": True, "anunciada_em": "2026-09-29", "anunciada_na_edicao": "2026-09-30"},
+                    1231: {"vazio": True, "anunciada_em": "2026-10-05", "anunciada_na_edicao": "2026-10-06"},
+                    1236: {"vazio": False, "anunciada_em": "2026-11-10", "anunciada_na_edicao": "2026-11-11"},
+                    1237: {"vazio": False, "anunciada_em": "2026-11-16", "anunciada_na_edicao": "2026-11-17"}},
+            "rg": {397: {"vazio": False, "anunciada_em": "2026-11-11", "anunciada_na_edicao": "2026-11-12"},
+                   398: {"vazio": False, "anunciada_em": "2026-11-17", "anunciada_na_edicao": "2026-11-18"}},
+            "stj": {903: {"vazio": True, "anunciada_em": "2026-09-29", "anunciada_na_edicao": "2026-09-30"},
+                    909: {"vazio": False, "anunciada_em": "2026-11-10", "anunciada_na_edicao": "2026-11-11"},
+                    910: {"vazio": False, "anunciada_em": "2026-11-17", "anunciada_na_edicao": "2026-11-18"}}}
+    rede = Rede({"stf1231": [(403, b"")], "stf1230": [(403, b"")], "stf1238": [(403, b"")],
+                 "stj903": [(200, "stj909.html")], "stj911": [(200, "stj910.html")]})
+    I.baixar = rede.baixar
+    json.dump({"execution_id": "2026-11-20-7h", "data": "2026-11-20"}, open(os.path.join(TMP, "janela.json"), "w"))
+    try:
+        res = I.coletar(hist)
+        st = I.status_fonte(res)
+    finally:
+        os.unlink(os.path.join(TMP, "janela.json"))
+    checar("revisitas: stf1231 e stf1230 barrados levam as vagas do STF; o stj903 tem a sua (1 pedido)",
+           rede.pedidos.count("stj903") == 1 and rede.pedidos.count("stf1231") == I.MAX_TENTATIVAS_REVISITA
+           and rede.pedidos.count("stf1230") == I.MAX_TENTATIVAS_REVISITA, rede.pedidos)
+    checar("revisitas: a do STJ que não abriu não derruba a fonte; as do STF ficam no detalhe",
+           st["status"] == "ok" and "revisita sem abrir: stf1231 http 403, stf1230 http 403" in st["detalhe"], st)
+
+
+def t_status_fonte():
+    base = {"tipo": "stf", "numero": 1237, "id": "stf1237", "http": 403, "ok": False}
+    st = I.status_fonte([dict(base, situacao="atrasada", estado="indeterminado")])
+    checar("status_fonte: anunciada sem conteúdo que não abriu = ok (quem acusa a citada é o montador)",
+           st["status"] == "ok" and "anunciada sem abrir: stf1237 http 403" in st["detalhe"] and st["sem_abrir"] == ["stf1237"], st)
+    st = I.status_fonte([{"tipo": "stj", "numero": 910, "id": "stj910", "http": 200, "ok": False, "situacao": "nova",
+                          "estado": "parser"}, {"tipo": "rg", "ok": False, "situacao": "nova", "estado": "sem_historico"}])
+    checar("status_fonte: parser e produto sem histórico = falha, com os ids em 'falhas' (o montador nomeia o produto)",
+           st["status"] == "falha" and st["falhas"] == ["stj910", "rg"] and st["detalhe"].startswith("falha: stj910 parser"), st)
+
+
+def t_parser_miudos():
+    """Defeitos de parser visiveis ao leitor (revisao de 18/11/2026)."""
+    checar("juntar: hífen de palavra composta no fim da linha fica ('licenças-' + 'prêmio'; 'auxílio-' + 'doença')",
+           I.juntar(["férias e licenças-", "prêmio não gozadas"]) == "férias e licenças-prêmio não gozadas"
+           and I.juntar(["o salário-", "maternidade e o auxílio-", "doença"]) == "o salário-maternidade e o auxílio-doença"
+           and I.juntar(["os Estados-", "membros e o Procurador-", "Geral"]) == "os Estados-membros e o Procurador-Geral"
+           and I.juntar(["tempora-", "riamente e licen-", "ça"]) == "temporariamente e licença",
+           [I.juntar(["férias e licenças-", "prêmio"]), I.juntar(["Estados-", "membros"])])
+    sint = ("PAUTA DO PLENÁRIO\nTEMA: 1.491 PROCESSOS: RE\nRE1.612.904 RELATOR: Min. Fulano\nTítulo: Um.\n"
+            "TEMA: 2 PROCESSOS: ARE\n1.000.002\nRE 1.000.003\nTítulo: Dois.\n"
+            "TEMA: 3 PROCESSOS: RE1.000.004\nTítulo: Três.\n")
+    _, it = I.rg_texto(sint)
+    checar("rg: só a classe na linha do TEMA e o número na seguinte = um processo ('RE 1.612.904', não 'RE; RE1.612.904')",
+           [x["processo"] for x in it] == ["RE 1.612.904", "ARE 1.000.002; RE 1.000.003", "RE 1.000.004"],
+           [x["processo"] for x in it])
+
+
 # ------------------------------------------------------------------ 8. modo manual, indice e compatibilidade
 def t_manual_e_compat():
     try:
@@ -1049,7 +1293,8 @@ def t_manual_e_compat():
 def main():
     try:
         for t in (t_fixtures, t_stf_resumo, t_rg, t_stj, t_historico, t_replay_1611, t_403, t_waf, t_parser_e_404, t_superados,
-                  t_temas_do_montador, t_p6_historico_real, t_p6_temas_do_texto, t_p6_conferencia, t_manual_e_compat):
+                  t_temas_do_montador, t_p6_historico_real, t_p6_temas_do_texto, t_p6_conferencia, t_sonda_curta,
+                  t_revisitas_stj, t_status_fonte, t_parser_miudos, t_manual_e_compat):
             try:
                 t()
             except Exception as e:  # noqa: BLE001
