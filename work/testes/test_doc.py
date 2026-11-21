@@ -52,7 +52,14 @@ ROTINA_ANTERIOR_BYTES = 19253          # ROTINA.md de b80a3bd (execucao de 16/11
 # Volta 3 (+~640 bytes, o procedimento na §R12): selo por data suspenso no passo 1, o que fazer com ele e com o
 # prazo escrito hoje contra o edital no passo 3, as duas linhas de gravacao na 2a notificacao e a linha-fina cortada
 # no passo 2. Era 21.000.
-ROTINA_TETO_BYTES = 21650
+# Rodada de 21/11/2026 (+~1,35 KB, o maximo combinado com o dono): as regras das frentes bancas, concursos, montador,
+# informativos, fontes, persistencia e migracao (banca_slug/CANDIDATO, PAGINA OFICIAL, escopo do apoio, buscas_gmail,
+# STJ_TESES, LEGIN e marcas de relevancia, JA SAIU, movimento, resenha no ref, pendencia para o leitor, notificacao
+# unica depois do finalizar.sh, ERRO INTERNO/TRAVA). Para caber, o ramo raro do create_draft com erro foi para a §R13,
+# o Agent em segundo plano para a §R3 e o detalhe do DIVERGE/prazo escrito hoje ficou so na §R12; o que a propria linha
+# do script ja manda fazer (JA PUBLICADAS, ERRO dos informativos, rotina, NENHUM ATO FORA, cobertura parcial) e o que
+# a armadilha do ledger ja diz (link do JOTA, MPV SEM_DATA_OFICIAL) sairam do texto. Era 21.650.
+ROTINA_TETO_BYTES = 23000
 DOCS = ["ROTINA.md", "README.md", "docs/referencia-operacional.md", "robozinho-dos-momozis-prompt.md"] + \
     sorted(os.path.relpath(p, RAIZ) for p in glob.glob(os.path.join(WORK, "prompts", "coletor-*.md"))) + \
     sorted(os.path.relpath(p, RAIZ) for p in glob.glob(os.path.join(RAIZ, ".claude", "agents", "coletor-*.md")))
@@ -470,13 +477,16 @@ def selo_ao_entrar_na_familia_bate_com_selos_py():
 
 @teste
 def create_draft_com_erro_confere_rascunho_e_enviada():
+    # (21/11) o ramo foi para a §R13; o passo 6 guarda o ponteiro e a proibicao de recriar sem conferir
     r = ler("ROTINA.md")
     passo6 = r[r.index("## 6. "):r.index("## 7 e 8. ")]
-    erro = passo6[passo6.index("**Erro ou timeout**"):]
-    antes = erro[:erro.index("1 nova tentativa")]
+    assert "**Erro ou timeout** → §R13 antes de qualquer nova tentativa" in passo6 and "**não recrie**" in passo6
+    r13 = secao("docs/referencia-operacional.md", "### R13.", None)
+    antes = r13[:r13.index("1 nova tentativa")]
     assert '`list_drafts` com `subject:"<ASSUNTO>"`' in antes, "erro do create_draft sem list_drafts"
     assert '`search_threads` com `subject:"<ASSUNTO>" in:sent`' in antes, "erro do create_draft sem in:sent"
     assert "**não recrie**" in antes and "nada nas duas" in antes
+    assert "**não** rode o `finalizar.sh`" in r13
 
 
 @teste
@@ -590,11 +600,14 @@ def linhas_do_finalizar_citadas_existem_no_codigo():
 @teste
 def segunda_notificacao_cobre_o_que_os_scripts_mandam_notificar():
     r = ler("ROTINA.md")
-    ultima = r[r.index("**Última mensagem: uma linha**"):r.index("## Regras editoriais")]
+    ultima = r[r.index("**Última mensagem: a notificação**"):r.index("## Regras editoriais")]
     for t in ("PERSISTENCIA ABORTADA", "PUSH: FALHOU", "ALERTA: o execucao.json editado depois da montagem mudou os itens",
               "ALERTA: modelo do orquestrador mudou", "ALERTA_ECONOMIA", "ALERTA: edicao anterior … sem --message-id",
-              "AVISO: diferenca local", "§R6"):
-        assert t in ultima, "2a notificacao sem %r" % t
+              "AVISO: diferenca local", "§R6",
+              # (21/11, persistencia) linhas novas que vao ao dono
+              "STATUS: ERRO INTERNO", "TRAVA:", "ALERTA: mecânico dos concursos com fallback",
+              "ALERTA: migracao … recusada", "`USO:`"):
+        assert t in ultima, "notificacao sem %r" % t
     # toda linha de script que pede "diga/avise na notificacao" esta na lista, pelo comeco fixo dela
     achadas = 0
     for rel in ("work/finalizar.sh", "work/Update-Historico.py"):
@@ -603,9 +616,17 @@ def segunda_notificacao_cobre_o_que_os_scripts_mandam_notificar():
             assert fixo in ultima, "%s: %r pede notificacao e nao esta na 2a" % (rel, fixo)
             achadas += 1
     assert achadas >= 2, "nenhuma linha 'notificacao' achada nos scripts (o teste ficou cego)"
-    # a 1a notificacao vai na mesma mensagem do finalizar.sh: o ALERTA dele so chega ao dono pela 2a
+    # (21/11) uma notificacao so, na mensagem seguinte a do finalizar.sh: antes ela ia junto e saia otimista (o ALERTA
+    # do finalizar.sh so chegava ao dono por uma 2a notificacao)
     p78 = r[r.index("## 7 e 8. "):r.index("**Última mensagem")]
-    assert p78.index("bash work/finalizar.sh") < p78.index("`PushNotification`")
+    assert "bash work/finalizar.sh" in p78 and "PushNotification" not in p78, "notificacao na mensagem do finalizar.sh"
+    assert "depois de ler a saída do `finalizar.sh`" in ultima and "a única do dia" in ultima
+    assert "**6 turnos** (passo 1 · 2 · 3–5 · 6 · 7 · 8)" in r and "Bash (`timeout: 300000`): `bash work/finalizar.sh" in p78
+    # o finalizar.sh cabe no timeout: as esperas do push mais 5 tentativas de ROBOZINHO_LIMITE_REDE s ficam abaixo de 300 s
+    fin = ler("work/finalizar.sh")
+    esperas = re.search(r'ROBOZINHO_PUSH_ESPERAS:-([\d ]+)', fin).group(1).split()
+    limite = int(re.search(r'ROBOZINHO_LIMITE_REDE:-(\d+)', fin).group(1))
+    assert sum(map(int, esperas)) + len(esperas) * limite < 300, (esperas, limite)
 
 
 @teste
@@ -879,7 +900,7 @@ def selo_suspenso_e_prazo_contra_edital_batem_com_o_codigo():
     h = helper()
     r = ler("ROTINA.md")
     r12 = secao("docs/referencia-operacional.md", "### R12.", None)
-    ultima = r[r.index("**Última mensagem: uma linha**"):r.index("## Regras editoriais")]
+    ultima = r[r.index("**Última mensagem: a notificação**"):r.index("## Regras editoriais")]
     passo1 = r[r.index("- **`ALERTA:`**"):r.index("- **Ledger:**")]
     concursos = r[r.index("**Concursos — a seção sai"):r.index("## 4 e 5. ")]
 
