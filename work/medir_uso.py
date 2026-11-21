@@ -46,6 +46,10 @@
 # Coletor relancado (mesmo nome): os usos sao SOMADOS ("relancamentos": n);
 # antes valia so o ultimo, o que subcontava.
 #
+# Mensagem sintetica (model "<synthetic>" ou uso todo zero: erro de API ou aviso
+# que o proprio Claude Code escreve na transcricao) nao e chamada ao modelo e nao
+# conta: nem anula o custo_usd nem gera o AVISO de preco.
+#
 # Usado por Update-Historico.py --medir-uso (preenche `coletores` e
 # `orquestrador` da execucao). USO avulso, para conferencia:
 #   python3 work/medir_uso.py [--desde 2026-10-14T07:19:53-03:00]
@@ -147,6 +151,17 @@ def _ts(s):
         return None
 
 
+def sintetica(m):
+    """Mensagem que o proprio Claude Code escreve na transcricao (erro de API, aviso de limite...): model "<synthetic>"
+    e uso todo zero. Nao e chamada ao modelo: contada, anulava o custo_usd (modelo fora da tabela) e gerava o AVISO
+    de preco enganoso."""
+    if m.get("model") == "<synthetic>":
+        return True
+    u = m.get("usage") or {}
+    return not any(u.get(k) for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens",
+                                      "output_tokens"))
+
+
 def uso_transcricao(caminho, desde=None, ate=None):
     """Agrega o uso de uma transcricao. Linhas repetidas do mesmo
     message.id contam uma vez (saida = maior valor visto)."""
@@ -165,6 +180,8 @@ def uso_transcricao(caminho, desde=None, ate=None):
                 c = m.get("content")
                 primeiro_prompt = c if isinstance(c, str) else json.dumps(c, ensure_ascii=False)[:4000]
             if o.get("type") != "assistant" or not m.get("usage") or not m.get("id"):
+                continue
+            if sintetica(m):
                 continue
             if quando:
                 tempos.append(quando)

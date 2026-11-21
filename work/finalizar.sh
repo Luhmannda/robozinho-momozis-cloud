@@ -14,7 +14,8 @@
 #      rascunho fica) e compara os itens com a montagem anterior; remontagem
 #      com ERRO = PERSISTENCIA ABORTADA com o que fazer. O execucao.json nao
 #      resolvido so entra sem ref e com chave (fluxo antigo, draft_ja_existente).
-#   2. Commit e push para main. Trabalha na branch LOCAL main: o hook de
+#   2. Commit (so dos arquivos de estado, por pathspec: o que mais estiver no
+#      indice fica fora, com AVISO) e push para main. Trabalha na branch LOCAL main: o hook de
 #      parada compara HEAD com origin/<branch atual>; commitando numa branch
 #      de sessao e empurrando so para main, o hook acusava "commit nao
 #      enviado" e a sessao acabava criando uma branch orfa no remoto.
@@ -43,13 +44,23 @@
 #        morto ("TRAVA: ...") = nada commitado;
 #      - sessao que contem a origin/main E commits fora dela: o estado e gravado
 #        sobre a origin/main (reaplicacao), sem levar esses commits para a main;
-#      - reaplicacao: work/migracoes.py roda antes do helper (a migracao do inicio.py
-#        aplicada no ledger local volta a valer sobre o da origin/main);
-#      - rede com prazo: cada push/fetch ate ROBOZINHO_LIMITE_REDE s (20), esperas
-#        ROBOZINHO_PUSH_ESPERAS ("0 5 15 30 40"): pior caso abaixo de 300 s (o Bash do
-#        passo 7 roda com timeout 300000);
+#      - reaplicacao e migracoes de dado (rev3, P2): antes do helper, so as que o dia VIU
+#        (marcadas no ledger local quando o finalizar.sh comecou, guardadas em
+#        $ROBOZINHO_TMP/finalizar-migracoes-vistas.json) e que o ledger da origin/main nao
+#        tem; as novas da origin/main, depois do helper (work/migracoes.py), antes da trava —
+#        a correcao/remocao do dono vale por cima do que o dia gravou. O finalizar.sh repetido
+#        reaplica as vistas que faltarem no ledger antes da 1a rodada ("MIGRACOES DO DIA: ");
+#      - rede com prazo (rev3, P1): cada push/fetch ate ROBOZINHO_LIMITE_REDE s (12), 4
+#        tentativas com esperas ROBOZINHO_PUSH_ESPERAS ("0 5 10 15"): pior caso ~90 s de rede
+#        + o helper, abaixo de 100 s (o Bash do passo 7 roda com timeout 300000; o padrao
+#        do Bash e 120 s);
+#      - TERM/INT (corte do timeout, Ctrl-C): nunca morre calado — antes da copia do estado,
+#        RESTAURADO + PERSISTENCIA ABORTADA (exit 2); depois, PUSH: FALHOU (interrompido)
+#        com a linha ESTADO (exit 3);
 #      - falha definitiva: copia em tar do estado do dia (ESTADO: ...). Nenhuma outra branch
-#        e criada no remoto: a tarefa agendada so autoriza push na main.
+#        e criada no remoto: a tarefa agendada so autoriza push na main. Falha depois de
+#        comecar a reaplicacao: os arquivos de estado voltam ao ultimo commit ("RESTAURADO: ...
+#        voltaram ao ultimo commit"), sem o estado recusado na arvore (rev3, P9).
 #
 # USO: bash work/finalizar.sh --draft-id ID --message-id MSG_ID \
 #                             [--anterior EXEC_ID] [--trailer "linhas de atribuicao do commit"]
@@ -80,6 +91,7 @@ done
 janela() { python3 -c "import json,sys; print(json.load(open(sys.argv[2])).get(sys.argv[1]) or '')" "$1" "$T/janela.json" 2>/dev/null; }
 if [[ -z "$ANTERIOR" && -f "$T/janela.json" ]]; then ANTERIOR=$(janela execucao_anterior); fi
 if [[ -n "$ANTERIOR" && "$ANTERIOR" == "$(janela execution_id)" ]]; then ANTERIOR="" MSG=""; fi
+DATA=$(janela data)
 
 # Re-execucao detectada pelo inicio.py (a edicao de hoje ja existe): nao ha o que gravar.
 if [[ "$(janela reexecucao)" == "True" ]]; then
@@ -191,6 +203,52 @@ helper() {   # $1 = arquivo de entrada (uma copia: o helper o normaliza no lugar
   [[ $rc -eq 0 ]] && grep -q '^STATUS: OK' "$T/relatorio.txt" 2>/dev/null
 }
 
+BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0 PID_REDE="" FASE=inicio
+# rede com prazo (verified[44]; rev3, P1): cada push/fetch tem LIMITE_REDE s; 4 tentativas de push, com esperas que
+# somam 30 s. Pior caso (rede sem resposta): fetch 12 + 4 x 12 de push + 30 de espera = 90 s, mais as rodadas do
+# helper (~1-3 s cada) — abaixo dos 100 s, folga dentro dos 120 s do timeout padrao do Bash, se o passo 7 esquecer o
+# timeout 300000. Reaplicacao: o push recusado responde logo e soma 1 fetch (12) e o helper; a reaplicacao por
+# commits fora da main nao busca de novo. Os dois sao configuraveis (testes: ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0").
+ESPERAS=(${ROBOZINHO_PUSH_ESPERAS:-0 5 10 15})
+LIMITE_REDE=${ROBOZINHO_LIMITE_REDE:-12}
+# o comando de rede e a espera rodam em segundo plano + wait: TERM/INT interrompem na hora (o trap mata o filho);
+# em primeiro plano, ou dentro de $( ), o bash so atenderia o sinal quando o comando terminasse. A saida vai para
+# um arquivo pelo --saida (redirecionar a chamada da funcao mandaria para la tambem as linhas do trap)
+rede() {   # rede [--saida ARQUIVO] comando...
+  if [[ "$1" == --saida ]]; then
+    local arq="$2"
+    shift 2
+    timeout "$LIMITE_REDE" "$@" > "$arq" 2>&1 &
+  else
+    timeout "$LIMITE_REDE" "$@" &
+  fi
+  PID_REDE=$!
+  wait "$PID_REDE"
+  local rc=$?
+  PID_REDE=""
+  return $rc
+}
+pausa() { sleep "$1" & PID_REDE=$!; wait "$PID_REDE"; PID_REDE=""; }
+
+# Interrupcao (rev3, P1): TERM/INT (o corte do timeout do Bash, Ctrl-C) nao matam o script calado. Antes de work/ mudar
+# (FASE=inicio): PERSISTENCIA ABORTADA. Durante a 1a rodada (FASE=helper): os arquivos de estado voltam ao que eram
+# antes do helper (RESTAURADO) e PERSISTENCIA ABORTADA. Com a copia do estado feita (FASE=copia): a saida de falhou —
+# PUSH: FALHOU (interrompido), a linha ESTADO e, na reaplicacao, os arquivos de estado de volta ao ultimo commit.
+interrompido() {
+  trap '' TERM INT                       # a limpeza nao se interrompe
+  [[ -n "$PID_REDE" ]] && kill "$PID_REDE" 2>/dev/null
+  echo "INTERROMPIDO: sinal $1 recebido (fase $FASE)"
+  if [[ "$FASE" == copia ]]; then
+    falhou "interrompido"
+  fi
+  [[ "$FASE" == helper ]] && restaurar_antes
+  echo "PERSISTENCIA ABORTADA: interrompido ($1) antes do commit — nada foi commitado; repita o finalizar.sh com os" \
+       "mesmos argumentos."
+  exit 2
+}
+trap 'interrompido TERM' TERM
+trap 'interrompido INT' INT
+
 # estado de work/ antes do helper (com a migracao que o inicio.py aplicou): se o helper nao terminar com
 # STATUS: OK, os arquivos voltam a isto — nada fica gravado pela metade diante do hook de parada (verified[14])
 ANTES="$T/finalizar-antes"
@@ -205,7 +263,81 @@ restaurar_antes() {
   for f in "$ANTES"/*; do [[ -e "$f" ]] && cp -p "$f" "work/$(basename "$f")"; done
   echo "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper (nada gravado pela metade)"
 }
+
+# Migracoes de dado na reaplicacao (rev3, P2). Antes do helper, so as que o julgamento do dia VIU (marcadas no ledger
+# local quando o finalizar.sh comecou: o inicio.py aplicou as pendentes no passo 1); as que chegaram depois na
+# origin/main, depois do helper (por cima do que o dia gravou), antes da trava. Antes, todas iam antes do helper: a
+# correcao do dono num registro que o dia tambem atualizou era sobrescrita em silencio, e a remocao de um id que o dia
+# atualiza derrubava a validacao (o dia nunca era gravado).
+# $VISTAS: os ids marcados no ledger de work/ agora, somados aos de uma chamada anterior desta mesma execucao
+# (finalizar.sh repetido depois de uma reaplicacao que nao terminou: a arvore voltou ao ultimo commit, sem elas).
+VISTAS="$T/finalizar-migracoes-vistas.json"
+python3 - "$VISTAS" "$(janela execution_id)" <<'PY'
+import json, sys
+vistas_p, exec_id = sys.argv[1:3]
+def ler(p):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+led = ler("work/robozinho-aprendizado.json")
+led = led if isinstance(led, dict) else {}
+ids = {(x.get("id") if isinstance(x, dict) else x) for x in led.get("migracoes_aplicadas") or []} - {None, ""}
+ant = ler(vistas_p)
+if isinstance(ant, dict) and ant.get("execution_id") == exec_id:
+    ids |= set(ant.get("ids") or [])
+with open(vistas_p, "w", encoding="utf-8") as f:
+    json.dump({"execution_id": exec_id, "ids": sorted(ids)}, f, ensure_ascii=False)
+PY
+
+migracoes_vistas() {   # $1 = prefixo das linhas. Das migracoes que o dia viu ($VISTAS), aplica as que o ledger de work/
+  # nao tem marcadas, e so elas: o work/migracoes.py aplica tudo o que esta pendente na pasta, entao roda (--work) numa
+  # copia com o ledger e so os arquivos escolhidos; o ledger volta para work/ se mudou
+  python3 - "$VISTAS" "$T/finalizar-migracoes" "$1" ${DATA:+"$DATA"} <<'PY'
+import filecmp, glob, json, os, shutil, subprocess, sys
+vistas_p, tmp, prefixo = sys.argv[1:4]
+hoje = sys.argv[4] if len(sys.argv) > 4 else None
+led_p = os.path.join("work", "robozinho-aprendizado.json")
+def ler(p):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+led, vistas = ler(led_p), set((ler(vistas_p) or {}).get("ids") or [])
+if not isinstance(led, dict) or not vistas:
+    sys.exit(0)
+faltam = vistas - {(x.get("id") if isinstance(x, dict) else x) for x in led.get("migracoes_aplicadas") or []}
+if not faltam:
+    sys.exit(0)
+shutil.rmtree(tmp, ignore_errors=True)
+os.makedirs(os.path.join(tmp, "migracoes"))
+achadas = set()
+for p in sorted(glob.glob(os.path.join("work", "migracoes", "*.json"))):
+    m = ler(p)
+    if isinstance(m, dict) and m.get("id") in faltam:
+        shutil.copy(p, os.path.join(tmp, "migracoes", os.path.basename(p)))
+        achadas.add(m["id"])
+for i in sorted(faltam - achadas):
+    print(prefixo + "AVISO: migracao %s (vista hoje) nao existe em work/migracoes desta arvore — fica de fora" % i)
+if not achadas:
+    sys.exit(0)
+shutil.copy(led_p, os.path.join(tmp, "robozinho-aprendizado.json"))
+r = subprocess.run([sys.executable, os.path.join("work", "migracoes.py"), "--work", tmp] + (["--hoje", hoje] if hoje else []),
+                   capture_output=True, text=True)
+for linha in (r.stdout + r.stderr).splitlines():
+    print(prefixo + linha)
+novo = os.path.join(tmp, "robozinho-aprendizado.json")
+if r.returncode == 0 and not filecmp.cmp(novo, led_p, shallow=False):
+    shutil.copy(novo, led_p + ".migracoes.tmp")
+    os.replace(led_p + ".migracoes.tmp", led_p)
+PY
+}
+
+migracoes_vistas "MIGRACOES DO DIA: "     # normalmente nada: o inicio.py ja as aplicou neste ledger
 guardar_antes || { echo "PERSISTENCIA ABORTADA: copia do estado antes do helper falhou em $ANTES — nada foi commitado."; exit 2; }
+FASE=helper
 
 cp "$COPIA" "$T/finalizar-rodada1.json"
 if ! helper "$T/finalizar-rodada1.json"; then
@@ -217,13 +349,6 @@ cp "$T/finalizar-rodada1.json" "$ENTRADA"      # a entrada fica normalizada, com
 
 EXEC=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['execution_id'])" "$ENTRADA")
 BACKUP_ARQ="$T/robozinho-estado-backup-$EXEC.tar.gz"
-BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0
-# rede com prazo (verified[44]): cada push/fetch tem LIMITE_REDE s; as esperas entre as 5 tentativas somam 90 s.
-# Pior caso (rede caida): ~90 s de espera + 5 x 20 s de push + fetch + 2 rodadas do helper < 300 s, o
-# timeout do Bash do passo 7. Os dois sao configuraveis (testes: ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0").
-ESPERAS=(${ROBOZINHO_PUSH_ESPERAS:-0 5 15 30 40})
-LIMITE_REDE=${ROBOZINHO_LIMITE_REDE:-20}
-rede() { timeout "$LIMITE_REDE" "$@"; }
 
 copiar_estado() {   # copia do estado da ULTIMA rodada OK do helper ($1 = rodada1|rodada2); falha = fica a anterior
   if tar -czf "$BACKUP_ARQ.tmp" $(arquivos_estado) 2>/dev/null && mv -f "$BACKUP_ARQ.tmp" "$BACKUP_ARQ"; then
@@ -288,13 +413,34 @@ sys.exit(1 if problemas else 0)
 PY
 }
 
-commitar() {
-  git add $(arquivos_estado)
-  if git diff --cached --quiet; then
+commitar() {   # so os arquivos de estado (pathspec): o que mais estiver no indice fica fora do commit (e no indice)
+  local arqs fora_do_commit
+  arqs=$(arquivos_estado)
+  git add $arqs
+  if git diff --cached --quiet -- $arqs; then
     echo "COMMIT: nada mudou nos arquivos de estado"
   else
-    git commit -q -m "Robozinho: execução $EXEC" ${TRAILER:+-m "$TRAILER"} || return 1
+    git commit -q -m "Robozinho: execução $EXEC" ${TRAILER:+-m "$TRAILER"} -- $arqs || return 1
   fi
+  fora_do_commit=$(git diff --cached --name-only 2>/dev/null | tr '\n' ' ')
+  [[ -n "$fora_do_commit" ]] && echo "AVISO: fora do commit do estado (ja estavam no indice): $fora_do_commit"
+  return 0
+}
+
+restaurar_head() {   # reaplicacao que nao terminou (rev3, P9): os arquivos de estado voltam ao ultimo commit
+  local f todos
+  todos=$( { arquivos_estado; printf '%s\n' "${ESTADO[@]}"
+             git ls-tree --name-only HEAD work/ 2>/dev/null | grep -E '^work/resumo-legislativo-historico-arquivo-'; } | sort -u)
+  [[ -n "$(git status --porcelain --untracked-files=all -- $todos 2>/dev/null)" ]] || return 0
+  for f in $todos; do
+    if git cat-file -e "HEAD:$f" 2>/dev/null; then
+      git checkout -q HEAD -- "$f" 2>/dev/null || echo "AVISO: $f nao voltou ao ultimo commit (git checkout falhou)"
+    else
+      rm -f "$f"          # criado na reaplicacao: nao existe no ultimo commit
+    fi
+  done
+  echo "RESTAURADO: os arquivos de estado de work/ voltaram ao ultimo commit ($(git log -1 --format='%h %s' 2>/dev/null))" \
+       "— o estado da reaplicacao que nao terminou nao fica na arvore"
 }
 
 falhou() {
@@ -308,12 +454,17 @@ falhou() {
     echo "ESTADO: copia do estado do dia em $BACKUP (commit local ${SHA:-nenhum}) —" \
          "para reaplicar: tar -xzf $BACKUP e commitar os arquivos work/ na main"
   fi
+  [[ $reaplicado -eq 1 ]] && restaurar_head
   exit 3
 }
 
 reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, com as mesmas entradas, uma vez
+  # $1 = recusado (push recusado: busca a origin/main nova) | fora (sessao com commits fora da main: vale a origin/main
+  # da conferencia, buscada agora ou, se o fetch falhou, a da hora do clone — sem 2o fetch, o pior caso fica no prazo)
   reaplicado=1
-  rede git fetch -q origin main || falhou "git fetch origin main"
+  if [[ "${1:-recusado}" == recusado ]]; then
+    rede git fetch -q origin main || falhou "git fetch origin main"
+  fi
   # --keep: HEAD, indice e ARVORE vao para origin/main (o commit local so tem estado, que o helper refaz);
   # recusado (alteracao local num arquivo que mudou no remoto): --mixed, como antes, com AVISO
   if ! git reset -q --keep origin/main 2>/dev/null; then
@@ -328,11 +479,12 @@ reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, co
       rm -f "$f"          # nao existe la: o helper recria se for o caso
     fi
   done
-  # a migracao de dado que o inicio.py aplicou no ledger local (work/migracoes.py) volta a valer sobre o ledger da
-  # origin/main antes do helper (idempotente: a ja marcada la nao se repete)
-  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's/^/REAPLICACAO: /'
+  # antes do helper, so as migracoes que o dia viu (o julgamento foi feito com elas) e que o ledger da origin/main nao
+  # tem marcadas; as novas da origin/main, depois do helper: valem por cima do que o dia gravou (rev3, P2)
+  migracoes_vistas "REAPLICACAO: "
   cp "$COPIA" "$T/finalizar-rodada2.json"
   helper "$T/finalizar-rodada2.json" || falhou "helper na reaplicacao sobre origin/main (STATUS != OK)"
+  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's|^|REAPLICACAO (nova da origin/main, depois do helper): |'
   trava || falhou "trava de sanidade na reaplicacao (linhas TRAVA acima)"
   copiar_estado rodada2
   SHA=""
@@ -340,7 +492,6 @@ reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, co
   SHA=$(git rev-parse --short HEAD 2>/dev/null)
 }
 
-DATA=$(janela data)
 if ! trava; then
   restaurar_antes
   echo "PERSISTENCIA ABORTADA: trava de sanidade (linhas TRAVA acima: o estado perderia o que ninguém pediu para" \
@@ -348,11 +499,17 @@ if ! trava; then
   exit 2
 fi
 copiar_estado rodada1
+FASE=copia
 
 # sessao fora da main (lows[13]): a branch da sessao contem a origin/main E commits que nao estao nela (sessao nascida
 # numa branch velha ou com commit avulso) — o push seria aceito e os levaria para a main. Grava sobre a origin/main.
+# Fetch que falha (rev3, P8): a conferencia segue com a origin/main da hora do clone (antes ela era pulada e um push
+# aceito depois levava os commits avulsos para a main).
 fora="" fora_msgs=""
-if rede git fetch -q origin main 2>/dev/null && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
+if ! rede --saida /dev/null git fetch -q origin main; then
+  echo "AVISO: git fetch origin main falhou — commits fora da main conferidos contra a origin/main da hora do clone"
+fi
+if git rev-parse -q --verify refs/remotes/origin/main >/dev/null && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
   n=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
   if [[ "$n" -gt 0 ]]; then
     fora="$n" fora_msgs=$(git log --format=%s -n 3 origin/main..HEAD 2>/dev/null | tr '\n' ';')
@@ -365,13 +522,14 @@ SHA=$(git rev-parse --short HEAD 2>/dev/null) SHA1="$SHA"
 if [[ -n "$fora" ]]; then
   echo "AVISO: a sessão partiu de um commit com $fora commit(s) fora da origin/main ($fora_msgs) —" \
        "eles não vão para a main: reaplicando o helper sobre origin/main"
-  reaplicar
+  reaplicar fora
 fi
 
 for espera in "${ESPERAS[@]}"; do
-  sleep "$espera"
-  saida=$(rede git push -q -u origin main 2>&1)
+  pausa "$espera"
+  rede --saida "$T/finalizar-push.txt" git push -q -u origin main     # sem $( ): o trap atende o sinal na hora
   rc=$?
+  saida=$(cat "$T/finalizar-push.txt" 2>/dev/null)
   if [[ $rc -eq 0 ]]; then
     echo "PUSH: OK (main $(git rev-parse --short HEAD))"
     if [[ $reaplicado -eq 1 ]] && ! git diff --quiet HEAD 2>/dev/null; then
@@ -387,7 +545,7 @@ for espera in "${ESPERAS[@]}"; do
   # do servidor) nao e "main andou": reset e reaplicacao seriam inuteis
   if [[ $reaplicado -eq 0 ]] && grep -qiE "non-fast-forward|fetch first|\[rejected\]" <<< "$saida"; then
     echo "PUSH: recusado (main andou no remoto) — reaplicando o helper sobre origin/main"
-    reaplicar
+    reaplicar recusado
   fi
 done
 echo "Ultimo erro do push:"

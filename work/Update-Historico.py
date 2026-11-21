@@ -75,7 +75,9 @@
 #   Uso            : medir_uso.py (pesos e precos por modelo, buscas, esforco);
 #                    custo_usd = orquestrador + coletores + buscas (US$ de lista);
 #                    ALERTA_ECONOMIA: esse TOTAL acima de 1,3x a MEDIA das ultimas 10
-#                    execucoes com o mesmo modelo do orquestrador (minimo 3);
+#                    execucoes com o mesmo modelo do orquestrador (minimo 3; so edicao
+#                    diaria com rascunho do dia, sem draft_ja_existente nem extra; o
+#                    principal so tem 10, entao seguem os arquivos mensais);
 #                    ALERTA de troca de modelo; AVISO de troca de esforco e de coletor caro.
 #   Gravacao       : tudo calculado em memoria e gravado no fim, todas ou nenhuma
 #                    (Gravacoes: falha no meio devolve os arquivos ao que eram).
@@ -83,13 +85,15 @@
 #                    (<arquivo>:<linha>)", exit 4. Mecanico dos concursos com a queda do
 #                    montador + ALERTA (o ledger nao diverge do e-mail).
 #   §R1            : delivery draft_ja_existente sem registro de hoje exige window_end
-#                    escrito (data do rascunho/envio achado), nunca o fim da janela.
+#                    escrito (o fim da janela impresso na edicao achada; sem ele, a hora
+#                    do rascunho/envio achado), nunca o fim da janela desta re-execucao.
 #   Migracoes      : o ledger guarda migracoes_aplicadas (work/migracoes.py); o helper
 #                    preserva toda chave que nao conhece.
 # Temporarios em $ROBOZINHO_TMP (padrao /tmp).
 # =====================================================================
 
 import argparse
+import itertools
 import json
 import os
 import re
@@ -219,6 +223,15 @@ def completar_cabecalho(ex, caminho_janela):
     return preenchidos
 
 
+def arquivo_a_corrigir(caminho):
+    """O arquivo que o orquestrador escreve: o --nova-execucao, ou, quando ele e a versao resolvida pelo montador
+    (<pasta>/execucao.resolvido.json, em $ROBOZINHO_TMP), o execucao.json ao lado dela — nunca um /tmp fixo."""
+    pasta, nome = os.path.split(os.path.abspath(caminho))
+    if nome.endswith(".resolvido.json"):
+        return os.path.join(pasta, nome[:-len(".resolvido.json")] + ".json")
+    return caminho
+
+
 def janela_fim(caminho_janela):
     try:
         return read_json(caminho_janela).get("fim")
@@ -234,25 +247,30 @@ def _instante(v):
     return t if t.tzinfo else None
 
 
+R1_FIM = ("§R1: o fim da janela impresso na edição achada (\"Janela de cobertura: … às <hora> de hoje\"); sem ele, a "
+          "hora do rascunho ou do envio achado")
+
+
 def erros_window_end_r1(ex, erros, fim_inicio):
-    """§R1: window_end obrigatorio e escrito pelo orquestrador (data do rascunho achado ou do envio, -03:00), entre
-    o inicio da janela e a hora desta re-execucao (o fim da janela do inicio.py)."""
+    """§R1: window_end obrigatorio e escrito pelo orquestrador, entre o inicio da janela e a hora desta re-execucao (o
+    fim da janela do inicio.py): o fim da janela impresso na edicao achada ("Janela de cobertura: ... as <hora> de
+    hoje (DD/MM/AAAA)"); so na falta dele, a hora do rascunho achado ou do envio, em -03:00."""
     erros = [e for e in erros if e != "campo obrigatorio ausente: window_end"]
     we = ex.get("window_end")
     if we in (None, ""):
-        return erros + ["window_end ausente — §R1: escreva \"window_end\" = a data/hora em que o rascunho achado foi "
-                        "criado (list_drafts) ou a edição foi enviada (search_threads in:sent), em -03:00; o fim da "
-                        "janela do inicio.py (%s) é a hora desta re-execução e deixaria sem cobertura o que saiu "
-                        "entre a edição achada e agora" % (fim_inicio or "?")]
+        return erros + ["window_end ausente — §R1: escreva \"window_end\" = o fim da janela impresso na edição achada "
+                        "(a linha \"Janela de cobertura: … às <hora> de hoje (DD/MM/AAAA)\" do e-mail achado em "
+                        "list_drafts/search_threads), em AAAA-MM-DDTHH:MM:00-03:00; só sem essa linha, a data/hora em "
+                        "que o rascunho achado foi criado (list_drafts) ou a edição foi enviada (search_threads "
+                        "in:sent), em -03:00. O fim da janela do inicio.py (%s) é a hora desta re-execução e deixaria "
+                        "sem cobertura o que saiu entre a edição achada e agora" % (fim_inicio or "?")]
     t, ini, fim = _instante(we), _instante(ex.get("window_start")), _instante(fim_inicio)
     if t is None:
-        return erros + ["window_end %r: use AAAA-MM-DDTHH:MM:SS-03:00 (§R1: data do rascunho ou do envio achado)" % we]
+        return erros + ["window_end %r: use AAAA-MM-DDTHH:MM:SS-03:00 (%s)" % (we, R1_FIM)]
     if ini and t < ini:
-        return erros + ["window_end %s antes do início da janela (%s) — §R1: a data do rascunho ou do envio achado"
-                        % (we, ex.get("window_start"))]
+        return erros + ["window_end %s antes do início da janela (%s) — %s" % (we, ex.get("window_start"), R1_FIM)]
     if fim and t > fim:
-        return erros + ["window_end %s depois desta re-execução (%s) — §R1: a data do rascunho ou do envio achado"
-                        % (we, fim_inicio)]
+        return erros + ["window_end %s depois desta re-execução (%s) — %s" % (we, fim_inicio, R1_FIM)]
     return erros
 
 
@@ -1153,7 +1171,8 @@ def metricas_derivadas(historico, execucoes_principal, gravacoes=None):
             usd.append({"execution_id": e.get("execution_id"), "modelo": modelo_orq(e), "total": round(c["total"], 2),
                         **({"estimado": True} if c["estimado"] else {})})
     ultimo_modelo = modelo_orq(execucoes_principal[-1]) if execucoes_principal else None
-    base = base_economia(execucoes_principal, ultimo_modelo) if ultimo_modelo else []
+    base = (base_economia(execucoes_principal, ultimo_modelo, anteriores_do_arquivo(historico, pasta, gravacoes))
+            if ultimo_modelo else [])
 
     # E13: sem "coletores_ultima"/"orquestrador_ultima" (copias de executions[-1], sem leitor)
     return {
@@ -1273,12 +1292,33 @@ def modelo_orq(e):
     return (e.get("orquestrador") or {}).get("modelo")
 
 
-def base_economia(execucoes_anteriores, modelo):
-    """As ultimas 10 execucoes anteriores com o mesmo modelo do orquestrador e custo calculavel: [(e, custo)]."""
-    out = []
-    for e in reversed(execucoes_anteriores):
-        if modelo_orq(e) != modelo:
+def entra_na_base(e):
+    """Edicao diaria com rascunho do dia: a re-execucao sem rascunho novo (draft_ja_existente) e a edicao extra
+    (type != diaria) custam outra coisa e puxavam a media do ALERTA_ECONOMIA (rev3, P7)."""
+    return e.get("delivery") != "draft_ja_existente" and (e.get("type") or "diaria") == "diaria"
+
+
+def anteriores_do_arquivo(historico, pasta, gravacoes=None):
+    """Execucoes dos arquivos mortos mensais, da mais nova para a mais velha, lidas sob demanda (gravacoes: o arquivo
+    morto ainda nao gravado nesta rodada conta como o que sera gravado)."""
+    for nome in sorted((a for a in historico.get("archive_files") or [] if a), reverse=True):
+        caminho = os.path.join(pasta, nome)
+        try:
+            dados = gravacoes.ler(caminho) if gravacoes and gravacoes.existe(caminho) else read_json(caminho)
+        except Exception:  # noqa: BLE001 — medicao e acessoria
             continue
+        yield from reversed((dados or {}).get("executions") or [])
+
+
+def base_economia(execucoes_anteriores, modelo, mais_antigas=()):
+    """As ultimas 10 execucoes anteriores (edicao diaria com rascunho do dia: entra_na_base) com o mesmo modelo do
+    orquestrador e custo calculavel: [(e, custo)]. O arquivo principal guarda so 10 execucoes, a de hoje inclusive:
+    sem 10 nele, seguem as dos arquivos mensais (mais_antigas, da mais nova para a mais velha)."""
+    out, vistos = [], set()
+    for e in itertools.chain(reversed(execucoes_anteriores), mais_antigas or ()):
+        if e.get("execution_id") in vistos or modelo_orq(e) != modelo or not entra_na_base(e):
+            continue
+        vistos.add(e.get("execution_id"))
         c = custo_usd_execucao(e)
         if c and c.get("total"):
             out.append((e, c))
@@ -1287,7 +1327,7 @@ def base_economia(execucoes_anteriores, modelo):
     return out[::-1]
 
 
-def alertas_uso(execucoes, add_log):
+def alertas_uso(execucoes, add_log, mais_antigas=()):
     """ALERTA_ECONOMIA: o custo TOTAL da execucao (orquestrador + coletores + buscas, em US$ de lista) acima de 1,3x a
     MEDIA das ultimas 10 execucoes com o mesmo modelo do orquestrador (no minimo 3; critic_verified[4]/verified[19]:
     antes so o orquestrador, sem buscas, numa mediana que misturava modelos). ALERTA de troca do modelo do
@@ -1298,7 +1338,7 @@ def alertas_uso(execucoes, add_log):
     atual = execucoes[-1]
     o = atual.get("orquestrador") or {}
     cur = custo_usd_execucao(atual)
-    base = base_economia(execucoes[:-1], o.get("modelo")) if o.get("modelo") else []
+    base = base_economia(execucoes[:-1], o.get("modelo"), mais_antigas) if o.get("modelo") else []
     media = sum(c["total"] for _, c in base) / len(base) if base else None
     if cur and cur.get("total"):     # o numero que o dono acompanha (vai na notificacao do dia)
         add_log("USO: custo total US$ %.2f%s" % (cur["total"], "; media das ultimas %d com %s: US$ %.2f (%.2fx)" % (
@@ -1644,7 +1684,8 @@ def executar(args, add_log, emitir):
     if erros:
         for e in erros:
             add_log("ERRO: " + e)
-        emitir("VALIDACAO: ERRO — corrija /tmp/execucao.json e valide de novo." if args.validar
+        emitir("VALIDACAO: ERRO — corrija %s e valide de novo." % arquivo_a_corrigir(args.nova_execucao_path)
+               if args.validar
                else "STATUS: ERRO DE VALIDACAO — nada foi gravado. Corrija o arquivo da "
                     "nova execucao e rode de novo.")
         sys.exit(2)
@@ -1888,7 +1929,7 @@ def executar(args, add_log, emitir):
         )
     )
     try:          # alertas de uso sao acessorios: falha aqui vira AVISO, nunca derruba a gravacao do dia
-        alertas_uso(todas, add_log)
+        alertas_uso(todas, add_log, anteriores_do_arquivo(historico, pasta_hist, g))
     except Exception as e:  # noqa: BLE001
         add_log("AVISO: alertas de uso nao calculados (%s: %s, %s)" % (type(e).__name__, e, onde_falhou(e)))
     feriado_janela = []

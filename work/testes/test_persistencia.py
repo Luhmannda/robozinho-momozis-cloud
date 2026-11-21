@@ -14,6 +14,13 @@
 #   (push com espera configuravel, sem branch extra no remoto, estado restaurado quando o
 #   helper falha, trava de sanidade, sessao fora da origin/main, migracao reaplicada
 #   na reaplicacao).
+#   Revisao 3: prazo de rede padrao < 100 s e TERM/INT com a linha ESTADO (P1); na
+#   reaplicacao, a migracao vista pelo dia antes do helper e a nova da main depois (P2,
+#   cenarios s9 e s2) e o finalizar repetido que reaplica a vista; commit so do estado com
+#   o indice sujo (P3); mensagem <synthetic> fora da medicao (P6); base do ALERTA_ECONOMIA
+#   sem draft_ja_existente/extra e com o arquivo mensal (P7); commits fora da main com
+#   fetch falho (P8); reaplicacao que falha devolve o estado ao commit (P9); VALIDACAO com
+#   o caminho real; §R1 sugere o fim da janela da edicao achada.
 # USO: python3 work/testes/test_persistencia.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda em pastas temporarias (ROBOZINHO_TMP proprio).
 # =====================================================================
@@ -440,6 +447,23 @@ def validar_nao_grava_nem_o_envelope():
 
 
 @teste
+def validacao_aponta_o_execucao_json_de_verdade():
+    """VALIDACAO (rev3): o ERRO do --validar manda corrigir o execucao.json que o orquestrador escreveu (em
+    $ROBOZINHO_TMP, ao lado do execucao.resolvido.json que o montador passa), nunca um /tmp/execucao.json fixo."""
+    d = pasta_helper()
+    ruim = {"delivery": "draft", "items": [{"chave": "x", "categoria": "Nada", "status": "NOVO", "titulo": "t"}]}
+    gravar(os.path.join(d, "execucao.resolvido.json"), ruim)
+    r = subprocess.run([sys.executable, os.path.join(WORK, "Update-Historico.py"), "--validar", "--nova-execucao",
+                        os.path.join(d, "execucao.resolvido.json"), "--historico", os.path.join(d, "hist.json"),
+                        "--ledger", os.path.join(d, "led.json"), "--janela", os.path.join(d, "janela.json"),
+                        "--bancas", os.path.join(d, "bancas.json"), "--fontes-status", os.path.join(d, "fs.json"),
+                        "--relatorio-path", os.path.join(d, "relatorio.txt")], capture_output=True, text=True)
+    ok(r.returncode == 2 and "VALIDACAO: ERRO — corrija %s e valide de novo." % os.path.join(d, "execucao.json")
+       in r.stdout and "/tmp/execucao.json" not in r.stdout, r.stdout[-500:])
+    ok(uh.arquivo_a_corrigir("/x/y/ex.json") == "/x/y/ex.json", "outro nome: o proprio arquivo")
+
+
+@teste
 def r1_exige_window_end_do_rascunho_achado():
     d = pasta_helper()
     j = ler(os.path.join(d, "janela.json"))
@@ -449,8 +473,13 @@ def r1_exige_window_end_do_rascunho_achado():
     rc, out = rodar_helper(d, base)
     ok(rc == 2 and "ERRO: window_end ausente — §R1:" in out and "(2026-11-23T16:40:00-03:00)" in out
        and "campo obrigatorio ausente: window_end" not in out, out[-600:])
+    # 1o o fim da janela impresso na edicao achada; so sem ele, a hora do rascunho ou do envio
+    m = re.search(r"^ERRO: window_end ausente.*$", out, re.M).group(0)
+    ok(0 < m.index('o fim da janela impresso na edição achada (a linha "Janela de cobertura: … às <hora> de hoje')
+       < m.index("só sem essa linha, a data/hora em que o rascunho achado foi criado"), m)
     rc, out = rodar_helper(d, dict(base, window_end="2026-11-23T17:00:00-03:00"))
-    ok(rc == 2 and "depois desta re-execução" in out, out[-400:])
+    ok(rc == 2 and "depois desta re-execução" in out and "§R1: o fim da janela impresso na edição achada" in out,
+       out[-400:])
     rc, out = rodar_helper(d, dict(base, window_end="2026-11-23T07:14:00-03:00"))
     ok(rc == 0 and "STATUS: OK" in out and "itens de noticia" not in out, out[-600:])
     est = ler(os.path.join(d, "robozinho-estado.json"))
@@ -560,6 +589,31 @@ def medir_uso_buscas_esforco_pesos_e_dolar():
 
 
 @teste
+def medir_uso_ignora_mensagem_sintetica():
+    """P6 (rev3): a mensagem "<synthetic>" (erro de API escrito pelo Claude Code, uso todo zero) nao e chamada ao
+    modelo: nao anula o custo_usd, nao entra em modelos/chamadas_modelo e nao gera o AVISO de preco."""
+    raiz = tempfile.mkdtemp(dir=TMPDIR)
+    F = "claude-fable-5-2"
+    sint = msg("s1", "2026-11-20T10:08:00Z", "<synthetic>", 0, 0, 0, 0, ferramentas=())
+    zero = msg("z1", "2026-11-20T10:08:30Z", F, 0, 0, 0, 0, ferramentas=())
+    transcricoes(raiz, [msg("o1", "2026-11-20T10:07:10Z", F, 2, 29625, 19482, 454, 19482),
+                        sint, zero,
+                        msg("o2", "2026-11-20T10:09:00Z", F, 10, 500000, 100000, 40000, 100000)], [])
+    antigo = medir_uso.RAIZ
+    medir_uso.RAIZ = raiz
+    try:
+        ex = {"run_started_at": "2026-11-20T07:07:04-03:00"}
+        log = []
+        uh.medir_e_preencher(ex, log.append)
+    finally:
+        medir_uso.RAIZ = antigo
+    o = ex["orquestrador"]
+    ok(o["custo_usd"] is not None and o["chamadas_modelo"] == 2 and o["modelo"] == F and "modelos" not in o, o)
+    ok(ex["custo_usd"]["total"] is not None and "sem_preco" not in ex["custo_usd"], ex["custo_usd"])
+    ok(not any("sem preço" in l for l in log) and any(l.startswith("Custo da execucao") for l in log), log)
+
+
+@teste
 def custo_usd_de_execucao_antiga_recalculado():
     # 20/11 (Fable, gravacao 1 h, chamada final estimada): US$ 6,22 no orquestrador, como na transcricao do cliente
     e = {"orquestrador": {"modelo": "claude-fable-5-2", "entrada": 15, "cache_lido": 972846, "cache_gravado": 189262,
@@ -626,6 +680,39 @@ def alerta_economia_total_contra_media_do_mesmo_modelo():
     nova["orquestrador"]["esforco"] = "high"
     uh.alertas_uso(base[:5] + [nova], log.append)
     ok(any(l.startswith("AVISO: esforco do orquestrador mudou: xhigh (2026-11-13-7h) -> high") for l in log), log)
+
+
+@teste
+def base_economia_so_diaria_com_rascunho_e_arquivo_mensal():
+    """P7 (rev3): draft_ja_existente (re-execucao barata) e edicao extra nao entram na media do ALERTA_ECONOMIA; o
+    principal guarda so 10 execucoes (a de hoje inclusive), entao a base segue nos arquivos mensais."""
+    F = "claude-fable-5-2"
+    base = [ex_medida(d, F, 6.0) for d in (9, 10, 11, 12)]
+    reex = dict(ex_medida(13, F, 0.5), delivery="draft_ja_existente")
+    extra = dict(ex_medida(14, F, 20.0), type="extra")
+    ok([e["execution_id"] for e, _ in uh.base_economia(base + [reex, extra], F)] ==
+       [e["execution_id"] for e in base], "so as diarias com rascunho do dia")
+    log = []          # com a re-execucao barata na media (5,75), 7,85 passava de 1,3x
+    uh.alertas_uso(base + [reex, extra, ex_medida(16, F, 7.0)], log.append)
+    ok(not [l for l in log if l.startswith("ALERTA_ECONOMIA")] and any("media das ultimas 4 com" in l for l in log), log)
+    log = []          # com a extra cara na media (9,65), 9,85 ficava abaixo de 1,3x
+    uh.alertas_uso(base + [reex, extra, ex_medida(16, F, 9.0)], log.append)
+    ok([l for l in log if l.startswith("ALERTA_ECONOMIA") and "a media das ultimas 4 com" in l], log)
+    # helper: principal com 3 + a de hoje; a base completa 10 com o arquivo mensal (sem a re-execucao e a extra dele)
+    principal = [ex_medida(d, F, 6.0) for d in (12, 13, 14)]
+    arquivo = [ex_medida(d, F, 2.0, col_usd=0.4) for d in range(1, 9)]
+    arquivo += [dict(ex_medida(9, F, 2.0), type="extra"), dict(ex_medida(10, F, 0.2), delivery="draft_ja_existente")]
+    d = pasta_helper(execucoes=principal)
+    nome = "resumo-legislativo-historico-arquivo-2026-11.json"
+    gravar(os.path.join(d, nome), {"executions": arquivo})
+    h = ler(os.path.join(d, "hist.json"))
+    h["archive_files"] = [nome]
+    gravar(os.path.join(d, "hist.json"), h)
+    rc, out = rodar_helper(d, dict(ex_medida(23, F, 6.1), delivery="draft", items=itens(12)), "--draft-id", "r1")
+    ok(rc == 0 and "USO: custo total US$ 6.95; media das ultimas 10 com claude-fable-5-2: US$ 4.08 (1.70x)" in out
+       and "ALERTA_ECONOMIA: custo total da execucao US$ 6.95 = 1.70x a media das ultimas 10" in out, out[-1500:])
+    m = ler(os.path.join(d, "robozinho-estado.json"))["metricas"]
+    ok(m["custo_usd_media_mesmo_modelo"]["execucoes"] == 10, m["custo_usd_media_mesmo_modelo"])
 
 
 @teste
@@ -774,6 +861,25 @@ def finalizar_sessao_com_commit_fora_da_main():
 
 
 @teste
+def finalizar_commit_fora_da_main_com_fetch_que_falha():
+    """P8 (rev3): fetch que falha (o push funciona) nao pula a conferencia: vale a origin/main da hora do clone e os
+    commits avulsos da sessao nao vao para a main."""
+    base, sess, t, g, run = repo_finalizar()
+    with open(os.path.join(sess, "work", "selos.py"), "a") as f:
+        f.write("\n# commit avulso da sessao\n")
+    g(sess, "commit", "-qam", "commit avulso na branch da sessao")
+    run(sys.executable, "work/montar_email.py")
+    g(sess, "config", "remote.origin.pushurl", os.path.join(base, "origin.git"))
+    g(sess, "config", "remote.origin.url", os.path.join(base, "nao-existe.git"))          # so o fetch quebra
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "AVISO: git fetch origin main falhou — commits fora da main conferidos contra a origin/main da "
+       "hora do clone" in out and "AVISO: a sessão partiu de um commit com 1 commit(s) fora da origin/main" in out
+       and "PUSH: OK" in out and out.count("STATUS: OK") == 2, out[-900:])
+    ok(g(base, "--git-dir", os.path.join(base, "origin.git"), "log", "--format=%s", "main").stdout.splitlines()
+       == ["Robozinho: execução 2026-11-17-7h", "seed"], "o commit avulso nao foi para a main")
+
+
+@teste
 def finalizar_reaplicacao_reaplica_a_migracao():
     base, sess, t, g, run = repo_finalizar(migracao=True)
     run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")
@@ -795,6 +901,136 @@ def finalizar_reaplicacao_reaplica_a_migracao():
        and led["migracoes_aplicadas"][0]["id"] == "2026-11-16-teste" and led["atualizado_por_execucao"] == "2026-11-17-7h",
        "migracao + mudanca concorrente + execucao: %r" % {k: led.get(k) for k in ("migracoes_aplicadas", "marca_concorrente")})
     ok(g(sess, "status", "--porcelain").stdout == "", "árvore limpa")
+
+
+LINHA_DIA = "MPF/MPU — Procurador da República: sem edital localizado (conferido em 17/11/2026)"
+LINHA_DONO = "MPF/MPU — Procurador da República: LINHA CORRIGIDA PELO DONO (edital 1/2026 lido)"
+
+
+def dia_com_update(t, upd):
+    p = os.path.join(t, "execucao.json")
+    gravar(p, dict(ler(p), ledger_updates=upd))
+
+
+def migracao_concorrente(base, g, dados, mexer=None):
+    """Outro clone empurra na main uma migracao do dono (e, se pedido, mexe em mais arquivos dele)."""
+    outro = os.path.join(base, "outro")
+    g(base, "clone", "-q", "origin.git", outro)
+    gravar(os.path.join(outro, "work", "migracoes", dados["id"] + ".json"), dados)
+    if mexer:
+        mexer(outro)
+    g(outro, "add", "-A")
+    g(outro, "commit", "-qm", "migracao do dono")
+    ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+    return outro
+
+
+@teste
+def finalizar_migracao_nova_da_main_vale_depois_do_helper():
+    """P2 (rev3): na reaplicacao, a migracao que chegou na origin/main depois do julgamento do dia e aplicada DEPOIS do
+    helper. s9: a correcao do dono num registro que o dia tambem atualizou prevalece (antes era sobrescrita em
+    silencio). s2: a remocao de um id que o dia atualiza nao derruba a validacao (antes o dia nunca era gravado). A
+    migracao que o dia viu (inicio.py) continua antes do helper."""
+    for caso, upd_dono in (("s9", {"concursos": {"mpf_procurador": {"linha": LINHA_DONO, "verificado_em": "2026-11-17"}}}),
+                           ("s2", {"concursos": {"mpf_procurador": {"remover": True, "desfecho": "decisão do dono"}}})):
+        base, sess, t, g, run = repo_finalizar(migracao=True)
+        run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")       # o que o inicio.py faz: o dia a ve
+        dia_com_update(t, {"concursos": {"mpf_procurador": {"linha": LINHA_DIA}}})
+        rc, out = run(sys.executable, "work/montar_email.py")
+        ok(rc == 0, out[-600:])
+        migracao_concorrente(base, g, {"id": "2026-11-17-dono", "descricao": "dono (%s)" % caso,
+                                       "criado_em": "2026-11-17", "ledger_updates": upd_dono})
+        rc, out = run(*FINALIZAR)
+        ok(rc == 0 and "PUSH: recusado (main andou no remoto)" in out and "PUSH: OK" in out, "%s: %s" % (caso, out[-1200:]))
+        i_vista = out.index("REAPLICACAO: MIGRACAO 2026-11-16-teste: aplicada (0 concursos, 1 pendências)")
+        i_nova = out.index("REAPLICACAO (nova da origin/main, depois do helper): MIGRACAO 2026-11-17-dono: aplicada "
+                           "(1 concursos, 0 pendências)")
+        ok(i_vista < out.index("STATUS: OK", i_vista) < i_nova and "TRAVA" not in out and "ERRO" not in out,
+           "%s: vista antes do helper, nova depois: %s" % (caso, out[-1200:]))
+        led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+        cs = {c["id"]: c for c in led["concursos"]}
+        if caso == "s9":
+            ok(cs["mpf_procurador"]["linha"] == LINHA_DONO, "a correcao do dono prevalece: %r" % cs["mpf_procurador"])
+        else:
+            ok("mpf_procurador" not in cs, "removido pelo dono depois do dia")
+        ok([m["id"] for m in led["migracoes_aplicadas"]] == ["2026-11-16-teste", "2026-11-17-dono"]
+           and led["atualizado_por_execucao"] == "2026-11-17-7h", led["migracoes_aplicadas"])
+        e = ler(os.path.join(sess, "work", "resumo-legislativo-historico.json"))["executions"][-1]
+        ok(e["execution_id"] == "2026-11-17-7h" and g(sess, "status", "--porcelain").stdout == "", "dia gravado, limpo")
+
+
+@teste
+def finalizar_repetido_reaplica_a_migracao_que_o_dia_viu():
+    """P2+P9 (rev3): a reaplicacao que nao termina devolve a arvore ao ultimo commit (a origin/main, sem a migracao
+    que o inicio.py aplicou); o finalizar.sh repetido, como a linha ESTADO manda, a reaplica antes da 1a rodada (o
+    julgamento do dia depende dela) e grava."""
+    base, sess, t, g, run = repo_finalizar(migracao=True)
+    run(sys.executable, "work/migracoes.py", "--hoje", "2026-11-17")
+    dia_com_update(t, {"pendencias": {"migr_teste": {"faixa": "ativa"}}})        # so existe com a migracao
+    rc, out = run(sys.executable, "work/montar_email.py")
+    ok(rc == 0, out[-600:])
+
+    def helper_que_falha_com_marca(outro):    # a main nova traz um helper que falha enquanto $T/falhar-helper existir
+        h = os.path.join(outro, "work", "Update-Historico.py")
+        src = open(h).read()
+        fim = 'if __name__ == "__main__":\n    main()\n'
+        ok(src.endswith(fim), "fim do helper")
+        open(h, "w").write(src[:-len(fim)] + 'if __name__ == "__main__":\n    if os.path.exists(os.path.join(TMP, '
+                           '"falhar-helper")):\n        print("STATUS: ERRO simulado")\n        sys.exit(1)\n    main()\n')
+        pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+        gravar(pl, dict(ler(pl), marca_concorrente="x"))
+    migracao_concorrente(base, g, {"id": "2026-11-17-dono", "descricao": "dono", "criado_em": "2026-11-17",
+                                   "ledger_updates": {"pendencias": {"migr_dono": {"texto": "Do dono.",
+                                                                                   "faixa": "longo_prazo"}}}},
+                         helper_que_falha_com_marca)
+    open(os.path.join(t, "falhar-helper"), "w").close()
+    rc, out = run(*FINALIZAR)
+    ok(rc == 3 and "PUSH: FALHOU (helper na reaplicacao" in out and "rode bash work/finalizar.sh de novo" in out
+       and "RESTAURADO: os arquivos de estado de work/ voltaram ao ultimo commit" in out, out[-1200:])
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    ok(led.get("marca_concorrente") == "x" and "migracoes_aplicadas" not in led, "arvore = origin/main, sem a migracao")
+    os.remove(os.path.join(t, "falhar-helper"))
+    rc, out = run(*FINALIZAR)
+    ok(rc == 0 and "MIGRACOES DO DIA: MIGRACAO 2026-11-16-teste: aplicada (0 concursos, 1 pendências)" in out
+       and "PUSH: OK" in out and "ERRO" not in out, out[-1200:])
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    pend = {p["id"]: p for p in led["pendencias_vivas"]}
+    ok(pend["migr_teste"]["faixa"] == "ativa" and "migr_dono" not in pend and led["marca_concorrente"] == "x"
+       and [m["id"] for m in led["migracoes_aplicadas"]] == ["2026-11-16-teste"], "a vista e o update do dia; a nova "
+       "do dono fica para o inicio.py de amanha (o dia nao a viu)")
+    ok(g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout, "enviado")
+
+
+@teste
+def finalizar_reaplicacao_recusada_devolve_o_estado_ao_commit():
+    """P9 (rev3): a reaplicacao que nao termina (aqui, trava de sanidade contra o helper da main nova) nao deixa na
+    arvore o estado recusado: os arquivos de estado voltam ao ultimo commit (a origin/main), com uma linha RESTAURADO."""
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    outro = os.path.join(base, "outro")
+    g(base, "clone", "-q", "origin.git", outro)
+    pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+    gravar(pl, dict(ler(pl), marca_concorrente="x"))
+    # a main nova traz um helper "OK" que perde dois concursos sem `remover` (a trava da reaplicacao recusa)
+    helper_falso(outro, "led = json.load(open('work/robozinho-aprendizado.json'))\n"
+                        "led['concursos'] = led['concursos'][2:]\n"
+                        "json.dump(led, open('work/robozinho-aprendizado.json', 'w'))\n"
+                        "open('work/resumo-legislativo-historico-arquivo-2099-01.json', 'w').write('{}')\n"
+                        "open(rel, 'w').write('STATUS: OK')\nprint('STATUS: OK')\n")
+    g(outro, "add", "-A")
+    g(outro, "commit", "-qm", "concorrente com helper defeituoso")
+    ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+    rc, out = run(*FINALIZAR)
+    ok(rc == 3 and "PUSH: recusado (main andou no remoto)" in out and re.search(r"^TRAVA: concursos: 2 sumiram", out, re.M)
+       and "PUSH: FALHOU (trava de sanidade na reaplicacao" in out and "da 1a rodada, sobre a main anterior" in out
+       and re.search(r"^RESTAURADO: os arquivos de estado de work/ voltaram ao ultimo commit \(\w+ concorrente com "
+                     r"helper defeituoso\)", out, re.M), out[-1200:])
+    ok(g(sess, "status", "--porcelain", "--", "work/").stdout == "", "arvore = ultimo commit: %r"
+       % g(sess, "status", "--porcelain").stdout)
+    led = ler(os.path.join(sess, "work", "robozinho-aprendizado.json"))
+    ok(led.get("marca_concorrente") == "x" and led == ler(pl), "o ledger e o da origin/main")
+    ok(not os.path.exists(os.path.join(sess, "work", "resumo-legislativo-historico-arquivo-2099-01.json")),
+       "o arquivo criado na reaplicacao sai")
 
 
 def hook(base, script):
@@ -828,6 +1064,113 @@ def finalizar_push_que_trava_e_cortado():
     rc, out = run(*FINALIZAR)
     ok(rc == 3 and "push sem resposta em 2 s (cortado)" in out and "PUSH: FALHOU (apos 2 tentativas)" in out
        and time.time() - t0 < 60, out[-900:])
+
+
+@teste
+def finalizar_commita_so_o_estado_com_indice_sujo():
+    """P3 (rev3): arquivo extra ja no indice (novo e alterado) nao vai no commit do estado nem para a main — com e sem
+    reaplicacao; fica no indice, com AVISO."""
+    for concorrente in (False, True):
+        base, sess, t, g, run = repo_finalizar()
+        run(sys.executable, "work/montar_email.py")
+        open(os.path.join(sess, "work", "extra.txt"), "w").write("rascunho avulso\n")
+        with open(os.path.join(sess, "work", "selos.py"), "a") as f:
+            f.write("\n# alteracao avulsa no indice\n")
+        g(sess, "add", "work/extra.txt", "work/selos.py")
+        if concorrente:
+            outro = os.path.join(base, "outro")
+            g(base, "clone", "-q", "origin.git", outro)
+            pl = os.path.join(outro, "work", "robozinho-aprendizado.json")
+            gravar(pl, dict(ler(pl), marca_concorrente="x"))
+            g(outro, "commit", "-qam", "concorrente")
+            ok(g(outro, "push", "-q", "origin", "main").returncode == 0, "push concorrente")
+        rc, out = run(*FINALIZAR)
+        ok(rc == 0 and "PUSH: OK" in out and "AVISO: fora do commit do estado (ja estavam no indice): " in out
+           and "work/extra.txt" in out and ("PUSH: recusado" in out) == concorrente, out[-900:])
+        gd = ["--git-dir", os.path.join(base, "origin.git")]
+        enviados = g(base, *gd, "show", "--name-only", "--format=", "main").stdout.split()
+        ok(enviados and all(re.match(r"work/(robozinho-|resumo-legislativo-historico|concursos-estado)", f)
+                            for f in enviados), "so estado no commit: %s" % enviados)
+        ok("work/extra.txt" not in g(base, *gd, "ls-tree", "-r", "--name-only", "main").stdout
+           and "alteracao avulsa" not in g(base, *gd, "show", "main:work/selos.py").stdout, "nada avulso na main")
+        # sem reaplicacao o avulso fica no indice; com ela (reset --keep para origin/main), na arvore, fora do indice
+        ok(("work/extra.txt" in g(sess, "diff", "--cached", "--name-only").stdout) != concorrente
+           and os.path.exists(os.path.join(sess, "work", "extra.txt"))
+           and "alteracao avulsa" in open(os.path.join(sess, "work", "selos.py")).read(), "o avulso fica")
+
+
+@teste
+def finalizar_prazo_de_rede_padrao_abaixo_de_100_s():
+    """P1 (rev3): os padroes de rede cabem com folga nos 120 s do timeout padrao do Bash — fetch da conferencia +
+    todas as tentativas de push cortadas + as esperas < 100 s (antes: 20 + 5 x 20 + 90 = 210 s)."""
+    src = open(os.path.join(WORK, "finalizar.sh")).read()
+    esperas = [int(x) for x in re.search(r"ESPERAS=\(\$\{ROBOZINHO_PUSH_ESPERAS:-([0-9 ]+)\}\)", src).group(1).split()]
+    limite = int(re.search(r"LIMITE_REDE=\$\{ROBOZINHO_LIMITE_REDE:-(\d+)\}", src).group(1))
+    pior = limite * (1 + len(esperas)) + sum(esperas)
+    ok(pior < 100 and len(esperas) >= 3, "pior caso de rede %d s (%s, %d s)" % (pior, esperas, limite))
+
+
+def finalizar_em_segundo_plano(run_env, sess, t, quando, alvo):
+    """Roda o finalizar.sh, espera `quando(t)` ficar verdadeiro e manda TERM (alvo 'bash': so ao processo do script;
+    'grupo': ao grupo inteiro, como o corte de um timeout). Devolve (rc, saida, segundos do sinal ao fim)."""
+    import signal
+    import time
+    p = subprocess.Popen(list(FINALIZAR), cwd=sess, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         text=True, start_new_session=True)
+    t0 = time.time()
+    while not quando(t) and time.time() - t0 < 60 and p.poll() is None:
+        time.sleep(0.1)
+    time.sleep(0.5)
+    t1 = time.time()
+    if alvo == "grupo":
+        os.killpg(p.pid, signal.SIGTERM)
+    else:
+        p.send_signal(signal.SIGTERM)
+    out, _ = p.communicate(timeout=60)
+    return p.returncode, out, time.time() - t1
+
+
+@teste
+def finalizar_interrompido_no_push_imprime_estado():
+    """P1 (rev3): TERM com o push travado (rede sem resposta) nao mata o script calado: sai na hora com PUSH: FALHOU
+    (interrompido) e a linha ESTADO da copia do estado — mandado so ao script ou ao grupo inteiro."""
+    for alvo in ("bash", "grupo"):
+        env = {"ROBOZINHO_PUSH_ESPERAS": "0 0", "ROBOZINHO_LIMITE_REDE": "60"}
+        base, sess, t, g, run = repo_finalizar(extra_env=env)
+        run(sys.executable, "work/montar_email.py")
+        hook(base, "sleep 20\nexit 0\n")
+        run_env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                       GIT_COMMITTER_EMAIL="t@t", ROBOZINHO_TMP=t, **env)
+        rc, out, dt = finalizar_em_segundo_plano(run_env, sess, t, lambda t: os.path.exists(
+            os.path.join(t, "finalizar-push.txt")), alvo)
+        ok(rc == 3 and dt < 8 and "INTERROMPIDO: sinal TERM recebido (fase copia)" in out
+           and "PUSH: FALHOU (interrompido) — registrar no relatorio final." in out
+           and re.search(r"^ESTADO: copia do estado do dia em .*robozinho-estado-backup-2026-11-17-7h\.tar\.gz \(commit "
+                         r"local \w+\) — para reaplicar: tar -xzf", out, re.M), "%s (%.1f s): %s" % (alvo, dt, out[-900:]))
+        ok(os.path.exists(os.path.join(t, "robozinho-estado-backup-2026-11-17-7h.tar.gz")), "a copia existe")
+
+
+@teste
+def finalizar_interrompido_no_helper_restaura():
+    """P1 (rev3): TERM durante a 1a rodada do helper (antes da copia do estado): os arquivos de estado voltam ao que
+    eram antes dele e PERSISTENCIA ABORTADA (nada commitado), sem morrer calado."""
+    base, sess, t, g, run = repo_finalizar()
+    run(sys.executable, "work/montar_email.py")
+    p = os.path.join(sess, "work", "robozinho-aprendizado.json")
+    antes = md5(p)
+    helper_falso(sess, "open('work/robozinho-aprendizado.json', 'w').write('{\"concursos\": [')\n"
+                       "open(os.path.join(os.environ['ROBOZINHO_TMP'], 'helper-no-meio'), 'w').close()\n"
+                       "import time; time.sleep(30)\n")
+    run_env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                   GIT_COMMITTER_EMAIL="t@t", ROBOZINHO_TMP=t, ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0")
+    rc, out, dt = finalizar_em_segundo_plano(run_env, sess, t, lambda t: os.path.exists(
+        os.path.join(t, "helper-no-meio")), "grupo")
+    ok(rc == 2 and dt < 8 and "INTERROMPIDO: sinal TERM recebido (fase helper)" in out
+       and "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper" in out
+       and "PERSISTENCIA ABORTADA: interrompido (TERM) antes do commit — nada foi commitado" in out
+       and "PUSH:" not in out, "(%.1f s) %s" % (dt, out[-900:]))
+    ok(md5(p) == antes and g(sess, "rev-parse", "HEAD").stdout == g(sess, "rev-parse", "origin/main").stdout,
+       "ledger de volta, nada commitado")
 
 
 @teste
