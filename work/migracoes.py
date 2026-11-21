@@ -164,7 +164,8 @@ def aplicar(hoje, work_dir=None):
         log = []
         try:
             uh.aplicar_updates(novo, upd, hj, log.append)
-            uh.texto_ledger(novo)                       # serializavel e valido, antes de aceitar
+            # serializavel e valido, antes de aceitar (helper sem texto_ledger: merge parcial, o mesmo json)
+            uh.texto_ledger(novo) if hasattr(uh, "texto_ledger") else json.loads(json.dumps(novo, ensure_ascii=False))
         except Exception as e:  # noqa: BLE001 — recusada inteira, sem gravacao parcial
             linhas.append("ALERTA: migracao %s recusada: falha ao aplicar (%s: %s)" % (ident, type(e).__name__, e))
             continue

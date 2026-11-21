@@ -404,6 +404,19 @@ def r1_exige_window_end_do_rascunho_achado():
     ok(rc == 0 and ler(os.path.join(d, "hist.json"))["executions"][-1]["window_end"] == "2026-11-23T07:05:00-03:00", out)
 
 
+@teste
+def mojibake_so_o_de_verdade():
+    # o regex de sempre (U+00C3 + U+00A0..U+00BF, ou U+00E2 U+0080): portugues normal ("âmbito") nao e mojibake
+    d = pasta_helper()
+    it = itens(12)
+    it[0]["titulo"] = "No âmbito do STF, ação"
+    rc, out = rodar_helper(d, {"delivery": "draft", "items": it}, "--draft-id", "r1")
+    ok(rc == 0 and "Encoding: nenhuma marca de mojibake detectada." in out and "ALERTA DE ENCODING" not in out, out[-500:])
+    it[1]["titulo"] = "aÃ§Ã£o lida como cp1252 â\u0080\u0094 travessão"
+    rc, out = rodar_helper(d, {"delivery": "draft", "items": it}, "--draft-id", "r1")
+    ok(rc == 0 and "ALERTA DE ENCODING: 3 ocorrencia(s) de mojibake" in out, out[-500:])
+
+
 # ------------------------------------------------------------------ medicao do gasto (medir_uso + helper)
 def transcricoes(raiz, orq_msgs, coletores):
     """~/.claude/projects falso: sessao.jsonl (orquestrador) + subagents/agent-*.jsonl."""

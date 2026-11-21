@@ -1159,6 +1159,15 @@ MIN_BASE_ECONOMIA = 3      # execucoes anteriores com o mesmo modelo do orquestr
 
 
 def custo_usd_execucao(e):
+    """Custo da execucao em US$ (custo_usd_calculado); qualquer falha = None: medicao e acessoria e nunca derruba a
+    gravacao (ex.: merge parcial com um medir_uso.py antigo, sem a tabela de precos)."""
+    try:
+        return custo_usd_calculado(e)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def custo_usd_calculado(e):
     """{'total', 'orquestrador', 'coletores', 'buscas', 'estimado'} em US$ de lista (work/medir_uso.py). Execucao
     medida desde 21/11/2026: o `custo_usd` gravado. Antiga: recalculado dos tokens guardados, pela mesma tabela —
     leitura = contexto_total - cache_gravado quando o tipo nao foi separado; a gravacao do orquestrador sem o TTL
@@ -1769,7 +1778,7 @@ def executar(args, add_log, emitir):
     # Deteccao de mojibake: sequencias tipicas de UTF-8 lido como
     # ANSI/cp1252 e regravado. Regex identica (em codepoints) a
     # work/Update-Historico.ps1: Ã[ -¿] ou â
-    padrao_mojibake = "Ã[ -¿]|â"
+    padrao_mojibake = "\u00c3[\u00a0-\u00bf]|\u00e2\u0080"      # os mesmos codepoints de sempre, escritos visiveis
     suspeitas = re.findall(padrao_mojibake, texto_hist)
     if suspeitas:
         add_log(
@@ -1826,7 +1835,10 @@ def executar(args, add_log, emitir):
             metricas["execucoes_registradas"],
         )
     )
-    alertas_uso(todas, add_log)
+    try:          # alertas de uso sao acessorios: falha aqui vira AVISO, nunca derruba a gravacao do dia
+        alertas_uso(todas, add_log)
+    except Exception as e:  # noqa: BLE001
+        add_log("AVISO: alertas de uso nao calculados (%s: %s, %s)" % (type(e).__name__, e, onde_falhou(e)))
     feriado_janela = []
     try:
         feriado_janela = [f for f in (read_json(args.janela).get("feriados_na_janela") or [])
