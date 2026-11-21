@@ -866,8 +866,9 @@ def main():
                    % (i + (", prazos só em secundária" if k == "secundária" else ""),
                       "(só de fonte secundária)" if k == "secundária" else "confirmados", REMOCAO_DIAS))
     if fora:
+        # o desfecho vai ao leitor ("Saiu do acompanhamento" no dia, pelo montador): decisao de transparencia (rev1 C9)
         out.append("FORA DO ESCOPO (apoio só %s ou nacional): %s — sem busca nem foco; remova (remover + desfecho "
-                   "\"fora do escopo regional\", que não vai ao leitor)%s"
+                   "\"fora do escopo regional\")%s"
                    % ("/".join(escopo.UFS_APOIO), ", ".join(fora),
                       ", com as pendências " + ", ".join(pend_fora) if pend_fora else ""))
     out.append("REDE (domínios oficiais dos concursos, curl na raiz): %d legíveis; fora: %s" % (

@@ -405,6 +405,9 @@ def inicio_escopo_rede_e_paginas():
     fora = [l for l in out.splitlines() if l.startswith("FORA DO ESCOPO")]
     ok(len(fora) == 1 and "trt8_apoio" in fora[0] and "trt8_edital_verificar" in fora[0] and "trf3_apoio" not in fora[0],
        fora)
+    # rev1 C9: o leitor ve a saida no dia ("Saiu do acompanhamento"): a linha nao diz o contrario
+    ok('remova (remover + desfecho "fora do escopo regional"), com as pendências trt8_edital_verificar' in fora[0]
+       and "leitor" not in fora[0], fora)
     ok("trt8" not in cc.split("## A.")[1].split("## C.")[0], "sem fila, pendência nem rodízio do TRT8")
     ok("trt8_apoio |" not in cc.split("## Registro atual")[1], "fora do Registro atual")
     ok("- trt8_edital_verificar [" not in out.split("PENDÊNCIAS VIVAS:")[1], "pendência fora só na linha FORA DO ESCOPO")
