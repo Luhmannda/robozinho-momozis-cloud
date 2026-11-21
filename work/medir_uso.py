@@ -13,16 +13,29 @@
 # Tokens por tipo (A3/K5): "contexto_total" e quase so LEITURA de cache, que
 # e o tipo mais barato; o custo do orquestrador esta na GRAVACAO de cache e na
 # SAIDA. Por isso cada uso traz tambem entrada, cache_lido, cache_gravado
-# (com cache_gravado_1h quando a transcricao separa) e saida, e o
-# "custo_relativo": o custo em unidades do preco do token de ENTRADA do
-# proprio modelo (vale para qualquer modelo, sem tabela de precos em dolar):
-#     custo_relativo = entrada x 1 + cache_lido x 0,1 + cache_gravado x 1,25 + saida x 5
-# Pesos (PESOS abaixo) = multiplicadores da tabela da Anthropic em relacao a
-# entrada: leitura de cache 0,1x, gravacao de cache (TTL 5 min) 1,25x, saida
-# 5x. A gravacao com TTL de 1 h custa 2x; ela e contada a 1,25x para o numero
-# ficar comparavel com as execucoes antigas, que nao separam o TTL
-# (cache_gravado_1h fica registrado para quem quiser recalcular). Para dolar:
-# custo_relativo x preco do token de entrada do modelo.
+# (com cache_gravado_1h quando a transcricao separa) e saida, e duas medidas
+# de custo:
+#   - "custo_relativo": o custo em unidades do preco do token de ENTRADA do
+#     proprio modelo, com os multiplicadores DO MODELO tirados da tabela de
+#     precos abaixo (verified[19]: os antigos 0,1/1,25 fixos nao valem para
+#     estes modelos):
+#       entrada x 1 + cache_lido x L + gravacao_5min x 1,25 + gravacao_1h x 2 + saida x 5
+#     L = 0,025 no Fable/Mythos 5.1 e 5.2, 0,05 no Opus 5.5 e no Sonnet 5.5,
+#     0,1 nos demais. Modelo fora da tabela: L = 0,1 (pesos antigos). Serve
+#     para comparar o COMPORTAMENTO (turnos, gravacao, saida) num mesmo modelo;
+#     nao enxerga troca de modelo.
+#   - "custo_usd": o custo em dolar pelo preco de LISTA da API (tabela abaixo),
+#     chamada a chamada (o Haiku 5.5 acima de 100 mil tokens de prompt cobra 5x;
+#     speed "fast" cobra 2x). Equivalente de API: nao e a cobranca da
+#     assinatura do dono, mas e a unidade comum que soma orquestrador e
+#     coletores e enxerga troca de modelo. Modelo fora da tabela: None (nunca
+#     chutar) e o helper avisa.
+# Buscas: "websearch" conta os tool_use WebSearch de cada agente (critic_verified[4]):
+# cada busca e cobrada a parte (US$ 10 por mil) e o resumo que volta e escrito
+# por outra chamada de modelo que NAO aparece na transcricao. "websearch_usd_est"
+# = n x (BUSCA_USD + RESUMO_BUSCA_USD_EST), rotulado como estimativa.
+# Esforco: "esforco" = o `effort` mais frequente dos registros do assistente
+# (xhigh, high...), quando a transcricao o traz (verified[21]).
 #
 # A ultima chamada do orquestrador (a notificacao/resposta final, depois do
 # finalizar.sh) ainda nao existe quando o helper mede: entra como
@@ -47,14 +60,84 @@ from datetime import datetime, timezone
 RAIZ = os.path.expanduser("~/.claude/projects")
 COLETORES = (("coletor-gmail", "gmail"), ("coletor-jota", "jota"),
              ("coletor-concursos", "concursos"))
+# Pesos antigos (modelo fora da tabela; tambem os da serie anterior a 21/11/2026).
 PESOS = {"entrada": 1.0, "cache_lido": 0.1, "cache_gravado": 1.25, "saida": 5.0}
 FECHAMENTO = {"cache_gravado": 2000, "saida": 700}   # estimativa da chamada final do orquestrador
 
+# Precos de LISTA da API da Anthropic, em US$ por milhao de tokens:
+#   (entrada, cache lido, gravacao de cache 5 min, gravacao de cache 1 h, saida)
+# Fonte: skill claude-api do Claude Code (SKILL.md, tabela "Current Models", cache de 2026-11-03;
+# shared/models.md e shared/prompt-caching.md: leitura 0,025x no Fable/Mythos 5.1 e 5.2, 0,05x no
+# Opus 5.5 e no Sonnet 5.5, 0,1x nos demais; gravacao 1,25x (5 min) e 2x (1 h) da entrada), conferida
+# em 2026-11-21. Haiku 5.5: a tabela da skill traz so entrada/saida (ate 100 mil tokens de prompt; acima, 5x:
+# HAIKU_LONGO); o cache dele segue os multiplicadores gerais (0,1x / 1,25x / 2x). Revise quando o
+# modelo mudar ou a Anthropic mudar a tabela (https://platform.claude.com/docs/en/about-claude/pricing).
+PRECOS_EM = "2026-11-03"
+PRECOS_USD_MTOK = {
+    "claude-fable-5-2": (8.00, 0.20, 10.00, 16.00, 40.00),
+    "claude-mythos-5-2": (8.00, 0.20, 10.00, 16.00, 40.00),
+    "claude-fable-5-1": (10.00, 0.25, 12.50, 20.00, 50.00),
+    "claude-mythos-5-1": (10.00, 0.25, 12.50, 20.00, 50.00),
+    "claude-opus-5-5": (4.00, 0.20, 5.00, 8.00, 20.00),
+    "claude-sonnet-5-5": (2.00, 0.10, 2.50, 4.00, 10.00),
+    "claude-haiku-5-5": (0.10, 0.01, 0.125, 0.20, 0.50),
+}
+HAIKU_LONGO = {"claude-haiku-5-5": (100000, 5.0)}     # prompt acima do limite: todos os precos x fator
+FAST = 2.0                                            # speed "fast" (Opus 5.5 e Fable/Mythos 5.2): 2x
+# Busca na web (ferramenta WebSearch): US$ 10 por mil buscas (skill claude-api, managed-agents-core.md, lista
+# de custos). O resumo de cada busca e escrito por outra chamada de modelo que a transcricao nao mostra:
+# RESUMO_BUSCA_USD_EST e uma ESTIMATIVA (~15 mil tokens de entrada + ~1,5 mil de saida a preco de Sonnet 5.5),
+# nao conferida na fatura — recalibrar se o dono trouxer o valor cobrado.
+BUSCA_USD = 0.01
+RESUMO_BUSCA_USD_EST = 0.045
 
-def custo_relativo(entrada, cache_lido, cache_gravado, saida):
-    """Custo em tokens-equivalentes de ENTRADA do modelo (ver o cabecalho)."""
-    return int(round(entrada * PESOS["entrada"] + cache_lido * PESOS["cache_lido"] +
-                     cache_gravado * PESOS["cache_gravado"] + saida * PESOS["saida"]))
+
+def base_modelo(modelo):
+    """Id do modelo sem sufixo de contexto/data ('claude-fable-5-2[1m]' -> 'claude-fable-5-2')."""
+    m = str(modelo or "").strip().lower()
+    for sep in ("[", "@"):
+        m = m.split(sep)[0]
+    return m
+
+
+def preco(modelo):
+    return PRECOS_USD_MTOK.get(base_modelo(modelo))
+
+
+def pesos(modelo):
+    """(entrada, cache_lido, gravacao_5min, gravacao_1h, saida) em multiplos da entrada do modelo."""
+    p = preco(modelo)
+    if not p:
+        return (PESOS["entrada"], PESOS["cache_lido"], PESOS["cache_gravado"], 2.0, PESOS["saida"])
+    return tuple(x / p[0] for x in p)
+
+
+def custo_relativo(entrada, cache_lido, cache_gravado, saida, modelo=None, cache_gravado_1h=0):
+    """Custo em tokens-equivalentes de ENTRADA do modelo (ver o cabecalho). Sem modelo e sem gravacao de 1 h:
+    os pesos antigos (entrada 1, leitura 0,1, gravacao 1,25, saida 5)."""
+    pe, pl, p5, p1, ps = pesos(modelo)
+    g1 = min(int(cache_gravado_1h or 0), int(cache_gravado or 0))
+    return int(round(entrada * pe + cache_lido * pl + (cache_gravado - g1) * p5 + g1 * p1 + saida * ps))
+
+
+def custo_usd(entrada, cache_lido, cache_gravado, saida, modelo, cache_gravado_1h=0, fator=1.0):
+    """US$ pelo preco de lista (tabela acima); None para modelo fora da tabela."""
+    p = preco(modelo)
+    if not p:
+        return None
+    g1 = min(int(cache_gravado_1h or 0), int(cache_gravado or 0))
+    return fator * (entrada * p[0] + cache_lido * p[1] + (cache_gravado - g1) * p[2] + g1 * p[3] +
+                    saida * p[4]) / 1e6
+
+
+def fator_chamada(modelo, contexto, speed=None):
+    f = FAST if speed == "fast" else 1.0
+    lim = HAIKU_LONGO.get(base_modelo(modelo))
+    return f * (lim[1] if lim and contexto > lim[0] else 1.0)
+
+
+def buscas_usd_est(n):
+    return round(int(n or 0) * (BUSCA_USD + RESUMO_BUSCA_USD_EST), 4)
 
 
 def _ts(s):
@@ -67,7 +150,7 @@ def _ts(s):
 def uso_transcricao(caminho, desde=None, ate=None):
     """Agrega o uso de uma transcricao. Linhas repetidas do mesmo
     message.id contam uma vez (saida = maior valor visto)."""
-    msgs, ferramentas, tempos, primeiro_prompt, modelos = {}, 0, [], None, {}
+    msgs, ferramentas, tempos, primeiro_prompt, modelos, esforcos, buscas = {}, 0, [], None, {}, {}, 0
     with open(caminho, encoding="utf-8", errors="replace") as f:
         for linha in f:
             try:
@@ -89,14 +172,22 @@ def uso_transcricao(caminho, desde=None, ate=None):
             ctx = (u.get("input_tokens") or 0) + (u.get("cache_read_input_tokens") or 0) + \
                 (u.get("cache_creation_input_tokens") or 0)
             ant = msgs.get(m["id"])
+            pensou = (u.get("output_tokens_details") or {}).get("thinking_tokens") or 0
             if ant is None:
                 msgs[m["id"]] = {"ctx": ctx, "grav": u.get("cache_creation_input_tokens") or 0,
                                  "ent": u.get("input_tokens") or 0, "lido": u.get("cache_read_input_tokens") or 0,
                                  "grav1h": ((u.get("cache_creation") or {}).get("ephemeral_1h_input_tokens") or 0),
-                                 "saida": u.get("output_tokens") or 0}
+                                 "saida": u.get("output_tokens") or 0, "pensou": pensou,
+                                 "modelo": m.get("model"), "speed": u.get("speed"),
+                                 "buscas_api": (u.get("server_tool_use") or {}).get("web_search_requests") or 0}
+                if o.get("effort"):
+                    esforcos[o["effort"]] = esforcos.get(o["effort"], 0) + 1
             else:
                 ant["saida"] = max(ant["saida"], u.get("output_tokens") or 0)
-            ferramentas += sum(1 for b in m.get("content") or [] if b.get("type") == "tool_use")
+                ant["pensou"] = max(ant["pensou"], pensou)
+            blocos = [b for b in m.get("content") or [] if isinstance(b, dict)]
+            ferramentas += sum(1 for b in blocos if b.get("type") == "tool_use")
+            buscas += sum(1 for b in blocos if b.get("type") == "tool_use" and b.get("name") == "WebSearch")
             if m.get("model") and ant is None:
                 modelos[m["model"]] = modelos.get(m["model"], 0) + 1
     if not msgs:
@@ -104,7 +195,20 @@ def uso_transcricao(caminho, desde=None, ate=None):
     lista = list(msgs.values())
     principal = max(modelos, key=modelos.get) if modelos else None
     extra = {"modelos": modelos} if len(modelos) > 1 else {}
-    tot = {k: sum(x[k] for x in lista) for k in ("ent", "lido", "grav", "grav1h", "saida")}
+    if esforcos:
+        extra["esforco"] = max(esforcos, key=esforcos.get)
+        if len(esforcos) > 1:
+            extra["esforcos"] = esforcos
+    tot = {k: sum(x[k] for x in lista) for k in ("ent", "lido", "grav", "grav1h", "saida", "pensou", "buscas_api")}
+    usd = 0.0
+    for x in lista:              # chamada a chamada: o modelo servido, o Haiku acima de 100 mil e o speed fast
+        c = custo_usd(x["ent"], x["lido"], x["grav"], x["saida"], x["modelo"] or principal, x["grav1h"],
+                      fator_chamada(x["modelo"] or principal, x["ctx"], x["speed"]))
+        if c is None:
+            usd = None
+            break
+        usd += c
+    n_buscas = buscas + tot["buscas_api"]
     return {
         "modelo": principal,
         "tokens": lista[-1]["ctx"],
@@ -117,14 +221,18 @@ def uso_transcricao(caminho, desde=None, ate=None):
         "cache_gravado": tot["grav"],
         "cache_gravado_1h": tot["grav1h"],
         "saida": tot["saida"],
-        "custo_relativo": custo_relativo(tot["ent"], tot["lido"], tot["grav"], tot["saida"]),
+        "saida_raciocinio": tot["pensou"],
+        "custo_relativo": custo_relativo(tot["ent"], tot["lido"], tot["grav"], tot["saida"], principal, tot["grav1h"]),
+        "custo_usd": round(usd, 4) if usd is not None else None,
+        "websearch": n_buscas,
+        "websearch_usd_est": buscas_usd_est(n_buscas),
         "_prompt": primeiro_prompt or "",
         **extra,
     }
 
 
 SOMAVEIS = ("chamadas", "duracao_ms", "chamadas_modelo", "contexto_total", "entrada", "cache_lido",
-            "cache_gravado", "cache_gravado_1h", "saida", "custo_relativo")
+            "cache_gravado", "cache_gravado_1h", "saida", "saida_raciocinio", "custo_relativo", "websearch")
 
 
 def somar(a, b):
@@ -132,18 +240,46 @@ def somar(a, b):
     out = dict(b)
     for k in SOMAVEIS:
         out[k] = int(a.get(k) or 0) + int(b.get(k) or 0)
+    out["custo_usd"] = (round(a["custo_usd"] + b["custo_usd"], 4)
+                        if a.get("custo_usd") is not None and b.get("custo_usd") is not None else None)
+    out["websearch_usd_est"] = buscas_usd_est(out.get("websearch"))
     out["relancamentos"] = int(a.get("relancamentos") or 0) + 1
     return out
 
 
 def com_fechamento(orq):
-    """Soma ao orquestrador a chamada final estimada (ver o cabecalho)."""
+    """Soma ao orquestrador a chamada final estimada (ver o cabecalho). A gravacao dela tem o TTL das
+    gravacoes do orquestrador (1 h quando todas foram de 1 h, como desde 17/11/2026)."""
     est = {"cache_lido": int(orq.get("tokens") or 0), "cache_gravado": FECHAMENTO["cache_gravado"],
            "saida": FECHAMENTO["saida"]}
-    est["custo_relativo"] = custo_relativo(0, est["cache_lido"], est["cache_gravado"], est["saida"])
+    g1 = est["cache_gravado"] if orq.get("cache_gravado") and orq.get("cache_gravado_1h") == orq["cache_gravado"] else 0
+    if g1:
+        est["cache_gravado_1h"] = g1
+    est["custo_relativo"] = custo_relativo(0, est["cache_lido"], est["cache_gravado"], est["saida"], orq.get("modelo"), g1)
+    c = custo_usd(0, est["cache_lido"], est["cache_gravado"], est["saida"], orq.get("modelo"), g1)
     orq["fechamento_estimado"] = est
     orq["custo_relativo"] = int(orq.get("custo_relativo") or 0) + est["custo_relativo"]
+    if c is not None and orq.get("custo_usd") is not None:
+        est["custo_usd"] = round(c, 4)
+        orq["custo_usd"] = round(orq["custo_usd"] + c, 4)
     return orq
+
+
+def custo_execucao(orq, coletores):
+    """{'total', 'orquestrador', 'coletores': {nome: US$}, 'buscas', 'buscas_usd_est', 'precos_em'} da execucao
+    (None no total se algum agente tem modelo fora da tabela: o helper avisa, sem chutar)."""
+    orq, coletores = orq or {}, coletores or {}
+    agentes = [("orquestrador", orq)] + sorted(coletores.items())
+    buscas = sum(int((u or {}).get("websearch") or 0) for _, u in agentes)
+    partes = {n: (u or {}).get("custo_usd") for n, u in agentes}
+    sem_preco = sorted(n for n, v in partes.items() if v is None and (n == "orquestrador" or (coletores.get(n) or {})))
+    total = None if sem_preco else round(sum(v or 0 for v in partes.values()) + buscas_usd_est(buscas), 4)
+    out = {"total": total, "orquestrador": partes.get("orquestrador"),
+           "coletores": {n: partes[n] for n, _ in agentes if n != "orquestrador"},
+           "buscas": buscas, "buscas_usd_est": buscas_usd_est(buscas), "precos_em": PRECOS_EM}
+    if sem_preco:
+        out["sem_preco"] = sem_preco
+    return out
 
 
 def sessao_atual():
@@ -176,6 +312,8 @@ def medir(desde=None, ate=None):
         coletores[nome] = somar(coletores[nome], u) if nome in coletores else u   # relancamento: soma
     if coletores:
         out["coletores"] = coletores
+    if out:
+        out["custo_usd"] = custo_execucao(out.get("orquestrador"), coletores)
     return out
 
 

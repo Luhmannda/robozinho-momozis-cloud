@@ -33,6 +33,23 @@
 #      aplicar o tar (apagaria a mudanca concorrente). So "[rejected]",
 #      non-fast-forward e fetch first contam como "main andou" ("[remote
 #      rejected]" de hook nao: e repetido como falha comum).
+#   4. Protecoes (revisao de 21/11/2026):
+#      - helper sem STATUS: OK (inclusive "STATUS: ERRO INTERNO") = os arquivos de
+#        estado voltam ao que eram antes dele ("RESTAURADO: ...") e PERSISTENCIA
+#        ABORTADA: nada fica gravado pela metade diante do hook de parada;
+#      - trava de sanidade antes de cada commit: registro, pendencia, fonte ou
+#        armadilha que sumiu sem `remover` no update de hoje nem numa migracao
+#        aplicada agora, ou execucao que saiu do historico sem ir para o arquivo
+#        morto ("TRAVA: ...") = nada commitado;
+#      - sessao que contem a origin/main E commits fora dela: o estado e gravado
+#        sobre a origin/main (reaplicacao), sem levar esses commits para a main;
+#      - reaplicacao: work/migracoes.py roda antes do helper (a migracao do inicio.py
+#        aplicada no ledger local volta a valer sobre o da origin/main);
+#      - rede com prazo: cada push/fetch ate ROBOZINHO_LIMITE_REDE s (20), esperas
+#        ROBOZINHO_PUSH_ESPERAS ("0 5 15 30 40"): pior caso abaixo de 300 s (o Bash do
+#        passo 7 roda com timeout 300000);
+#      - falha definitiva: alem da copia em tar, o commit do estado do dia vai para a
+#        branch robozinho/socorro-<exec> no remoto ("SOCORRO: ...").
 #
 # USO: bash work/finalizar.sh --draft-id ID --message-id MSG_ID \
 #                             [--anterior EXEC_ID] [--trailer "linhas de atribuicao do commit"]
@@ -40,7 +57,7 @@
 #       sem rascunho novo, no caso draft_ja_existente: omita --draft-id;
 #       --message-id: o da edicao anterior achada em in:sent; sem ele, a
 #       anterior NAO vira "sent": fica "draft" com ALERTA)
-# SAIDA: relatorio do helper + "PUSH: OK (...)" | "PUSH: FALHOU ..." (exit 3)
+# SAIDA: relatorio do helper + "PUSH: OK (...)" | "PUSH: FALHOU ..." (exit 3) | "PERSISTENCIA ABORTADA ..." (exit 2)
 # Temporarios em $ROBOZINHO_TMP (padrao /tmp).
 # =====================================================================
 set -uo pipefail
@@ -174,8 +191,25 @@ helper() {   # $1 = arquivo de entrada (uma copia: o helper o normaliza no lugar
   [[ $rc -eq 0 ]] && grep -q '^STATUS: OK' "$T/relatorio.txt" 2>/dev/null
 }
 
+# estado de work/ antes do helper (com a migracao que o inicio.py aplicou): se o helper nao terminar com
+# STATUS: OK, os arquivos voltam a isto — nada fica gravado pela metade diante do hook de parada (verified[14])
+ANTES="$T/finalizar-antes"
+guardar_antes() {
+  rm -rf "$ANTES" && mkdir -p "$ANTES" || return 1
+  local f
+  for f in $(arquivos_estado); do cp -p "$f" "$ANTES/" || return 1; done
+}
+restaurar_antes() {
+  local f
+  for f in $(arquivos_estado); do [[ -e "$ANTES/$(basename "$f")" ]] || rm -f "$f"; done   # criado pelo helper
+  for f in "$ANTES"/*; do [[ -e "$f" ]] && cp -p "$f" "work/$(basename "$f")"; done
+  echo "RESTAURADO: os arquivos de estado de work/ voltaram ao que eram antes do helper (nada gravado pela metade)"
+}
+guardar_antes || { echo "PERSISTENCIA ABORTADA: copia do estado antes do helper falhou em $ANTES — nada foi commitado."; exit 2; }
+
 cp "$COPIA" "$T/finalizar-rodada1.json"
 if ! helper "$T/finalizar-rodada1.json"; then
+  restaurar_antes
   echo "PERSISTENCIA ABORTADA: o helper nao terminou com STATUS: OK — nada foi commitado."
   exit 2
 fi
@@ -184,6 +218,13 @@ cp "$T/finalizar-rodada1.json" "$ENTRADA"      # a entrada fica normalizada, com
 EXEC=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['execution_id'])" "$ENTRADA")
 BACKUP_ARQ="$T/robozinho-estado-backup-$EXEC.tar.gz"
 BACKUP="" ESTADO_DE="" SHA="" SHA1="" reaplicado=0
+# rede com prazo (verified[44]): cada push/fetch tem LIMITE_REDE s; as esperas entre as 5 tentativas somam 90 s.
+# Pior caso (rede caida): ~90 s de espera + 5 x 20 s de push + fetch + socorro + 2 rodadas do helper < 300 s, o
+# timeout do Bash do passo 7. Os dois sao configuraveis (testes: ROBOZINHO_PUSH_ESPERAS="0 0 0 0 0").
+ESPERAS=(${ROBOZINHO_PUSH_ESPERAS:-0 5 15 30 40})
+LIMITE_REDE=${ROBOZINHO_LIMITE_REDE:-20}
+rede() { timeout "$LIMITE_REDE" "$@"; }
+
 copiar_estado() {   # copia do estado da ULTIMA rodada OK do helper ($1 = rodada1|rodada2); falha = fica a anterior
   if tar -czf "$BACKUP_ARQ.tmp" $(arquivos_estado) 2>/dev/null && mv -f "$BACKUP_ARQ.tmp" "$BACKUP_ARQ"; then
     BACKUP="$BACKUP_ARQ" ESTADO_DE="$1"
@@ -191,7 +232,61 @@ copiar_estado() {   # copia do estado da ULTIMA rodada OK do helper ($1 = rodada
     rm -f "$BACKUP_ARQ.tmp"
   fi
 }
-copiar_estado rodada1
+
+# trava de sanidade (lows[13]): antes do commit, compara o estado gravado com o do HEAD — registro, pendencia,
+# fonte ou armadilha que sumiu sem `remover` no update de hoje nem numa migracao aplicada agora, chave do ledger
+# que sumiu, execucao que saiu do historico sem ir para o arquivo morto = nao commita
+trava() {
+  local d="$T/finalizar-trava" f
+  rm -rf "$d" && mkdir -p "$d/work" || return 0
+  git show "HEAD:work/robozinho-aprendizado.json" > "$d/work/robozinho-aprendizado.json" 2>/dev/null || return 0
+  for f in $(git ls-tree --name-only HEAD work/ 2>/dev/null | grep -E '^work/resumo-legislativo-historico(-arquivo-[0-9-]+)?\.json$'); do
+    git show "HEAD:$f" > "$d/$f" 2>/dev/null
+  done
+  python3 - "$d/work" work "$ENTRADA" <<'PY'
+import glob, importlib.util, json, os, sys
+antes, agora, entrada = sys.argv[1:4]
+try:            # a trava e rede de seguranca: se ela mesma quebrar, avisa e nao bloqueia a gravacao do dia
+    spec = importlib.util.spec_from_file_location("uh_trava", os.path.join(agora, "Update-Historico.py"))
+    sys.path.insert(0, agora)
+    uh = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(uh)
+    uh.trava_sanidade
+except Exception as e:  # noqa: BLE001
+    print("AVISO: trava de sanidade não conferida (%s: %s)" % (type(e).__name__, e))
+    sys.exit(0)
+def ler(p, padrao=None):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return padrao
+def ids(pasta):
+    out = set()
+    for p in glob.glob(os.path.join(pasta, "resumo-legislativo-historico*.json")):
+        out |= {e.get("execution_id") for e in (ler(p, {}) or {}).get("executions") or []}
+    return out - {None}
+la, ld = ler(os.path.join(antes, "robozinho-aprendizado.json"), {}), ler(os.path.join(agora, "robozinho-aprendizado.json"))
+if not isinstance(ld, dict):
+    print("TRAVA: work/robozinho-aprendizado.json ilegível depois do helper")
+    sys.exit(1)
+ja = {(x.get("id") if isinstance(x, dict) else x) for x in la.get("migracoes_aplicadas") or []}
+novas = {(x.get("id") if isinstance(x, dict) else x) for x in ld.get("migracoes_aplicadas") or []} - ja
+updates = [(ler(entrada, {}) or {}).get("ledger_updates")]
+for p in glob.glob(os.path.join(agora, "migracoes", "*.json")):
+    m = ler(p, {}) or {}
+    if m.get("id") in novas:
+        updates.append(m.get("ledger_updates"))
+try:
+    problemas = uh.trava_sanidade(la, ld, updates, ids(antes), ids(agora))
+except Exception as e:  # noqa: BLE001
+    print("AVISO: trava de sanidade não conferida (%s: %s)" % (type(e).__name__, e))
+    sys.exit(0)
+for x in problemas:
+    print("TRAVA: " + x)
+sys.exit(1 if problemas else 0)
+PY
+}
 
 commitar() {
   git add $(arquivos_estado)
@@ -199,6 +294,17 @@ commitar() {
     echo "COMMIT: nada mudou nos arquivos de estado"
   else
     git commit -q -m "Robozinho: execução $EXEC" ${TRAILER:+-m "$TRAILER"} || return 1
+  fi
+}
+
+socorro() {   # o commit do estado do dia vai para uma branch propria no remoto: deixa de depender desta sessao
+  local c="${SHA:-$SHA1}" s
+  [[ -n "$c" ]] || return 0
+  if s=$(rede git push -q origin "$(git rev-parse "$c")":"refs/heads/robozinho/socorro-$EXEC" 2>&1); then
+    echo "SOCORRO: commit $c (estado do dia) enviado para a branch robozinho/socorro-$EXEC — o estado não depende" \
+         "mais desta sessão"
+  else
+    echo "SOCORRO: a branch robozinho/socorro-$EXEC também não foi aceita ($(tail -1 <<< "${s:-sem resposta em ${LIMITE_REDE} s}"))"
   fi
 }
 
@@ -213,16 +319,72 @@ falhou() {
     echo "ESTADO: copia do estado do dia em $BACKUP (commit local ${SHA:-nenhum}) —" \
          "para reaplicar: tar -xzf $BACKUP e commitar os arquivos work/ na main"
   fi
+  socorro
   exit 3
 }
+
+reaplicar() {   # estado de hoje refeito sobre a origin/main: helper de novo, com as mesmas entradas, uma vez
+  reaplicado=1
+  rede git fetch -q origin main || falhou "git fetch origin main"
+  # --keep: HEAD, indice e ARVORE vao para origin/main (o commit local so tem estado, que o helper refaz);
+  # recusado (alteracao local num arquivo que mudou no remoto): --mixed, como antes, com AVISO
+  if ! git reset -q --keep origin/main 2>/dev/null; then
+    git reset -q --mixed origin/main || falhou "git reset origin/main"
+    echo "AVISO: reset --keep recusado (alteracao local fora do estado) — so os arquivos de estado vao para origin/main"
+  fi
+  local f
+  for f in $(arquivos_estado) "${ESTADO[@]}"; do
+    if git cat-file -e "origin/main:$f" 2>/dev/null; then
+      git checkout -q origin/main -- "$f"
+    else
+      rm -f "$f"          # nao existe la: o helper recria se for o caso
+    fi
+  done
+  # a migracao de dado que o inicio.py aplicou no ledger local (work/migracoes.py) volta a valer sobre o ledger da
+  # origin/main antes do helper (idempotente: a ja marcada la nao se repete)
+  python3 work/migracoes.py ${DATA:+--hoje "$DATA"} 2>&1 | sed 's/^/REAPLICACAO: /'
+  cp "$COPIA" "$T/finalizar-rodada2.json"
+  helper "$T/finalizar-rodada2.json" || falhou "helper na reaplicacao sobre origin/main (STATUS != OK)"
+  trava || falhou "trava de sanidade na reaplicacao (linhas TRAVA acima)"
+  copiar_estado rodada2
+  SHA=""
+  commitar || falhou "commit na reaplicacao"
+  SHA=$(git rev-parse --short HEAD 2>/dev/null)
+}
+
+DATA=$(janela data)
+if ! trava; then
+  restaurar_antes
+  echo "PERSISTENCIA ABORTADA: trava de sanidade (linhas TRAVA acima: o estado perderia o que ninguém pediu para" \
+       "remover) — nada foi commitado. Não edite o estado nem o código: avise o dono com as linhas TRAVA."
+  exit 2
+fi
+copiar_estado rodada1
+
+# sessao fora da main (lows[13]): a branch da sessao contem a origin/main E commits que nao estao nela (sessao nascida
+# numa branch velha ou com commit avulso) — o push seria aceito e os levaria para a main. Grava sobre a origin/main.
+fora="" fora_msgs=""
+if rede git fetch -q origin main 2>/dev/null && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
+  n=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+  if [[ "$n" -gt 0 ]]; then
+    fora="$n" fora_msgs=$(git log --format=%s -n 3 origin/main..HEAD 2>/dev/null | tr '\n' ';')
+  fi
+fi
 
 git switch -q -C main || falhou "git switch main"
 commitar || falhou "commit"
 SHA=$(git rev-parse --short HEAD 2>/dev/null) SHA1="$SHA"
+if [[ -n "$fora" ]]; then
+  echo "AVISO: a sessão partiu de um commit com $fora commit(s) fora da origin/main ($fora_msgs) —" \
+       "eles não vão para a main: reaplicando o helper sobre origin/main"
+  reaplicar
+fi
 
-for espera in 0 2 4 8 16; do
+for espera in "${ESPERAS[@]}"; do
   sleep "$espera"
-  if saida=$(git push -q -u origin main 2>&1); then
+  saida=$(rede git push -q -u origin main 2>&1)
+  rc=$?
+  if [[ $rc -eq 0 ]]; then
     echo "PUSH: OK (main $(git rev-parse --short HEAD))"
     if [[ $reaplicado -eq 1 ]] && ! git diff --quiet HEAD 2>/dev/null; then
       echo "AVISO: diferenca local depois da reaplicacao em $(git diff --name-only HEAD | tr '\n' ' ')— nao e da" \
@@ -230,34 +392,16 @@ for espera in 0 2 4 8 16; do
     fi
     exit 0
   fi
+  [[ $rc -eq 124 ]] && saida="${saida:+$saida
+}push sem resposta em ${LIMITE_REDE} s (cortado)"
   # main andou no remoto (ex.: alteracao manual no dia): reaplica o helper sobre o estado de origin/main
   # so a recusa por historico ("! [rejected] ... (fetch first|non-fast-forward)"); "[remote rejected]" (hook
   # do servidor) nao e "main andou": reset e reaplicacao seriam inuteis
   if [[ $reaplicado -eq 0 ]] && grep -qiE "non-fast-forward|fetch first|\[rejected\]" <<< "$saida"; then
-    reaplicado=1
     echo "PUSH: recusado (main andou no remoto) — reaplicando o helper sobre origin/main"
-    git fetch -q origin main || falhou "git fetch origin main"
-    # --keep: HEAD, indice e ARVORE vao para origin/main (o commit local so tem estado, que o helper refaz);
-    # recusado (alteracao local num arquivo que mudou no remoto): --mixed, como antes, com AVISO
-    if ! git reset -q --keep origin/main 2>/dev/null; then
-      git reset -q --mixed origin/main || falhou "git reset origin/main"
-      echo "AVISO: reset --keep recusado (alteracao local fora do estado) — so os arquivos de estado vao para origin/main"
-    fi
-    for f in $(arquivos_estado) "${ESTADO[@]}"; do
-      if git cat-file -e "origin/main:$f" 2>/dev/null; then
-        git checkout -q origin/main -- "$f"
-      else
-        rm -f "$f"          # nao existe la: o helper recria se for o caso
-      fi
-    done
-    cp "$COPIA" "$T/finalizar-rodada2.json"
-    helper "$T/finalizar-rodada2.json" || falhou "helper na reaplicacao sobre origin/main (STATUS != OK)"
-    copiar_estado rodada2
-    SHA=""
-    commitar || falhou "commit na reaplicacao"
-    SHA=$(git rev-parse --short HEAD 2>/dev/null)
+    reaplicar
   fi
 done
 echo "Ultimo erro do push:"
 echo "$saida" | tail -3
-falhou "apos 5 tentativas"
+falhou "apos ${#ESPERAS[@]} tentativas"

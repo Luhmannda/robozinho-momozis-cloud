@@ -1,0 +1,21 @@
+{
+ "id": "2026-11-21-b-invalida",
+ "descricao": "Inválida: concurso novo sem fonte http e selo fora da lista.",
+ "criado_em": "2026-11-21",
+ "ledger_updates": {
+  "concursos": {
+   "novo_sem_fonte": {
+    "bloco": "Magistratura Federal",
+    "linha": "TRF9 — Juiz Federal: rumor",
+    "selo": "BOATO",
+    "verificado_em": "2026-11-21",
+    "fonte": "blog de concursos"
+   }
+  },
+  "pendencias": {
+   "pge_rj_edital_verificar": {
+    "texto": "não deveria entrar"
+   }
+  }
+ }
+}

@@ -606,7 +606,8 @@ def helper_completo():
     rc, out = rodar_helper(d, ex, "--draft-id", "r1", "--reconciliar-id", "2026-11-13-7h")
     ok(rc == 0 and "STATUS: OK" in out, out)
     ok("ALERTA: edicao anterior 2026-11-13-7h sem --message-id" in out, "E2")
-    ok("ALERTA_ECONOMIA:" in out and "ALERTA: modelo do orquestrador mudou: claude-sonnet-5-5" in out, "uso: " + out)
+    # ALERTA_ECONOMIA so contra execucoes do MESMO modelo (a base aqui e Sonnet): fica so o da troca (test_persistencia)
+    ok("ALERTA_ECONOMIA:" not in out and "ALERTA: modelo do orquestrador mudou: claude-sonnet-5-5" in out, "uso: " + out)
     ok("vale o do script" in out, "fontes_status mesclado")
     h = json.load(open(os.path.join(d, "hist.json")))
     ant = next(e for e in h["executions"] if e["execution_id"] == "2026-11-13-7h")
@@ -672,8 +673,9 @@ def medir_uso_tipos_e_custo():
     ok(o["entrada"] == 10 and o["cache_lido"] == 3000 and o["cache_gravado"] == 600 and o["saida"] == 350, o)
     base = medir_uso.custo_relativo(10, 3000, 600, 350)
     ok(base == round(10 + 300 + 750 + 1750), "pesos 1/0,1/1,25/5: %d" % base)
-    ok(o["fechamento_estimado"]["cache_lido"] == 2100 and o["custo_relativo"] == base +
-       o["fechamento_estimado"]["custo_relativo"], "fechamento estimado")
+    ok(o["fechamento_estimado"]["cache_lido"] == 2100 and o["custo_relativo"] ==        # pesos do Fable, gravacao 1 h
+       medir_uso.custo_relativo(10, 3000, 600, 350, "claude-fable-5-2", 600) + o["fechamento_estimado"]["custo_relativo"],
+       "fechamento estimado")
     g = m["coletores"]["gmail"]
     ok(g["relancamentos"] == 1 and g["chamadas_modelo"] == 2 and g["saida"] == 10, "relançamento somado: %r" % g)
     ok(uh.custo_relativo_execucao({"orquestrador": {"contexto_total": 1000, "cache_gravado": 100, "saida": 10,
@@ -1176,7 +1178,8 @@ def falha_de_push(cenario):
     g(base, "clone", "-q", "origin.git", outro)
     fin = os.path.join(outro, "work", "finalizar.sh")
     src = open(fin).read()
-    open(fin, "w").write(src.replace("for espera in 0 2 4 8 16; do", "for espera in 0 0 0 0 0; do"))
+    ok("${ROBOZINHO_PUSH_ESPERAS:-0 5 15 30 40}" in src, "esperas do push no finalizar.sh")
+    open(fin, "w").write(src.replace("${ROBOZINHO_PUSH_ESPERAS:-0 5 15 30 40}", "0 0 0 0 0"))
     g(outro, "commit", "-qam", "finalizar sem espera")
     g(outro, "push", "-q", "origin", "main")
     g(sess, "fetch", "-q", "origin")
@@ -1527,7 +1530,8 @@ def helper_relatorio_sem_ruido():
     uh.aplicar_updates(led, {"concursos": {"ofi": {}}, "pendencias": {"ofi_verificar": {}}}, "2026-11-17", log.append)
     ok(log == [], "update vazio não é registrado: %r" % log)
     d = pasta_helper()
-    rc, out = rodar_helper(d, {"delivery": "draft_ja_existente", "items": [], "source_status": {}}, "--draft-id", "r1")
+    rc, out = rodar_helper(d, {"delivery": "draft_ja_existente", "items": [], "source_status": {},
+                               "window_end": "2026-11-18T07:04:00-03:00"}, "--draft-id", "r1")   # §R1 escreve
     ok(rc == 0 and "STATUS: OK" in out and "nao foi a edicao" not in out, out)
     d = pasta_helper()
     rc, out = rodar_helper(d, {"delivery": "draft", "items": [], "source_status": {}}, "--draft-id", "r1")

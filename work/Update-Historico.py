@@ -72,8 +72,20 @@
 #                    execution_id.
 #   Entrega        : "sent" so com --reconciliar-message-id (prova do in:sent);
 #                    sem ela, fica "draft" com delivery_check e ALERTA.
-#   Uso            : custo_relativo do orquestrador (medir_uso.py); ALERTA_ECONOMIA
-#                    acima de 1,3x a mediana das ultimas 10; ALERTA de troca de modelo.
+#   Uso            : medir_uso.py (pesos e precos por modelo, buscas, esforco);
+#                    custo_usd = orquestrador + coletores + buscas (US$ de lista);
+#                    ALERTA_ECONOMIA: esse TOTAL acima de 1,3x a MEDIA das ultimas 10
+#                    execucoes com o mesmo modelo do orquestrador (minimo 3);
+#                    ALERTA de troca de modelo; AVISO de troca de esforco e de coletor caro.
+#   Gravacao       : tudo calculado em memoria e gravado no fim, todas ou nenhuma
+#                    (Gravacoes: falha no meio devolve os arquivos ao que eram).
+#                    Excecao = relatorio emitido com "STATUS: ERRO INTERNO <tipo>: <msg>
+#                    (<arquivo>:<linha>)", exit 4. Mecanico dos concursos com a queda do
+#                    montador + ALERTA (o ledger nao diverge do e-mail).
+#   §R1            : delivery draft_ja_existente sem registro de hoje exige window_end
+#                    escrito (data do rascunho/envio achado), nunca o fim da janela.
+#   Migracoes      : o ledger guarda migracoes_aplicadas (work/migracoes.py); o helper
+#                    preserva toda chave que nao conhece.
 # Temporarios em $ROBOZINHO_TMP (padrao /tmp).
 # =====================================================================
 
@@ -176,6 +188,11 @@ def validar(ex, chaves_anteriores, pre_rascunho=False):
     for nome, uso in (ex.get("coletores") or {}).items():
         if not all(isinstance((uso or {}).get(k), int) for k in ("tokens", "chamadas", "duracao_ms")):
             avisos.append("coletores[%s] sem tokens/chamadas/duracao_ms inteiros" % nome)
+    # buscas_gmail: a linha BUSCAS do coletor-gmail, copiada pelo orquestrador (o montador deriva dela o
+    # source_status dos gmail_*); fica no registro da execucao como veio
+    if ex.get("buscas_gmail") is not None and not isinstance(ex["buscas_gmail"], str):
+        avisos.append("buscas_gmail deveria ser texto (a linha BUSCAS do coletor-gmail): %r guardado como veio"
+                      % (ex["buscas_gmail"],))
     return erros, avisos
 
 
@@ -200,6 +217,43 @@ def completar_cabecalho(ex, caminho_janela):
             ex[campo] = valor
             preenchidos.append(campo)
     return preenchidos
+
+
+def janela_fim(caminho_janela):
+    try:
+        return read_json(caminho_janela).get("fim")
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def _instante(v):
+    try:
+        t = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else None
+
+
+def erros_window_end_r1(ex, erros, fim_inicio):
+    """§R1: window_end obrigatorio e escrito pelo orquestrador (data do rascunho achado ou do envio, -03:00), entre
+    o inicio da janela e a hora desta re-execucao (o fim da janela do inicio.py)."""
+    erros = [e for e in erros if e != "campo obrigatorio ausente: window_end"]
+    we = ex.get("window_end")
+    if we in (None, ""):
+        return erros + ["window_end ausente — §R1: escreva \"window_end\" = a data/hora em que o rascunho achado foi "
+                        "criado (list_drafts) ou a edição foi enviada (search_threads in:sent), em -03:00; o fim da "
+                        "janela do inicio.py (%s) é a hora desta re-execução e deixaria sem cobertura o que saiu "
+                        "entre a edição achada e agora" % (fim_inicio or "?")]
+    t, ini, fim = _instante(we), _instante(ex.get("window_start")), _instante(fim_inicio)
+    if t is None:
+        return erros + ["window_end %r: use AAAA-MM-DDTHH:MM:SS-03:00 (§R1: data do rascunho ou do envio achado)" % we]
+    if ini and t < ini:
+        return erros + ["window_end %s antes do início da janela (%s) — §R1: a data do rascunho ou do envio achado"
+                        % (we, ex.get("window_start"))]
+    if fim and t > fim:
+        return erros + ["window_end %s depois desta re-execução (%s) — §R1: a data do rascunho ou do envio achado"
+                        % (we, fim_inicio)]
+    return erros
 
 
 def checar_repeticao(ex, execucoes, chaves_anteriores):
@@ -248,6 +302,19 @@ RE_BANCA_SLUG = re.compile(r"[a-z0-9]+(?:[-/][a-z0-9]+)*")
 OBRIGATORIOS_NOVO = {"pendencias": ("texto", "faixa"),
                      "concursos": ("bloco", "linha", "selo", "verificado_em")}
 LISTA_DO_LEDGER = {"fontes": "fontes", "pendencias": "pendencias_vivas", "concursos": "concursos"}
+
+
+# movimento (concursos): false = a linha foi reescrita sem fato novo para o leitor (enriquecida com fato antigo, nota
+# de busca) — grava os outros campos, mas o campo nao vai ao registro, nao atualiza mudou_em e nao conta como
+# alteracao (a mesma regra de montar_email.sem_movimento, para o e-mail e o ledger nao divergirem).
+CAMPOS_EDITAVEIS["concursos"] = CAMPOS_EDITAVEIS["concursos"] | {"movimento"}
+NAO_GRAVA = ("remover", "desfecho", "movimento")      # campos do update que nao vao ao registro
+
+
+def sem_movimento(campos):
+    """ledger_updates.concursos.<id>.movimento = false (ou "false"/"0"/"nao"), como no montador."""
+    v = (campos or {}).get("movimento")
+    return v is False or str(v).strip().lower() in ("false", "0", "nao", "não")
 
 
 def _data_iso(v):
@@ -613,7 +680,7 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
                     removidas.append(ident)
                 continue
             alvo = next((x for x in lista if x.get("id") == ident), None)
-            if alvo is not None and not [c for c in campos if c not in ("remover", "desfecho")]:
+            if alvo is not None and not [c for c in campos if c not in NAO_GRAVA]:
                 continue        # nada a aplicar (ex.: o update so copiava o selo, ja retirado): sem "atualizada ()"
             if alvo is None:
                 alvo = {"id": ident}
@@ -624,10 +691,12 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
             else:
                 acao = "atualizada"
             antes = dict(alvo)
-            alvo.update({c: v for c, v in campos.items() if c not in ("remover", "desfecho")})
-            if secao == "concursos" and (acao == "criada" or selos.mudou(antes, alvo)):
+            alvo.update({c: v for c, v in campos.items() if c not in NAO_GRAVA})
+            parado = secao == "concursos" and acao == "atualizada" and sem_movimento(campos)
+            if secao == "concursos" and (acao == "criada" or (selos.mudou(antes, alvo) and not parado)):
                 alvo["mudou_em"] = hoje
-            add_log("Ledger: %s %s %s (%s)" % (secao, ident, acao, ", ".join(sorted(campos))))
+            add_log("Ledger: %s %s %s (%s)%s" % (secao, ident, acao, ", ".join(sorted(c for c in campos if c != "movimento")),
+                                                 " — sem movimento (mudou_em mantido)" if parado else ""))
     for ident in removidas:              # vinculo do concurso com a pendencia removida
         for c in led.get("concursos") or []:
             if ident and c.get("pendencia") == ident:
@@ -657,6 +726,10 @@ def aplicar_updates(led, upd, hoje, add_log, retirar_copias=True):
         add_log("Ledger: armadilha nova %s" % x["id"])
 
 
+ALERTA_FALLBACK = ("ALERTA: mecânico dos concursos com fallback (%s — %s: %s): passo pulado, como no e-mail (o "
+                   "montador cai igual); a próxima execução refaz com a banca lida de novo")
+
+
 def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
     """Depois dos ledger_updates: carimbo da banca lida hoje e selo por data (nunca sobre selo
     escrito hoje; bancas.selo_do_dia, a regra do montador: suspenso, com ALERTA, enquanto o edital lido hoje
@@ -666,18 +739,29 @@ def aplicar_mecanicos_concursos(led, upd, hoje, banca_res, add_log):
     regs = led.get("concursos") or []
     n = 0
     hj = date.fromisoformat(hoje)
-    if banca_res:      # o registro que ainda DIVERGE DO REGISTRO (nao corrigido hoje) nao e carimbado
-        for ident, campos in bancas.carimbos(banca_res, regs, hj, upd=conc).items():
-            reg = next((c for c in regs if c.get("id") == ident), None)
-            u = conc.get(ident) or {}
-            campos = {k: v for k, v in campos.items() if k not in u}   # o julgamento de hoje prevalece
-            if reg is None or not campos:
-                continue
-            reg.update(campos)
-            n += 1
-            add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
-    ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
-    pend = bancas.divergencias_pendentes(banca_res, regs, hj, conc) if banca_res else {}
+    # as MESMAS quedas do montador (montar_email.estado_concursos): excecao na leitura da banca = sem carimbo e/ou
+    # sem contexto, como no e-mail ja criado — o ledger nao diverge do e-mail e a execucao do dia nao se perde
+    carimbos = {}
+    if banca_res:
+        try:
+            carimbos = bancas.carimbos(banca_res, regs, hj, upd=conc)
+        except (KeyError, ValueError, TypeError) as e:
+            add_log(ALERTA_FALLBACK % ("bancas.carimbos", type(e).__name__, e))
+    for ident, campos in carimbos.items():     # o registro que ainda DIVERGE DO REGISTRO nao e carimbado
+        reg = next((c for c in regs if c.get("id") == ident), None)
+        u = conc.get(ident) or {}
+        campos = {k: v for k, v in campos.items() if k not in u}   # o julgamento de hoje prevalece
+        if reg is None or not campos:
+            continue
+        reg.update(campos)
+        n += 1
+        add_log("Ledger: carimbo da banca: %s (%s)" % (ident, ", ".join(sorted(campos))))
+    try:
+        ctx = bancas.contexto_selos(banca_res, regs, hj, conc) if banca_res else {}
+        pend = bancas.divergencias_pendentes(banca_res, regs, hj, conc) if banca_res else {}
+    except (KeyError, ValueError, TypeError) as e:
+        ctx, pend = {}, {}
+        add_log(ALERTA_FALLBACK % ("bancas.contexto_selos/divergencias_pendentes", type(e).__name__, e))
     for reg in regs:
         u = conc.get(reg.get("id")) or {}
         if "selo" in u:
@@ -737,12 +821,18 @@ def mesclar_fontes_status(ex, caminho, add_log):
         ss[fid] = status
 
 
+MARGEM_MEDICAO_S = 120     # lows[0]: a 1a chamada do orquestrador (le a ROTINA, chama o inicio.py) e anterior ao
+                           # run_started_at (a hora do inicio.py): sem margem, os registros dela antes dele ficavam fora
+
+
 def medir_e_preencher(ex, add_log):
-    """Uso real (tokens por tipo, chamadas, modelo servido, custo relativo) do orquestrador
-    e dos coletores, lido das transcricoes locais. Falha so gera aviso."""
+    """Uso real (tokens por tipo, chamadas, modelo servido, esforco, custo relativo, US$ de lista, buscas) do
+    orquestrador e dos coletores, lido das transcricoes locais. Falha so gera aviso."""
     try:
         import medir_uso
-        m = medir_uso.medir(medir_uso._ts(ex.get("run_started_at") or ""))
+        from datetime import timedelta
+        desde = medir_uso._ts(ex.get("run_started_at") or "")
+        m = medir_uso.medir(desde - timedelta(seconds=MARGEM_MEDICAO_S) if desde else None)
     except Exception as e:  # noqa: BLE001 — medicao e acessoria
         add_log("AVISO: uso nao medido (%s) — coletores ficam como informados" % e)
         return
@@ -754,11 +844,27 @@ def medir_e_preencher(ex, add_log):
         col.setdefault(nome, {}).update(u)
     if m.get("orquestrador"):
         ex["orquestrador"] = m["orquestrador"]
-    resumo = ["%s=%s/%dk/custo %s" % (n, (u.get("modelo") or "?").replace("claude-", ""),
-                                      (u.get("contexto_total") or 0) // 1000,
-                                      "%.0fk" % (u["custo_relativo"] / 1000) if u.get("custo_relativo") else "?")
-              for n, u in [("orquestrador", m.get("orquestrador") or {})] + sorted(col.items())]
-    add_log("Uso medido (modelo/contexto processado/custo relativo em tokens de entrada): " + " ".join(resumo))
+    if m.get("custo_usd"):
+        ex["custo_usd"] = m["custo_usd"]
+    resumo = ["%s=%s%s/%dk/custo %s/%s" % (
+        n, (u.get("modelo") or "?").replace("claude-", ""), ("/" + u["esforco"]) if u.get("esforco") else "",
+        (u.get("contexto_total") or 0) // 1000,
+        "%.0fk" % (u["custo_relativo"] / 1000) if u.get("custo_relativo") else "?",
+        ("US$ %.2f" % u["custo_usd"]) if u.get("custo_usd") is not None else "US$ ?")
+        + ((" (%d buscas)" % u["websearch"]) if u.get("websearch") else "")
+        for n, u in [("orquestrador", m.get("orquestrador") or {})] + sorted(col.items())]
+    add_log("Uso medido (modelo/esforço/contexto processado/custo relativo em tokens de entrada/US$ de lista): "
+            + " ".join(resumo))
+    c = ex.get("custo_usd") or {}
+    if c.get("total") is not None:
+        add_log("Custo da execucao (preco de lista da API, tabela de %s): US$ %.2f = orquestrador %.2f + coletores "
+                "%.2f + %d busca(s) ~%.2f (estimativa)" % (c.get("precos_em"), c["total"], c.get("orquestrador") or 0,
+                                                           sum(v or 0 for v in (c.get("coletores") or {}).values()),
+                                                           c.get("buscas") or 0, c.get("buscas_usd_est") or 0))
+    elif c.get("sem_preco"):
+        add_log("AVISO: modelo sem preço na tabela de work/medir_uso.py (%s) — custo em US$ não calculado; atualize "
+                "PRECOS_USD_MTOK" % ", ".join("%s=%s" % (n, ((ex.get("orquestrador") if n == "orquestrador" else
+                                                               col.get(n)) or {}).get("modelo")) for n in c["sem_preco"]))
 
 
 # Migracao idempotente das regras de armadilha que o codigo tornou falsas (o LEDGER impresso pelo inicio.py e
@@ -803,8 +909,8 @@ def migrar_armadilhas(led):
     return feitos
 
 
-def gravar_ledger(caminho, led):
-    """Uma entrada de lista por linha: compacto para ler e estavel para diff."""
+def texto_ledger(led):
+    """Uma entrada de lista por linha: compacto para ler e estavel para diff. Validado (json.loads)."""
     partes = []
     for k, v in led.items():
         if isinstance(v, list) and v:
@@ -814,15 +920,37 @@ def gravar_ledger(caminho, led):
             partes.append("  %s: %s" % (json.dumps(k), json.dumps(v, ensure_ascii=False)))
     texto = "{\n" + ",\n\n".join(partes) + "\n}\n"
     json.loads(texto)
-    with open(caminho, "w", encoding="utf-8", newline="") as f:
-        f.write(texto)
+    return texto
+
+
+def gravar_texto(caminho, texto):
+    """Grava por arquivo temporario + os.replace: quem le nunca ve o arquivo pela metade."""
+    parcial = "%s.%d.tmp" % (caminho, os.getpid())
+    try:
+        with open(parcial, "w", encoding="utf-8", newline="") as f:
+            f.write(texto)
+        os.replace(parcial, caminho)
+    finally:
+        if os.path.exists(parcial):
+            os.remove(parcial)
+
+
+def gravar_ledger(caminho, led):
+    gravar_texto(caminho, texto_ledger(led))
 
 
 def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     """ledger_updates + mecanicos (sempre; idempotentes) e contadores (1 vez por execution_id).
     Antes o guard por execution_id vinha primeiro e descartava em silencio os ledger_updates de
-    um --refazer (E14/F7)."""
-    led = read_json(caminho)
+    um --refazer (E14/F7). Le, calcula (calcular_ledger) e grava."""
+    led = calcular_ledger(read_json(caminho), ex, add_log, execucoes, banca_res)
+    gravar_ledger(caminho, led)
+    return led
+
+
+def calcular_ledger(led, ex, add_log, execucoes=None, banca_res=None):
+    """O ledger da gravacao, so em memoria (o main grava junto com o resto: sem gravacao parcial).
+    Preserva toda chave que nao conhece (ex.: migracoes_aplicadas, do work/migracoes.py)."""
     hoje = ex["date"]
 
     def anteriores():           # a execucao de hoje ja esta no historico: nao conta na inicializacao
@@ -842,8 +970,8 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
     if led.get("atualizado_por_execucao") == ex["execution_id"]:
         add_log("Ledger: contadores ja aplicados para %s — ledger_updates reaplicados, contadores nao."
                 % ex["execution_id"])
-        gravar_ledger(caminho, led)
-        return
+        texto_ledger(led)
+        return led
     fontes = {f.get("id"): f for f in led.get("fontes") or []}
     for fid, v in (ex.get("source_status") or {}).items():
         f = fontes.get(fid)
@@ -892,13 +1020,23 @@ def aplicar_ledger(caminho, ex, add_log, execucoes=None, banca_res=None):
         add_log("Ledger: pendencia %s saiu na edicao mas nao existe no ledger." % novo)
     led["atualizado_em"] = now_iso_with_offset()
     led["atualizado_por_execucao"] = ex["execution_id"]
-    gravar_ledger(caminho, led)
+    texto_ledger(led)                   # valida (json.loads) antes de aceitar
     add_log("Ledger: contadores aplicados e JSON validado.")
+    return led
 
 
 def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=None):
     """URLs vistas na banca e hash das paginas oficiais (work/concursos-estado.json): so avancam quando a
-    execucao e registrada (o inicio.py so le)."""
+    execucao e registrada (o inicio.py so le). Calcula (calcular_estado_concursos) e grava."""
+    estado = calcular_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path)
+    if estado is not None:
+        import bancas
+        bancas.gravar_estado(caminho, estado)
+    return estado
+
+
+def calcular_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=None):
+    """O concursos-estado.json da gravacao, so em memoria; None = nada a gravar."""
     pags = None
     if paginas_path:
         try:
@@ -907,7 +1045,7 @@ def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=N
         except (OSError, ValueError):
             pags = None
     if not banca_res and not pags:
-        return
+        return None
     import bancas
     estado = bancas.carregar_estado(caminho)
     partes = []
@@ -921,9 +1059,9 @@ def atualizar_estado_concursos(caminho, banca_res, hoje, add_log, paginas_path=N
         except Exception as e:  # noqa: BLE001
             add_log("AVISO: paginas_oficiais nao gravadas no estado (%s)" % e)
     if not partes:
-        return
-    bancas.gravar_estado(caminho, estado)
+        return None
     add_log("Estado de concursos: %s (%s)" % ("; ".join(partes), os.path.basename(caminho)))
+    return estado
 
 
 def read_json(path):
@@ -946,18 +1084,19 @@ def now_iso_with_offset():
         return datetime.now().astimezone().isoformat(timespec="seconds")
 
 
-def metricas_derivadas(historico, execucoes_principal):
+def metricas_derivadas(historico, execucoes_principal, gravacoes=None):
     """Numeros que antes eram mantidos a mao no ledger (metricas.itens_ultimas_10,
     media). Calculados do historico para nao depender de aritmetica manual.
     Tambem agrega o uso dos coletores (campo opcional `coletores` de cada
-    execucao: {nome: {tokens, chamadas, duracao_ms, modelo}})."""
+    execucao: {nome: {tokens, chamadas, duracao_ms, modelo}}). gravacoes: o arquivo
+    morto ainda nao gravado nesta rodada (Gravacoes) conta como o que sera gravado."""
     pasta = os.path.dirname(os.path.abspath(historico_path_global))
     arquivadas = 0
     for nome in historico.get("archive_files") or []:
         caminho = os.path.join(pasta, nome)
-        if os.path.exists(caminho):
+        if (gravacoes.existe(caminho) if gravacoes else os.path.exists(caminho)):
             try:
-                arquivadas += len(read_json(caminho).get("executions") or [])
+                arquivadas += len((gravacoes.ler(caminho) if gravacoes else read_json(caminho)).get("executions") or [])
             except Exception:
                 pass
 
@@ -991,6 +1130,14 @@ def metricas_derivadas(historico, execucoes_principal):
     orq = [int((e.get("orquestrador") or {}).get("contexto_total") or 0) for e in ult10
            if (e.get("orquestrador") or {}).get("contexto_total")]
     custos = [c for c in (custo_relativo_execucao(e) for e in ult10) if c]
+    usd = []
+    for e in ult10:
+        c = custo_usd_execucao(e)
+        if c and c.get("total"):
+            usd.append({"execution_id": e.get("execution_id"), "modelo": modelo_orq(e), "total": round(c["total"], 2),
+                        **({"estimado": True} if c["estimado"] else {})})
+    ultimo_modelo = modelo_orq(execucoes_principal[-1]) if execucoes_principal else None
+    base = base_economia(execucoes_principal, ultimo_modelo) if ultimo_modelo else []
 
     # E13: sem "coletores_ultima"/"orquestrador_ultima" (copias de executions[-1], sem leitor)
     return {
@@ -1005,6 +1152,11 @@ def metricas_derivadas(historico, execucoes_principal):
         "orquestrador_contexto_media": round(sum(orq) / len(orq)) if orq else None,
         "orquestrador_custo_relativo_ultimas_10": custos,
         "orquestrador_custo_relativo_mediana": round(mediana(custos)) if custos else None,
+        # custo total (orquestrador + coletores + buscas) em US$ de lista, e a media que o ALERTA_ECONOMIA usa
+        "custo_usd_ultimas_10": usd,
+        "custo_usd_media_mesmo_modelo": ({"modelo": ultimo_modelo, "execucoes": len(base),
+                                          "media": round(sum(c["total"] for _, c in base) / len(base), 2)}
+                                         if base else None),
     }
 
 
@@ -1035,27 +1187,152 @@ def custo_relativo_execucao(e):
         return None
 
 
+MIN_BASE_ECONOMIA = 3      # execucoes anteriores com o mesmo modelo do orquestrador para haver media
+
+
+def custo_usd_execucao(e):
+    """Custo da execucao em US$ (custo_usd_calculado); qualquer falha = None: medicao e acessoria e nunca derruba a
+    gravacao (ex.: merge parcial com um medir_uso.py antigo, sem a tabela de precos)."""
+    try:
+        return custo_usd_calculado(e)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def custo_usd_calculado(e):
+    """{'total', 'orquestrador', 'coletores', 'buscas', 'estimado'} em US$ de lista (work/medir_uso.py). Execucao
+    medida desde 21/11/2026: o `custo_usd` gravado. Antiga: recalculado dos tokens guardados, pela mesma tabela —
+    leitura = contexto_total - cache_gravado quando o tipo nao foi separado; a gravacao do orquestrador sem o TTL
+    separado conta como 1 h (como em todas as medidas de 17 a 20/11), a dos coletores como 5 min; a chamada final
+    estimada como no medir_uso; buscas nao contadas = 0. Modelo fora da tabela: None."""
+    c = e.get("custo_usd") or {}
+    if c.get("total") is not None:
+        return {"total": c["total"], "orquestrador": c.get("orquestrador"), "coletores": c.get("coletores") or {},
+                "buscas": c.get("buscas") or 0, "estimado": False}
+    o = e.get("orquestrador") or {}
+    if not o.get("modelo") or not (o.get("contexto_total") or o.get("cache_lido") is not None):
+        return None
+    try:
+        import medir_uso
+    except Exception:  # noqa: BLE001
+        return None
+
+    def usd(u, orquestrador):
+        if u.get("custo_usd") is not None:
+            return u["custo_usd"]
+        grav = int(u.get("cache_gravado") or 0)
+        lido = u.get("cache_lido")
+        if lido is None:
+            lido = max(0, int(u.get("contexto_total") or 0) - grav)
+        g1 = u.get("cache_gravado_1h")
+        g1 = (grav if orquestrador else 0) if g1 is None else int(g1)
+        return medir_uso.custo_usd(int(u.get("entrada") or 0), int(lido), grav, int(u.get("saida") or 0),
+                                   u.get("modelo"), g1)
+    total_o = usd(o, True)
+    if total_o is None:
+        return None
+    if o.get("custo_usd") is None:          # chamada final: a estimada gravada, ou a mesma estimativa do medir_uso
+        f = o.get("fechamento_estimado") or {"cache_lido": int(o.get("tokens") or 0),
+                                             "cache_gravado": medir_uso.FECHAMENTO["cache_gravado"],
+                                             "saida": medir_uso.FECHAMENTO["saida"]}
+        g1 = f.get("cache_gravado_1h", f.get("cache_gravado") if o.get("cache_gravado_1h") in (None, o.get("cache_gravado"))
+                   else 0)
+        total_o += medir_uso.custo_usd(0, int(f.get("cache_lido") or 0), int(f.get("cache_gravado") or 0),
+                                       int(f.get("saida") or 0), o.get("modelo"), g1 or 0) or 0
+    cols, buscas = {}, int(o.get("websearch") or 0)
+    for nome, u in sorted((e.get("coletores") or {}).items()):
+        if not isinstance(u, dict) or not u.get("modelo"):
+            continue
+        v = usd(u, False)
+        if v is None:
+            return None
+        cols[nome] = round(v, 4)
+        buscas += int(u.get("websearch") or 0)
+    total = total_o + sum(cols.values()) + medir_uso.buscas_usd_est(buscas)
+    return {"total": round(total, 4), "orquestrador": round(total_o, 4), "coletores": cols, "buscas": buscas,
+            "estimado": True}
+
+
+def modelo_orq(e):
+    return (e.get("orquestrador") or {}).get("modelo")
+
+
+def base_economia(execucoes_anteriores, modelo):
+    """As ultimas 10 execucoes anteriores com o mesmo modelo do orquestrador e custo calculavel: [(e, custo)]."""
+    out = []
+    for e in reversed(execucoes_anteriores):
+        if modelo_orq(e) != modelo:
+            continue
+        c = custo_usd_execucao(e)
+        if c and c.get("total"):
+            out.append((e, c))
+        if len(out) == 10:
+            break
+    return out[::-1]
+
+
 def alertas_uso(execucoes, add_log):
-    """ALERTA_ECONOMIA (custo relativo do orquestrador > 1,3x a mediana das 10 anteriores) e ALERTA de
-    troca do modelo do orquestrador em relacao a execucao anterior (K5: a troca de 13/11 passou calada)."""
+    """ALERTA_ECONOMIA: o custo TOTAL da execucao (orquestrador + coletores + buscas, em US$ de lista) acima de 1,3x a
+    MEDIA das ultimas 10 execucoes com o mesmo modelo do orquestrador (no minimo 3; critic_verified[4]/verified[19]:
+    antes so o orquestrador, sem buscas, numa mediana que misturava modelos). ALERTA de troca do modelo do
+    orquestrador em relacao a execucao anterior (K5: a troca de 13/11 passou calada); AVISO de troca de esforco e
+    de coletor que encareceu."""
     if not execucoes:
         return
     atual = execucoes[-1]
-    anteriores = [e for e in execucoes[:-1] if (e.get("orquestrador") or {}).get("contexto_total")][-10:]
     o = atual.get("orquestrador") or {}
-    c = custo_relativo_execucao(atual)
-    base = [x for x in (custo_relativo_execucao(e) for e in anteriores) if x]
-    med = mediana(base)
-    if c and med and c > 1.3 * med:
-        add_log("ALERTA_ECONOMIA: custo relativo do orquestrador %.0fk = %.2fx a mediana das ultimas %d (%.0fk) — "
-                "chamadas_modelo %s, gravacao de cache %s, saida %s, modelo %s"
-                % (c / 1000, c / med, len(base), med / 1000, o.get("chamadas_modelo"), o.get("cache_gravado"),
-                   o.get("saida"), o.get("modelo")))
+    cur = custo_usd_execucao(atual)
+    base = base_economia(execucoes[:-1], o.get("modelo")) if o.get("modelo") else []
+    media = sum(c["total"] for _, c in base) / len(base) if base else None
+    if cur and cur.get("total"):     # o numero que o dono acompanha (vai na notificacao do dia)
+        add_log("USO: custo total US$ %.2f%s" % (cur["total"], "; media das ultimas %d com %s: US$ %.2f (%.2fx)" % (
+            len(base), o.get("modelo"), media, cur["total"] / media) if base else "; sem execucao anterior com %s"
+            % (o.get("modelo") or "o mesmo modelo")))
+    if cur and cur.get("total") and len(base) >= MIN_BASE_ECONOMIA and cur["total"] > 1.3 * media:
+        add_log("ALERTA_ECONOMIA: custo total da execucao US$ %.2f = %.2fx a media das ultimas %d com %s (US$ %.2f) — "
+                "orquestrador US$ %.2f (chamadas_modelo %s, gravacao de cache %s, saida %s, esforco %s), coletores "
+                "US$ %.2f, buscas %d (~US$ %.2f)%s"
+                % (cur["total"], cur["total"] / media, len(base), o.get("modelo"), media, cur["orquestrador"] or 0,
+                   o.get("chamadas_modelo"), o.get("cache_gravado"), o.get("saida"), o.get("esforco") or "?",
+                   sum(cur["coletores"].values()), cur["buscas"], _buscas_usd(cur["buscas"]),
+                   "; base com valores recalculados de execucoes antigas" if any(c["estimado"] for _, c in base) else ""))
+    if cur and base and len(base) >= MIN_BASE_ECONOMIA:
+        for nome, v in sorted((cur.get("coletores") or {}).items()):
+            hist = [c["coletores"][nome] for _, c in base if (c.get("coletores") or {}).get(nome) is not None]
+            if len(hist) < MIN_BASE_ECONOMIA or not v:
+                continue
+            m = sum(hist) / len(hist)
+            if v > 1.5 * m and v - m > 0.05 * media:      # so o que pesa no total (o Haiku dobrando e ruido)
+                add_log("AVISO: coletor %s US$ %.2f = %.2fx a media das ultimas %d (+US$ %.2f, %.0f%% do total medio)"
+                        % (nome, v, v / m, len(hist), v - m, 100 * (v - m) / media))
     ant = next((e for e in reversed(execucoes[:-1]) if (e.get("orquestrador") or {}).get("modelo")), None)
     if ant and o.get("modelo") and ant["orquestrador"]["modelo"] != o["modelo"]:
-        add_log("ALERTA: modelo do orquestrador mudou: %s (%s) -> %s (%s) — a escolha do modelo e do dono "
+        razao = _razao_preco(ant["orquestrador"]["modelo"], o["modelo"])
+        add_log("ALERTA: modelo do orquestrador mudou: %s (%s) -> %s (%s)%s — a escolha do modelo e do dono "
                 "(README); se nao foi decidida, avise na notificacao"
-                % (ant["orquestrador"]["modelo"], ant.get("execution_id"), o["modelo"], atual.get("execution_id")))
+                % (ant["orquestrador"]["modelo"], ant.get("execution_id"), o["modelo"], atual.get("execution_id"),
+                   (" (preco por token de entrada %.2gx)" % razao) if razao else ""))
+    ant_e = next((e for e in reversed(execucoes[:-1]) if (e.get("orquestrador") or {}).get("esforco")), None)
+    if ant_e and o.get("esforco") and ant_e["orquestrador"]["esforco"] != o["esforco"]:
+        add_log("AVISO: esforco do orquestrador mudou: %s (%s) -> %s (%s) — muda custo e julgamento; a escolha e do dono"
+                % (ant_e["orquestrador"]["esforco"], ant_e.get("execution_id"), o["esforco"], atual.get("execution_id")))
+
+
+def _buscas_usd(n):
+    try:
+        import medir_uso
+        return medir_uso.buscas_usd_est(n)
+    except Exception:  # noqa: BLE001
+        return 0.0
+
+
+def _razao_preco(de, para):
+    try:
+        import medir_uso
+        a, b = medir_uso.preco(de), medir_uso.preco(para)
+        return b[0] / a[0] if a and b else None
+    except Exception:  # noqa: BLE001
+        return None
 
 
 NAO_NOTICIA = {"Concursos - Carreira", "Concursos - Apoio", "Versículo", "Munger"}
@@ -1070,6 +1347,117 @@ def em_recesso(iso):
 
 
 historico_path_global = ""
+
+
+class Gravacoes:
+    """As gravacoes de estado do helper, adiadas para o fim e feitas todas ou nenhuma (verified[14]: antes o
+    historico e o estado eram gravados e so depois o ledger era calculado; uma excecao ali deixava o historico
+    gravado sem o ledger). Tudo e calculado em memoria; `aplicar` grava em ordem, guardando o conteudo de antes
+    de cada arquivo, e se uma gravacao (ou a conferencia final) falha devolve todos ao que eram."""
+
+    def __init__(self):
+        self.fila = []           # (caminho, texto | None, funcao | None)
+        self.dados = {}          # caminho absoluto -> dados (quem le o que ainda vai ser gravado)
+
+    def json(self, caminho, dados):
+        """Mesmo formato do write_json_no_bom (indent 2, UTF-8 sem BOM)."""
+        self.texto(caminho, json.dumps(dados, ensure_ascii=False, indent=2), dados)
+
+    def texto(self, caminho, texto, dados=None):
+        self.fila = [x for x in self.fila if x[0] != caminho] + [(caminho, texto, None)]
+        if dados is not None:
+            self.dados[os.path.abspath(caminho)] = dados
+
+    def funcao(self, caminho, gravar):
+        """Gravacao feita por funcao de outro modulo (ex.: bancas.gravar_estado), com a mesma restauracao."""
+        self.fila = [x for x in self.fila if x[0] != caminho] + [(caminho, None, gravar)]
+
+    def existe(self, caminho):
+        return os.path.abspath(caminho) in self.dados or os.path.exists(caminho)
+
+    def ler(self, caminho):
+        d = self.dados.get(os.path.abspath(caminho))
+        return d if d is not None else read_json(caminho)
+
+    def aplicar(self, add_log, conferir=None):
+        antes = []
+        atual = None
+        try:
+            for caminho, texto, gravar in self.fila:
+                atual = caminho
+                anterior = None
+                if os.path.exists(caminho):
+                    with open(caminho, "rb") as f:
+                        anterior = f.read()
+                antes.append((caminho, anterior))
+                if gravar is not None:
+                    gravar()
+                else:
+                    gravar_texto(caminho, texto)
+            atual = "conferencia"
+            if conferir:
+                conferir()
+        except BaseException as e:
+            for caminho, anterior in reversed(antes):
+                try:
+                    if anterior is None:
+                        if os.path.exists(caminho):
+                            os.remove(caminho)
+                    else:
+                        parcial = "%s.%d.volta" % (caminho, os.getpid())
+                        with open(parcial, "wb") as f:
+                            f.write(anterior)
+                        os.replace(parcial, caminho)
+                except OSError:
+                    pass
+            add_log("ERRO: gravacao interrompida em %s (%s: %s) — os %d arquivo(s) ja gravados voltaram ao que eram"
+                    % (os.path.basename(atual or "?"), type(e).__name__, e, len(antes)))
+            raise
+
+
+def removidos_pedidos(updates):
+    """{secao: ids} com `remover` em qualquer dos ledger_updates dados (o do dia e os das migracoes)."""
+    out = {"concursos": set(), "pendencias": set()}
+    for u in updates:
+        for secao in out:
+            bloco = (u or {}).get(secao) if isinstance(u, dict) else None
+            for ident, c in (bloco or {}).items() if isinstance(bloco, dict) else []:
+                if isinstance(c, dict) and c.get("remover"):
+                    out[secao].add(ident)
+    return out
+
+
+def trava_sanidade(led_antes, led_depois, updates, ids_hist_antes, ids_hist_depois):
+    """lows[13]: antes do commit, o que SUMIU do estado sem ter sido pedido (o validador so olha o update do dia;
+    um defeito que esvaziasse uma lista entraria na main sem alarme). Compara o ledger e os ids de execucao do HEAD
+    com os gravados: registro, pendencia, fonte ou armadilha ausente sem `remover` no update do dia ou numa migracao
+    aplicada agora; chave do ledger que tinha conteudo e sumiu; execucao que nao esta nem no historico nem num
+    arquivo morto. Devolve os problemas (vazio = segue)."""
+    problemas = []
+    pedidos = removidos_pedidos(updates)
+    for lista, secao in (("concursos", "concursos"), ("pendencias_vivas", "pendencias"), ("fontes", None),
+                         ("armadilhas", None)):
+        antes = {x.get("id") for x in led_antes.get(lista) or [] if isinstance(x, dict)}
+        depois = {x.get("id") for x in led_depois.get(lista) or [] if isinstance(x, dict)}
+        sumiram = sorted(i for i in antes - depois - pedidos.get(secao, set()) if i)
+        if sumiram:
+            problemas.append("%s: %d sumiram sem `remover` no update de hoje nem em migração (%s%s)"
+                             % (lista, len(sumiram), ", ".join(sumiram[:6]), "…" if len(sumiram) > 6 else ""))
+    for k, v in led_antes.items():
+        if k not in led_depois and v not in (None, "", [], {}):
+            problemas.append("ledger: a chave %r sumiu" % k)
+    perdidas = sorted(set(ids_hist_antes) - set(ids_hist_depois))
+    if perdidas:
+        problemas.append("histórico: %d execução(ões) sumiram do principal e dos arquivos mortos (%s)"
+                         % (len(perdidas), ", ".join(perdidas[:6])))
+    return problemas
+
+
+def onde_falhou(e):
+    """arquivo:linha do ponto mais interno da excecao (o relatorio diz onde o codigo quebrou)."""
+    import traceback
+    tb = traceback.extract_tb(e.__traceback__)
+    return "%s:%d" % (os.path.basename(tb[-1].filename), tb[-1].lineno) if tb else "?"
 
 
 def main():
@@ -1103,21 +1491,53 @@ def main():
     args = parser.parse_args()
 
     log = []
+    emitido = []
 
     def add_log(linha):
         log.append(linha)
 
     def emitir(status_final):
+        """O relatorio sai SEMPRE (inclusive em erro interno): e o que o finalizar.sh e a §R11 leem."""
         add_log(status_final)
+        emitido.append(status_final)
         texto = "\n".join(log)
         if args.relatorio_path:
-            with open(args.relatorio_path, "w", encoding="utf-8", newline="") as f:
-                f.write(texto)
+            try:
+                with open(args.relatorio_path, "w", encoding="utf-8", newline="") as f:
+                    f.write(texto)
+            except OSError as e:
+                texto += "\nAVISO: relatorio nao gravado em %s (%s)" % (args.relatorio_path, e)
         print(texto)
 
+    try:
+        executar(args, add_log, emitir)
+    except SystemExit as e:
+        if emitido or e.code in (0, None):
+            raise                       # saida deliberada, ja com o relatorio (ex.: ERRO DE VALIDACAO, exit 2)
+        erro_interno(args, emitir, "SystemExit", e.code, None)
+    except BaseException as e:  # noqa: BLE001 — o relatorio sai sempre; nada fica gravado pela metade
+        import traceback
+        traceback.print_exc()
+        erro_interno(args, emitir, type(e).__name__, e, onde_falhou(e))
+
+
+def erro_interno(args, emitir, tipo, msg, onde):
+    """STATUS: ERRO INTERNO: falha do codigo ou de um dado inesperado, nao do execucao.json. As gravacoes de
+    estado sao todas ou nenhuma (Gravacoes): nada foi gravado. Exit 4 (o finalizar.sh nao commita)."""
+    det = "%s: %s%s" % (tipo, msg, " (%s)" % onde if onde else "")
+    if args.validar:
+        emitir("VALIDACAO: ERRO INTERNO %s — nada foi gravado." % det)
+    else:
+        emitir("STATUS: ERRO INTERNO %s — nada foi gravado no estado; nada commitado. Repita o finalizar.sh uma vez; "
+               "persistindo, nao edite codigo nem o execucao.json para contornar" % det)
+    sys.exit(4)
+
+
+def executar(args, add_log, emitir):
     # -------------------------------------------------------------
     # 1. Carregar historico e nova execucao
     # -------------------------------------------------------------
+    g = Gravacoes()
     if not os.path.exists(args.historico_path):
         envelope = {
             "schema_version": 1,
@@ -1127,10 +1547,14 @@ def main():
             "archive_files": [],
             "executions": [],
         }
-        write_json_no_bom(args.historico_path, envelope)
+        if args.validar:
+            historico = envelope
+        else:
+            g.json(args.historico_path, envelope)
+            historico = json.loads(json.dumps(envelope))
         add_log("AVISO: historico inexistente; envelope novo criado.")
-
-    historico = read_json(args.historico_path)
+    else:
+        historico = read_json(args.historico_path)
     historico.setdefault("executions", [])
     historico.setdefault("archive_files", [])
 
@@ -1165,7 +1589,18 @@ def main():
         for it in e.get("items") or []
         if it.get("chave")
     }
+    # §R1 (verified[45]): a edicao de hoje ja existe sem registro (sessao que caiu antes do finalizar.sh). O fim da
+    # janela do inicio.py e a hora DESTA re-execucao: grava-lo como window_end pularia tudo o que saiu entre a edicao
+    # achada e agora. O orquestrador escreve a data do rascunho/envio achado; o helper nao completa o campo.
+    r1 = (not args.validar and nova_exec.get("delivery") == "draft_ja_existente"
+          and not any(e.get("execution_id") == nova_exec["execution_id"] for e in historico["executions"]))
+    fim_inicio = None
+    if r1 and "window_end" in preenchidos:
+        fim_inicio = nova_exec.pop("window_end")
+        preenchidos.remove("window_end")
     erros, avisos = validar(nova_exec, chaves_anteriores, pre_rascunho=args.validar)
+    if r1:
+        erros = erros_window_end_r1(nova_exec, erros, fim_inicio or janela_fim(args.janela))
     banca_res = ler_banca(args.bancas, nova_exec.get("date"))
     led_atual = None
     if args.ledger_path and os.path.exists(args.ledger_path):
@@ -1177,7 +1612,7 @@ def main():
                 carimbos = bancas.carimbos(banca_res, led_atual.get("concursos") or [],
                                            date.fromisoformat(nova_exec["date"]),
                                            upd=((nova_exec.get("ledger_updates") or {}).get("concursos") or {}))
-            except (KeyError, ValueError):
+            except (KeyError, ValueError, TypeError):
                 carimbos = {}
         erros += validar_ledger_updates(nova_exec.get("ledger_updates"), led_atual, hoje=nova_exec.get("date"),
                                         ex_id=nova_exec.get("execution_id"), carimbos=carimbos)
@@ -1218,6 +1653,7 @@ def main():
         add_log("RE-EXECUCAO sem rascunho novo: registro %s preservado (%d itens, delivery=%s, janela ate %s)."
                 % (original.get("execution_id"), len(original.get("items") or []),
                    original.get("delivery"), original.get("window_end")))
+        g.aplicar(add_log)              # so o envelope novo, se o historico nao existia
         emitir("STATUS: OK — nada a gravar (duplicata; historico, estado e ledger intactos)")
         return
 
@@ -1241,7 +1677,7 @@ def main():
         for campo in ("resumo", "destaques", "destaques_texto", "grupo", "meta", "nota", "herdada", "autor",
                       "impacto", "resenha", "desdobramento", "resumo_truncado"):
             it.pop(campo, None)
-    # grava a versao normalizada, para o historico ficar consistente
+    # grava a versao normalizada, para o historico ficar consistente (a entrada e uma copia do finalizar.sh)
     write_json_no_bom(args.nova_execucao_path, nova_exec)
 
     # -------------------------------------------------------------
@@ -1296,15 +1732,14 @@ def main():
     # -------------------------------------------------------------
     # 4. Arquivamento: manter no maximo max_execucoes no arquivo
     #    principal (nunca apagar - apenas mover para o arquivo morto
-    #    do mes)
+    #    do mes). Tudo em memoria: a gravacao e no fim (Gravacoes).
     # -------------------------------------------------------------
+    pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
     total = len(historico["executions"])
     if total > args.max_execucoes:
         excedente = total - args.max_execucoes
         para_arquivar = historico["executions"][:excedente]
         historico["executions"] = historico["executions"][excedente:]
-
-        pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
 
         for item in para_arquivar:
             data_ref = item.get("date") or datetime.now().strftime("%Y-%m-%d")
@@ -1313,8 +1748,8 @@ def main():
                 pasta_hist, f"resumo-legislativo-historico-arquivo-{ano_mes}.json"
             )
 
-            if os.path.exists(arquivo_morto):
-                arq = read_json(arquivo_morto)
+            if g.existe(arquivo_morto):
+                arq = g.ler(arquivo_morto)
             else:
                 arq = {
                     "schema_version": historico.get("schema_version"),
@@ -1330,7 +1765,7 @@ def main():
             )
             if not ja_arquivado:
                 arq["executions"].append(item)
-                write_json_no_bom(arquivo_morto, arq)
+                g.json(arquivo_morto, arq)
                 add_log(
                     "Arquivado: "
                     + item.get("execution_id", "")
@@ -1349,21 +1784,21 @@ def main():
                 historico["archive_files"] = lista_arq + [nome_arq]
 
     # E13: arquivo morto listado que nao existe (ex.: ...-2026-06.json) sai da lista
-    pasta_hist = os.path.dirname(os.path.abspath(args.historico_path))
-    sumidos = [a for a in historico["archive_files"] if a and not os.path.exists(os.path.join(pasta_hist, a))]
+    sumidos = [a for a in historico["archive_files"] if a and not g.existe(os.path.join(pasta_hist, a))]
     if sumidos:
         historico["archive_files"] = [a for a in historico["archive_files"] if a and a not in sumidos]
         add_log("archive_files: retirados %s (arquivo inexistente)" % ", ".join(sumidos))
 
     # -------------------------------------------------------------
-    # 5. Gravar historico principal
+    # 5. Historico principal (texto final, conferido antes de gravar)
     # -------------------------------------------------------------
-    write_json_no_bom(args.historico_path, historico)
+    texto_hist = json.dumps(historico, ensure_ascii=False, indent=2)
+    verif = json.loads(texto_hist)
+    g.texto(args.historico_path, texto_hist, verif)
 
     # -------------------------------------------------------------
-    # 6. Validar relendo do disco
+    # 6. Validar o texto que sera gravado (e, depois da gravacao, relido do disco)
     # -------------------------------------------------------------
-    verif = read_json(args.historico_path)
     add_log("Execucoes no arquivo principal: " + str(len(verif["executions"])))
     add_log(
         "IDs: "
@@ -1374,15 +1809,13 @@ def main():
         e.get("execution_id") == nova_exec["execution_id"] for e in verif["executions"]
     )
     if not gravada:
-        raise SystemExit("FALHA: a nova execucao nao foi encontrada apos a gravacao.")
+        raise SystemExit("FALHA: a nova execucao nao foi encontrada no historico a gravar.")
 
     # Deteccao de mojibake: sequencias tipicas de UTF-8 lido como
     # ANSI/cp1252 e regravado. Regex identica (em codepoints) a
-    # work/Update-Historico.ps1: Ã[ -¿] ou â
-    with open(args.historico_path, "r", encoding="utf-8") as f:
-        bruto = f.read()
-    padrao_mojibake = "Ã[ -¿]|â"
-    suspeitas = re.findall(padrao_mojibake, bruto)
+    # work/Update-Historico.ps1: Ã[ -¿] ou â
+    padrao_mojibake = "\u00c3[\u00a0-\u00bf]|\u00e2\u0080"      # os mesmos codepoints de sempre, escritos visiveis
+    suspeitas = re.findall(padrao_mojibake, texto_hist)
     if suspeitas:
         add_log(
             f"ALERTA DE ENCODING: {len(suspeitas)} ocorrencia(s) de mojibake "
@@ -1392,10 +1825,9 @@ def main():
         add_log("Encoding: nenhuma marca de mojibake detectada.")
 
     # -------------------------------------------------------------
-    # 6-A. Emitir o resumo de estado (robozinho-estado.json)
+    # 6-A. Resumo de estado (robozinho-estado.json)
     # -------------------------------------------------------------
-    pasta_estado = os.path.dirname(os.path.abspath(args.historico_path))
-    estado_path = os.path.join(pasta_estado, "robozinho-estado.json")
+    estado_path = os.path.join(pasta_hist, "robozinho-estado.json")
 
     ultima = verif["executions"][-1]
 
@@ -1405,7 +1837,7 @@ def main():
 
     global historico_path_global
     historico_path_global = args.historico_path
-    metricas = metricas_derivadas(verif, todas)
+    metricas = metricas_derivadas(verif, todas, g)
 
     estado = {
         "gerado_em": now_iso_with_offset(),
@@ -1427,7 +1859,7 @@ def main():
         "metricas": metricas,
     }
 
-    write_json_no_bom(estado_path, estado)
+    g.json(estado_path, estado)
     add_log(f"Estado emitido: robozinho-estado.json (ultima execucao {ultima.get('execution_id')})")
     add_log(
         "Metricas: itens_ultima=%d (noticia=%d) media_itens_10=%s (noticia=%s) execucoes_registradas=%d"
@@ -1439,20 +1871,25 @@ def main():
             metricas["execucoes_registradas"],
         )
     )
-    alertas_uso(todas, add_log)
+    try:          # alertas de uso sao acessorios: falha aqui vira AVISO, nunca derruba a gravacao do dia
+        alertas_uso(todas, add_log)
+    except Exception as e:  # noqa: BLE001
+        add_log("AVISO: alertas de uso nao calculados (%s: %s, %s)" % (type(e).__name__, e, onde_falhou(e)))
     feriado_janela = []
     try:
         feriado_janela = [f for f in (read_json(args.janela).get("feriados_na_janela") or [])
                           if f.get("tipo") in ("nacional", "justica_federal")]
     except Exception:  # noqa: BLE001
         pass
-    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")) and not feriado_janela:
+    # §R1 (draft_ja_existente, sem itens): a contagem baixa e do registro, nao de fonte em falha — sem ALERTA
+    if metricas["itens_noticia_ultima"] < 10 and not em_recesso(ultima.get("date")) and not feriado_janela \
+            and ultima.get("delivery") != "draft_ja_existente":
         add_log("ALERTA: so %d itens de noticia (fora concursos/versiculo/Munger) numa janela "
                 "fora do recesso — sinal de falha de fonte; conferir os coletores."
                 % metricas["itens_noticia_ultima"])
 
     # -------------------------------------------------------------
-    # 7. Ledger: ledger_updates, mecanicos dos concursos e contadores (opcional)
+    # 7. Ledger: ledger_updates, mecanicos dos concursos e contadores (opcional), em memoria
     # -------------------------------------------------------------
     if args.ledger_path:
         if os.path.exists(args.ledger_path):
@@ -1460,17 +1897,35 @@ def main():
                 out = list(todas)
                 for nome in historico.get("archive_files") or []:
                     try:
-                        out += read_json(os.path.join(pasta_hist, nome)).get("executions") or []
+                        out += g.ler(os.path.join(pasta_hist, nome)).get("executions") or []
                     except Exception:  # noqa: BLE001
                         pass
                 return out
-            aplicar_ledger(args.ledger_path, nova_exec, add_log, todas_execucoes, banca_res)
-            atualizar_estado_concursos(args.estado_concursos or os.path.join(pasta_hist, "concursos-estado.json"),
-                                       banca_res, nova_exec["date"], add_log,
-                                       os.path.join(os.path.dirname(os.path.abspath(args.bancas)), "paginas_oficiais.json"))
+            led = calcular_ledger(read_json(args.ledger_path), nova_exec, add_log, todas_execucoes, banca_res)
+            g.texto(args.ledger_path, texto_ledger(led), led)
+            caminho_ce = args.estado_concursos or os.path.join(pasta_hist, "concursos-estado.json")
+            try:          # URLs vistas e paginas oficiais sao reforco: falha aqui nao derruba a gravacao do dia
+                estado_ce = calcular_estado_concursos(
+                    caminho_ce, banca_res, nova_exec["date"], add_log,
+                    os.path.join(os.path.dirname(os.path.abspath(args.bancas)), "paginas_oficiais.json"))
+            except Exception as e:  # noqa: BLE001
+                estado_ce = None
+                add_log("AVISO: estado de concursos nao atualizado (%s: %s, %s) — os arquivos da banca de hoje "
+                        "voltam como novos amanha" % (type(e).__name__, e, onde_falhou(e)))
+            if estado_ce is not None:
+                import bancas
+                g.funcao(caminho_ce, lambda: bancas.gravar_estado(caminho_ce, estado_ce))
         else:
             add_log("AVISO: ledger nao encontrado: " + args.ledger_path)
 
+    # -------------------------------------------------------------
+    # 8. Gravar tudo (todas ou nenhuma) e conferir o historico relido do disco
+    # -------------------------------------------------------------
+    def conferir():
+        relido = read_json(args.historico_path)
+        if not any(e.get("execution_id") == nova_exec["execution_id"] for e in relido.get("executions") or []):
+            raise SystemExit("FALHA: a nova execucao nao foi encontrada apos a gravacao.")
+    g.aplicar(add_log, conferir)
     emitir("STATUS: OK")
 
 
