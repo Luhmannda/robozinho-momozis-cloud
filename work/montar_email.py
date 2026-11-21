@@ -600,6 +600,17 @@ def resumo_cortado(s):
     return t + "…" if len(t) >= RESUMO_TRUNCADO_MIN else ""
 
 
+def observacao_informativo(publicados, lidos, notas=None):
+    """Observacao do item do informativo (vai ao historico, nao ao leitor): "k de n destaques publicados". Guarda do
+    informativos.py (r["notas"], STJ): a pagina tem mais notas do que o parser leu (layout novo?) — entao "k de N notas
+    lidas (layout?)", para o "n de n" nao parecer edicao completa; com destaques excluidos, as duas contas."""
+    pub = "%d de %d destaques publicados" % (publicados, lidos)
+    if not (isinstance(notas, int) and not isinstance(notas, bool) and notas > lidos):
+        return pub
+    lidas = "%d de %d notas lidas (layout?)" % (lidos, notas)
+    return lidas if publicados == lidos else "%s; %s" % (pub, lidas)
+
+
 def resolver(it, ev, erros, avisos=None, hoje=None):
     """Completa o item com a evidencia do ref. Campo escrito pelo orquestrador vence; campo DERIVADO
     (destaques_texto, observacao, herdada, chave...) que venha no arquivo e ignorado e recalculado —
@@ -682,7 +693,7 @@ def resolver(it, ev, erros, avisos=None, hoje=None):
                 "fonte": "STJ — página oficial do informativo" if e["tipo"] == "stj" else "STF — documento oficial",
                 "chave": e["chave"],
                 "destaques_texto": destaques_html(e["tipo"], [e["itens"][i] for i in idx], hoje),
-                "observacao": "%d de %d destaques publicados" % (len(idx), len(e["itens"])),
+                "observacao": observacao_informativo(len(idx), len(e["itens"]), e.get("notas")),
                 "herdada": e.get("situacao") in ("atrasada", "pulada"),
                 "_revisita": bool(e.get("revisita")),
                 "_nota_auto": ("destaques da edição anunciada em %s" % br_data(anunciada))

@@ -2024,6 +2024,30 @@ def t_mon_legin_sem_dou_com_resenha():
     p = "\n".join(M._grupos_planalto([dict(M.resolver({"ref": "dec13168", "resenha": RESENHA_20_11}, ev, []))], False))
     ok("não confirmada" not in p and "DOU conforme a Resenha PUSH" in p, "no e-mail: %s" % p[-300:])
 
+@teste
+def t_mon_notas_lidas_do_informativo_stj():
+    """Guarda "k de N notas lidas" do Informativo STJ (informativos.json traz r["notas"] quando a pagina tem mais
+    notas do que o parser leu): chega a observacao do item no resolvido, em vez de "k de k destaques publicados"."""
+    sys.path.insert(0, WORK)
+    import informativos as I
+    with open(os.path.join(FIX_INF, "stj909.html"), "rb") as f:
+        data, itens, _ = I.stj_html(f.read().decode("cp1252"), 909)
+    k = len(itens)
+    base = {"_fonte": "informativo", "ok": True, "tipo": "stj", "numero": 909, "id": "stj909", "data": data,
+            "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=0909.cod.",
+            "chave": "stj|informativo|909|2026|2026-11-10", "itens": itens, "situacao": "nova"}
+    r = M.resolver({"ref": "stj909"}, {"stj909": base}, [])
+    ok(r["observacao"] == "%d de %d destaques publicados" % (k, k), "sem a guarda: %s" % r["observacao"])
+    ev = {"stj909": dict(base, notas=k + 3)}
+    r = M.resolver({"ref": "stj909"}, ev, [])
+    ok(r["observacao"] == "%d de %d notas lidas (layout?)" % (k, k + 3), "guarda: %s" % r["observacao"])
+    r = M.resolver({"ref": "stj909", "destaques": {"excluir": [0]}}, ev, [])
+    ok(r["observacao"] == "%d de %d destaques publicados; %d de %d notas lidas (layout?)" % (k - 1, k, k, k + 3),
+       "com exclusao, as duas contas: %s" % r["observacao"])
+    ok(M.limpar_para_gravar({"items": [r]})["items"][0]["observacao"] == r["observacao"], "vai ao resolvido")
+    ok(M.observacao_informativo(4, 4, 4) == "4 de 4 destaques publicados"
+       and M.observacao_informativo(4, 4, True) == "4 de 4 destaques publicados", "notas <= lidas ou invalido: como antes")
+
 # ------------------------------------------------------------------ E1: migracao aplicada no dia, visivel ao leitor
 def pasta_migrada(upd=None, dia="2026-11-23"):
     """pasta_dia com o ledger REAL de 20/11 (fixture ledger-2011.json = d91d2ee) migrado pela migracao REAL do
