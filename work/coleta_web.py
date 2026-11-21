@@ -235,6 +235,16 @@ def carregar_publicados(h=None):
         p = k.split("|")
         if len(p) >= 4 and p[0] == "planalto" and p[2].isdigit():
             atos.add((repeticao.tipo_canonico(p[1]), p[2].lstrip("0") or p[2]))
+    # (21/11) o titulo do item de Planalto tambem identifica o ato ("Decreto nº 13.167, de 16/11/2026" com chave
+    # gravada fora do formato): o LEGIN nao o traz de volta como HERDADA
+    for e in h:
+        if e.get("execution_id") == IGNORAR_EXEC:
+            continue
+        for it in e.get("items") or []:
+            if it.get("categoria") == "Planalto/Legislação":
+                ident = repeticao.ato_no_titulo(it.get("titulo") or "")
+                if ident:
+                    atos.add((repeticao.tipo_canonico(ident[0]), ident[1]))
     return atos, urls
 
 
@@ -327,6 +337,179 @@ def mpvs(inicio, fim, recorte, atos_pub):
             "dou": dou.strftime("%d/%m/%Y") if dou else "", "http_detalhe": c2, "url": url,
             "chave": "planalto|mpv|%s|%s|%s" % (numero, ano, dou.isoformat() if dou else "")})
     return out
+
+
+# ------------------------------------------------------------ LEGIN (Legislacao Informatizada da Camara)
+# (21/11) Decretos e demais atos do Executivo so entravam pela Resenha PUSH, que chega ~10h — depois da execucao das
+# 7h —, e o ato do DOU de D saia, por construcao, na edicao de D+1 (decretos 13.167-13.172 do DOU de 17/11 so em
+# 18/11); sem a resenha, so a limitacao enganosa "sem ato novo". www.in.gov.br e o Senado sao recusados pela rede; a
+# Legislacao Informatizada da Camara (rotas 9 e 15 da referencia operacional) abre: 1 GET na busca ordenada por data
+# (20 normas por pagina, todas as especies federais) e 1 GET por ato candidato no detalhe (www2.camara.leg.br/legin),
+# que traz "Diario Oficial da Uniao - Secao 1 [- Edicao Extra] - DD/MM/AAAA, Pagina N". Candidato = ato de especie
+# publicavel, assinado ate LEGIN_DIAS_ATO dias antes do inicio da janela, que nao esta no historico (atos_pub) nem nas
+# listas do Congresso desta execucao (leis e MPVs ficam com o Congresso: ids lei.../mpv... sem colisao). Ids pelo
+# tipo e numero (dec13173, lc239, ec141, dleg123; lei/mpv so quando o Congresso nao listou): o mesmo ato tem o mesmo id
+# em qualquer execucao; chave planalto|<tipo>|<n>|<ano>|<data do ato> (a mesma do Congresso e do montador: o
+# dedupe com a resenha PUSH e pela identidade tipo + numero, repeticao.py).
+URL_LEGIN = "https://www.camara.leg.br/legislacao/busca"
+MAX_PAGINAS_LEGIN = 2
+LEGIN_DIAS_ATO = 3
+LEGIN_DIAS_DOU = 7               # DOU anterior ao inicio da janela, ate aqui, e HERDADA (ato que nunca saiu)
+MAX_DETALHES_LEGIN = 10
+# especie -> (tipo da chave, prefixo do id); as demais (atos da Mesa, resolucoes, pactos) so contadas
+TIPOS_LEGIN = {"lei": ("lei", "lei"), "lei complementar": ("lei-complementar", "lc"), "decreto": ("decreto", "dec"),
+               "decreto legislativo": ("decreto-legislativo", "dleg"), "medida provisoria": ("mpv", "mpv"),
+               "emenda constitucional": ("emenda-constitucional", "ec"), "decreto-lei": ("decreto-lei", "dl")}
+MESES_EXTENSO = {m: i + 1 for i, m in enumerate("janeiro fevereiro marco abril maio junho julho agosto setembro "
+                                                "outubro novembro dezembro".split())}
+_NORMA_LEGIN = re.compile(r"^(.+?)\s+n[ºo°.]*\s*([\d.]+),?\s+de\s+(\d{1,2})[ºo°]?\s+de\s+([a-zç]+)\s+de\s+(\d{4})", re.I)
+_DOU_LEGIN = re.compile(r"Di[áa]rio Oficial da Uni[ãa]o\s*-\s*Se[çc][ãa]o\s*(\d)\s*(-\s*Edi[çc][ãa]o Extra(?:\s*-\s*[A-Z])?\s*)?"
+                        r"-\s*(\d\d/\d\d/\d{4}),?\s*P[áa]gina\s*(\d+)\s*\(Publica[çc][ãa]o Original\)", re.I)
+
+
+def url_legin(ano, pagina=1):
+    from urllib.parse import urlencode
+    q = [("geral", ""), ("ano", str(ano)), ("abrangencia", "Legislação Federal"), ("ordenacao", "data:DESC"),
+         ("tipo", ""), ("origem", ""), ("situacao", ""), ("numero", "")]
+    if pagina > 1:
+        q.append(("pagina", str(pagina)))
+    return URL_LEGIN + "?" + urlencode(q)
+
+
+def norma_legin(titulo):
+    """'Decreto nº 13.173, de 19 de Novembro de 2026' -> (especie, numero, date) ou None."""
+    m = _NORMA_LEGIN.match((titulo or "").strip())
+    if not m:
+        return None
+    mes = MESES_EXTENSO.get(_sem_acento(m.group(4)))
+    if not mes:
+        return None
+    try:
+        dia = date(int(m.group(5)), mes, int(m.group(3)))
+    except ValueError:
+        return None
+    return " ".join(m.group(1).split()), m.group(2).replace(".", ""), dia
+
+
+def listagem_legin(t):
+    """[{titulo, url, ementa}] da pagina de busca."""
+    out = []
+    for b in re.split(r'<li class="busca-resultados__item', t or "")[1:]:
+        a = re.search(r'busca-resultados__cabecalho">\s*<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>', b, re.S)
+        if not a:
+            continue
+        em = re.search(r'busca-resultados__descricao[^>]*>(.*?)</p>', b, re.S)
+        ementa = limpa(em.group(1)) if em else ""
+        out.append({"titulo": limpa(a.group(2)), "url": html.unescape(a.group(1)).strip(),
+                    "ementa": re.sub(r"^Ementa:\s*", "", ementa)})
+    return out
+
+
+def detalhe_legin(t):
+    """{dou, extra, pagina_dou, apelido, ementa} da pagina de detalhe (vazio se nao abriu)."""
+    out = {}
+    m = _DOU_LEGIN.search(limpa(t or ""))
+    if m:
+        out.update(dou=m.group(3), extra=bool(m.group(2)), pagina_dou=m.group(4), secao=m.group(1))
+    hs = [limpa(x) for x in re.findall(r"<h1>(.*?)</h1>", t or "", re.S)]
+    if len(hs) > 1 and not _NORMA_LEGIN.match(hs[1]):
+        out["apelido"] = hs[1]                     # "Jornada de Trabalho 5X2"
+    em = re.search(r'class="sessao ementa">\s*<span class="rotulo">EMENTA:</span>(.*?)</p>', t or "", re.S)
+    if em:
+        out["ementa"] = limpa(em.group(1))
+    return out
+
+
+def legin(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
+    """Atos federais do LEGIN que faltam (ver o comentario do bloco). no_congresso: funcao que devolve
+    {(tipo canonico, numero)} das leis/MPVs listadas pelo Congresso nesta execucao (chamada depois da listagem)."""
+    import repeticao
+    out = {"fonte": "legin", "http": 0, "tentativas": 0, "paginas": 0, "listadas": 0, "outras_especies": 0,
+           "mais_recente": "", "itens": [], "no_congresso": 0, "ja_publicadas": []}
+    limite = inicio.date() - timedelta(days=LEGIN_DIAS_ATO)
+    vistos, normas = set(), []
+    for ano in sorted({limite.year, fim.year}, reverse=True):
+        for pag in range(1, MAX_PAGINAS_LEGIN + 1):
+            cod, t, n = fetch_n(url_legin(ano, pag))
+            if not out["paginas"]:
+                out["http"], out["tentativas"] = cod, n
+            if cod != 200:
+                if out["paginas"]:
+                    out["http_pagina"] = {"pagina": pag, "http": cod}
+                break
+            out["paginas"] += 1
+            lista = [x for x in listagem_legin(t) if x["url"] not in vistos]
+            if not lista:
+                break
+            datas = []
+            for x in lista:
+                vistos.add(x["url"])
+                nm = norma_legin(x["titulo"])
+                if not nm:
+                    continue
+                out["listadas"] += 1
+                datas.append(nm[2])
+                if not out["mais_recente"]:
+                    out["mais_recente"] = "%s nº %s, de %s" % (nm[0], nm[1], nm[2].strftime("%d/%m/%Y"))
+                normas.append((x, nm))
+            if not datas or min(datas) < limite:
+                break
+        if out["http"] != 200:
+            break
+    listados_congresso = None
+    cand = []
+    for x, (especie, numero, dia) in normas:
+        tipo = TIPOS_LEGIN.get(_sem_acento(especie))
+        if not tipo:
+            out["outras_especies"] += 1
+            continue
+        if dia < limite:
+            continue
+        ident = (repeticao.tipo_canonico(tipo[0]), numero.lstrip("0") or numero)
+        if ident in atos_pub:
+            out["ja_publicadas"].append("%s %s" % (especie, numero))
+            continue
+        if tipo[0] in ("lei", "lei-complementar", "mpv"):
+            if listados_congresso is None:
+                listados_congresso = no_congresso() or set()
+            if ident in listados_congresso:
+                out["no_congresso"] += 1
+                continue
+        cand.append((x, especie, numero, dia, tipo))
+    cand = cand[:MAX_DETALHES_LEGIN]
+    detalhes = fetch_many([x["url"] for x, *_ in cand])
+    for x, especie, numero, dia, (tipo_chave, prefixo) in cand:
+        cod, t = detalhes.get(x["url"], (0, ""))
+        d = detalhe_legin(t) if cod == 200 else {}
+        dou = dmy(d["dou"]) if d.get("dou") else None
+        if dou is None:
+            sit = "SEM_DATA_OFICIAL"
+        elif dou > fim.date():
+            continue
+        elif dou >= inicio.date():
+            sit = "NOVA"
+        elif dou >= inicio.date() - timedelta(days=LEGIN_DIAS_DOU):
+            sit = "HERDADA"
+        else:
+            continue
+        it = {"situacao": sit, "tipo": especie, "tipo_chave": tipo_chave, "prefixo": prefixo, "numero": numero,
+              "data_ato": dia.strftime("%d/%m/%Y"), "dou": dou.strftime("%d/%m/%Y") if dou else "",
+              "extra": bool(d.get("extra")), "pagina_dou": d.get("pagina_dou", ""), "secao_dou": d.get("secao", ""),
+              "ementa": d.get("ementa") or x["ementa"], "url": x["url"], "http_detalhe": cod,
+              "chave": "planalto|%s|%s|%s|%s" % (tipo_chave, numero, dia.year, dia.isoformat())}
+        if d.get("apelido"):
+            it["apelido"] = d["apelido"]
+        out["itens"].append(it)
+    return out
+
+
+def legin_seguro(inicio, fim, recorte, atos_pub, no_congresso=lambda: set()):
+    """O LEGIN e reforco: erro aqui nunca derruba as outras fontes."""
+    try:
+        return legin(inicio, fim, recorte, atos_pub, no_congresso)
+    except Exception as e:  # noqa: BLE001
+        return {"fonte": "legin", "http": 0, "tentativas": 0, "paginas": 0, "listadas": 0, "itens": [],
+                "erro": "%s: %s" % (type(e).__name__, e)}
 
 
 # ------------------------------------------------------------ Agencia Camara
@@ -1398,7 +1581,34 @@ def imprimir(res, inicio, fim, recorte, ja_saiu=None):
 
 
 def imprimir_legin(r):
-    return []
+    """Bloco do LEGIN no indice; atribui os ids (dec13173, lc239, ec141, dleg123; lei/mpv quando o Congresso nao
+    listou). Rotina (credito, acordo de turismo...) numa linha so."""
+    pub = [i for i in r["itens"] if i["situacao"] in ("NOVA", "HERDADA", "SEM_DATA_OFICIAL")]
+    out = ["\n== LEGIN (Câmara, Legislação Informatizada: decretos e demais atos do DOU antes da resenha PUSH; "
+           "selo OFICIAL ALTERNATIVA; a mesma norma na PLANALTO_ATO é um item só) http=%s listadas=%d%s%s" % (
+               r["http"], r.get("listadas", 0), " mais_recente=%s" % r["mais_recente"] if r.get("mais_recente") else "",
+               " leis/MPVs com o Congresso=%d" % r["no_congresso"] if r.get("no_congresso") else "")]
+    if r.get("erro") or r["http"] != 200 or not r.get("listadas"):
+        out.append("ERRO: LEGIN nao lido (%s) — atos do Executivo so pela resenha PUSH; sem WebSearch"
+                   % (r.get("erro") or ("http=%s" % r["http"] if r["http"] != 200 else "0 normas extraidas (layout?)")))
+        return out
+    if r.get("ja_publicadas"):
+        out.append("JA PUBLICADOS (nao repetir, nem pela resenha PUSH): " + "; ".join(r["ja_publicadas"][:6]))
+    rot = []
+    for i in pub:
+        i["id"] = "%s%s" % (i["prefixo"], i["numero"])
+        if eh_rotina_ato(i["ementa"]):
+            rot.append(i)
+            continue
+        out.append("[%s] %s | %s nº %s de %s (DOU %s%s) — %s%s" % (
+            i["situacao"], i["id"], i["tipo"], i["numero"], i["data_ato"], (i["dou"] or "?")[:5],
+            " · edição extra" if i.get("extra") else "", "«%s» " % i["apelido"] if i.get("apelido") else "",
+            i["ementa"]))
+    out.extend(linhas_rotina(rot, "ato(s)"))
+    if not pub:
+        out.append("NENHUM ATO FORA DO CONGRESSO E DO HISTORICO entre as %d normas listadas (o DOU de hoje pode ainda "
+                   "nao estar indexado: nunca escreva \"sem ato novo\") — fonte ok" % r.get("listadas", 0))
+    return out
 
 
 def imprimir_camara(r):
@@ -1471,6 +1681,17 @@ def status_fontes(res):
             st["camara_noticias"] = ("ok", "%d [LEI]/[PLENARIO] em %d noticia(s) da janela%s" % (
                 sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r.get("na_janela", 0),
                 "" if r.get("completa") else "; leitura incompleta"))
+    r = por.get("legin")
+    if r:
+        if r.get("erro"):
+            st["camara_legin"] = ("falha", r["erro"][:120])
+        elif r["http"] != 200:
+            st["camara_legin"] = ("falha", "http=%s%s" % (r["http"], _entre_parenteses(tentativas_txt(r))))
+        elif not r.get("listadas"):
+            st["camara_legin"] = ("falha", "pagina lida, 0 normas extraidas (layout?)")
+        else:
+            st["camara_legin"] = ("ok", "%d ato(s) fora do Congresso e do historico em %d normas listadas" % (
+                sum(1 for i in r["itens"] if i["situacao"] != "JA_PUBLICADA"), r["listadas"]))
     for fonte in ("conjur", "migalhas"):
         r = por.get(fonte)
         if not r:
@@ -1481,8 +1702,23 @@ def status_fontes(res):
             st[fonte] = ("falha", "0 itens extraidos (layout?)")
         else:
             pub = sum(1 for i in r["itens"] if i["situacao"] in ("NOVA", "HERDADA", "SEM_DATA"))
-            st[fonte] = ("ok", "%d publicaveis" % pub)
+            det = "%d publicaveis" % pub
+            if r.get("via") == "html" and r.get("api"):
+                det += "; via listagem HTML (API: %s)" % (r["api"].get("motivo") or r["api"].get("http"))
+            if r.get("cobertura") == "parcial":
+                # status fica "ok" (a lista fechada do source_status nao tem "parcial"); o detalhe e o AVISO dizem
+                det += "; parcial: leitura incompleta (%d pagina(s); mais antiga %s > inicio)" % (
+                    r.get("paginas", 0), _hm_ou_dia(r.get("mais_antiga")))
+            st[fonte] = ("ok", det)
     return st
+
+
+def _hm_ou_dia(x):
+    if isinstance(x, datetime):
+        return x.strftime("%d/%m %H:%M")
+    if isinstance(x, date):
+        return x.strftime("%d/%m")
+    return "?"
 
 
 def gravar_status(st, script, caminho=None):
@@ -1520,6 +1756,26 @@ def linha_status(st):
     return "SOURCE_STATUS " + json.dumps({k: v[0] for k, v in st.items()}, ensure_ascii=False)
 
 
+def _resultado(fut):
+    try:
+        return fut.result()
+    except Exception:  # noqa: BLE001
+        return {"fonte": "", "itens": []}
+
+
+def listados_congresso(blocos):
+    """{(tipo canonico, numero)} das leis e MPVs que as paginas do Congresso listaram nesta execucao."""
+    import repeticao
+    out = set()
+    for r in blocos:
+        for i in r.get("itens") or []:
+            if r.get("fonte") == "congresso_leis":
+                out.add((repeticao.tipo_canonico(re.sub(r"\s+", "-", i["tipo"].lower())), i["numero"].lstrip("0")))
+            elif r.get("fonte") == "congresso_mpv":
+                out.add(("mpv", i["numero"].lstrip("0")))
+    return out
+
+
 def main():
     global HISTORICO
     ap = argparse.ArgumentParser()
@@ -1534,13 +1790,16 @@ def main():
     historico = carregar_historico()
     atos_pub, urls_pub = carregar_publicados(historico)
 
-    with ThreadPoolExecutor(max_workers=5) as ex:
+    with ThreadPoolExecutor(max_workers=6) as ex:
         fl = ex.submit(leis, inicio, fim, recorte, atos_pub)
         fm = ex.submit(mpvs, inicio, fim, recorte, atos_pub)
         fa = ex.submit(camara_seguro, inicio, fim, recorte, urls_pub)
         fc = ex.submit(conjur, inicio, fim, recorte, urls_pub)
         fg = ex.submit(migalhas, inicio, fim, recorte, urls_pub)
-        res = [fl.result(), fm.result(), fa.result(), fc.result(), fg.result()]
+        # o LEGIN deixa com o Congresso as leis e MPVs que ele listou (espera as duas listas, ja em andamento)
+        fn = ex.submit(legin_seguro, inicio, fim, recorte, atos_pub,
+                       lambda: listados_congresso([_resultado(fl), _resultado(fm)]))
+        res = [fl.result(), fm.result(), fn.result(), fa.result(), fc.result(), fg.result()]
 
     marcar_promo_e_repetidas(res, historico)
     import repeticao

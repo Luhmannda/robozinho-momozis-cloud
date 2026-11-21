@@ -159,6 +159,13 @@ def _ident_titulo(titulo):
     return None
 
 
+def ato_no_titulo(titulo):
+    """(tipo, numero) quando o titulo COMECA pela designacao do ato ('Decreto nº 13.167, de...'), senao None
+    (sem o "MP nnnn em qualquer posicao": noticia sobre a MP nao e a MP)."""
+    m = _ATO_TITULO.match(_sem_acento(titulo))
+    return (dict(TIPOS_ATO)[m.group(1)], str(int(m.group(2).replace(".", "")))) if m else None
+
+
 def _partes(chave):
     """(fonte, tipo, slug_sem_conteudo, conteudo) da chave, ou None."""
     p = (chave or "").lower().split("|")
