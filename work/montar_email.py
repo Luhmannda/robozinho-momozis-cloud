@@ -707,9 +707,11 @@ SEM_CONFIRMACAO = "sem confirmação oficial localizada nesta execução"
 # Fofoquinha), para fato que exige ato oficial.
 SO_SEM_CONFIRMACAO = re.compile(r"^\s*sem\s+confirma[çc][ãa]o\s+oficial(?:\s+localizada)?(?:\s+nesta\s+execu[çc][ãa]o)?"
                                 r"\s*\.?\s*$", re.I)
-LINHA_STJ_MIDIA = ("Julgados do STJ noticiados pela mídia especializada: as notícias do portal do STJ não são lidas "
-                   "pela rotina, então não há confirmação oficial delas nesta edição; as teses oficiais vêm do CodJu e "
-                   "do Informativo STJ.")
+# Verdadeira tambem na secao mista (um item oficial achado por outra via ao lado dos de midia): fala da lista de
+# noticias do portal, que a rotina nao le, e nao "das noticias do STJ" em geral.
+LINHA_STJ_MIDIA = ("Julgados do STJ noticiados pela mídia especializada, sem confirmação oficial nesta edição: a "
+                   "rotina não lê a lista de notícias do portal do STJ. As teses oficiais vêm do CodJu e do "
+                   "Informativo STJ.")
 
 
 def chave_auto(it):
