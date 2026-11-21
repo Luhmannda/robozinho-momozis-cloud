@@ -12,7 +12,8 @@
 #   contagem sem linha); MOVIMENTO e contagem; estado parcial das paginas sem
 #   registro; TRECHOS_ALT (TJPB e ENAM ganham vagas/vencimento/prova; TJSC e
 #   TJAP saem iguais); banca_slug no Update-Historico (formato e unicidade);
-#   listagem ilegivel le os vinculados (rev1 C3).
+#   listagem ilegivel le os vinculados (rev1 C3); NOVA EDICAO de vinculado sem
+#   ano (rev1 C4).
 # USO: python3 work/testes/test_bancas.py   (imprime OK/FALHOU; sai != 0 em falha)
 # Tudo roda numa pasta temporaria (ROBOZINHO_TMP proprio); a rede e simulada.
 # =====================================================================
@@ -499,6 +500,25 @@ def enam_registro_e_nova_edicao():
     ok(r[1]["candidatos"] == ["enam"] and r[0]["candidatos"] == [] and r[0]["edicao"] == "edição anterior de enam",
        [(c["slug"], c["candidatos"], c.get("edicao")) for c in r])
     ok(set(bancas.ordinais("ENAM 6ª edição (2026.2)")) == {6}, "edição")
+
+
+@teste
+def nova_edicao_de_vinculado_sem_ano():
+    """rev1 C4: registro vinculado a slug sem ano (trf2juiz): a pagina trf2juiz27 e NOVA EDICAO? (antes: "edição
+    anterior ou outra página"); a de 2+ anos antes continua edicao anterior; com ano nos dois, como antes."""
+    trf2 = [{"id": "trf2_juiz", "bloco": "Magistratura Federal", "linha": "TRF2 — Juiz Federal Substituto",
+             "selo": "EM ANDAMENTO", "verificado_em": "2026-11-20", "banca_slug": "trf2juiz",
+             "fonte": B + "/concursos/trf2juiz"}]
+    tit = "Concurso Público para o Tribunal Regional Federal da 2ª Região - Juiz Federal"
+    vinc = pag("trf2juiz", tit, [("2026-11-10", "Resultado", PDF + "trf2-res.pdf")])
+    nova = pag("trf2juiz27", tit + " (2027)", [("2026-11-20", "Portaria da Comissão", PDF + "trf2-27.pdf")])
+    velha = pag("trf2juiz24", tit + " (2024)", [("2026-11-12", "Comunicado", PDF + "trf2-24.pdf")])
+    r = bancas.analisar([vinc, nova, velha], HOJE, copy.deepcopy(trf2), {}, ler=ler_falso)
+    ok(r[0]["coberto"] == ["trf2_juiz"], r[0].get("coberto"))
+    ok(r[1]["exibir"] == "nova_edicao" and r[1]["nova_edicao"] == {"id": "trf2_juiz", "vinculada": "trf2juiz"}
+       and "edicao" not in r[1], (r[1]["exibir"], r[1].get("edicao")))
+    ok(r[2]["exibir"] != "nova_edicao" and "trf2_juiz" in r[2]["edicao"], (r[2]["exibir"], r[2].get("edicao")))
+    ok('NOVA EDIÇÃO? trf2juiz27 |' in saida({"http": 200, "concursos": r}), saida({"http": 200, "concursos": r}))
 
 
 # ------------------------------------------------------------------ estado (URLs vistas)

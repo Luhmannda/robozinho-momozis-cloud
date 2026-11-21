@@ -68,8 +68,9 @@
 #     ciclo seguinte) ou de 2+ anos antes, registro EM PLANEJAMENTO x edital de
 #     abertura com mais de PLANEJAMENTO_DIAS, exame que nao e a edicao mais nova
 #     listada: outra edicao, nao candidato;
-#   - registro ja vinculado a outra pagina: ciclo maior (tjscjuiz27, 7exame) =
-#     NOVA EDICAO?; senao, edicao anterior (contagem);
+#   - registro ja vinculado a outra pagina: ciclo maior (tjscjuiz27, 7exame; ou
+#     qualquer ano, salvo 2+ anos antes, se o slug vinculado nao tem ano: trf2juiz
+#     -> trf2juiz27) = NOVA EDICAO?; senao, edicao anterior (contagem);
 #   - outro cargo do mesmo orgao: SEM REGISTRO (da mesma sigla, e de outro cargo).
 # Pagina sem registro (e sem candidato): aparece so com arquivo NAO visto dos
 # ultimos JANELA_MOVIMENTO dias — completa, com o edital, se a abertura e recente
@@ -768,7 +769,10 @@ def casar(alvo, concursos, hoje):
             outra = ligado.get(r["id"])
             if outra:
                 cp, cv = ciclo(c["slug"]), max((ciclo(s) or 0) for s in outra)
-                if cp and cv and cp > cv:
+                # vinculado sem ano (trf2juiz): a pagina com ano e edicao nova (trf2juiz27), nao "edicao anterior"
+                # (rev1 C4) — salvo o ano de 2+ anos antes, a mesma trava do candidato (trava_ciclo)
+                velha = not cv and cp and 1990 <= cp < hoje.year - 1
+                if cp and (not cv or cp > cv) and not velha:
                     c["nova_edicao"] = {"id": r["id"], "vinculada": outra[0]}
                 else:
                     c["edicao"] = "edição anterior ou outra página de %s (vinculado a %s)" % (r["id"], outra[0])
