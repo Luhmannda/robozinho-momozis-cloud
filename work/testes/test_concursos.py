@@ -13,7 +13,8 @@
 #   estado v1 relido sem MUDOU falso, IGUAL numa linha, FORA_DA_REDE sem baixar.
 #   inicio.py: migracoes antes do ledger (linhas impressas; ausente/erro =
 #   ALERTA), escopo regional (FORA DO ESCOPO, sem fila/rodizio/foco/registro
-#   atual), sonda proxy x site x SPA e REDE do ambiente, url_oficial lida todo
+#   atual), sonda proxy x site x SPA e REDE do ambiente (sem resposta = indeterminado,
+#   nao liberado), url_oficial lida todo
 #   dia e MUDOU no foco, dominio sem resposta nao baixado, prazo so secundario
 #   so em D-7/D-1/D0/D+1, pendencia COBERTA/SO VIGIAR, {prox} e DATA_MIN_NOVO,
 #   consultas regionais do apoio, candidato a remocao (secundaria), regra
@@ -488,6 +489,32 @@ def sonda_classifica():
     ok(set(inicio.REDE_DONO) >= {"www.in.gov.br", "noticias.stf.jus.br", "www.vunesp.com.br", "www.concursosfcc.com.br",
                                  "normas.leg.br", "www12.senado.leg.br", "apis.cebraspe.org.br", "cdn.cebraspe.org.br"},
        inicio.REDE_DONO)
+
+
+@teste
+def rede_do_ambiente_sem_resposta_nao_libera():
+    """rev1 C2: "sem resposta" nao prova que o proxy liberou — fica a parte, como indeterminado, sem ordem de gravar."""
+    salvo = dict(inicio.SONDA)
+    try:
+        inicio.SONDA.clear()
+        inicio.SONDA.update({d: "sem resposta" for d in inicio.REDE_DONO})
+        l = inicio.linha_rede_dono({})
+        ok("LIBERADO" not in l and "atualize em ledger_updates" not in l and l.startswith("indeterminado hoje")
+           and all(d in l for d in inicio.REDE_DONO), l)
+        inicio.SONDA.update({d: "proxy" for d in inicio.REDE_DONO})
+        inicio.SONDA.update({"www.in.gov.br": "ok", "www.vunesp.com.br": "sem resposta", "normas.leg.br": "http 403"})
+        l = inicio.linha_rede_dono({"www.in.gov.br": True})
+        lib, _, resto = l.partition("; indeterminado hoje")
+        ok("LIBERADO pelo proxy: www.in.gov.br (ok), normas.leg.br (http 403)" in lib and "vunesp" not in lib.split(
+            "o proxy ainda recusa")[0] and "www.vunesp.com.br" in resto and "nada a gravar no ledger" in resto, l)
+        inicio.SONDA.update({"www.in.gov.br": "proxy", "normas.leg.br": "proxy"})
+        l = inicio.linha_rede_dono({})
+        ok(l.startswith("o proxy recusa 7 dos 8 domínios que só o dono libera") and "LIBERADO" not in l, l)
+        inicio.SONDA.update({"www.vunesp.com.br": "proxy"})
+        ok(inicio.linha_rede_dono({}) == "o proxy recusa os 8 domínios que só o dono libera", "todos recusados")
+    finally:
+        inicio.SONDA.clear()
+        inicio.SONDA.update(salvo)
 
 
 def main():

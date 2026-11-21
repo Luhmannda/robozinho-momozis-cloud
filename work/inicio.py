@@ -45,7 +45,8 @@
 #   - rede (curl na raiz, uma rodada paralela): proxy (CONNECT 403: so o dono
 #     libera) x sem resposta x http NNN x so JavaScript (SPA: www.cebraspe.org.br
 #     nunca e "leia por curl") x ok, para os dominios dos concursos e os que so o
-#     dono libera (REDE_DONO) — linha "REDE (...) | REDE do ambiente: ...";
+#     dono libera (REDE_DONO) — linha "REDE (...) | REDE do ambiente: ..." (LIBERADO, com ordem de
+#     gravar no ledger, so o que passou pelo proxy e respondeu; "sem resposta" = indeterminado hoje);
 #   - pagina oficial (work/paginas_oficiais.py) de TODA url_oficial no escopo,
 #     todo dia (dominio recusado/sem resposta nao e baixado); MUDOU/NOVA entra no foco;
 #   - LEDGER resumido e enxuto: so os concursos EM FOCO com a linha completa
@@ -209,6 +210,31 @@ def alcancaveis(dominios):
 def situacao_rede(d, rede):
     """Rotulo do dominio para as linhas REDE: o detalhe da sonda ou, sem ele (teste), ok/fora."""
     return SONDA.get(d) or ("ok" if rede.get(d) else "fora")
+
+
+def linha_rede_dono(rede):
+    """Texto da linha "REDE do ambiente: ..." para os dominios que so o dono libera (REDE_DONO). LIBERADO (com a
+    ordem de gravar no ledger) so o que passou pelo proxy e respondeu (ok, http NNN, so JavaScript); "sem resposta"
+    nao prova liberacao (com a rede ruim, os 8 viravam "liberados" e a rotina mandava grava-los: rev1 C2) — vai a
+    parte, como indeterminado hoje, sem ordem de gravar."""
+    dono = {d: situacao_rede(d, rede) for d in REDE_DONO}
+    recusa = [d for d, s_ in dono.items() if s_ == "proxy"]
+    indet = [d for d, s_ in dono.items() if s_ in ("sem resposta", "fora")]
+    livres = ["%s (%s)" % (d, s_) for d, s_ in dono.items() if d not in recusa and d not in indet]
+    partes = []
+    if livres:
+        partes.append("LIBERADO pelo proxy: %s — atualize em ledger_updates as fontes (status, nota) e as pendências "
+                      "(dominio_oficial) ligadas; o proxy ainda recusa: %s" % (", ".join(livres),
+                                                                                ", ".join(recusa) or "nenhum"))
+    elif len(recusa) == len(dono):
+        partes.append("o proxy recusa os %d domínios que só o dono libera" % len(dono))
+    elif recusa:
+        partes.append("o proxy recusa %d dos %d domínios que só o dono libera: %s" % (len(recusa), len(dono),
+                                                                                       ", ".join(recusa)))
+    if indet:
+        partes.append("indeterminado hoje (sem resposta: não prova liberação — nada a gravar no ledger): %s"
+                      % ", ".join(indet))
+    return "; ".join(partes)
 
 
 def orgao(c):
@@ -842,16 +868,9 @@ def main():
                    "\"fora do escopo regional\", que não vai ao leitor)%s"
                    % ("/".join(escopo.UFS_APOIO), ", ".join(fora),
                       ", com as pendências " + ", ".join(pend_fora) if pend_fora else ""))
-    # REDE do ambiente: os dominios que so o dono libera (REDE_DONO); a liberacao tem de chegar ao ledger
-    dono = {d: situacao_rede(d, rede) for d in REDE_DONO}
-    livres = ["%s (%s)" % (d, s_) for d, s_ in dono.items() if s_ != "proxy"]
     out.append("REDE (domínios oficiais dos concursos, curl na raiz): %d legíveis; fora: %s" % (
         sum(1 for d in dom_conc if rede.get(d)), ", ".join(rede_fora) or "nenhum"))
-    out.append("REDE do ambiente: %s" % (
-        "LIBERADO pelo proxy: %s — atualize em ledger_updates as fontes (status, nota) e as pendências "
-        "(dominio_oficial) ligadas; o proxy ainda recusa: %s" % (
-            ", ".join(livres), ", ".join(d for d, s_ in dono.items() if s_ == "proxy") or "nenhum")
-        if livres else "o proxy recusa os %d domínios que só o dono libera" % len(dono)))
+    out.append("REDE do ambiente: " + linha_rede_dono(rede))
     for p in ledger.get("pendencias_vivas", []):
         if p.get("faixa") == "ativa" and int(p.get("execucoes") or 0) >= LIMITE_ATIVA:
             alertas.append("pendência %s ativa há %s execuções (limite %d): no passo 4, em "
